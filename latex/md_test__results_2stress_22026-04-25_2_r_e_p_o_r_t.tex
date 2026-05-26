@@ -1,0 +1,97 @@
+\chapter{Omni\+Bus Stress Test Report }
+\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t}{}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t}\index{OmniBus Stress Test Report@{OmniBus Stress Test Report}}
+\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9821}%
+\Hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9821}%
+
+
+
+\begin{DoxyItemize}
+\item Run folder:\+ {\ttfamily C:\+\textbackslash{}Kits work\textbackslash{}limaje de programare\textbackslash{}1\+\_\+\+CORE\textbackslash{}Block\+Chain\+Core\textbackslash{}test\+\_\+results\textbackslash{}stress\textbackslash{}2026-\/04-\/25}
+\item Generated:\+ 2026-\/04-\/25T18:\+56:\+07
+\end{DoxyItemize}\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9822}{}\doxysection{\texorpdfstring{Reliability}{Reliability}}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9822}
+
+\begin{DoxyItemize}
+\item Crashes recorded:\+ {\bfseries{79}}
+\item Chaos kills issued:\+ {\bfseries{5}}
+\item Recovery (restart-\/after-\/kill):\+ {\bfseries{5/\+5 (100.\+0\%)}}
+\end{DoxyItemize}\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9823}{}\doxysection{\texorpdfstring{RPC Stress}{RPC Stress}}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9823}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}method  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}calls  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}avg\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}p95\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}p99\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}max\+\_\+ms  \\
+getblockchaininfo  &10828  &30.\+53  &21.\+40  &149.\+64  &6180.\+89  \\
+eth\+\_\+chain\+Id  &10685  &27.\+93  &21.\+83  &188.\+62  &5126.\+09  \\
+getblockcount  &11028  &28.\+28  &21.\+18  &146.\+00  &5742.\+03  \\
+getbalance  &10859  &30.\+87  &22.\+93  &232.\+50  &6185.\+13  \\
+\end{DoxyTable}
+
+
+Status breakdown:\+ {\ttfamily ok=2121}, {\ttfamily http\+\_\+err:\+The underlying connection was closed:\+ An unexpected error occurred on a send.=21341}, {\ttfamily http\+\_\+err:\+The underlying connection was closed:\+ An unexpected error occurred on a receive.=17733}, {\ttfamily http\+\_\+err:\+The underlying connection was closed:\+ The connection was closed unexpectedly.=2111}, {\ttfamily http\+\_\+err:\+Unable to connect to the remote server=94}\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9824}{}\doxysection{\texorpdfstring{EVM Stress}{EVM Stress}}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9824}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}method  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}calls  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}avg\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}p95\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}p99\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}max\+\_\+ms  \\
+eth\+\_\+chain\+Id  &4000  &23.\+83  &28.\+88  &84.\+04  &6181.\+52  \\
+eth\+\_\+block\+Number  &4000  &21.\+47  &26.\+25  &80.\+24  &10019.\+09  \\
+eth\+\_\+gas\+Price  &4000  &29.\+62  &23.\+27  &128.\+19  &5123.\+49  \\
+eth\+\_\+get\+Code  &4000  &33.\+60  &12.\+15  &507.\+03  &4097.\+82  \\
+eth\+\_\+call  &4000  &28.\+29  &10.\+21  &33.\+17  &4161.\+21  \\
+eth\+\_\+estimate\+Gas  &3500  &24.\+77  &8.\+13  &21.\+33  &4233.\+82  \\
+\end{DoxyTable}
+
+
+Status breakdown:\+ {\ttfamily ok=5275}, {\ttfamily http\+\_\+err:\+The underlying connection was closed:\+ The connection was closed unexpectedly.=853}, {\ttfamily http\+\_\+err:\+The underlying connection was closed:\+ An unexpected error occurred on a send.=10684}, {\ttfamily http\+\_\+err:\+The underlying connection was closed:\+ An unexpected error occurred on a receive.=6243}, {\ttfamily http\+\_\+err:\+Unable to connect to the remote server=46}, {\ttfamily rpc\+\_\+err:\+-\/32601=398}, {\ttfamily http\+\_\+err:\+The request was aborted:\+ The operation has timed out.=1}\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9825}{}\doxysection{\texorpdfstring{Concurrent Clients}{Concurrent Clients}}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9825}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}method  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}calls  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}avg\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}p95\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}p99\+\_\+ms  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}max\+\_\+ms  \\
+getblockchaininfo  &1276  &64.\+72  &47.\+10  &2275.\+06  &5042.\+21  \\
+eth\+\_\+gas\+Price  &1297  &74.\+46  &45.\+90  &3282.\+05  &6346.\+52  \\
+eth\+\_\+chain\+Id  &1168  &62.\+29  &40.\+48  &1883.\+95  &9230.\+87  \\
+getbalance  &1056  &57.\+25  &33.\+95  &1984.\+95  &4948.\+79  \\
+getblockcount  &1175  &61.\+53  &44.\+05  &2034.\+44  &5593.\+31  \\
+eth\+\_\+block\+Number  &1228  &76.\+12  &50.\+17  &3764.\+03  &10010.\+96  \\
+\end{DoxyTable}
+
+
+Status breakdown:\+ {\ttfamily http\+\_\+err=7008}, {\ttfamily ok=123}, {\ttfamily rpc\+\_\+err:\+-\/32601=69}\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9826}{}\doxysection{\texorpdfstring{Block Production}{Block Production}}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9826}
+
+\begin{DoxyItemize}
+\item {\bfseries{samples}}:\+ 175
+\item {\bfseries{first\+\_\+height}}:\+ 1
+\item {\bfseries{last\+\_\+height}}:\+ 1
+\item {\bfseries{delta}}:\+ 0
+\item {\bfseries{duration\+\_\+min}}:\+ 16.\+63261363333333
+\item {\bfseries{blocks\+\_\+per\+\_\+min}}:\+ 0.\+0
+\item {\bfseries{blocks\+\_\+per\+\_\+hour}}:\+ 0.\+0
+\item {\bfseries{stall\+\_\+ticks}}:\+ 170
+\end{DoxyItemize}\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9827}{}\doxysection{\texorpdfstring{Process Metrics (leak detection)}{Process Metrics (leak detection)}}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9827}
+
+\begin{DoxyItemize}
+\item {\bfseries{samples}}:\+ 108
+\item {\bfseries{ram\+\_\+first\+\_\+mb}}:\+ 14.\+73
+\item {\bfseries{ram\+\_\+last\+\_\+mb}}:\+ 14.\+8
+\item {\bfseries{ram\+\_\+max\+\_\+mb}}:\+ 25.\+77
+\item {\bfseries{ram\+\_\+growth\+\_\+mb}}:\+ 0.\+07000000000000028
+\item {\bfseries{cpu\+\_\+total\+\_\+sec}}:\+ 1.\+312
+\item {\bfseries{handles\+\_\+max}}:\+ 117
+\item {\bfseries{threads\+\_\+max}}:\+ 13
+\item {\bfseries{disk\+\_\+first\+\_\+mb}}:\+ 0.\+0
+\item {\bfseries{disk\+\_\+last\+\_\+mb}}:\+ 0.\+0
+\item {\bfseries{duration\+\_\+min}}:\+ 16.\+5935275
+\end{DoxyItemize}
+
+\begin{quote}
+Memory growth verdict:\+ {\bfseries{OK}} (+0.\+1 MB over 16.\+6 min) \end{quote}
+\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9828}{}\doxysection{\texorpdfstring{Mempool}{Mempool}}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9828}
+
+\begin{DoxyItemize}
+\item {\bfseries{samples}}:\+ 2294
+\item {\bfseries{size\+\_\+max}}:\+ 0
+\item {\bfseries{size\+\_\+avg}}:\+ 0.\+0
+\item {\bfseries{bytes\+\_\+max}}:\+ 0
+\item {\bfseries{inject\+\_\+breakdown}}:\+ \{\textquotesingle{}rpc\+\_\+err:\+-\/32601\textquotesingle{}:\+ 303, \textquotesingle{}skipped\textquotesingle{}:\+ 1835, \textquotesingle{}unsupported\+\_\+or\+\_\+err\textquotesingle{}:\+ 156\}
+\end{DoxyItemize}\hypertarget{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9829}{}\doxysection{\texorpdfstring{EVM Deploys}{EVM Deploys}}\label{md_test__results_2stress_22026-04-25_2_r_e_p_o_r_t_autotoc_md9829}
+
+\begin{DoxyItemize}
+\item {\bfseries{rows}}:\+ 1600
+\item {\bfseries{by\+\_\+status}}:\+ \{\textquotesingle{}http\+\_\+err\textquotesingle{}:\+ 1070, \textquotesingle{}rpc\+\_\+err:\+-\/32602\textquotesingle{}:\+ 263, \textquotesingle{}rpc\+\_\+err:\+-\/32601\textquotesingle{}:\+ 267\}
+\item {\bfseries{by\+\_\+method}}:\+ \{\textquotesingle{}eth\+\_\+estimate\+Gas\textquotesingle{}:\+ 800, \textquotesingle{}eth\+\_\+send\+Transaction\textquotesingle{}:\+ 800\} 
+\end{DoxyItemize}

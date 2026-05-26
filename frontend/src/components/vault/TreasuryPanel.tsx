@@ -14,19 +14,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Wallet, Plus, X, RefreshCw, Play, AlertTriangle } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, satToOmni, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
-}
 
 interface TreasuryDest {
   address: string;
@@ -84,18 +76,18 @@ function DistributeModal({ entry, onClose, onConfirm }: DistributeModalProps) {
         </div>
 
         <div className="text-xs text-mempool-text-dim">
-          Current balance: <span className="text-mempool-text font-mono">{fmtOmni(entry.balance_sat)} OMNI</span>
+          Current balance: <span className="text-mempool-text font-mono">{satToOmni(entry.balance_sat, 4)} OMNI</span>
         </div>
 
         <div className="space-y-2">
           <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Split</div>
-          {perDest.map((d, i) => (
-            <div key={i} className="flex items-center justify-between text-xs font-mono bg-mempool-bg rounded px-3 py-2">
+          {perDest.map((d) => (
+            <div key={d.address} className="flex items-center justify-between text-xs font-mono bg-mempool-bg rounded px-3 py-2">
               <div>
-                <span className="text-mempool-text-dim">{d.label || shortAddr(d.address)}</span>
+                <span className="text-mempool-text-dim">{d.label || midTrunc(d.address)}</span>
                 <span className="text-mempool-text-dim ml-2">{d.percent}%</span>
               </div>
-              <span className="text-mempool-green">+{fmtOmni(d.amount_sat)} OMNI</span>
+              <span className="text-mempool-green">+{satToOmni(d.amount_sat, 4)} OMNI</span>
             </div>
           ))}
         </div>
@@ -127,6 +119,7 @@ export function TreasuryPanel() {
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [distributeTarget, setDistributeTarget] = useState<TreasuryEntry | null>(null);
+  const [statusMap, setStatusMap] = useState<Record<string, { pending_distribute_sat: number; total_distributed_sat: number; balance_sat: number }>>({});
 
   // Create form
   const [formAddress, setFormAddress] = useState("");
@@ -146,8 +139,7 @@ export function TreasuryPanel() {
     setLoading(true);
     setErr(null);
     try {
-      const result = await rpc.request_raw("treasury_list", [{}]) as
-        { treasuries?: TreasuryEntry[] } | null;
+      const result = await rpc.treasuryList() as { treasuries?: TreasuryEntry[] } | null;
       setTreasuries(result?.treasuries ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -178,7 +170,7 @@ export function TreasuryPanel() {
     const triggerSat = Math.floor((parseFloat(formTrigger) || 0) * SAT_PER_OMNI);
     setCreateBusy(true);
     try {
-      await rpc.request_raw("treasury_create", [{
+      await rpc.treasuryCreate({
         address: addr,
         label: formLabel.trim(),
         destinations: dests.map((d) => ({
@@ -187,8 +179,8 @@ export function TreasuryPanel() {
           label: d.label.trim(),
         })),
         trigger_sat: triggerSat,
-      }]);
-      showToast(`Treasury created for ${shortAddr(addr)}`);
+      });
+      showToast(`Treasury created for ${midTrunc(addr)}`);
       setFormAddress("");
       setFormLabel("");
       setFormTrigger("");
@@ -201,10 +193,22 @@ export function TreasuryPanel() {
     }
   };
 
+  const handleStatus = async (tid: string) => {
+    try {
+      const r = await rpc.treasuryStatus(tid) as
+        { pending_distribute_sat?: number; total_distributed_sat?: number; balance_sat?: number } | null;
+      if (r) setStatusMap((prev) => ({ ...prev, [tid]: {
+        pending_distribute_sat: r.pending_distribute_sat ?? 0,
+        total_distributed_sat: r.total_distributed_sat ?? 0,
+        balance_sat: r.balance_sat ?? 0,
+      } }));
+    } catch { /* ignore */ }
+  };
+
   const handleDistribute = async (entry: TreasuryEntry) => {
     try {
-      await rpc.request_raw("treasury_distribute", [{ treasury_id: entry.treasury_id }]);
-      showToast(`Distributed treasury ${entry.label || shortAddr(entry.address)}`);
+      await rpc.treasuryDistribute(entry.treasury_id);
+      showToast(`Distributed treasury ${entry.label || midTrunc(entry.address)}`);
       await refresh();
     } catch (e) {
       showToast(`Distribute failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -346,6 +350,32 @@ export function TreasuryPanel() {
           Treasuries ({treasuries.length})
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {treasuries.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["treasury_id", "address", "label", "balance_omni", "trigger_omni", "destinations", "last_distribute_block"].join(","),
+                ...treasuries.map((t) => [
+                  `"${t.treasury_id}"`,
+                  `"${t.address}"`,
+                  `"${t.label}"`,
+                  (t.balance_sat / SAT_PER_OMNI).toFixed(4),
+                  (t.trigger_sat / SAT_PER_OMNI).toFixed(4),
+                  t.destinations.length,
+                  t.last_distribute_block ?? "",
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-treasuries.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
@@ -371,12 +401,18 @@ export function TreasuryPanel() {
               <div key={t.treasury_id} className="bg-mempool-bg border border-mempool-border rounded p-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                   <span className="text-xs text-mempool-text font-medium">
-                    {t.label || shortAddr(t.address)}
+                    {t.label || midTrunc(t.address)}
                   </span>
                   <span className="font-mono text-[10px] text-mempool-text-dim">
-                    {shortAddr(t.address)}
+                    {midTrunc(t.address)}
                   </span>
                   <div className="flex-1" />
+                  <button
+                    onClick={() => void handleStatus(t.treasury_id)}
+                    className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-mempool-border/40 text-mempool-text-dim hover:border-mempool-blue/40 hover:text-mempool-blue"
+                  >
+                    Status
+                  </button>
                   <button
                     onClick={() => setDistributeTarget(t)}
                     className="flex items-center gap-1 px-3 py-1 text-xs rounded border border-mempool-green/40 text-mempool-green hover:bg-mempool-green/10"
@@ -389,12 +425,12 @@ export function TreasuryPanel() {
                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono text-mempool-text-dim">
                   <div>
                     <div className="text-[9px] uppercase tracking-wider">Balance</div>
-                    <div className="text-mempool-text">{fmtOmni(t.balance_sat)} OMNI</div>
+                    <div className="text-mempool-text">{satToOmni(t.balance_sat, 4)} OMNI</div>
                   </div>
                   <div>
                     <div className="text-[9px] uppercase tracking-wider">Trigger</div>
                     <div className={belowTrigger ? "text-mempool-orange" : "text-mempool-green"}>
-                      {fmtOmni(t.trigger_sat)} OMNI
+                      {satToOmni(t.trigger_sat, 4)} OMNI
                     </div>
                   </div>
                   <div>
@@ -409,11 +445,31 @@ export function TreasuryPanel() {
                   </div>
                 </div>
 
+                {/* Live status from treasury_status RPC */}
+                {statusMap[t.treasury_id] && (
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-[11px] font-mono">
+                    <div>
+                      <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Live balance</div>
+                      <div className="text-mempool-blue">{satToOmni(statusMap[t.treasury_id].balance_sat, 4)} OMNI</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Pending dist.</div>
+                      <div className={statusMap[t.treasury_id].pending_distribute_sat > 0 ? "text-mempool-green" : "text-mempool-text-dim"}>
+                        {satToOmni(statusMap[t.treasury_id].pending_distribute_sat, 4)} OMNI
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Total distrib.</div>
+                      <div className="text-mempool-text">{satToOmni(statusMap[t.treasury_id].total_distributed_sat, 4)} OMNI</div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Destinations mini-list */}
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {t.destinations.map((d, i) => (
-                    <span key={i} className="text-[9px] font-mono bg-mempool-bg-elev border border-mempool-border rounded px-2 py-0.5 text-mempool-text-dim">
-                      {d.label || shortAddr(d.address)} {d.percent}%
+                  {t.destinations.map((d) => (
+                    <span key={d.address} className="text-[9px] font-mono bg-mempool-bg-elev border border-mempool-border rounded px-2 py-0.5 text-mempool-text-dim">
+                      {d.label || midTrunc(d.address)} {d.percent}%
                     </span>
                   ))}
                 </div>

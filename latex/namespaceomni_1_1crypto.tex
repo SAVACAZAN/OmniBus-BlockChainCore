@@ -1,0 +1,351 @@
+\doxysection{omni::\+crypto Namespace Reference}
+\hypertarget{namespaceomni_1_1crypto}{}\label{namespaceomni_1_1crypto}\index{omni::crypto@{omni::crypto}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a1b92c6c411b3e45ae0fdba166e245311}{sha256}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a80d023ff288c77dd24290ab62cad269c}{double\+Sha256}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_aa0c074fd79467c4253b91f2287d5a3b4}{sha512}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a0886555b24eb5fd875992e91049caccd}{hmac\+Sha512}} (const QByte\+Array \&key, const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a14ffdb97a40bf9b3046dea5e64596565}{ripemd160}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{hash160}} (const QByte\+Array \&data)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a0ae370714077f54426f4e59d509e7db7}{pbkdf2\+Hmac\+Sha512}} (const QByte\+Array \&password, const QByte\+Array \&salt, int iterations, int key\+Len)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a49fec41db5c1757a2fc911a1fe957d37}{aes256\+Encrypt}} (const QByte\+Array \&plaintext, const QByte\+Array \&key, const QByte\+Array \&iv)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_af90149809fc87f2b018ba817dd1c6b7f}{aes256\+Decrypt}} (const QByte\+Array \&ciphertext, const QByte\+Array \&key, const QByte\+Array \&iv)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a4ea864d0aa189b81583db1987a2777e5}{random\+Bytes}} (int count)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{private\+To\+Public\+Key}} (const QByte\+Array \&priv\+Key)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a55f28e9f746c45b54a9a3b4bc4c600f7}{private\+To\+Uncompressed\+Public\+Key}} (const QByte\+Array \&priv\+Key)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a2ac21a02b71a0577d0bd4a67baf829fc}{ecdsa\+Sign}} (const QByte\+Array \&hash32, const QByte\+Array \&priv\+Key32)
+\item 
+bool \doxymbox{\hyperlink{namespaceomni_1_1crypto_aabba94a5eeb7d47f32ffd9f3cff31d0d}{ecdsa\+Verify}} (const QByte\+Array \&hash32, const QByte\+Array \&signature, const QByte\+Array \&pubkey33)
+\item 
+QString \doxymbox{\hyperlink{namespaceomni_1_1crypto_a431fba8d04be2febbe4697fc4412e492}{pubkey\+To\+Ob1q\+Address}} (const QByte\+Array \&compressed\+Pubkey)
+\item 
+QString \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{pubkey\+Hash\+To\+Address}} (const QByte\+Array \&hash20, const QString \&hrp)
+\item 
+QString\+List \doxymbox{\hyperlink{namespaceomni_1_1crypto_a7d0a942f3e6fc10bbc54312d74e54948}{bip39\+Wordlist}} ()
+\item 
+QString \doxymbox{\hyperlink{namespaceomni_1_1crypto_a64fb10c8cb4589c464e53b61ec2fdb9f}{generate\+Mnemonic}} (int word\+Count)
+\item 
+QByte\+Array \doxymbox{\hyperlink{namespaceomni_1_1crypto_a834109445be202971829ee6408eefbc3}{mnemonic\+To\+Seed}} (const QString \&mnemonic, const QString \&passphrase)
+\item 
+bool \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9b799c91888707b20d701e30b0c157ba}{validate\+Mnemonic}} (const QString \&mnemonic)
+\item 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{master\+Key\+From\+Seed}} (const QByte\+Array \&seed)
+\item 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \doxymbox{\hyperlink{namespaceomni_1_1crypto_a719e5514144de0e1005db64002749bac}{derive\+Child}} (const \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \&parent, uint32\+\_\+t index)
+\item 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{derive\+Path}} (const \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \&master, const QString \&path)
+\end{DoxyCompactItemize}
+
+
+\label{namespaceomni_1_1crypto_doc-func-members}
+\Hypertarget{namespaceomni_1_1crypto_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceomni_1_1crypto_af90149809fc87f2b018ba817dd1c6b7f}\index{omni::crypto@{omni::crypto}!aes256Decrypt@{aes256Decrypt}}
+\index{aes256Decrypt@{aes256Decrypt}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{aes256Decrypt()}{aes256Decrypt()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_af90149809fc87f2b018ba817dd1c6b7f} 
+QByte\+Array omni::\+crypto::\+aes256\+Decrypt (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{ciphertext}{, }\item[{const QByte\+Array \&}]{key}{, }\item[{const QByte\+Array \&}]{iv}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00363}{363}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceomni_1_1crypto_a49fec41db5c1757a2fc911a1fe957d37}\index{omni::crypto@{omni::crypto}!aes256Encrypt@{aes256Encrypt}}
+\index{aes256Encrypt@{aes256Encrypt}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{aes256Encrypt()}{aes256Encrypt()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a49fec41db5c1757a2fc911a1fe957d37} 
+QByte\+Array omni::\+crypto::\+aes256\+Encrypt (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{plaintext}{, }\item[{const QByte\+Array \&}]{key}{, }\item[{const QByte\+Array \&}]{iv}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00337}{337}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceomni_1_1crypto_a7d0a942f3e6fc10bbc54312d74e54948}\index{omni::crypto@{omni::crypto}!bip39Wordlist@{bip39Wordlist}}
+\index{bip39Wordlist@{bip39Wordlist}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{bip39Wordlist()}{bip39Wordlist()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a7d0a942f3e6fc10bbc54312d74e54948} 
+QString\+List omni::\+crypto::\+bip39\+Wordlist (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00968}{968}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceomni_1_1crypto_a719e5514144de0e1005db64002749bac}\index{omni::crypto@{omni::crypto}!deriveChild@{deriveChild}}
+\index{deriveChild@{deriveChild}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{deriveChild()}{deriveChild()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a719e5514144de0e1005db64002749bac} 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} omni::\+crypto::\+derive\+Child (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \&}]{parent}{, }\item[{uint32\+\_\+t}]{index}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l01071}{1071}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}\index{omni::crypto@{omni::crypto}!derivePath@{derivePath}}
+\index{derivePath@{derivePath}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{derivePath()}{derivePath()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c} 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} omni::\+crypto::\+derive\+Path (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} \&}]{master}{, }\item[{const QString \&}]{path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l01111}{1111}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceomni_1_1crypto_a80d023ff288c77dd24290ab62cad269c}\index{omni::crypto@{omni::crypto}!doubleSha256@{doubleSha256}}
+\index{doubleSha256@{doubleSha256}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{doubleSha256()}{doubleSha256()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a80d023ff288c77dd24290ab62cad269c} 
+QByte\+Array omni::\+crypto::\+double\+Sha256 (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00019}{19}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+\Hypertarget{namespaceomni_1_1crypto_a2ac21a02b71a0577d0bd4a67baf829fc}\index{omni::crypto@{omni::crypto}!ecdsaSign@{ecdsaSign}}
+\index{ecdsaSign@{ecdsaSign}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{ecdsaSign()}{ecdsaSign()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a2ac21a02b71a0577d0bd4a67baf829fc} 
+QByte\+Array omni::\+crypto::\+ecdsa\+Sign (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{hash32}{, }\item[{const QByte\+Array \&}]{priv\+Key32}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00800}{800}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceomni_1_1crypto_aabba94a5eeb7d47f32ffd9f3cff31d0d}\index{omni::crypto@{omni::crypto}!ecdsaVerify@{ecdsaVerify}}
+\index{ecdsaVerify@{ecdsaVerify}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{ecdsaVerify()}{ecdsaVerify()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_aabba94a5eeb7d47f32ffd9f3cff31d0d} 
+bool omni::\+crypto::\+ecdsa\+Verify (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{hash32}{, }\item[{const QByte\+Array \&}]{signature}{, }\item[{const QByte\+Array \&}]{pubkey33}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00872}{872}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+\Hypertarget{namespaceomni_1_1crypto_a64fb10c8cb4589c464e53b61ec2fdb9f}\index{omni::crypto@{omni::crypto}!generateMnemonic@{generateMnemonic}}
+\index{generateMnemonic@{generateMnemonic}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{generateMnemonic()}{generateMnemonic()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a64fb10c8cb4589c464e53b61ec2fdb9f} 
+QString omni::\+crypto::\+generate\+Mnemonic (\begin{DoxyParamCaption}\item[{int}]{word\+Count}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00976}{976}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}\index{omni::crypto@{omni::crypto}!hash160@{hash160}}
+\index{hash160@{hash160}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{hash160()}{hash160()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3} 
+QByte\+Array omni::\+crypto::\+hash160 (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00163}{163}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 11
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespaceomni_1_1crypto_a0886555b24eb5fd875992e91049caccd}\index{omni::crypto@{omni::crypto}!hmacSha512@{hmacSha512}}
+\index{hmacSha512@{hmacSha512}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{hmacSha512()}{hmacSha512()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a0886555b24eb5fd875992e91049caccd} 
+QByte\+Array omni::\+crypto::\+hmac\+Sha512 (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{key}{, }\item[{const QByte\+Array \&}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00035}{35}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14
+\Hypertarget{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}\index{omni::crypto@{omni::crypto}!masterKeyFromSeed@{masterKeyFromSeed}}
+\index{masterKeyFromSeed@{masterKeyFromSeed}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{masterKeyFromSeed()}{masterKeyFromSeed()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75} 
+\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{Extended\+Key}} omni::\+crypto::\+master\+Key\+From\+Seed (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{seed}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l01060}{1060}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 15
+Here is the caller graph for this function:\+
+% FIG 16
+\Hypertarget{namespaceomni_1_1crypto_a834109445be202971829ee6408eefbc3}\index{omni::crypto@{omni::crypto}!mnemonicToSeed@{mnemonicToSeed}}
+\index{mnemonicToSeed@{mnemonicToSeed}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{mnemonicToSeed()}{mnemonicToSeed()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a834109445be202971829ee6408eefbc3} 
+QByte\+Array omni::\+crypto::\+mnemonic\+To\+Seed (\begin{DoxyParamCaption}\item[{const QString \&}]{mnemonic}{, }\item[{const QString \&}]{passphrase}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l01007}{1007}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 17
+Here is the caller graph for this function:\+
+% FIG 18
+\Hypertarget{namespaceomni_1_1crypto_a0ae370714077f54426f4e59d509e7db7}\index{omni::crypto@{omni::crypto}!pbkdf2HmacSha512@{pbkdf2HmacSha512}}
+\index{pbkdf2HmacSha512@{pbkdf2HmacSha512}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{pbkdf2HmacSha512()}{pbkdf2HmacSha512()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a0ae370714077f54426f4e59d509e7db7} 
+QByte\+Array omni::\+crypto::\+pbkdf2\+Hmac\+Sha512 (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{password}{, }\item[{const QByte\+Array \&}]{salt}{, }\item[{int}]{iterations}{, }\item[{int}]{key\+Len}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00171}{171}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 19
+Here is the caller graph for this function:\+
+% FIG 20
+\Hypertarget{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}\index{omni::crypto@{omni::crypto}!privateToPublicKey@{privateToPublicKey}}
+\index{privateToPublicKey@{privateToPublicKey}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{privateToPublicKey()}{privateToPublicKey()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865} 
+QByte\+Array omni::\+crypto::\+private\+To\+Public\+Key (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{priv\+Key}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00721}{721}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 21
+\Hypertarget{namespaceomni_1_1crypto_a55f28e9f746c45b54a9a3b4bc4c600f7}\index{omni::crypto@{omni::crypto}!privateToUncompressedPublicKey@{privateToUncompressedPublicKey}}
+\index{privateToUncompressedPublicKey@{privateToUncompressedPublicKey}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{privateToUncompressedPublicKey()}{privateToUncompressedPublicKey()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a55f28e9f746c45b54a9a3b4bc4c600f7} 
+QByte\+Array omni::\+crypto::\+private\+To\+Uncompressed\+Public\+Key (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{priv\+Key}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00735}{735}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+\Hypertarget{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}\index{omni::crypto@{omni::crypto}!pubkeyHashToAddress@{pubkeyHashToAddress}}
+\index{pubkeyHashToAddress@{pubkeyHashToAddress}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{pubkeyHashToAddress()}{pubkeyHashToAddress()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8} 
+QString omni::\+crypto::\+pubkey\+Hash\+To\+Address (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{hash20}{, }\item[{const QString \&}]{hrp}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00946}{946}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 22
+\Hypertarget{namespaceomni_1_1crypto_a431fba8d04be2febbe4697fc4412e492}\index{omni::crypto@{omni::crypto}!pubkeyToOb1qAddress@{pubkeyToOb1qAddress}}
+\index{pubkeyToOb1qAddress@{pubkeyToOb1qAddress}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{pubkeyToOb1qAddress()}{pubkeyToOb1qAddress()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a431fba8d04be2febbe4697fc4412e492} 
+QString omni::\+crypto::\+pubkey\+To\+Ob1q\+Address (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{compressed\+Pubkey}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00941}{941}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 23
+Here is the caller graph for this function:\+
+% FIG 24
+\Hypertarget{namespaceomni_1_1crypto_a4ea864d0aa189b81583db1987a2777e5}\index{omni::crypto@{omni::crypto}!randomBytes@{randomBytes}}
+\index{randomBytes@{randomBytes}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{randomBytes()}{randomBytes()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a4ea864d0aa189b81583db1987a2777e5} 
+QByte\+Array omni::\+crypto::\+random\+Bytes (\begin{DoxyParamCaption}\item[{int}]{count}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00401}{401}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 25
+\Hypertarget{namespaceomni_1_1crypto_a14ffdb97a40bf9b3046dea5e64596565}\index{omni::crypto@{omni::crypto}!ripemd160@{ripemd160}}
+\index{ripemd160@{ripemd160}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{ripemd160()}{ripemd160()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a14ffdb97a40bf9b3046dea5e64596565} 
+QByte\+Array omni::\+crypto::\+ripemd160 (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00107}{107}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 26
+\Hypertarget{namespaceomni_1_1crypto_a1b92c6c411b3e45ae0fdba166e245311}\index{omni::crypto@{omni::crypto}!sha256@{sha256}}
+\index{sha256@{sha256}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{sha256()}{sha256()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a1b92c6c411b3e45ae0fdba166e245311} 
+QByte\+Array omni::\+crypto::\+sha256 (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00015}{15}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+\Hypertarget{namespaceomni_1_1crypto_aa0c074fd79467c4253b91f2287d5a3b4}\index{omni::crypto@{omni::crypto}!sha512@{sha512}}
+\index{sha512@{sha512}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{sha512()}{sha512()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_aa0c074fd79467c4253b91f2287d5a3b4} 
+QByte\+Array omni::\+crypto::\+sha512 (\begin{DoxyParamCaption}\item[{const QByte\+Array \&}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l00027}{27}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 27
+\Hypertarget{namespaceomni_1_1crypto_a9b799c91888707b20d701e30b0c157ba}\index{omni::crypto@{omni::crypto}!validateMnemonic@{validateMnemonic}}
+\index{validateMnemonic@{validateMnemonic}!omni::crypto@{omni::crypto}}
+\doxysubsubsection{\texorpdfstring{validateMnemonic()}{validateMnemonic()}}
+{\footnotesize\ttfamily \label{namespaceomni_1_1crypto_a9b799c91888707b20d701e30b0c157ba} 
+bool omni::\+crypto::\+validate\+Mnemonic (\begin{DoxyParamCaption}\item[{const QString \&}]{mnemonic}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_local_crypto_8cpp_source_l01013}{1013}} of file \doxymbox{\hyperlink{_local_crypto_8cpp_source}{Local\+Crypto.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 28
+Here is the caller graph for this function:\+
+% FIG 29

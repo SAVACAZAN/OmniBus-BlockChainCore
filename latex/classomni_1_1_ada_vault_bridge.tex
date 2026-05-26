@@ -1,0 +1,250 @@
+\doxysection{omni::\+Ada\+Vault\+Bridge Class Reference}
+\hypertarget{classomni_1_1_ada_vault_bridge}{}\label{classomni_1_1_ada_vault_bridge}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+
+
+{\ttfamily \+\#include $<$Ada\+Vault\+Bridge.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a2e3d68ab98e198d56c3910f4f4a73356}{load\+Library}} (const QString \&path="{}omnibus\+\_\+vault"{})
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a298e07b4046750445033bf8bc91b0fd2}{is\+Library\+Loaded}} () const
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_afe825a324c00952db2b5d8643dfe846a}{init}} ()
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a6f9471342eaf2a2a4127ee7c47493c00}{save}} ()
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a8796a446b7c0706f41bae842f302c15f}{lock}} ()
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a45909f88a739a09c0ff6f6dec4a2fd0d}{is\+Vault\+Loaded}} () const
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a4f2c757dd0d0046678b04df07b00c1ff}{add\+Key}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, const QString \&name, const QString \&api\+Key, const QString \&secret, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}} status=\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{KEY\+\_\+\+STATUS\+\_\+\+FREE}})
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ab3fc66562e0f1fa63ee64148141e84bc}{delete\+Key}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, int slot)
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a04968b2afbf16958585115d9171a694a}{update\+Key}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, int slot, const QString \&name, const QString \&api\+Key, const QString \&secret, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}} status)
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a697e5f89d7f2aa1f62b01f6a51317783}{set\+Status}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, int slot, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}} status)
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a93ce122b32c5d8f0bceec06daabc3a97}{key\+Count}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex) const
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a4bc44778fc7ee5e2bd95fb3103a3f687}{has\+Keys}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex) const
+\item 
+\doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{Vault\+Key\+Entry}} \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a02a9210fef502cea34af143dc26942bd}{get\+Key}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, int slot) const
+\item 
+QVector$<$ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{Vault\+Key\+Entry}} $>$ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a3b4974f42f2452c0e9e10c033f301608}{list\+Keys}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex) const
+\item 
+QString \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a0b2cf1c915b7d79351a9460091b66024}{vault\+File\+Path}} () const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static Ada\+Vault\+Bridge \& \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ab9f9dab93a477a4f37280d4536e32eb5}{instance}} ()
+\item 
+static QString \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ad7d79c93c4a86c4d65600cdb45c8441c}{exchange\+Name}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex)
+\item 
+static QString \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a74400182b891c57f7ab06b734951c773}{status\+Name}} (\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}} st)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8h_source_l00059}{59}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8h_source}{Ada\+Vault\+Bridge.\+h}}.
+
+
+
+\label{classomni_1_1_ada_vault_bridge_doc-func-members}
+\Hypertarget{classomni_1_1_ada_vault_bridge_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_ada_vault_bridge_a4f2c757dd0d0046678b04df07b00c1ff}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!addKey@{addKey}}
+\index{addKey@{addKey}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{addKey()}{addKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a4f2c757dd0d0046678b04df07b00c1ff} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+add\+Key (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{const QString \&}]{name}{, }\item[{const QString \&}]{api\+Key}{, }\item[{const QString \&}]{secret}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}}}]{status}{ = {\ttfamily \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{KEY\+\_\+\+STATUS\+\_\+\+FREE}}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00091}{91}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_ab3fc66562e0f1fa63ee64148141e84bc}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!deleteKey@{deleteKey}}
+\index{deleteKey@{deleteKey}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{deleteKey()}{deleteKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_ab3fc66562e0f1fa63ee64148141e84bc} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+delete\+Key (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{int}]{slot}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00107}{107}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_ad7d79c93c4a86c4d65600cdb45c8441c}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!exchangeName@{exchangeName}}
+\index{exchangeName@{exchangeName}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{exchangeName()}{exchangeName()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_ad7d79c93c4a86c4d65600cdb45c8441c} 
+QString omni::\+\+Ada\+Vault\+Bridge::\+exchange\+Name (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00181}{181}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a02a9210fef502cea34af143dc26942bd}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!getKey@{getKey}}
+\index{getKey@{getKey}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{getKey()}{getKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a02a9210fef502cea34af143dc26942bd} 
+\doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{Vault\+Key\+Entry}} omni::\+\+Ada\+Vault\+Bridge::\+get\+Key (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{int}]{slot}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00145}{145}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classomni_1_1_ada_vault_bridge_a4bc44778fc7ee5e2bd95fb3103a3f687}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!hasKeys@{hasKeys}}
+\index{hasKeys@{hasKeys}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{hasKeys()}{hasKeys()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a4bc44778fc7ee5e2bd95fb3103a3f687} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+has\+Keys (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00140}{140}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_afe825a324c00952db2b5d8643dfe846a}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!init@{init}}
+\index{init@{init}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_afe825a324c00952db2b5d8643dfe846a} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+init (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00070}{70}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_ab9f9dab93a477a4f37280d4536e32eb5}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!instance@{instance}}
+\index{instance@{instance}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{instance()}{instance()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_ab9f9dab93a477a4f37280d4536e32eb5} 
+Ada\+Vault\+Bridge \& omni::\+\+Ada\+Vault\+Bridge::\+instance (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00012}{12}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a298e07b4046750445033bf8bc91b0fd2}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!isLibraryLoaded@{isLibraryLoaded}}
+\index{isLibraryLoaded@{isLibraryLoaded}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{isLibraryLoaded()}{isLibraryLoaded()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a298e07b4046750445033bf8bc91b0fd2} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+is\+Library\+Loaded (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8h_source_l00064}{64}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8h_source}{Ada\+Vault\+Bridge.\+h}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a45909f88a739a09c0ff6f6dec4a2fd0d}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!isVaultLoaded@{isVaultLoaded}}
+\index{isVaultLoaded@{isVaultLoaded}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{isVaultLoaded()}{isVaultLoaded()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a45909f88a739a09c0ff6f6dec4a2fd0d} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+is\+Vault\+Loaded (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00084}{84}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a93ce122b32c5d8f0bceec06daabc3a97}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!keyCount@{keyCount}}
+\index{keyCount@{keyCount}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{keyCount()}{keyCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a93ce122b32c5d8f0bceec06daabc3a97} 
+int omni::\+\+Ada\+Vault\+Bridge::\+key\+Count (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00135}{135}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a3b4974f42f2452c0e9e10c033f301608}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!listKeys@{listKeys}}
+\index{listKeys@{listKeys}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{listKeys()}{listKeys()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a3b4974f42f2452c0e9e10c033f301608} 
+QVector$<$ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{Vault\+Key\+Entry}} $>$ omni::\+\+Ada\+Vault\+Bridge::\+list\+Keys (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00164}{164}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+\Hypertarget{classomni_1_1_ada_vault_bridge_a2e3d68ab98e198d56c3910f4f4a73356}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!loadLibrary@{loadLibrary}}
+\index{loadLibrary@{loadLibrary}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{loadLibrary()}{loadLibrary()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a2e3d68ab98e198d56c3910f4f4a73356} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+load\+Library (\begin{DoxyParamCaption}\item[{const QString \&}]{path}{ = {\ttfamily "{}omnibus\+\_\+vault"{}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00022}{22}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a8796a446b7c0706f41bae842f302c15f}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!lock@{lock}}
+\index{lock@{lock}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{lock()}{lock()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a8796a446b7c0706f41bae842f302c15f} 
+void omni::\+\+Ada\+Vault\+Bridge::\+lock (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00080}{80}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a6f9471342eaf2a2a4127ee7c47493c00}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!save@{save}}
+\index{save@{save}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{save()}{save()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a6f9471342eaf2a2a4127ee7c47493c00} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+save (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00075}{75}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a697e5f89d7f2aa1f62b01f6a51317783}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!setStatus@{setStatus}}
+\index{setStatus@{setStatus}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{setStatus()}{setStatus()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a697e5f89d7f2aa1f62b01f6a51317783} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+set\+Status (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{int}]{slot}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}}}]{status}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00127}{127}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a74400182b891c57f7ab06b734951c773}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!statusName@{statusName}}
+\index{statusName@{statusName}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{statusName()}{statusName()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a74400182b891c57f7ab06b734951c773} 
+QString omni::\+\+Ada\+Vault\+Bridge::\+status\+Name (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}}}]{st}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00190}{190}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a04968b2afbf16958585115d9171a694a}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!updateKey@{updateKey}}
+\index{updateKey@{updateKey}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{updateKey()}{updateKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a04968b2afbf16958585115d9171a694a} 
+bool omni::\+\+Ada\+Vault\+Bridge::\+update\+Key (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{int}]{slot}{, }\item[{const QString \&}]{name}{, }\item[{const QString \&}]{api\+Key}{, }\item[{const QString \&}]{secret}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}}}]{status}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00112}{112}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+\Hypertarget{classomni_1_1_ada_vault_bridge_a0b2cf1c915b7d79351a9460091b66024}\index{omni::AdaVaultBridge@{omni::AdaVaultBridge}!vaultFilePath@{vaultFilePath}}
+\index{vaultFilePath@{vaultFilePath}!omni::AdaVaultBridge@{omni::AdaVaultBridge}}
+\doxysubsubsection{\texorpdfstring{vaultFilePath()}{vaultFilePath()}}
+{\footnotesize\ttfamily \label{classomni_1_1_ada_vault_bridge_a0b2cf1c915b7d79351a9460091b66024} 
+QString omni::\+\+Ada\+Vault\+Bridge::\+vault\+File\+Path (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source_l00175}{175}} of file \doxymbox{\hyperlink{_ada_vault_bridge_8cpp_source}{Ada\+Vault\+Bridge.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt-\/ada-\/hybrid/\+qt-\/gui/\+src/\+core/\+\doxymbox{\hyperlink{_ada_vault_bridge_8h}{Ada\+Vault\+Bridge.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt-\/ada-\/hybrid/\+qt-\/gui/\+src/\+core/\+\doxymbox{\hyperlink{_ada_vault_bridge_8cpp}{Ada\+Vault\+Bridge.\+cpp}}\end{DoxyCompactItemize}

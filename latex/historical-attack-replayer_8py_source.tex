@@ -1,0 +1,519 @@
+\doxysection{historical-\/attack-\/replayer.py}
+\hypertarget{historical-attack-replayer_8py_source}{}\label{historical-attack-replayer_8py_source}\index{tools/EXPLOITS/historical-\/attack-\/replayer.py@{tools/EXPLOITS/historical-\/attack-\/replayer.py}}
+\doxymbox{\hyperlink{historical-attack-replayer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00001}\doxymbox{\hyperlink{namespacehistorical-attack-replayer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00002}\doxymbox{\hyperlink{namespacehistorical}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00003}00003\ \textcolor{stringliteral}{historical-\/attack-\/replayer.py\ —\ OmniBus\ BlockChainCore\ Historical\ Attack\ Replayer}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00005}00005\ \textcolor{stringliteral}{Replay\ blockchain-\/level\ attacks\ against\ the\ OmniBus\ node\ via\ RPC:}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ 1.\ Finney\ attack:\ simulate\ pre-\/mining\ a\ block\ with\ double-\/spend\ tx}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ 2.\ Timejacking:\ submit\ blocks\ with\ extreme\ timestamps}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ 3.\ Checkpoint\ manipulation:\ attempt\ to\ set\ a\ fake\ finality\ checkpoint}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ 4.\ Double-\/spend\ via\ simultaneous\ submission\ (leverages\ double-\/spend-\/tester\ logic)}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00011}00011\ \textcolor{stringliteral}{Imports\ from\ existing\ tools\ when\ available,\ otherwise\ standalone.}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00012}00012\ \textcolor{stringliteral}{Output:\ historical-\/attack-\/results.json}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00013}00013\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00015}00015\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00016}00016\ \textcolor{keyword}{import}\ hashlib}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00017}00017\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00018}00018\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00021}00021\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00022}00022\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00024}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_af38042d8b5c665834d05ead93344e6c6}{00024}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00025}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a736670c80e9ede6ebe3a41f49d9d56c3}{00025}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00026}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_ae5735daadbef9d848681db0351d52089}{00026}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00027}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_abb76ab5f7d29382f82498e57c4675045}{00027}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00028}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_ac9b606af98cc75d3022cc3d568fc145e}{00028}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00029}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_aea650bb4c174cc29647b714fe6e5d99f}{00029}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00031}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a3cdc1f61e0436343fab3f4bc54775477}{00031}}\ SCRIPT\_DIR\ =\ os.path.dirname(os.path.abspath(\_\_file\_\_))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00032}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a97e87957e38860bcf11fbafbd1ad1451}{00032}}\ DEFAULT\_OUTPUT\ =\ os.path.join(SCRIPT\_DIR,\ \textcolor{stringliteral}{"{}historical-\/attack-\/results.json"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00035}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00035}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00036}00036\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00039}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00040}00040\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00043}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_abf994b8269849d29e07697ea8a840f74}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00044}00044\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00047}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00048}00048\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00051}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c}{00051}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c}{NodeRPC}}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00052}00052\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}JSON-\/RPC\ client\ for\ OmniBus\ BlockChainCore\ node\ (port\ 8332)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00054}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_ae14c8b4738ce4b75b9dcf549a7338793}{00054}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_ae14c8b4738ce4b75b9dcf549a7338793}{\_\_init\_\_}}(self,\ host:\ str,\ port:\ int,\ timeout:\ int\ =\ 10):}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00055}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a29a6ffa2b71616ba8778abfe065a6445}{00055}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a29a6ffa2b71616ba8778abfe065a6445}{host}}\ =\ host}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00056}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_af0a3d88b7f91ee651a1f503ff04af0d9}{00056}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_af0a3d88b7f91ee651a1f503ff04af0d9}{port}}\ =\ port}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00057}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a9566033c6cd9c4af4a42bc0764159ce3}{00057}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a9566033c6cd9c4af4a42bc0764159ce3}{timeout}}\ =\ timeout}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00058}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a6c6d3489f9aa0445f69e2f7fc910f0b9}{00058}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a6c6d3489f9aa0445f69e2f7fc910f0b9}{\_id}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00060}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{00060}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(self,\ method:\ str,\ params:\ list\ |\ dict\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a6c6d3489f9aa0445f69e2f7fc910f0b9}{\_id}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a6c6d3489f9aa0445f69e2f7fc910f0b9}{\_id}},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a29a6ffa2b71616ba8778abfe065a6445}{host}},\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_af0a3d88b7f91ee651a1f503ff04af0d9}{port}},\ timeout=self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a9566033c6cd9c4af4a42bc0764159ce3}{timeout}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload.encode(\textcolor{stringliteral}{"{}utf-\/8"{}}),\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ body\ =\ resp.read().decode(\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ json.loads(body)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ (ConnectionRefusedError,\ OSError)\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ \{\textcolor{stringliteral}{"{}code"{}}:\ -\/1,\ \textcolor{stringliteral}{"{}message"{}}:\ f\textcolor{stringliteral}{"{}Connection\ failed:\ \{e\}"{}}\}\}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ json.JSONDecodeError:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ \{\textcolor{stringliteral}{"{}code"{}}:\ -\/2,\ \textcolor{stringliteral}{"{}message"{}}:\ \textcolor{stringliteral}{"{}Invalid\ JSON\ response"{}}\}\}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ \{\textcolor{stringliteral}{"{}code"{}}:\ -\/3,\ \textcolor{stringliteral}{"{}message"{}}:\ str(e)\}\}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00082}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a840d65ea7a175af36d8d303e1af22784}{00082}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a840d65ea7a175af36d8d303e1af22784}{is\_alive}}(self)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(\textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ resp}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00086}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8327a4c35e9ebc8a2268ddbadf72c323}{00086}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8327a4c35e9ebc8a2268ddbadf72c323}{get\_block\_count}}(self)\ -\/>\ int\ |\ None:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(\textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00090}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a435d4e48c14f8d5723839715ebf231ca}{00090}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a435d4e48c14f8d5723839715ebf231ca}{get\_block}}(self,\ height:\ int)\ -\/>\ dict\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(\textcolor{stringliteral}{"{}getblock"{}},\ [height])}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00094}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a4c2892fe955fbf3a12af205231ee3ba2}{00094}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a4c2892fe955fbf3a12af205231ee3ba2}{get\_block\_hash}}(self,\ height:\ int)\ -\/>\ str\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(\textcolor{stringliteral}{"{}getblockhash"{}},\ [height])}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00098}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a253a501dc681150353a5f6ddc20845f3}{00098}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a253a501dc681150353a5f6ddc20845f3}{submit\_block}}(self,\ block\_data:\ dict)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(\textcolor{stringliteral}{"{}submitblock"{}},\ [block\_data])}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00101}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a9aca04a6cc750078f4b9f914f5131d88}{00101}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a9aca04a6cc750078f4b9f914f5131d88}{send\_raw\_transaction}}(self,\ tx\_data:\ str)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(\textcolor{stringliteral}{"{}sendrawtransaction"{}},\ [tx\_data])}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00104}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a1e5ce64d88ea17705dd19a989c2934f0}{00104}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a1e5ce64d88ea17705dd19a989c2934f0}{get\_mempool\_info}}(self)\ -\/>\ dict\ |\ None:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(\textcolor{stringliteral}{"{}getmempoolinfo"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00108}\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_ac969d1d0e851489e68e0841b0217753e}{00108}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_ac969d1d0e851489e68e0841b0217753e}{get\_network\_info}}(self)\ -\/>\ dict\ |\ None:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c_a8102c31c44e9a7c11d937971029e08b2}{call}}(\textcolor{stringliteral}{"{}getnetworkinfo"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00113}00113\ \textcolor{comment}{\#\ ============================================================================}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00114}00114\ \textcolor{comment}{\#\ Try\ to\ import\ existing\ tools\ for\ enhanced\ testing}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00115}00115\ \textcolor{comment}{\#\ ============================================================================}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00117}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a0ac655532d8cf1eadd43f127c37afc20}{00117}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a0ac655532d8cf1eadd43f127c37afc20}{try\_import\_double\_spend\_tester}}():}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00118}00118\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Try\ to\ import\ double-\/spend-\/tester.py\ logic."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ sys.path.insert(0,\ SCRIPT\_DIR)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ The\ module\ may\ use\ requests,\ so\ we\ handle\ ImportError}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ importlib}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ spec\ =\ importlib.util.spec\_from\_file\_location(}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}double\_spend\_tester"{}},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ os.path.join(SCRIPT\_DIR,\ \textcolor{stringliteral}{"{}double-\/spend-\/tester.py"{}}),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ spec\ \textcolor{keywordflow}{and}\ spec.loader:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ module\ =\ importlib.util.module\_from\_spec(spec)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ spec.loader.exec\_module(module)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ module}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00131}00131\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00133}00133\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00136}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a43e4fef654c34e5ebb393348bcb5dd28}{00136}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a43e4fef654c34e5ebb393348bcb5dd28}{try\_import\_consensus\_sim}}():}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00137}00137\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Try\ to\ import\ consensus-\/attack-\/sim.py\ logic."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00138}00138\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ importlib}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ spec\ =\ importlib.util.spec\_from\_file\_location(}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}consensus\_attack\_sim"{}},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ os.path.join(SCRIPT\_DIR,\ \textcolor{stringliteral}{"{}consensus-\/attack-\/sim.py"{}}),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ spec\ \textcolor{keywordflow}{and}\ spec.loader:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ module\ =\ importlib.util.module\_from\_spec(spec)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ spec.loader.exec\_module(module)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ module}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00148}00148\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00153}00153\ \textcolor{comment}{\#\ ============================================================================}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00154}00154\ \textcolor{comment}{\#\ Attack\ simulations}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00155}00155\ \textcolor{comment}{\#\ ============================================================================}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00157}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_acf7a2c011d832c978be887372ecb11b0}{00157}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_acf7a2c011d832c978be887372ecb11b0}{test\_finney\_attack}}(rpc:\ NodeRPC)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00158}00158\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00159}00159\ \textcolor{stringliteral}{\ \ \ \ Finney\ Attack:\ Miner\ pre-\/mines\ a\ block\ containing\ a\ transaction\ that\ spends}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00160}00160\ \textcolor{stringliteral}{\ \ \ \ coins\ to\ themselves,\ then\ broadcasts\ a\ different\ transaction\ to\ a\ merchant,}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00161}00161\ \textcolor{stringliteral}{\ \ \ \ and\ releases\ the\ pre-\/mined\ block\ to\ override\ it.}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00162}00162\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00163}00163\ \textcolor{stringliteral}{\ \ \ \ Test:\ Submit\ two\ conflicting\ transactions\ and\ a\ block\ favoring\ one.}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00164}00164\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00165}00165\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Attack\ 1:\ Finney\ Attack\ (Pre-\/mined\ Double-\/Spend)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00166}00166\ \ \ \ \ result\ =\ \{\textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}finney"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}UNKNOWN"{}},\ \textcolor{stringliteral}{"{}details"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00168}00168\ \ \ \ \ \textcolor{comment}{\#\ Get\ current\ chain\ state}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00169}00169\ \ \ \ \ height\ =\ rpc.get\_block\_count()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00170}00170\ \ \ \ \ \textcolor{keywordflow}{if}\ height\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}SKIPPED"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\textcolor{stringliteral}{"{}Cannot\ connect\ to\ node"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00175}00175\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Current\ block\ height:\ \{height\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00177}00177\ \ \ \ \ \textcolor{comment}{\#\ Create\ two\ conflicting\ transactions}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00178}00178\ \ \ \ \ test\_sender\ =\ hashlib.sha256(b\textcolor{stringliteral}{"{}finney\_test\_sender"{}}).hexdigest()[:40]}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00179}00179\ \ \ \ \ merchant\ =\ hashlib.sha256(b\textcolor{stringliteral}{"{}merchant"{}}).hexdigest()[:40]}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00180}00180\ \ \ \ \ attacker\_self\ =\ hashlib.sha256(b\textcolor{stringliteral}{"{}attacker\_self"{}}).hexdigest()[:40]}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00182}00182\ \ \ \ \ \textcolor{comment}{\#\ TX-\/A:\ pay\ merchant\ (what\ merchant\ sees)}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00183}00183\ \ \ \ \ tx\_a\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sender"{}}:\ test\_sender,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}recipient"{}}:\ merchant,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}amount"{}}:\ 50000,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nonce"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ int(time.time()),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signature"{}}:\ hashlib.sha256(b\textcolor{stringliteral}{"{}fake\_sig\_a"{}}).hexdigest(),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00191}00191\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00193}00193\ \ \ \ \ \textcolor{comment}{\#\ TX-\/B:\ pay\ self\ (what\ attacker\ pre-\/mines\ in\ a\ block)}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00194}00194\ \ \ \ \ tx\_b\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sender"{}}:\ test\_sender,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}recipient"{}}:\ attacker\_self,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}amount"{}}:\ 50000,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nonce"{}}:\ 1,\ \ \textcolor{comment}{\#\ Same\ nonce\ —\ conflicts\ with\ TX-\/A}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ int(time.time()),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signature"{}}:\ hashlib.sha256(b\textcolor{stringliteral}{"{}fake\_sig\_b"{}}).hexdigest(),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00202}00202\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00204}00204\ \ \ \ \ \textcolor{comment}{\#\ Submit\ TX-\/A\ to\ mempool}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00205}00205\ \ \ \ \ resp\_a\ =\ rpc.send\_raw\_transaction(tx\_a)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00206}00206\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}TX-\/A\ (to\ merchant)\ submitted:\ \{str(resp\_a)[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00207}00207\ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(f\textcolor{stringliteral}{"{}TX-\/A\ response:\ \{str(resp\_a)[:100]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00209}00209\ \ \ \ \ \textcolor{comment}{\#\ Submit\ TX-\/B\ (conflicting)}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00210}00210\ \ \ \ \ resp\_b\ =\ rpc.send\_raw\_transaction(tx\_b)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00211}00211\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}TX-\/B\ (to\ self,\ conflicting)\ submitted:\ \{str(resp\_b)[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00212}00212\ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(f\textcolor{stringliteral}{"{}TX-\/B\ response:\ \{str(resp\_b)[:100]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00214}00214\ \ \ \ \ \textcolor{comment}{\#\ Check:\ did\ the\ node\ reject\ the\ conflicting\ tx?}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00215}00215\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp\_b:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Node\ REJECTED\ conflicting\ transaction\ (Finney\ attack\ mitigated)"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}DEFENDED"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00218}00218\ \ \ \ \ \textcolor{keywordflow}{elif}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp\_a\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp\_b:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Both\ transactions\ rejected\ (test\ key\ not\ valid)"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}INCONCLUSIVE"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00221}00221\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Both\ transactions\ accepted\ —\ check\ mempool\ conflict\ resolution"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}INVESTIGATE"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ mempool}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ mempool\ =\ rpc.get\_mempool\_info()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mempool:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Mempool\ size:\ \{mempool\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(f\textcolor{stringliteral}{"{}Mempool:\ \{mempool\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00230}00230\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00231}00231\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00232}00232\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00233}00233\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00234}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_af3cacda9ba58437c924b322fe34e3534}{00234}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_af3cacda9ba58437c924b322fe34e3534}{test\_timejacking}}(rpc:\ NodeRPC)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00235}00235\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00236}00236\ \textcolor{stringliteral}{\ \ \ \ Timejacking\ Attack:\ Submit\ blocks\ with\ timestamps\ far\ in\ the\ future\ or\ past.}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00237}00237\ \textcolor{stringliteral}{\ \ \ \ Node\ should\ reject\ blocks\ with\ timestamps\ beyond\ acceptable\ drift.}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00238}00238\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00239}00239\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Attack\ 2:\ Timejacking\ (Timestamp\ Manipulation)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00240}00240\ \ \ \ \ result\ =\ \{\textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}timejacking"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}UNKNOWN"{}},\ \textcolor{stringliteral}{"{}details"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00241}00241\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00242}00242\ \ \ \ \ height\ =\ rpc.get\_block\_count()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00243}00243\ \ \ \ \ \textcolor{keywordflow}{if}\ height\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}SKIPPED"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\textcolor{stringliteral}{"{}Cannot\ connect\ to\ node"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00248}00248\ \ \ \ \ \textcolor{comment}{\#\ Get\ a\ real\ block\ as\ template}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00249}00249\ \ \ \ \ genesis\ =\ rpc.get\_block(0)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00250}00250\ \ \ \ \ current\_time\ =\ int(time.time())}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00252}00252\ \ \ \ \ test\_cases\ =\ [}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}+2\ hours\ (future)"{}},\ current\_time\ +\ 7200),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}+24\ hours\ (far\ future)"{}},\ current\_time\ +\ 86400),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}-\/2\ hours\ (past)"{}},\ current\_time\ -\/\ 7200),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}-\/24\ hours\ (far\ past)"{}},\ current\_time\ -\/\ 86400),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Year\ 2099\ (extreme\ future)"{}},\ 4102444800),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Year\ 1970\ (epoch\ zero)"{}},\ 0),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Negative\ timestamp"{}},\ -\/1),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00260}00260\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00262}00262\ \ \ \ \ defended\ =\ 0}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00263}00263\ \ \ \ \ \textcolor{keywordflow}{for}\ label,\ timestamp\ \textcolor{keywordflow}{in}\ test\_cases:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Testing:\ \{label\}\ (timestamp=\{timestamp\})"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00265}00265\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ fake\_block\ =\ \{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ height\ +\ 1,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ timestamp,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}previous\_hash"{}}:\ rpc.get\_block\_hash(height)\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}0"{}}\ *\ 64,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}merkle\_root"{}}:\ hashlib.sha256(f\textcolor{stringliteral}{"{}fake\_merkle\_\{timestamp\}"{}}.encode()).hexdigest(),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nonce"{}}:\ 0,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}difficulty"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}transactions"{}}:\ [],}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ resp\ =\ rpc.submit\_block(fake\_block)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}\ \ REJECTED:\ \{resp['error'].get('message',\ '')[:60]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ defended\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}\ \ ACCEPTED\ or\ no\ error:\ \{str(resp)[:60]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ label,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ timestamp,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rejected"{}}:\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}response"{}}:\ str(resp)[:100],}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00292}00292\ \ \ \ \ total\ =\ len(test\_cases)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00293}00293\ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}DEFENDED"{}}\ \textcolor{keywordflow}{if}\ defended\ ==\ total\ \textcolor{keywordflow}{else}\ (\textcolor{stringliteral}{"{}PARTIAL"{}}\ \textcolor{keywordflow}{if}\ defended\ >\ 0\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}VULNERABLE"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00294}00294\ \ \ \ \ result[\textcolor{stringliteral}{"{}defended\_count"{}}]\ =\ f\textcolor{stringliteral}{"{}\{defended\}/\{total\}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00295}00295\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Timejacking:\ \{defended\}/\{total\}\ invalid\ timestamps\ rejected"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00297}00297\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00298}00298\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00299}00299\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00300}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a69e30746759dbfd18ed6fe6769d9fca3}{00300}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a69e30746759dbfd18ed6fe6769d9fca3}{test\_checkpoint\_manipulation}}(rpc:\ NodeRPC)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00301}00301\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00302}00302\ \textcolor{stringliteral}{\ \ \ \ Checkpoint\ Manipulation:\ Attempt\ to\ set\ a\ fake\ finality\ checkpoint}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00303}00303\ \textcolor{stringliteral}{\ \ \ \ to\ override\ the\ chain's\ canonical\ state.}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00304}00304\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00305}00305\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Attack\ 3:\ Checkpoint/Finality\ Manipulation\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00306}00306\ \ \ \ \ result\ =\ \{\textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}checkpoint\_manipulation"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}UNKNOWN"{}},\ \textcolor{stringliteral}{"{}details"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00307}00307\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00308}00308\ \ \ \ \ height\ =\ rpc.get\_block\_count()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00309}00309\ \ \ \ \ \textcolor{keywordflow}{if}\ height\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}SKIPPED"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\textcolor{stringliteral}{"{}Cannot\ connect\ to\ node"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00313}00313\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00314}00314\ \ \ \ \ \textcolor{comment}{\#\ Attempt\ 1:\ Set\ checkpoint\ at\ height\ 0\ with\ fake\ hash}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00315}00315\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Attempting\ to\ set\ fake\ checkpoint\ at\ genesis..."{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00316}00316\ \ \ \ \ fake\_checkpoint\ =\ \{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ 0,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ \textcolor{stringliteral}{"{}ff"{}}\ *\ 32,\ \ \textcolor{comment}{\#\ Fake\ hash}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signatures"{}}:\ [],}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00320}00320\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00321}00321\ \ \ \ \ resp1\ =\ rpc.call(\textcolor{stringliteral}{"{}setcheckpoint"{}},\ [fake\_checkpoint])}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00322}00322\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp1:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Fake\ checkpoint\ REJECTED:\ \{resp1['error'].get('message',\ '')[:60]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}fake\_genesis\_checkpoint"{}},\ \textcolor{stringliteral}{"{}rejected"{}}:\ \textcolor{keyword}{True}\})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00325}00325\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Fake\ checkpoint\ response:\ \{str(resp1)[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}fake\_genesis\_checkpoint"{}},\ \textcolor{stringliteral}{"{}rejected"{}}:\ \textcolor{keyword}{False}\})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00328}00328\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00329}00329\ \ \ \ \ \textcolor{comment}{\#\ Attempt\ 2:\ Set\ checkpoint\ at\ future\ height}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00330}00330\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Attempting\ checkpoint\ at\ future\ height..."{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00331}00331\ \ \ \ \ future\_checkpoint\ =\ \{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00332}00332\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ height\ +\ 10000,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ hashlib.sha256(b\textcolor{stringliteral}{"{}future\_checkpoint"{}}).hexdigest(),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00334}00334\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signatures"{}}:\ [\textcolor{stringliteral}{"{}fake\_sig\_1"{}},\ \textcolor{stringliteral}{"{}fake\_sig\_2"{}}],}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00335}00335\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00336}00336\ \ \ \ \ resp2\ =\ rpc.call(\textcolor{stringliteral}{"{}setcheckpoint"{}},\ [future\_checkpoint])}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00337}00337\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp2:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00338}00338\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Future\ checkpoint\ REJECTED:\ \{resp2['error'].get('message',\ '')[:60]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}future\_checkpoint"{}},\ \textcolor{stringliteral}{"{}rejected"{}}:\ \textcolor{keyword}{True}\})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00340}00340\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Future\ checkpoint\ response:\ \{str(resp2)[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00342}00342\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}future\_checkpoint"{}},\ \textcolor{stringliteral}{"{}rejected"{}}:\ \textcolor{keyword}{False}\})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00343}00343\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00344}00344\ \ \ \ \ \textcolor{comment}{\#\ Attempt\ 3:\ Override\ existing\ finalized\ block}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00345}00345\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Attempting\ to\ override\ finalized\ block..."{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00346}00346\ \ \ \ \ \textcolor{keywordflow}{if}\ height\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00347}00347\ \ \ \ \ \ \ \ \ real\_hash\ =\ rpc.get\_block\_hash(max(0,\ height\ -\/\ 1))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00348}00348\ \ \ \ \ \ \ \ \ override\_checkpoint\ =\ \{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00349}00349\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ max(0,\ height\ -\/\ 1),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00350}00350\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ \textcolor{stringliteral}{"{}aa"{}}\ *\ 32,\ \ \textcolor{comment}{\#\ Different\ hash\ than\ the\ real\ one}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00351}00351\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signatures"{}}:\ [],}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ resp3\ =\ rpc.call(\textcolor{stringliteral}{"{}setcheckpoint"{}},\ [override\_checkpoint])}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00354}00354\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp3:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00355}00355\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Override\ REJECTED:\ \{resp3['error'].get('message',\ '')[:60]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00356}00356\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}override\_finalized"{}},\ \textcolor{stringliteral}{"{}rejected"{}}:\ \textcolor{keyword}{True}\})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00357}00357\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Override\ response:\ \{str(resp3)[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00359}00359\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}override\_finalized"{}},\ \textcolor{stringliteral}{"{}rejected"{}}:\ \textcolor{keyword}{False}\})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00360}00360\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00361}00361\ \ \ \ \ rejected\_count\ =\ sum(1\ \textcolor{keywordflow}{for}\ d\ \textcolor{keywordflow}{in}\ result[\textcolor{stringliteral}{"{}details"{}}]\ \textcolor{keywordflow}{if}\ d.get(\textcolor{stringliteral}{"{}rejected"{}},\ \textcolor{keyword}{False}))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00362}00362\ \ \ \ \ total\ =\ len(result[\textcolor{stringliteral}{"{}details"{}}])}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00363}00363\ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}DEFENDED"{}}\ \textcolor{keywordflow}{if}\ rejected\_count\ ==\ total\ \textcolor{keywordflow}{else}\ (\textcolor{stringliteral}{"{}PARTIAL"{}}\ \textcolor{keywordflow}{if}\ rejected\_count\ >\ 0\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}VULNERABLE"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00364}00364\ \ \ \ \ result[\textcolor{stringliteral}{"{}defended\_count"{}}]\ =\ f\textcolor{stringliteral}{"{}\{rejected\_count\}/\{total\}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00365}00365\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00366}00366\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00367}00367\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00368}00368\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00369}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a0bad7ac56af09c3faa77e9eba1096b2c}{00369}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a0bad7ac56af09c3faa77e9eba1096b2c}{test\_double\_spend\_rpc}}(rpc:\ NodeRPC)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00370}00370\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00371}00371\ \textcolor{stringliteral}{\ \ \ \ Double-\/Spend\ via\ RPC:\ Submit\ the\ same\ transaction\ through\ RPC\ twice}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00372}00372\ \textcolor{stringliteral}{\ \ \ \ in\ rapid\ succession.\ The\ node\ should\ detect\ the\ duplicate.}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00373}00373\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00374}00374\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Attack\ 4:\ Double-\/Spend\ via\ RPC\ Duplicate\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00375}00375\ \ \ \ \ result\ =\ \{\textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}double\_spend\_rpc"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}UNKNOWN"{}},\ \textcolor{stringliteral}{"{}details"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00376}00376\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00377}00377\ \ \ \ \ \textcolor{comment}{\#\ Try\ importing\ the\ dedicated\ double-\/spend\ tester}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00378}00378\ \ \ \ \ ds\_module\ =\ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a0ac655532d8cf1eadd43f127c37afc20}{try\_import\_double\_spend\_tester}}()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00379}00379\ \ \ \ \ \textcolor{keywordflow}{if}\ ds\_module:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00380}00380\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Using\ enhanced\ logic\ from\ double-\/spend-\/tester.py"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00381}00381\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00382}00382\ \ \ \ \ test\_tx\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00383}00383\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00384}00384\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sender"{}}:\ hashlib.sha256(b\textcolor{stringliteral}{"{}ds\_test\_sender"{}}).hexdigest()[:40],}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00385}00385\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}recipient"{}}:\ hashlib.sha256(b\textcolor{stringliteral}{"{}ds\_test\_recipient"{}}).hexdigest()[:40],}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00386}00386\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}amount"{}}:\ 1000,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00387}00387\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nonce"{}}:\ 42,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00388}00388\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ int(time.time()),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00389}00389\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signature"{}}:\ hashlib.sha256(b\textcolor{stringliteral}{"{}ds\_test\_sig"{}}).hexdigest(),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00390}00390\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00391}00391\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00392}00392\ \ \ \ \ \textcolor{comment}{\#\ Submit\ twice\ rapidly}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00393}00393\ \ \ \ \ resp1\ =\ rpc.send\_raw\_transaction(test\_tx)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00394}00394\ \ \ \ \ resp2\ =\ rpc.send\_raw\_transaction(test\_tx)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00395}00395\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00396}00396\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}First\ submission:\ \{str(resp1)[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00397}00397\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Second\ submission:\ \{str(resp2)[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00398}00398\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00399}00399\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp2\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ resp1:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00400}00400\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Duplicate\ transaction\ REJECTED\ on\ second\ submission"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00401}00401\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}DEFENDED"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00402}00402\ \ \ \ \ \textcolor{keywordflow}{elif}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp1\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp2:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00403}00403\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Both\ submissions\ rejected\ (likely\ invalid\ test\ transaction)"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00404}00404\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}INCONCLUSIVE"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00405}00405\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00406}00406\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Both\ submissions\ accepted\ —\ double-\/spend\ may\ be\ possible!"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00407}00407\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}status"{}}]\ =\ \textcolor{stringliteral}{"{}INVESTIGATE"{}}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00408}00408\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00409}00409\ \ \ \ \ result[\textcolor{stringliteral}{"{}details"{}}]\ =\ [}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00410}00410\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}submission"{}}:\ \textcolor{stringliteral}{"{}first"{}},\ \textcolor{stringliteral}{"{}response"{}}:\ str(resp1)[:200]\},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00411}00411\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}submission"{}}:\ \textcolor{stringliteral}{"{}second"{}},\ \textcolor{stringliteral}{"{}response"{}}:\ str(resp2)[:200]\},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00412}00412\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00413}00413\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00414}00414\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00415}00415\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00416}00416\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00417}\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a7431cb90017e54fe695b23d4190db046}{00417}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00418}00418\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00419}00419\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Historical\ Attack\ Replayer\ —\ replay\ blockchain-\/level\ attacks"{}},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00420}00420\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00421}00421\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}Node\ RPC\ host"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00422}00422\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=8332,\ help=\textcolor{stringliteral}{"{}Node\ RPC\ port"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00423}00423\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/timeout"{}},\ type=int,\ default=10,\ help=\textcolor{stringliteral}{"{}Request\ timeout"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00424}00424\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ \textcolor{stringliteral}{"{}-\/o"{}},\ default=DEFAULT\_OUTPUT,\ help=\textcolor{stringliteral}{"{}Output\ JSON\ report\ path"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00425}00425\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00426}00426\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00427}00427\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00428}00428\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ OmniBus\ Historical\ Attack\ Replayer\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00429}00429\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00430}00430\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Target:\ \{args.host\}:\{args.port\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00431}00431\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00432}00432\ \ \ \ \ rpc\ =\ \doxymbox{\hyperlink{classhistorical-attack-replayer_1_1_node_r_p_c}{NodeRPC}}(args.host,\ args.port,\ args.timeout)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00433}00433\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00434}00434\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ rpc.is\_alive():}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00435}00435\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Node\ not\ reachable\ at\ \{args.host\}:\{args.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00436}00436\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Start\ the\ node\ first:"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00437}00437\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}\ \ zig-\/out/bin/omnibus-\/node.exe\ -\/-\/mode\ seed\ -\/-\/node-\/id\ test-\/1\ -\/-\/port\ 9000"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00438}00438\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00439}00439\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00440}00440\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Node\ alive\ at\ \{args.host\}:\{args.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00441}00441\ \ \ \ \ height\ =\ rpc.get\_block\_count()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00442}00442\ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Current\ block\ height:\ \{height\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00443}00443\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00444}00444\ \ \ \ \ \textcolor{comment}{\#\ Check\ for\ existing\ tools}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00445}00445\ \ \ \ \ consensus\_sim\ =\ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a43e4fef654c34e5ebb393348bcb5dd28}{try\_import\_consensus\_sim}}()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00446}00446\ \ \ \ \ \textcolor{keywordflow}{if}\ consensus\_sim:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00447}00447\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Found\ consensus-\/attack-\/sim.py\ —\ will\ enhance\ analysis"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00448}00448\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00449}00449\ \ \ \ \ \textcolor{comment}{\#\ Run\ all\ attacks}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00450}00450\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00451}00451\ \ \ \ \ results.append(\doxymbox{\hyperlink{namespacehistorical-attack-replayer_acf7a2c011d832c978be887372ecb11b0}{test\_finney\_attack}}(rpc))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00452}00452\ \ \ \ \ results.append(\doxymbox{\hyperlink{namespacehistorical-attack-replayer_af3cacda9ba58437c924b322fe34e3534}{test\_timejacking}}(rpc))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00453}00453\ \ \ \ \ results.append(\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a69e30746759dbfd18ed6fe6769d9fca3}{test\_checkpoint\_manipulation}}(rpc))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00454}00454\ \ \ \ \ results.append(\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a0bad7ac56af09c3faa77e9eba1096b2c}{test\_double\_spend\_rpc}}(rpc))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00455}00455\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00456}00456\ \ \ \ \ \textcolor{comment}{\#\ Verify\ node\ survived}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00457}00457\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00458}00458\ \ \ \ \ \textcolor{keywordflow}{if}\ rpc.is\_alive():}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00459}00459\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Node\ survived\ all\ attack\ replays"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00460}00460\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00461}00461\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Node\ may\ have\ crashed\ during\ testing!"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00462}00462\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00463}00463\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00464}00464\ \ \ \ \ defended\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}status"{}}]\ ==\ \textcolor{stringliteral}{"{}DEFENDED"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00465}00465\ \ \ \ \ investigate\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}status"{}}]\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}INVESTIGATE"{}},\ \textcolor{stringliteral}{"{}PARTIAL"{}}))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00466}00466\ \ \ \ \ vulnerable\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}status"{}}]\ ==\ \textcolor{stringliteral}{"{}VULNERABLE"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00467}00467\ \ \ \ \ inconclusive\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}status"{}}]\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}INCONCLUSIVE"{}},\ \textcolor{stringliteral}{"{}SKIPPED"{}},\ \textcolor{stringliteral}{"{}UNKNOWN"{}}))}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00468}00468\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00469}00469\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00470}00470\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ HISTORICAL\ ATTACK\ REPLAY\ RESULTS\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00471}00471\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ attacks:\ \ \ \{len(results)\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00472}00472\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Defended:\{RESET\}\ \ \ \ \ \ \ \ \{defended\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00473}00473\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Investigate:\{RESET\}\ \ \ \ \ \{investigate\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00474}00474\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}Vulnerable:\{RESET\}\ \ \ \ \ \ \{vulnerable\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00475}00475\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Inconclusive:\ \ \ \ \{inconclusive\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00476}00476\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00477}00477\ \ \ \ \ \textcolor{keywordflow}{if}\ vulnerable\ ==\ 0\ \textcolor{keywordflow}{and}\ investigate\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00478}00478\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{GREEN\}\{BOLD\}Node\ appears\ resilient\ to\ all\ tested\ historical\ attacks.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00479}00479\ \ \ \ \ \textcolor{keywordflow}{elif}\ vulnerable\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00480}00480\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{RED\}\{BOLD\}WARNING:\ \{vulnerable\}\ attack(s)\ may\ have\ succeeded!\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00481}00481\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00482}00482\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{YELLOW\}Some\ attacks\ need\ manual\ investigation.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00483}00483\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00484}00484\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00485}00485\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00486}00486\ \ \ \ \ \textcolor{comment}{\#\ Save\ report}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00487}00487\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00488}00488\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.now(tz=timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00489}00489\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target"{}}:\ f\textcolor{stringliteral}{"{}\{args.host\}:\{args.port\}"{}},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00490}00490\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}block\_height"{}}:\ height,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00491}00491\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}summary"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00492}00492\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total"{}}:\ len(results),}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00493}00493\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}defended"{}}:\ defended,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00494}00494\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}investigate"{}}:\ investigate,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00495}00495\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vulnerable"{}}:\ vulnerable,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00496}00496\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inconclusive"{}}:\ inconclusive,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00497}00497\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00498}00498\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attacks"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00499}00499\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00500}00500\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00501}00501\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00502}00502\ \ \ \ \ \ \ \ \ os.makedirs(os.path.dirname(args.output),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00503}00503\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00504}00504\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00505}00505\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Report\ saved\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00506}00506\ \ \ \ \ \textcolor{keywordflow}{except}\ IOError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00507}00507\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacehistorical-attack-replayer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Could\ not\ save\ report:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00509}00509\ \ \ \ \ \textcolor{keywordflow}{return}\ 1\ \textcolor{keywordflow}{if}\ vulnerable\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00510}00510\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00511}00511\ }
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00512}00512\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{historical-attack-replayer_8py_source_l00513}00513\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacehistorical-attack-replayer_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

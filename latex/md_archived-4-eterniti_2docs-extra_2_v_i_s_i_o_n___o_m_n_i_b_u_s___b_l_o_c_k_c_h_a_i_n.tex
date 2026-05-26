@@ -1,0 +1,431 @@
+\chapter{🚀 Omni\+Bus Block\+Chain Core -\/ Viziune Completă }
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n}{}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n}\index{🚀 OmniBus BlockChain Core -\/ Viziune Completă@{🚀 OmniBus BlockChain Core -\/ Viziune Completă}}
+\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md628}%
+\Hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md628}%
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md629}{}\doxysection{\texorpdfstring{📊 Starea Actuală a Proiectului}{📊 Starea Actuală a Proiectului}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md629}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md630}{}\doxysubsection{\texorpdfstring{Arhitectura Codului (66 Module Zig în {\ttfamily core/\+})}{Arhitectura Codului (66 Module Zig în {\ttfamily core/\+})}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md630}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ LAYERS\ OMNIBUS\ BLOCKCHAIN\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ LAYER\ 0:\ CRYPTO\ (Fundamente\ criptografice)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ crypto.zig,\ secp256k1.zig,\ ripemd160.zig,\ pq\_crypto.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ schnorr.zig,\ bls\_signatures.zig,\ multisig.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ key\_encryption.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ LAYER\ 1:\ TYPES\ (Structuri\ de\ date\ fundamentale)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ transaction.zig,\ block.zig,\ bip32\_wallet.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ compact\_transaction.zig,\ witness\_data.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ hex\_utils.zig,\ binary\_codec.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ LAYER\ 2:\ CORE\ (Blockchain\ engine)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ blockchain.zig,\ blockchain\_v2.zig,\ genesis.zig,\ consensus.zig\ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ mempool.zig,\ wallet.zig,\ sub\_block.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ finality.zig,\ governance.zig,\ staking.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ miner\_genesis.zig,\ e2e\_mining.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ LAYER\ 3:\ NETWORK\ (Comunicație\ P2P)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ p2p.zig,\ network.zig,\ sync.zig,\ bootstrap.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ rpc\_server.zig,\ ws\_server.zig,\ kademlia\_dht.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ peer\_scoring.zig,\ dns\_registry.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ LAYER\ 4:\ STORAGE\ (Persistență)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ database.zig,\ storage.zig,\ state\_trie.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ archive\_manager.zig,\ prune\_config.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ compact\_blocks.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ LAYER\ 5:\ NODE\ (Operațiuni\ nod)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ node\_launcher.zig,\ cli.zig,\ main.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ vault\_reader.zig,\ vault\_engine.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ mining\_pool.zig,\ light\_client.zig,\ light\_miner.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ shard\_coordinator.zig,\ metachain.zig,\ shard\_config.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ chain\_config.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ LAYER\ 6:\ ECONOMIC\ (Ecosistem\ economic)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ bread\_ledger.zig,\ ubi\_distributor.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ domain\_minter.zig,\ spark\_invariants.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ payment\_channel.zig,\ bridge\_relay.zig,\ oracle.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ guardian.zig,\ tx\_receipt.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ omni\_brain.zig,\ synapse\_priority.zig,\ os\_mode.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md631}{}\doxysubsection{\texorpdfstring{Tool-\/uri Existente (7 tool-\/uri Python în {\ttfamily tools/\+})}{Tool-\/uri Existente (7 tool-\/uri Python în {\ttfamily tools/\+})}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md631}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+{\ttfamily \doxylink{blockchain__analyzer_8py}{blockchain\+\_\+analyzer.\+py}}  &Analiză module, status REAL/\+\+PARTIAL/\+\+STUB  &✅ Complet  \\
+{\ttfamily \doxylink{blockchain__deep__audit_8py}{blockchain\+\_\+deep\+\_\+audit.\+py}}  &Securitate, CWE, complexitate  &✅ Complet  \\
+{\ttfamily \doxylink{blockchain__dependency__graph_8py}{blockchain\+\_\+dependency\+\_\+graph.\+py}}  &Graf dependențe, layer analysis  &✅ Complet  \\
+{\ttfamily \doxylink{blockchain__vs__comparison_8py}{blockchain\+\_\+vs\+\_\+comparison.\+py}}  &Comparativ vs Bitcoin/\+\+Ethereum/\+etc  &✅ Complet  \\
+{\ttfamily \doxylink{blockchain__master__audit_8py}{blockchain\+\_\+master\+\_\+audit.\+py}}  &Rulează toate tool-\/urile  &✅ Complet  \\
+{\ttfamily test\+\_\+runner.\+py}  &Rulează testele Zig  &✅ Complet  \\
+{\ttfamily README.\+md}  &Documentație tool-\/uri  &✅ Complet  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md632}{}\doxysubsection{\texorpdfstring{Mining Pool (Node.\+js)}{Mining Pool (Node.\+js)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md632}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  \\
+RPC Server  &{\ttfamily rpc-\/server.\+js}  &JSON-\/\+RPC 2.\+0, mining pool logic  \\
+Miner Client  &{\ttfamily miner-\/client.\+js}  &Client pentru miner  \\
+Wallet Generator  &{\ttfamily create-\/wallet.\+js}  &Generează wallets BIP-\/39  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md633}{}\doxysubsection{\texorpdfstring{Frontend}{Frontend}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md633}
+
+\begin{DoxyItemize}
+\item React + Type\+Script
+\item Dashboard pentru blockchain explorer
+\item Wallet UI
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md635}{}\doxysection{\texorpdfstring{🎯 VIZIUNEA MEA:\+ Ce Mai Trebuie Adăugat}{🎯 VIZIUNEA MEA:\+ Ce Mai Trebuie Adăugat}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md635}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md636}{}\doxysubsection{\texorpdfstring{1. 🔧 TOOL-\/\+URI DE DEZVOLTARE (Necesare)}{1. 🔧 TOOL-\/\+URI DE DEZVOLTARE (Necesare)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md636}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md637}{}\doxysubsubsection{\texorpdfstring{A. {\ttfamily smart\+\_\+contract\+\_\+validator.\+py}}{A. {\ttfamily smart\+\_\+contract\+\_\+validator.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md637}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Validează\ smart\ contracts\ înainte\ de\ deployment:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Syntax\ check}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Gas\ estimation}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Security\ patterns}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ ABI\ validation}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md638}{}\doxysubsubsection{\texorpdfstring{B. {\ttfamily network\+\_\+simulator.\+py}}{B. {\ttfamily network\+\_\+simulator.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md638}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Simulează\ rețeaua\ blockchain:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Multiple\ noduri\ locale}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Latență\ variabilă}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Packet\ loss}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Fork\ testing}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md639}{}\doxysubsubsection{\texorpdfstring{C. {\ttfamily fuzzer.\+py}}{C. {\ttfamily fuzzer.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md639}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Fuzz\ testing\ pentru\ module\ critice:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Transaction\ parsing}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Block\ validation}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ P2P\ message\ handling}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ RPC\ endpoints}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md640}{}\doxysubsubsection{\texorpdfstring{D. {\ttfamily benchmark.\+py}}{D. {\ttfamily benchmark.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md640}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Benchmarking\ performanță:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ TPS\ (transactions\ per\ second)}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Block\ propagation\ time}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Memory\ usage}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ CPU\ profiling\ per\ module}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md641}{}\doxysubsection{\texorpdfstring{2. 📊 MONITORING \& OBSERVABILITY}{2. 📊 MONITORING \& OBSERVABILITY}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md641}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md642}{}\doxysubsubsection{\texorpdfstring{A. {\ttfamily metrics\+\_\+exporter.\+py}}{A. {\ttfamily metrics\+\_\+exporter.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md642}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Exportă\ metrici\ în\ Prometheus/Grafana:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Block\ height}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Mempool\ size}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Peer\ count}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Mining\ difficulty}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Transaction\ throughput}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md643}{}\doxysubsubsection{\texorpdfstring{B. {\ttfamily log\+\_\+analyzer.\+py}}{B. {\ttfamily log\+\_\+analyzer.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md643}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Analizează\ log-\/uri:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Detectează\ erori\ comune}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Pattern-\/uri\ de\ atac}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Anomalii\ de\ performanță}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Alerte\ proactive}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md644}{}\doxysubsection{\texorpdfstring{3. 🔒 SECURITATE}{3. 🔒 SECURITATE}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md644}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md645}{}\doxysubsubsection{\texorpdfstring{A. {\ttfamily vulnerability\+\_\+scanner.\+py}}{A. {\ttfamily vulnerability\+\_\+scanner.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md645}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Scanare\ vulnerabilități:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Dependency\ checking\ (liboqs,\ etc)}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Known\ CVEs}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Hardcoded\ secrets}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Weak\ crypto\ usage}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md646}{}\doxysubsubsection{\texorpdfstring{B. {\ttfamily formal\+\_\+verification\+\_\+stub.\+py}}{B. {\ttfamily formal\+\_\+verification\+\_\+stub.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md646}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Placeholder\ pentru\ verificare\ formală:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ SPARK/Ada\ contracts\ (pentru\ critical\ sections)}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ K-\/framework\ semantics}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Coq\ proofs\ (pentru\ consensus)}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md647}{}\doxysubsection{\texorpdfstring{4. 🧪 TESTING}{4. 🧪 TESTING}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md647}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md648}{}\doxysubsubsection{\texorpdfstring{A. {\ttfamily integration\+\_\+test.\+py}}{A. {\ttfamily integration\+\_\+test.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md648}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Teste\ de\ integrare:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Full\ node\ lifecycle}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Multi-\/node\ consensus}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Fork\ resolution}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Chain\ reorganization}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md649}{}\doxysubsubsection{\texorpdfstring{B. {\ttfamily stress\+\_\+test.\+py}}{B. {\ttfamily stress\+\_\+test.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md649}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Teste\ de\ stres:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ 1000+\ TPS}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ 100+\ noduri\ simultane}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Mempool\ overflow}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ DDoS\ simulation}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md650}{}\doxysubsection{\texorpdfstring{5. 📚 DOCUMENTAȚ\+IE \& GENERARE}{5. 📚 DOCUMENTAȚ\+IE \& GENERARE}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md650}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md651}{}\doxysubsubsection{\texorpdfstring{A. {\ttfamily doc\+\_\+generator.\+py}}{A. {\ttfamily doc\+\_\+generator.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md651}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Generează\ documentație:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ API\ docs\ din\ comentarii}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Module\ dependency\ diagrams}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ RPC\ endpoint\ documentation}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Changelog\ auto-\/generation}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md652}{}\doxysubsubsection{\texorpdfstring{B. {\ttfamily changelog\+\_\+manager.\+py}}{B. {\ttfamily changelog\+\_\+manager.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md652}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Gestionează\ changelog:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Parse\ git\ commits}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Categorize\ changes}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Version\ bumping}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Release\ notes}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md653}{}\doxysubsection{\texorpdfstring{6. 🌉 BRIDGE \& INTEGRATION}{6. 🌉 BRIDGE \& INTEGRATION}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md653}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md654}{}\doxysubsubsection{\texorpdfstring{A. {\ttfamily bridge\+\_\+validator.\+py}}{A. {\ttfamily bridge\+\_\+validator.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md654}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Validează\ bridge-\/uri\ cross-\/chain:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Ethereum\ bridge}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Bitcoin\ bridge}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Solana\ bridge}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Liquidity\ checks}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md655}{}\doxysubsubsection{\texorpdfstring{B. {\ttfamily oracle\+\_\+verifier.\+py}}{B. {\ttfamily oracle\+\_\+verifier.\+py}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md655}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{Verifică\ oracle\ data:}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Price\ feed\ validation}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Outlier\ detection}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Consensus\ among\ sources}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ -\/\ Slashing\ conditions}}
+\DoxyCodeLine{\textcolor{stringliteral}{"{}"{}"{}}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md657}{}\doxysection{\texorpdfstring{📁 Structura Propusă a Directorului {\ttfamily tools/\+}}{📁 Structura Propusă a Directorului {\ttfamily tools/\+}}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md657}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{tools/}
+\DoxyCodeLine{├──\ README.md\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Documentație\ generală}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ ANALYSIS/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Analiză\ cod\ și\ calitate}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain\_analyzer.py\ \ \ \ \ \ \ \ \ \ \#\ ✅\ Există}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain\_deep\_audit.py\ \ \ \ \ \ \ \ \#\ ✅\ Există}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain\_dependency\_graph.py\ \ \#\ ✅\ Există}
+\DoxyCodeLine{│\ \ \ └──\ complexity\_analyzer.py\ \ \ \ \ \ \ \ \ \ \#\ Nou:\ Cyclomatic,\ cognitive}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ TESTING/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Testare\ și\ validare}
+\DoxyCodeLine{│\ \ \ ├──\ test\_runner.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ ✅\ Există}
+\DoxyCodeLine{│\ \ \ ├──\ integration\_test.py\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│\ \ \ ├──\ stress\_test.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│\ \ \ ├──\ fuzzer.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│\ \ \ └──\ network\_simulator.py\ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ SECURITY/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Securitate\ și\ audit}
+\DoxyCodeLine{│\ \ \ ├──\ vulnerability\_scanner.py\ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│\ \ \ └──\ formal\_verification\_stub.py\ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ MONITORING/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Observabilitate}
+\DoxyCodeLine{│\ \ \ ├──\ metrics\_exporter.py\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│\ \ \ └──\ log\_analyzer.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ PERFORMANCE/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Benchmarking\ și\ optimizare}
+\DoxyCodeLine{│\ \ \ ├──\ benchmark.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│\ \ \ └──\ flamegraph\_generator.py\ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ DOCUMENTATION/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Generare\ docs}
+\DoxyCodeLine{│\ \ \ ├──\ doc\_generator.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│\ \ \ └──\ changelog\_manager.py\ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ COMPARISON/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Analiză\ competitivă}
+\DoxyCodeLine{│\ \ \ └──\ blockchain\_vs\_comparison.py\ \ \ \ \ \#\ ✅\ Există}
+\DoxyCodeLine{│}
+\DoxyCodeLine{└──\ BRIDGE/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Cross-\/chain\ și\ oracles}
+\DoxyCodeLine{\ \ \ \ ├──\ bridge\_validator.py\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+\DoxyCodeLine{\ \ \ \ └──\ oracle\_verifier.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Nou}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md659}{}\doxysection{\texorpdfstring{🎯 Priorități (Ordinea Implementării)}{🎯 Priorități (Ordinea Implementării)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md659}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md660}{}\doxysubsection{\texorpdfstring{🔴 HIGH (Critical pentru Mainnet)}{🔴 HIGH (Critical pentru Mainnet)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md660}
+
+\begin{DoxyEnumerate}
+\item {\ttfamily \doxylink{vulnerability__scanner_8py}{vulnerability\+\_\+scanner.\+py}} -\/ Securitate
+\item {\ttfamily integration\+\_\+test.\+py} -\/ Testare completă
+\item {\ttfamily \doxylink{benchmark_8py}{benchmark.\+py}} -\/ Performanță baseline
+\item {\ttfamily stress\+\_\+test.\+py} -\/ Limite sistem
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md661}{}\doxysubsection{\texorpdfstring{🟡 MEDIUM (Important pentru Beta)}{🟡 MEDIUM (Important pentru Beta)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md661}
+
+\begin{DoxyEnumerate}
+\item {\ttfamily network\+\_\+simulator.\+py} -\/ Testare rețea
+\item {\ttfamily fuzzer.\+py} -\/ Robustness
+\item {\ttfamily \doxylink{metrics__exporter_8py}{metrics\+\_\+exporter.\+py}} -\/ Observabilitate
+\item {\ttfamily \doxylink{doc__generator_8py}{doc\+\_\+generator.\+py}} -\/ Documentație
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md662}{}\doxysubsection{\texorpdfstring{🟢 LOW (Nice to have)}{🟢 LOW (Nice to have)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md662}
+
+\begin{DoxyEnumerate}
+\item {\ttfamily \doxylink{bridge__validator_8py}{bridge\+\_\+validator.\+py}} -\/ Cross-\/chain
+\item {\ttfamily \doxylink{oracle__verifier_8py}{oracle\+\_\+verifier.\+py}} -\/ De\+Fi readiness
+\item {\ttfamily \doxylink{changelog__manager_8py}{changelog\+\_\+manager.\+py}} -\/ Release management
+\item {\ttfamily formal\+\_\+verification\+\_\+stub.\+py} -\/ Academic rigor
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md664}{}\doxysection{\texorpdfstring{💡 Features Unice Omni\+Bus (Ce ne diferențiază)}{💡 Features Unice Omni\+Bus (Ce ne diferențiază)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md664}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\bfseries{Post-\/\+Quantum Crypto}}  &{\ttfamily pq\+\_\+crypto.\+zig}  &ML-\/\+DSA-\/87, Falcon, SPHINCS+  \\
+{\bfseries{Sharding nativ}}  &{\ttfamily shard\+\_\+coordinator.\+zig}  &7 shards din design  \\
+{\bfseries{Metachain}}  &{\ttfamily metachain.\+zig}  &Coordination layer (EGLD-\/style)  \\
+{\bfseries{UBI Distributor}}  &{\ttfamily ubi\+\_\+distributor.\+zig}  &Universal Basic Income on-\/chain  \\
+{\bfseries{Bread Ledger}}  &{\ttfamily bread\+\_\+ledger.\+zig}  &1 OMNI = 1 Pâine  \\
+{\bfseries{Vault Engine}}  &{\ttfamily vault\+\_\+engine.\+zig}  &Escrow avansat  \\
+{\bfseries{Omni Brain}}  &{\ttfamily omni\+\_\+brain.\+zig}  &AI pentru optimizare nod  \\
+{\bfseries{Spark Invariants}}  &{\ttfamily spark\+\_\+invariants.\+zig}  &Formal verification patterns  \\
+{\bfseries{OS Mode}}  &{\ttfamily os\+\_\+mode.\+zig}  &Integrare cu Omni\+Bus OS  \\
+{\bfseries{Guardian}}  &{\ttfamily guardian.\+zig}  &Protection layer  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md666}{}\doxysection{\texorpdfstring{🚀 Roadmap Tool-\/uri}{🚀 Roadmap Tool-\/uri}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md666}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md667}{}\doxysubsection{\texorpdfstring{Sprint 1 (Acum)}{Sprint 1 (Acum)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md667}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Organizează tools/\+ în subdirectoare
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily \doxylink{vulnerability__scanner_8py}{vulnerability\+\_\+scanner.\+py}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily integration\+\_\+test.\+py}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md668}{}\doxysubsection{\texorpdfstring{Sprint 2 (Beta)}{Sprint 2 (Beta)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md668}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily \doxylink{benchmark_8py}{benchmark.\+py}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily stress\+\_\+test.\+py}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily network\+\_\+simulator.\+py}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md669}{}\doxysubsection{\texorpdfstring{Sprint 3 (Pre-\/\+Mainnet)}{Sprint 3 (Pre-\/\+Mainnet)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md669}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily \doxylink{metrics__exporter_8py}{metrics\+\_\+exporter.\+py}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily fuzzer.\+py}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily \doxylink{doc__generator_8py}{doc\+\_\+generator.\+py}}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md670}{}\doxysubsection{\texorpdfstring{Sprint 4 (Post-\/\+Mainnet)}{Sprint 4 (Post-\/\+Mainnet)}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md670}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily \doxylink{bridge__validator_8py}{bridge\+\_\+validator.\+py}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adaugă {\ttfamily \doxylink{oracle__verifier_8py}{oracle\+\_\+verifier.\+py}}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Formal verification integration
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md672}{}\doxysection{\texorpdfstring{📊 Metrici de Succes}{📊 Metrici de Succes}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md672}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metrică  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Target  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Cum măsurăm  \\
+Code Coverage  &\texorpdfstring{$>$}{>}80\%  &{\ttfamily test\+\_\+runner.\+py -\/-\/coverage}  \\
+Module Quality Score  &\texorpdfstring{$>$}{>}70  &{\ttfamily \doxylink{blockchain__analyzer_8py}{blockchain\+\_\+analyzer.\+py}}  \\
+Security Issues  &0 Critical  &{\ttfamily \doxylink{vulnerability__scanner_8py}{vulnerability\+\_\+scanner.\+py}}  \\
+TPS  &\texorpdfstring{$>$}{>}1000  &{\ttfamily \doxylink{benchmark_8py}{benchmark.\+py}}  \\
+Node Sync Time  &\texorpdfstring{$<$}{<}1 hour  &{\ttfamily integration\+\_\+test.\+py}  \\
+Documentation  &100\% API  &{\ttfamily \doxylink{doc__generator_8py}{doc\+\_\+generator.\+py}}  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md674}{}\doxysection{\texorpdfstring{🎓 Concluzie}{🎓 Concluzie}}\label{md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n_autotoc_md674}
+Omni\+Bus Block\+Chain Core este un proiect {\bfseries{ambițios și bine structurat}} cu:\+
+
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{66 module Zig}} organizate pe 7 layere
+\item ✅ {\bfseries{7 tool-\/uri Python}} pentru analiză și audit
+\item ✅ {\bfseries{Mining pool funcțional}} în Node.\+js
+\item ✅ {\bfseries{Comparații}} cu Bitcoin, Ethereum, Solana, EGLD
+\item ✅ {\bfseries{Feature-\/uri unice}}:\+ Post-\/\+Quantum, Sharding, UBI, Metachain
+\end{DoxyItemize}
+
+{\bfseries{Ce lipsește pentru Mainnet:\+}}
+\begin{DoxyEnumerate}
+\item Tool-\/uri de securitate avansate
+\item Testare de integrare completă
+\item Benchmarking și stress testing
+\item Observabilitate (metrics, logs)
+\item Documentație auto-\/generată
+\end{DoxyEnumerate}
+
+{\bfseries{Viziunea finală:\+}} Un blockchain L1 cu tool-\/uri de dezvoltare la nivelul celor de la Solana/\+\+Ethereum, dar cu arhitectura tehnică superioară (Zig, Post-\/\+Quantum, Sharding nativ). 

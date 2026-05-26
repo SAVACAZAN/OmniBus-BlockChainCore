@@ -15,6 +15,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { midTrunc } from "../../utils/fmt";
 import { keccak256, toUtf8Bytes, parseEther, formatEther } from "ethers";
 import {
   placeBuyOrderNativeOnDex,
@@ -156,7 +157,7 @@ export function DexBuyPanel() {
           DEX Buy (native escrow)
         </h2>
         <span className="text-[10px] text-mempool-text-dim">
-          Slot #{activeSlot} → {evmAddress.slice(0, 6)}…{evmAddress.slice(-4)}
+          Slot #{activeSlot} → {midTrunc(evmAddress, 6, 4)}
         </span>
       </div>
 
@@ -167,7 +168,7 @@ export function DexBuyPanel() {
       ) : (
         <>
           <div className="text-[11px] text-mempool-text-dim mb-3 space-y-0.5">
-            <div>Contract: <span className="font-mono text-mempool-text">{dexAddress.slice(0, 8)}…{dexAddress.slice(-6)}</span></div>
+            <div>Contract: <span className="font-mono text-mempool-text">{midTrunc(dexAddress, 8, 6)}</span></div>
             <div>Total escrowed: <span className="text-mempool-green">{escrowedBalance}</span></div>
             <div className="pt-1 mt-1 border-t border-mempool-border/60">
               Your slot — {pair.quoteSymbol}: <span className="text-mempool-text">{ethBal}</span>
@@ -228,7 +229,7 @@ export function DexBuyPanel() {
               {busy === "place" ? "Locking escrow…" : "Place Buy Order"}
             </button>
 
-            {lastOrderId && (
+            {lastOrderId !== null && (
               <button
                 onClick={handleCancel}
                 disabled={busy !== "idle"}

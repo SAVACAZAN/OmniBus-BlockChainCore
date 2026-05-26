@@ -1,0 +1,447 @@
+\chapter{Module:\+ {\ttfamily archive\+\_\+manager} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager}{}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager}\index{Module: $<$tt$>$archive\_manager$<$/tt$>$@{Module: $<$tt$>$archive\_manager$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md675}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md675}%
+
+
+\begin{quote}
+Block archival — compress old blocks for long-\/term storage, retrieve archived blocks on demand. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+archive\+\_\+manager.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 224 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 13 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 5 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 5
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md677}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md677}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md678}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md678}
+
+\begin{DoxyItemize}
+\item \`{}\+Archive\+Manager\`{}{\ttfamily Archive\+Manager}
+\end{DoxyItemize}— Archive manager for storing pruned blocks
+\begin{DoxyItemize}
+\item \`{}\+Archive\+Metadata\`{}{\ttfamily Archive\+Metadata}
+\end{DoxyItemize}— Archive metadata
+\begin{DoxyItemize}
+\item \`{}\+Archive\+Snapshot\`{}{\ttfamily Archive\+Snapshot}
+\end{DoxyItemize}— Archive snapshot
+\begin{DoxyItemize}
+\item \`{}\+Restorable\+Block\`{}{\ttfamily Restorable\+Block}
+\end{DoxyItemize}— Restorable block metadata
+\begin{DoxyItemize}
+\item \`{}\+Archive\+Index\`{}{\ttfamily Archive\+Index}
+\end{DoxyItemize}— Archive index for quick lookup\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md679}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md679}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}archive\+Blocks()\`{}{\ttfamily archive\+Blocks()}
+\end{DoxyItemize}— Archive a batch of blocks
+\begin{DoxyItemize}
+\item \`{}get\+Archive\+Metadata()\`{}{\ttfamily get\+Archive\+Metadata()}
+\end{DoxyItemize}— Get archive metadata
+\begin{DoxyItemize}
+\item \`{}create\+Snapshot()\`{}{\ttfamily create\+Snapshot()}
+\end{DoxyItemize}— Create archive snapshot
+\begin{DoxyItemize}
+\item \`{}verify\+Archive()\`{}{\ttfamily verify\+Archive()}
+\end{DoxyItemize}— Verify archive integrity
+\begin{DoxyItemize}
+\item \`{}get\+Restorable\+Blocks()\`{}{\ttfamily get\+Restorable\+Blocks()}
+\end{DoxyItemize}— Get list of restorable blocks
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the archive\+\_\+manager module.
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the archive\+\_\+manager module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Snapshot()\`{}{\ttfamily add\+Snapshot()}
+\end{DoxyItemize}— Adds a new snapshot to the collection.
+\begin{DoxyItemize}
+\item \`{}find\+By\+Height()\`{}{\ttfamily find\+By\+Height()}
+\end{DoxyItemize}— Searches for by height matching the given criteria.
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md681}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md681}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md682}{}\doxysubsection{\texorpdfstring{{\ttfamily Archive\+Manager}}{{\ttfamily Archive\+Manager}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md682}
+Archive manager for storing pruned blocks
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily archive\+\_\+path}  &{\ttfamily \+[]\+const u8}  &Archive\+\_\+path  \\
+{\ttfamily compress\+\_\+enabled}  &{\ttfamily bool}  &Compress\+\_\+enabled  \\
+{\ttfamily archived\+\_\+blocks}  &{\ttfamily u32}  &Archived\+\_\+blocks  \\
+{\ttfamily total\+\_\+archive\+\_\+size}  &{\ttfamily u64}  &Total\+\_\+archive\+\_\+size  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 4}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md684}{}\doxysubsection{\texorpdfstring{{\ttfamily Archive\+Metadata}}{{\ttfamily Archive\+Metadata}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md684}
+Archive metadata
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily archived\+\_\+block\+\_\+count}  &{\ttfamily u32}  &Archived\+\_\+block\+\_\+count  \\
+{\ttfamily total\+\_\+size\+\_\+bytes}  &{\ttfamily u64}  &Total\+\_\+size\+\_\+bytes  \\
+{\ttfamily estimated\+\_\+restore\+\_\+time\+\_\+sec}  &{\ttfamily u64}  &Estimated\+\_\+restore\+\_\+time\+\_\+sec  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 98}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md686}{}\doxysubsection{\texorpdfstring{{\ttfamily Archive\+Snapshot}}{{\ttfamily Archive\+Snapshot}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md686}
+Archive snapshot
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u32}  &Height  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Block\+\_\+hash  \\
+{\ttfamily created\+\_\+at}  &{\ttfamily i64}  &Created\+\_\+at  \\
+{\ttfamily archive\+\_\+size}  &{\ttfamily u64}  &Archive\+\_\+size  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 119}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md688}{}\doxysubsection{\texorpdfstring{{\ttfamily Restorable\+Block}}{{\ttfamily Restorable\+Block}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md688}
+Restorable block metadata
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily start\+\_\+height}  &{\ttfamily u32}  &Start\+\_\+height  \\
+{\ttfamily end\+\_\+height}  &{\ttfamily u32}  &End\+\_\+height  \\
+{\ttfamily size\+\_\+bytes}  &{\ttfamily u64}  &Size\+\_\+bytes  \\
+{\ttfamily created\+\_\+at}  &{\ttfamily i64}  &Created\+\_\+at  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 134}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md690}{}\doxysubsection{\texorpdfstring{{\ttfamily Archive\+Index}}{{\ttfamily Archive\+Index}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md690}
+Archive index for quick lookup
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily snapshots}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Archive\+Snapshot)}  &Snapshots  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 142}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md692}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md692}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md693}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md693}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ archive\_path:\ []const\ u8,\ compress:\ bool)\ ArchiveManager\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily archive\+\_\+path}  &{\ttfamily \+[]\+const u8}  &Archive\+\_\+path  \\
+{\ttfamily compress}  &{\ttfamily bool}  &Compress  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Archive\+Manager}
+
+{\itshape Defined at line 11}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md695}{}\doxysubsection{\texorpdfstring{{\ttfamily archive\+Blocks()}}{{\ttfamily archive\+Blocks()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md695}
+Archive a batch of blocks
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ archiveBlocks(self:\ *ArchiveManager,\ start\_height:\ u32,\ end\_height:\ u32,\ blocks\_data:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Archive\+Manager}  &The instance  \\
+{\ttfamily start\+\_\+height}  &{\ttfamily u32}  &Start\+\_\+height  \\
+{\ttfamily end\+\_\+height}  &{\ttfamily u32}  &End\+\_\+height  \\
+{\ttfamily blocks\+\_\+data}  &{\ttfamily \+[]\+const u8}  &Blocks\+\_\+data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 20}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md697}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Archive\+Metadata()}}{{\ttfamily get\+Archive\+Metadata()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md697}
+Get archive metadata
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getArchiveMetadata(self:\ *const\ ArchiveManager)\ ArchiveMetadata\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Archive\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Archive\+Metadata}
+
+{\itshape Defined at line 45}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md699}{}\doxysubsection{\texorpdfstring{{\ttfamily create\+Snapshot()}}{{\ttfamily create\+Snapshot()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md699}
+Create archive snapshot
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ createSnapshot(self:\ *ArchiveManager,\ height:\ u32,\ hash:\ []const\ u8)\ !ArchiveSnapshot\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Archive\+Manager}  &The instance  \\
+{\ttfamily height}  &{\ttfamily u32}  &Height  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Archive\+Snapshot}
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md701}{}\doxysubsection{\texorpdfstring{{\ttfamily verify\+Archive()}}{{\ttfamily verify\+Archive()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md701}
+Verify archive integrity
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verifyArchive(self:\ *const\ ArchiveManager)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Archive\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 64}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md703}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Restorable\+Blocks()}}{{\ttfamily get\+Restorable\+Blocks()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md703}
+Get list of restorable blocks
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getRestorableBlocks(self:\ *ArchiveManager,\ allocator:\ std.mem.Allocator)\ ![]RestorableBlock\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Archive\+Manager}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+Restorable\+Block}
+
+{\itshape Defined at line 73}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md705}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md705}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *ArchiveManager)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Archive\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 92}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md707}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md707}
+Performs the print operation on the archive\+\_\+manager module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ ArchiveMetadata)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Archive\+Metadata}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 103}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md709}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md709}
+Performs the print operation on the archive\+\_\+manager module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ ArchiveSnapshot)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Archive\+Snapshot}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 125}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md711}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md711}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ ArchiveIndex\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Archive\+Index}
+
+{\itshape Defined at line 146}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md713}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Snapshot()}}{{\ttfamily add\+Snapshot()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md713}
+Adds a new snapshot to the collection.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addSnapshot(self:\ *ArchiveIndex,\ snapshot:\ ArchiveSnapshot)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Archive\+Index}  &The instance  \\
+{\ttfamily snapshot}  &{\ttfamily Archive\+Snapshot}  &Snapshot  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 153}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md715}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+By\+Height()}}{{\ttfamily find\+By\+Height()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md715}
+Searches for by height matching the given criteria.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findByHeight(self:\ *const\ ArchiveIndex,\ height:\ u32)\ ?ArchiveSnapshot\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Archive\+Index}  &The instance  \\
+{\ttfamily height}  &{\ttfamily u32}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Archive\+Snapshot}
+
+{\itshape Defined at line 157}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md717}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2archive__manager_autotoc_md717}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *ArchiveIndex)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Archive\+Index}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 166}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

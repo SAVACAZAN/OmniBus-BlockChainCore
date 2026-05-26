@@ -1,0 +1,331 @@
+\doxysection{upgrade-\/manager.py}
+\hypertarget{upgrade-manager_8py_source}{}\label{upgrade-manager_8py_source}\index{tools/DEVOPS/upgrade-\/manager.py@{tools/DEVOPS/upgrade-\/manager.py}}
+\doxymbox{\hyperlink{upgrade-manager_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00001}\doxymbox{\hyperlink{namespaceupgrade-manager}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00002}\doxymbox{\hyperlink{namespaceupgrade}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ BlockChainCore\ —\ Upgrade\ Manager}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00004}00004\ \textcolor{stringliteral}{=========================================}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00005}00005\ \textcolor{stringliteral}{Handles\ safe\ node\ upgrades\ with\ automatic\ backup\ and\ rollback:}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00006}00006\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ 1.\ Backup\ chain\ data\ (omnibus-\/chain.dat)\ +\ config}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ 2.\ Stop\ running\ node\ (if\ PID\ known)}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ 3.\ Rebuild\ from\ source\ (zig\ build)}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ 4.\ Verify\ new\ binary\ exists\ and\ is\ executable}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ 5.\ Restart\ node}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00013}00013\ \textcolor{stringliteral}{If\ the\ build\ fails,\ automatic\ rollback\ restores\ the\ previous\ binary.}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00014}00014\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00015}00015\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ \ \ python\ upgrade-\/manager.py}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00017}00017\ \textcolor{stringliteral}{\ \ \ \ python\ upgrade-\/manager.py\ -\/-\/backup-\/first}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ \ \ python\ upgrade-\/manager.py\ -\/-\/no-\/restart\ -\/-\/backup-\/dir\ /tmp/omnibus-\/backup}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00019}00019\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00021}00021\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00022}00022\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00023}00023\ \textcolor{keyword}{import}\ platform}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00024}00024\ \textcolor{keyword}{import}\ shutil}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00025}00025\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00026}00026\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00027}00027\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00028}00028\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00029}00029\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00031}00031\ \textcolor{comment}{\#\ ──\ ANSI\ colours\ ─────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00032}\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{00032}}\ RESET\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00033}\doxymbox{\hyperlink{namespaceupgrade-manager_a362da12483c395498ff597666d9c7b40}{00033}}\ BOLD\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00034}\doxymbox{\hyperlink{namespaceupgrade-manager_a6c365c291dc54557a5e7dbea2274fc9c}{00034}}\ DIM\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00035}\doxymbox{\hyperlink{namespaceupgrade-manager_a828f9c589679b89d0bb3f62ec4765296}{00035}}\ RED\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00036}\doxymbox{\hyperlink{namespaceupgrade-manager_a92ec9821ad91d95f702c9315b563dbef}{00036}}\ GREEN\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00037}\doxymbox{\hyperlink{namespaceupgrade-manager_a895bf5d10cce6670100cace2f232ae1e}{00037}}\ YELLOW\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00038}\doxymbox{\hyperlink{namespaceupgrade-manager_a1737dffdfb0c1581bece6f8c9895b52c}{00038}}\ CYAN\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00039}\doxymbox{\hyperlink{namespaceupgrade-manager_a81aaa93fe635abeb23d09a072a8be1ce}{00039}}\ MAGENTA\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00040}\doxymbox{\hyperlink{namespaceupgrade-manager_a2805a0715151f0eaf0138bf0cf47043e}{00040}}\ WHITE\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00041}\doxymbox{\hyperlink{namespaceupgrade-manager_a602fd87ec2209a5009721fb894aa8fa9}{00041}}\ BG\_RED\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[41m"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00043}\doxymbox{\hyperlink{namespaceupgrade-manager_a30ce1bab084bd9f5ddf43f90fedee2f8}{00043}}\ OK\ \ \ =\ f\textcolor{stringliteral}{"{}\{GREEN\}[OK]\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00044}\doxymbox{\hyperlink{namespaceupgrade-manager_a1b8d28a734c20e1a8217c13cae51584a}{00044}}\ FAIL\ =\ f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00045}\doxymbox{\hyperlink{namespaceupgrade-manager_a4d6c7d9ee9fd876c08a7c401b5223311}{00045}}\ WARN\ =\ f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00046}\doxymbox{\hyperlink{namespaceupgrade-manager_a5a37a040f390fad011fabd91c6535a8e}{00046}}\ STEP\ =\ f\textcolor{stringliteral}{"{}\{CYAN\}>>>\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00049}\doxymbox{\hyperlink{namespaceupgrade-manager_ac8e5f0a7730f8396cce2214741332182}{00049}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_ac8e5f0a7730f8396cce2214741332182}{find\_project\_root}}()\ -\/>\ Path:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00050}00050\ \ \ \ \ d\ =\ Path(\_\_file\_\_).resolve().parent}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00051}00051\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(6):}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (d\ /\ \textcolor{stringliteral}{"{}build.zig"{}}).exists():}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ d}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ d\ =\ d.parent}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{return}\ Path(\_\_file\_\_).resolve().parent.parent.parent}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00058}\doxymbox{\hyperlink{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}{00058}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}{find\_binary}}(project\_root:\ Path)\ -\/>\ Path\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00059}00059\ \ \ \ \ \textcolor{keywordflow}{for}\ name\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}omnibus-\/node.exe"{}},\ \textcolor{stringliteral}{"{}omnibus-\/node"{}}):}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ p\ =\ project\_root\ /\ \textcolor{stringliteral}{"{}zig-\/out"{}}\ /\ \textcolor{stringliteral}{"{}bin"{}}\ /\ name}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ p.exists():}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ p}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00063}00063\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00066}\doxymbox{\hyperlink{namespaceupgrade-manager_abc244bb6dcf2df537e22eb49b77ca234}{00066}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_abc244bb6dcf2df537e22eb49b77ca234}{get\_binary\_info}}(binary:\ Path)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00067}00067\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Get\ binary\ size\ and\ modification\ time."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ binary.exists():}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}exists"{}}:\ \textcolor{keyword}{False}\}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00070}00070\ \ \ \ \ stat\ =\ binary.stat()}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}exists"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}size"{}}:\ stat.st\_size,}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mtime"{}}:\ datetime.fromtimestamp(stat.st\_mtime).strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%d\ \%H:\%M:\%S"{}}),}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00075}00075\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00078}\doxymbox{\hyperlink{namespaceupgrade-manager_a22db53cb880e41e686955799ad2067c0}{00078}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_a22db53cb880e41e686955799ad2067c0}{backup\_files}}(project\_root:\ Path,\ backup\_dir:\ Path)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00079}00079\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Backup\ chain\ data,\ config,\ and\ current\ binary."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00080}00080\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{STEP\}\ \{BOLD\}Step\ 1:\ Backup\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00082}00082\ \ \ \ \ backup\_dir.mkdir(parents=\textcolor{keyword}{True},\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00083}00083\ \ \ \ \ files\_to\_backup\ =\ [}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}omnibus-\/chain.dat"{}},\ \textcolor{stringliteral}{"{}Chain\ data"{}}),}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}omnibus.toml"{}},\ \textcolor{stringliteral}{"{}Config"{}}),}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}omnibus.log"{}},\ \textcolor{stringliteral}{"{}Logs"{}}),}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00087}00087\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00089}00089\ \ \ \ \ backed\_up\ =\ 0}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00090}00090\ \ \ \ \ binary\ =\ \doxymbox{\hyperlink{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}{find\_binary}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00091}00091\ \ \ \ \ \textcolor{keywordflow}{if}\ binary\ \textcolor{keywordflow}{and}\ binary.exists():}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ dest\ =\ backup\_dir\ /\ binary.name}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ shutil.copy2(str(binary),\ str(dest))}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Binary:\ \{binary.name\}\ (\{binary.stat().st\_size\ /\ 1024:.0f\}\ KB)"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ backed\_up\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00097}00097\ \ \ \ \ \textcolor{keywordflow}{for}\ filename,\ label\ \textcolor{keywordflow}{in}\ files\_to\_backup:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ src\ =\ project\_root\ /\ filename}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ src.exists():}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ dest\ =\ backup\_dir\ /\ filename}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ shutil.copy2(str(src),\ str(dest))}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ size\ =\ src.stat().st\_size}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ \{label\}:\ \{filename\}\ (\{size\ /\ 1024:.0f\}\ KB)"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ backed\_up\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{DIM\}[SKIP]\ \{label\}:\ \{filename\}\ not\ found\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{if}\ backed\_up\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Backup\ saved\ to:\ \{backup\_dir\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00111}00111\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{WARN\}\ Nothing\ to\ backup"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00116}\doxymbox{\hyperlink{namespaceupgrade-manager_acc631af2a1d14379ebda4e618dc5e1d6}{00116}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_acc631af2a1d14379ebda4e618dc5e1d6}{stop\_node}}(project\_root:\ Path)\ -\/>\ int\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00117}00117\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Attempt\ to\ stop\ running\ node.\ Returns\ PID\ if\ found."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00118}00118\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{STEP\}\ \{BOLD\}Step\ 2:\ Stop\ running\ node\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00120}00120\ \ \ \ \ \textcolor{comment}{\#\ Check\ orchestrator\ PID\ file}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00121}00121\ \ \ \ \ pid\_file\ =\ Path(\_\_file\_\_).resolve().parent\ /\ \textcolor{stringliteral}{"{}.orchestrator-\/pids.json"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00122}00122\ \ \ \ \ \textcolor{keywordflow}{if}\ pid\_file.exists():}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ nodes\ =\ json.loads(pid\_file.read\_text())}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ node\ \textcolor{keywordflow}{in}\ nodes:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pid\ =\ node.get(\textcolor{stringliteral}{"{}pid"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ pid:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ os.name\ ==\ \textcolor{stringliteral}{"{}nt"{}}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ subprocess.run([\textcolor{stringliteral}{"{}taskkill"{}},\ \textcolor{stringliteral}{"{}/F"{}},\ \textcolor{stringliteral}{"{}/PID"{}},\ str(pid)],}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ os.kill(pid,\ 15)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Stopped\ node\ \{node.get('node\_id',\ '?')\}\ (PID\ \{pid\})"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ nodes[0][\textcolor{stringliteral}{"{}pid"{}}]\ \textcolor{keywordflow}{if}\ nodes\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00142}00142\ \ \ \ \ \textcolor{comment}{\#\ Try\ to\ find\ by\ process\ name}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00143}00143\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ os.name\ ==\ \textcolor{stringliteral}{"{}nt"{}}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}tasklist"{}},\ \textcolor{stringliteral}{"{}/FI"{}},\ \textcolor{stringliteral}{"{}IMAGENAME\ eq\ omnibus-\/node.exe"{}},\ \textcolor{stringliteral}{"{}/FO"{}},\ \textcolor{stringliteral}{"{}CSV"{}}],}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=10,}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ lines\ =\ result.stdout.strip().split(\textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(lines)\ >\ 1:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ lines[1:]:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parts\ =\ line.strip(\textcolor{stringliteral}{'"{}'}).split(\textcolor{stringliteral}{'"{},"{}'})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(parts)\ >=\ 2:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pid\ =\ int(parts[1])}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ subprocess.run([\textcolor{stringliteral}{"{}taskkill"{}},\ \textcolor{stringliteral}{"{}/F"{}},\ \textcolor{stringliteral}{"{}/PID"{}},\ str(pid)],}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Stopped\ omnibus-\/node.exe\ (PID\ \{pid\})"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ pid}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ subprocess.run([\textcolor{stringliteral}{"{}pkill"{}},\ \textcolor{stringliteral}{"{}-\/f"{}},\ \textcolor{stringliteral}{"{}omnibus-\/node"{}}],}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ result.returncode\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Stopped\ omnibus-\/node\ process"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00165}00165\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00168}00168\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{DIM\}[SKIP]\ No\ running\ node\ found\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00169}00169\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00172}\doxymbox{\hyperlink{namespaceupgrade-manager_ac338524c54c9ea6b986910db5c06914c}{00172}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_ac338524c54c9ea6b986910db5c06914c}{rebuild}}(project\_root:\ Path)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00173}00173\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ zig\ build."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00174}00174\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{STEP\}\ \{BOLD\}Step\ 3:\ Rebuild\ from\ source\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00175}00175\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{DIM\}Running\ zig\ build\ in\ \{project\_root\}...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00177}00177\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}zig"{}},\ \textcolor{stringliteral}{"{}build"{}}],}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ cwd=str(project\_root),}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=300,}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ result.returncode\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Build\ succeeded"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{FAIL\}\ Build\ failed!"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ stderr\ =\ result.stderr.strip()}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stderr:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ stderr.split(\textcolor{stringliteral}{"{}\(\backslash\)n"{}})[:10]:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{DIM\}\{line\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00193}00193\ \ \ \ \ \textcolor{keywordflow}{except}\ FileNotFoundError:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{FAIL\}\ Zig\ compiler\ not\ found\ in\ PATH"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00196}00196\ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{FAIL\}\ Build\ timed\ out\ (300s)"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00201}\doxymbox{\hyperlink{namespaceupgrade-manager_a030debd8a0bb80848c143f73fbcec848}{00201}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_a030debd8a0bb80848c143f73fbcec848}{verify\_binary}}(project\_root:\ Path)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00202}00202\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Verify\ the\ new\ binary\ exists."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00203}00203\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{STEP\}\ \{BOLD\}Step\ 4:\ Verify\ new\ binary\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00204}00204\ \ \ \ \ binary\ =\ \doxymbox{\hyperlink{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}{find\_binary}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00205}00205\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ binary:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{FAIL\}\ Binary\ not\ found\ in\ zig-\/out/bin/"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00208}00208\ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespaceupgrade-manager_abc244bb6dcf2df537e22eb49b77ca234}{get\_binary\_info}}(binary)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00209}00209\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Binary:\ \{binary.name\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00210}00210\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Size:\ \{info['size']\ /\ 1024:.0f\}\ KB"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00211}00211\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Built:\ \{info['mtime']\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00212}00212\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00215}\doxymbox{\hyperlink{namespaceupgrade-manager_a08b591374d4578c62de0b9ba7163a004}{00215}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_a08b591374d4578c62de0b9ba7163a004}{rollback}}(project\_root:\ Path,\ backup\_dir:\ Path):}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00216}00216\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Restore\ binary\ from\ backup."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00217}00217\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BG\_RED\}\{WHITE\}\{BOLD\}\ ROLLBACK\ \{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00218}00218\ \ \ \ \ \textcolor{keywordflow}{for}\ name\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}omnibus-\/node.exe"{}},\ \textcolor{stringliteral}{"{}omnibus-\/node"{}}):}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ backup\_bin\ =\ backup\_dir\ /\ name}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ backup\_bin.exists():}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ dest\ =\ project\_root\ /\ \textcolor{stringliteral}{"{}zig-\/out"{}}\ /\ \textcolor{stringliteral}{"{}bin"{}}\ /\ name}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ dest.parent.mkdir(parents=\textcolor{keyword}{True},\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ shutil.copy2(str(backup\_bin),\ str(dest))}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Restored\ \{name\}\ from\ backup"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00226}00226\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{FAIL\}\ No\ backup\ binary\ found\ to\ restore"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00227}00227\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00229}\doxymbox{\hyperlink{namespaceupgrade-manager_afb5f1d609191b31a07f9e33453673029}{00229}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_afb5f1d609191b31a07f9e33453673029}{restart\_node}}(project\_root:\ Path,\ mode:\ str\ =\ \textcolor{stringliteral}{"{}seed"{}}):}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00230}00230\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Restart\ the\ node."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00231}00231\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{STEP\}\ \{BOLD\}Step\ 5:\ Restart\ node\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00232}00232\ \ \ \ \ binary\ =\ \doxymbox{\hyperlink{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}{find\_binary}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00233}00233\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ binary:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{FAIL\}\ Cannot\ restart\ —\ binary\ not\ found"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00237}00237\ \ \ \ \ cmd\ =\ [str(binary),\ \textcolor{stringliteral}{"{}-\/-\/mode"{}},\ mode,\ \textcolor{stringliteral}{"{}-\/-\/node-\/id"{}},\ f\textcolor{stringliteral}{"{}\{mode\}-\/upgraded"{}}]}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00239}00239\ \ \ \ \ log\_dir\ =\ project\_root\ /\ \textcolor{stringliteral}{"{}logs"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00240}00240\ \ \ \ \ log\_dir.mkdir(exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00241}00241\ \ \ \ \ log\_file\ =\ open(log\_dir\ /\ \textcolor{stringliteral}{"{}omnibus-\/upgraded.log"{}},\ \textcolor{stringliteral}{"{}w"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00242}00242\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00243}00243\ \ \ \ \ proc\ =\ subprocess.Popen(cmd,\ cwd=str(project\_root),}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stdout=log\_file,\ stderr=subprocess.STDOUT)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00245}00245\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{OK\}\ Node\ started\ (PID\ \{proc.pid\},\ mode:\ \{mode\})"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00246}00246\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{DIM\}Log:\ \{log\_dir\ /\ 'omnibus-\/upgraded.log'\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00249}\doxymbox{\hyperlink{namespaceupgrade-manager_a51af30a60f9f02777c6396b8247e356f}{00249}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceupgrade-manager_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00250}00250\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Upgrade\ Manager\ —\ safe\ node\ upgrades\ with\ rollback"{}},}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ epilog=(}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Examples:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ upgrade-\/manager.py\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ upgrade-\/manager.py\ -\/-\/backup-\/first\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ upgrade-\/manager.py\ -\/-\/no-\/restart\ -\/-\/backup-\/dir\ ./my-\/backup"{}}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00259}00259\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00260}00260\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/backup-\/first"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ default=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Backup\ chain\ data\ before\ upgrade\ (default:\ True)"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00262}00262\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/no-\/backup"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Skip\ backup\ step"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00264}00264\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/no-\/restart"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Don't\ restart\ the\ node\ after\ upgrade"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00266}00266\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/backup-\/dir"{}},\ type=str,\ default=\textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Backup\ directory\ (default:\ tools/DEVOPS/backups/<timestamp>)"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00268}00268\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/mode"{}},\ choices=[\textcolor{stringliteral}{"{}seed"{}},\ \textcolor{stringliteral}{"{}miner"{}}],\ default=\textcolor{stringliteral}{"{}seed"{}},}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Node\ mode\ for\ restart\ (default:\ seed)"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00270}00270\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00272}00272\ \ \ \ \ project\_root\ =\ \doxymbox{\hyperlink{namespaceupgrade-manager_ac8e5f0a7730f8396cce2214741332182}{find\_project\_root}}()}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00273}00273\ \ \ \ \ timestamp\ =\ datetime.now().strftime(\textcolor{stringliteral}{"{}\%Y\%m\%d\_\%H\%M\%S"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00274}00274\ \ \ \ \ backup\_dir\ =\ Path(args.backup\_dir)\ \textcolor{keywordflow}{if}\ args.backup\_dir\ \textcolor{keywordflow}{else}\ (}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ Path(\_\_file\_\_).resolve().parent\ /\ \textcolor{stringliteral}{"{}backups"{}}\ /\ timestamp}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00276}00276\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00278}00278\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{BOLD\}\ \ OmniBus\ Upgrade\ Manager\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00279}00279\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 55\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00280}00280\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Project:\{RESET\}\ \ \ \ \ \{project\_root\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00281}00281\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Backup\ dir:\{RESET\}\ \ \{backup\_dir\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00282}00282\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Platform:\{RESET\}\ \ \ \ \{platform.system()\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00284}00284\ \ \ \ \ current\_binary\ =\ \doxymbox{\hyperlink{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}{find\_binary}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00285}00285\ \ \ \ \ \textcolor{keywordflow}{if}\ current\_binary:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespaceupgrade-manager_abc244bb6dcf2df537e22eb49b77ca234}{get\_binary\_info}}(current\_binary)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Current:\{RESET\}\ \ \ \ \{current\_binary.name\}\ (\{info['size']\ /\ 1024:.0f\}\ KB,\ \{info['mtime']\})"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00289}00289\ \ \ \ \ \textcolor{comment}{\#\ Step\ 1:\ Backup}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00290}00290\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.no\_backup:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceupgrade-manager_a22db53cb880e41e686955799ad2067c0}{backup\_files}}(project\_root,\ backup\_dir)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00292}00292\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{WARN\}\ Backup\ skipped\ (-\/-\/no-\/backup)"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00295}00295\ \ \ \ \ \textcolor{comment}{\#\ Step\ 2:\ Stop\ node}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00296}00296\ \ \ \ \ \doxymbox{\hyperlink{namespaceupgrade-manager_acc631af2a1d14379ebda4e618dc5e1d6}{stop\_node}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00297}00297\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00298}00298\ \ \ \ \ \textcolor{comment}{\#\ Step\ 3:\ Rebuild}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00299}00299\ \ \ \ \ build\_ok\ =\ \doxymbox{\hyperlink{namespaceupgrade-manager_ac338524c54c9ea6b986910db5c06914c}{rebuild}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00300}00300\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00301}00301\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ build\_ok:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{RED\}\{BOLD\}Build\ failed!\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.no\_backup:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceupgrade-manager_a08b591374d4578c62de0b9ba7163a004}{rollback}}(project\_root,\ backup\_dir)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Previous\ binary\ restored\ from\ backup.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00307}00307\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00308}00308\ \ \ \ \ \textcolor{comment}{\#\ Step\ 4:\ Verify}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00309}00309\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ \doxymbox{\hyperlink{namespaceupgrade-manager_a030debd8a0bb80848c143f73fbcec848}{verify\_binary}}(project\_root):}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.no\_backup:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceupgrade-manager_a08b591374d4578c62de0b9ba7163a004}{rollback}}(project\_root,\ backup\_dir)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00313}00313\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00314}00314\ \ \ \ \ \textcolor{comment}{\#\ Step\ 5:\ Restart}}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00315}00315\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.no\_restart:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceupgrade-manager_afb5f1d609191b31a07f9e33453673029}{restart\_node}}(project\_root,\ args.mode)}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00317}00317\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{DIM\}[SKIP]\ Restart\ skipped\ (-\/-\/no-\/restart)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00319}00319\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00320}00320\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{DIM\}\{'─'\ *\ 55\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00321}00321\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}\{BOLD\}Upgrade\ complete!\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00323}00323\ }
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00324}00324\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{upgrade-manager_8py_source_l00325}00325\ \ \ \ \ \doxymbox{\hyperlink{namespaceupgrade-manager_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

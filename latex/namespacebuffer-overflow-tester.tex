@@ -1,0 +1,214 @@
+\doxysection{buffer-\/overflow-\/tester Namespace Reference}
+\hypertarget{namespacebuffer-overflow-tester}{}\label{namespacebuffer-overflow-tester}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client}{RPCClient}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuffer-overflow-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a307f3a177d58d929da49d3e3637b1e26}{classify\+\_\+result}} (int status, str body)
+\item 
+dict \doxymbox{\hyperlink{namespacebuffer-overflow-tester_ac3ceb922c2fd2290f8aa237a68dbb0e1}{build\+\_\+nested\+\_\+json}} (int depth)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_af781ded611702f585085d929bcb1f135}{run\+\_\+tests}} (\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client}{RPCClient}} client)
+\item 
+int \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a4495330dae4636ebdd704a8c6f29f5bb}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuffer-overflow-tester_ae33450326529402a358a5872b5c1fee2}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuffer-overflow-tester_aa114f2433000659fbc548c8f559f0a02}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuffer-overflow-tester_ae355b4cd2ef207e214ee238bc7f69dc1}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a88e3f96e35fe718a594459ef9677cb43}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuffer-overflow-tester_aef81c8af86d921348825124e46b54477}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacebuffer-overflow-tester_doc-func-members}
+\Hypertarget{namespacebuffer-overflow-tester_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacebuffer-overflow-tester_ac3ceb922c2fd2290f8aa237a68dbb0e1}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!build\_nested\_json@{build\_nested\_json}}
+\index{build\_nested\_json@{build\_nested\_json}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{build\_nested\_json()}{build\_nested\_json()}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_ac3ceb922c2fd2290f8aa237a68dbb0e1} 
+ dict build\+\_\+nested\+\_\+json (\begin{DoxyParamCaption}\item[{int}]{depth}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Build a JSON object nested depth levels deep.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00114}{114}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacebuffer-overflow-tester_a307f3a177d58d929da49d3e3637b1e26}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!classify\_result@{classify\_result}}
+\index{classify\_result@{classify\_result}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{classify\_result()}{classify\_result()}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_a307f3a177d58d929da49d3e3637b1e26} 
+ str classify\+\_\+result (\begin{DoxyParamCaption}\item[{int}]{status}{, }\item[{str}]{body}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Classify response as: error (good), crash (bad), or accepted (investigate).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00095}{95}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacebuffer-overflow-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacebuffer-overflow-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacebuffer-overflow-tester_adf0e2aa4d06b5ca38e44721821eca783}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacebuffer-overflow-tester_a7431cb90017e54fe695b23d4190db046}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!main@{main}}
+\index{main@{main}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00240}{240}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacebuffer-overflow-tester_af781ded611702f585085d929bcb1f135}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!run\_tests@{run\_tests}}
+\index{run\_tests@{run\_tests}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{run\_tests()}{run\_tests()}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_af781ded611702f585085d929bcb1f135} 
+ list\+[dict]\+ run\+\_\+tests (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client}{RPCClient}}}]{client}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run all buffer overflow / malformed input tests.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00122}{122}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+
+
+\label{namespacebuffer-overflow-tester_doc-var-members}
+\Hypertarget{namespacebuffer-overflow-tester_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacebuffer-overflow-tester_a88e3f96e35fe718a594459ef9677cb43}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_a88e3f96e35fe718a594459ef9677cb43} 
+str \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+\Hypertarget{namespacebuffer-overflow-tester_ae355b4cd2ef207e214ee238bc7f69dc1}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_ae355b4cd2ef207e214ee238bc7f69dc1} 
+str \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+\Hypertarget{namespacebuffer-overflow-tester_a4495330dae4636ebdd704a8c6f29f5bb}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_a4495330dae4636ebdd704a8c6f29f5bb} 
+str \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+\Hypertarget{namespacebuffer-overflow-tester_ae33450326529402a358a5872b5c1fee2}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!RED@{RED}}
+\index{RED@{RED}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_ae33450326529402a358a5872b5c1fee2} 
+str \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+\Hypertarget{namespacebuffer-overflow-tester_aef81c8af86d921348825124e46b54477}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!RESET@{RESET}}
+\index{RESET@{RESET}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_aef81c8af86d921348825124e46b54477} 
+str \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+
+\Hypertarget{namespacebuffer-overflow-tester_aa114f2433000659fbc548c8f559f0a02}\index{buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!buffer-\/overflow-\/tester@{buffer-\/overflow-\/tester}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacebuffer-overflow-tester_aa114f2433000659fbc548c8f559f0a02} 
+str \doxymbox{\hyperlink{namespacebuffer}{buffer}}-\/overflow-\/tester.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{buffer-overflow-tester_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{buffer-overflow-tester_8py_source}{buffer-\/overflow-\/tester.\+py}}.
+

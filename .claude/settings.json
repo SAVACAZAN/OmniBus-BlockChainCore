@@ -1,9 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ls \"c:/Kits work/limaje de programare/OmniBus-BlockChainCore/core/\"*.zig)",
-      "Bash(grep '\\\\.zig$')",
-      "Bash(python tools/SYNC/wiki_sync.py)"
+      "Bash(npm run build)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run lint)",
+      "Bash(npm run preview)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx tsc --noEmit *)"
     ]
   }
 }

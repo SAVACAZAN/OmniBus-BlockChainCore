@@ -1,0 +1,92 @@
+\chapter{Omni\+Bus Chain Constants — Reference }
+\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s}{}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s}\index{OmniBus Chain Constants — Reference@{OmniBus Chain Constants — Reference}}
+\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4201}%
+\Hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4201}%
+
+
+{\bfseries{Verified against source 2026-\/04-\/27.}} Use these exact values when writing scripts, agents, or UI. Don\textquotesingle{}t guess.\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4202}{}\doxysection{\texorpdfstring{Money}{Money}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4202}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constant  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Source  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Note  \\
+{\ttfamily 1 OMNI}  &{\ttfamily 1\+\_\+000\+\_\+000\+\_\+000 SAT}  &Genesis spec  &1e9, NOT 1e8 like Bitcoin  \\
+{\ttfamily MAX\+\_\+\+SUPPLY\+\_\+\+SAT}  &{\ttfamily 21\+\_\+000\+\_\+000\+\_\+000\+\_\+000\+\_\+000}  &{\ttfamily consensus\+\_\+pouw.\+zig:\+40}  &21M OMNI cap  \\
+{\ttfamily INITIAL\+\_\+\+BLOCK\+\_\+\+REWARD\+\_\+\+SAT}  &{\ttfamily 50\+\_\+000\+\_\+000\+\_\+000}  &{\ttfamily consensus\+\_\+pouw.\+zig:\+32}  &50 OMNI/\+block initial  \\
+{\ttfamily HALVING\+\_\+\+INTERVAL}  &{\ttfamily 210\+\_\+000} blocks (Po\+UW)  &{\ttfamily consensus\+\_\+pouw.\+zig:\+33}  &Bitcoin-\/style halvings  \\
+Effective reward (post-\/halvings)  &{\ttfamily \texorpdfstring{$\sim$}{\string~}0.0083 OMNI}  &live testnet  &≈8.3M SAT after many halvings  \\
+\end{DoxyTable}
+\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4203}{}\doxysection{\texorpdfstring{Transaction limits}{Transaction limits}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4203}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constant  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Source  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Behavior  \\
+{\ttfamily DUST\+\_\+\+THRESHOLD\+\_\+\+SAT}  &{\ttfamily 100}  &{\ttfamily blockchain.\+zig:\+43}  &TX with {\ttfamily amount \texorpdfstring{$<$}{<} 100 SAT} rejected (unless OP\+\_\+\+RETURN)  \\
+{\ttfamily TX\+\_\+\+MIN\+\_\+\+FEE\+\_\+\+SAT}  &{\ttfamily 1}  &{\ttfamily mempool.\+zig:\+12}  &TX with {\ttfamily fee \texorpdfstring{$<$}{<} 1 SAT} rejected  \\
+{\ttfamily MAX\+\_\+\+OP\+\_\+\+RETURN}  &{\ttfamily 80} bytes  &{\ttfamily transaction.\+zig:\+44}  &OP\+\_\+\+RETURN payload cap  \\
+{\ttfamily op\+\_\+return TX with amount=0}  &allowed  &{\ttfamily transaction.\+zig:\+122}  &Only if {\ttfamily op\+\_\+return.\+len \texorpdfstring{$>$}{>} 0}  \\
+Address prefix  &{\ttfamily ob1q} (Seg\+Wit v0), {\ttfamily ob1p} (Taproot)  &{\ttfamily transaction.\+zig:\+48}  &Bech32 /\+ Bech32m  \\
+\end{DoxyTable}
+\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4204}{}\doxysection{\texorpdfstring{Block timing}{Block timing}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4204}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constant  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Source  \\
+Block time target  &{\ttfamily 1s} (with sub-\/blocks 0.\+1s)  &{\ttfamily genesis.\+zig}, parent {\ttfamily \doxylink{_c_l_a_u_d_e_8md}{CLAUDE.\+md}}  \\
+Sub-\/blocks per block  &{\ttfamily 10}  &{\ttfamily genesis.\+zig}  \\
+Live testnet observed  &{\ttfamily \texorpdfstring{$\sim$}{\string~}3.1s/\+block}  &{\ttfamily getperformance} 2026-\/04-\/27  \\
+\end{DoxyTable}
+\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4205}{}\doxysection{\texorpdfstring{Faucet (testnet only)}{Faucet (testnet only)}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4205}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constant  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Source  \\
+{\ttfamily FAUCET\+\_\+\+IP\+\_\+\+COOLDOWN\+\_\+S}  &{\ttfamily 60}  &{\ttfamily rpc\+\_\+server.\+zig:\+791}  \\
+{\ttfamily FAUCET\+\_\+\+MAX\+\_\+\+CLAIMED\+\_\+\+ADDRS}  &{\ttfamily 4096}  &{\ttfamily rpc\+\_\+server.\+zig:\+792}  \\
+Default grant  &{\ttfamily 100\+\_\+000\+\_\+000 SAT} (0.\+1 OMNI)  &{\ttfamily node\+\_\+launcher.\+zig:\+45}  \\
+Refill threshold  &tracked per node  &{\ttfamily main.\+zig} faucet refill loop  \\
+\end{DoxyTable}
+\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4206}{}\doxysection{\texorpdfstring{Staking (designed; not yet wired into consensus)}{Staking (designed; not yet wired into consensus)}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4206}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Constant  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Source  \\
+{\ttfamily VALIDATOR\+\_\+\+MIN\+\_\+\+STAKE}  &{\ttfamily 100\+\_\+000\+\_\+000\+\_\+000 SAT} (100 OMNI)  &{\ttfamily staking.\+zig:\+18}  \\
+{\ttfamily MAX\+\_\+\+VALIDATORS}  &{\ttfamily 128}  &{\ttfamily staking.\+zig:\+21}  \\
+{\ttfamily UNBONDING\+\_\+\+PERIOD}  &{\ttfamily 604\+\_\+800} blocks (\texorpdfstring{$\sim$}{\string~}7 days at 1s)  &{\ttfamily staking.\+zig:\+24}  \\
+{\ttfamily SLASH\+\_\+\+DOUBLE\+\_\+\+SIGN\+\_\+\+PCT}  &{\ttfamily 33\%}  &{\ttfamily staking.\+zig:\+41}  \\
+{\ttfamily SLASH\+\_\+\+INVALID\+\_\+\+BLOCK\+\_\+\+PCT}  &{\ttfamily 10\%}  &{\ttfamily staking.\+zig:\+44}  \\
+{\ttfamily DOWNTIME\+\_\+\+PENALTY\+\_\+\+PCT}  &{\ttfamily 1\%}  &{\ttfamily staking.\+zig:\+47}  \\
+\end{DoxyTable}
+\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4207}{}\doxysection{\texorpdfstring{Networking}{Networking}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4207}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Port  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Purpose  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+{\ttfamily 8332}  &Mainnet RPC (HTTP JSON-\/\+RPC 2.\+0)  &\\
+{\ttfamily 18332}  &Testnet RPC  &\\
+{\ttfamily 28332}  &Regtest RPC  &\\
+{\ttfamily 8334}  &Web\+Socket (frontend events)  &\\
+{\ttfamily 9000+}  &P2P TCP  &per-\/node configurable  \\
+Port {\ttfamily 18333}  &{\bfseries{NOT RPC}} — likely P2P testnet  &Don\textquotesingle{}t use for RPC calls  \\
+\end{DoxyTable}
+\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4208}{}\doxysection{\texorpdfstring{Auth}{Auth}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4208}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Variable  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+{\ttfamily OMNIBUS\+\_\+\+RPC\+\_\+\+TOKEN}  &64-\/hex bearer  &Required for non-\/loopback (VPS). Loopback (127.\+0.\+0.\+1) bypasses.  \\
+\end{DoxyTable}
+
+
+See {\ttfamily \texorpdfstring{$\sim$}{\string~}/\+.claude/\+...memory/\+reference\+\_\+omnibus\+\_\+vps\+\_\+rpc\+\_\+token.\+md} for the actual VPS token.\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4209}{}\doxysection{\texorpdfstring{UI display precision (frontend)}{UI display precision (frontend)}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4209}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Format  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+OMNI amount  &{\ttfamily to\+Fixed(8)}  &9 decimals available (1e9), 8 chosen for Bitcoin-\/familiarity  \\
+{\ttfamily balance\+OMNI} from RPC  &{\ttfamily "{}0.\+000000000"{}} (9-\/decimal string)  &{\ttfamily rpc\+\_\+server.\+zig:\+427} formats {\ttfamily \{d\}.\{d:\+0\texorpdfstring{$>$}{>}9\}}  \\
+\end{DoxyTable}
+
+
+{\bfseries{Why 8 decimals matter:\+}} at 4 decimals, a 9279-\/SAT balance shows as {\ttfamily 0.\+0000} (looks empty). At 8 decimals it shows {\ttfamily 0.\+00000928} (clearly small but non-\/zero). Anything below 100 SAT is dust and can\textquotesingle{}t be sent anyway.\hypertarget{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4210}{}\doxysection{\texorpdfstring{Common gotchas}{Common gotchas}}\label{md_docs_2_c_h_a_i_n___c_o_n_s_t_a_n_t_s_autotoc_md4210}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{DUST\+\_\+\+THRESHOLD applies to {\ttfamily amount}, not {\ttfamily fee}.}} A TX with {\ttfamily amount=99, fee=1} is rejected (dust amount). A TX with {\ttfamily amount=100, fee=1} is accepted.
+\item {\bfseries{OP\+\_\+\+RETURN TXs}} can have {\ttfamily amount=0} AND {\ttfamily fee\texorpdfstring{$>$}{>}=1}. They\textquotesingle{}re metadata carriers, not payments — {\ttfamily to\+\_\+address} is set but ignored at validation level.
+\item {\bfseries{Nonce per address.}} Every TX from address {\ttfamily A} must have {\ttfamily nonce = previous\+\_\+nonce + 1}. Mempool rejects with "{}nonce conflict"{} if you reuse or skip. Use {\ttfamily getnonce} before each TX or maintain a local counter that never decrements.
+\item {\bfseries{{\ttfamily sendtransaction} always signs with the node\textquotesingle{}s primary wallet.}} If you want to send from a different address, use {\ttfamily sendrawtransaction} with a client-\/side signed TX blob (see {\ttfamily transaction.\+zig:\+Transaction} schema).
+\item {\bfseries{{\ttfamily balance\+OMNI} from RPC is a STRING}} (e.\+g., {\ttfamily "{}0.\+100024230"{}}), not a number. Don\textquotesingle{}t {\ttfamily parse\+Float} it for display — show the string directly to keep precision.
+\item {\bfseries{Faucet cooldown is per-\/\+IP, not per-\/account.}} Running 100 claims from one IP needs 60s × 100 = 100 min minimum. Multiple IPs (separate VPS) can parallelize. 
+\end{DoxyEnumerate}

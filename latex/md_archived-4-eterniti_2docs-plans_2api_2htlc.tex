@@ -1,0 +1,34 @@
+\chapter{htlc.\+zig — API Reference }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2htlc}{}\label{md_archived-4-eterniti_2docs-plans_2api_2htlc}\index{htlc.zig — API Reference@{htlc.zig — API Reference}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2htlc_autotoc_md1708}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2htlc_autotoc_md1708}%
+
+
+\begin{quote}
+Auto-\/generated from core/\+htlc.\+zig \end{quote}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2htlc_autotoc_md1709}{}\doxysection{\texorpdfstring{Public Functions}{Public Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2htlc_autotoc_md1709}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ HTLCState\ =\ enum\ \{}
+\DoxyCodeLine{pub\ const\ HTLC\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ create(}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ activate(self:\ *HTLC)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ claim(self:\ *HTLC,\ preimage:\ [32]u8)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ refund(self:\ *HTLC,\ current\_height:\ u64)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ checkExpiry(self:\ *HTLC,\ current\_height:\ u64)\ void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ canClaim(self:\ *const\ HTLC)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ canRefund(self:\ *const\ HTLC,\ current\_height:\ u64)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ generatePreimage()\ struct\ \{\ preimage:\ [32]u8,\ hash:\ [32]u8\ \}\ \{}
+\DoxyCodeLine{pub\ const\ HTLCRegistry\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ init(allocator:\ std.mem.Allocator)\ HTLCRegistry\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ deinit(self:\ *HTLCRegistry)\ void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ createHTLC(}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getHTLC(self:\ *const\ HTLCRegistry,\ id:\ u64)\ ?HTLC\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ activateHTLC(self:\ *HTLCRegistry,\ id:\ u64)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ claimHTLC(self:\ *HTLCRegistry,\ id:\ u64,\ preimage:\ [32]u8)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ refundHTLC(self:\ *HTLCRegistry,\ id:\ u64,\ current\_height:\ u64)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ expireAll(self:\ *HTLCRegistry,\ current\_height:\ u64)\ u32\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ activeCount(self:\ *const\ HTLCRegistry)\ u32\ \{}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2htlc_autotoc_md1710}{}\doxysection{\texorpdfstring{Tests:\+ 6}{Tests:\+ 6}}\label{md_archived-4-eterniti_2docs-plans_2api_2htlc_autotoc_md1710}

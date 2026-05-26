@@ -1,0 +1,49 @@
+\chapter{
+\begin{DoxyEnumerate}
+\item Blockchain Structure 
+\end{DoxyEnumerate}}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_78384ee4b9b329c3a5a0ad66db88bdf1}{}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_78384ee4b9b329c3a5a0ad66db88bdf1}\index{2. Blockchain Structure@{2. Blockchain Structure}}
+\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_78384ee4b9b329c3a5a0ad66db88bdf1_autotoc_md3917}%
+\Hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_78384ee4b9b329c3a5a0ad66db88bdf1_autotoc_md3917}%
+
+
+\begin{quote}
+Omni\+Bus vs Bitcoin — Category 2/\+10 Generated:\+ 2026-\/03-\/31 19:\+42 \end{quote}
+
+
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}BTC  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}OMNI  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}21  &Genesis Block  &\SetCell{c}Y  &\SetCell{c}Y  &genesis.\+zig  &"{}26/\+\+Mar/\+2026 Omni\+Bus born"{}  \\
+\SetCell{c}22  &Block Header  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &prev\+\_\+hash, merkle\+\_\+root, nonce  \\
+\SetCell{c}23  &Block Body (TX list)  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &Transaction array  \\
+\SetCell{c}24  &Merkle Tree  &\SetCell{c}Y  &\SetCell{c}Y  &block.\+zig  &SHA256d merkle root  \\
+\SetCell{c}25  &UTXO Set  &\SetCell{c}Y  &\SetCell{c}Y  &state\+\_\+trie.\+zig  &Account-\/based primary, UTXO planned  \\
+\SetCell{c}26  &Transaction Structure  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &Full TX with sig, hash, nonce  \\
+\SetCell{c}27  &Coinbase Transaction  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Block reward TX  \\
+\SetCell{c}28  &Block Height  &\SetCell{c}Y  &\SetCell{c}Y  &blockchain.\+zig  &Sequential numbering  \\
+\SetCell{c}29  &Block Weight /\+ Size  &\SetCell{c}Y  &\SetCell{c}Y  &sub\+\_\+block.\+zig  &Sub-\/block weight system  \\
+\SetCell{c}30  &Block Time  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &10s (10x0.\+1s sub-\/blocks)  \\
+\SetCell{c}31  &Difficulty Target  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Adjustable  \\
+\SetCell{c}32  &Difficulty Adjustment  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Every 2016 blocks  \\
+\SetCell{c}33  &Max Supply (21M)  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &21M OMNI  \\
+\SetCell{c}34  &Halving  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &Every 210K blocks  \\
+\SetCell{c}35  &Block Reward  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &50 OMNI, halves  \\
+\SetCell{c}36  &Sub-\/block Engine  &\SetCell{c}N  &\SetCell{c}+  &sub\+\_\+block.\+zig  &10 sub-\/blocks/\+key block \+[EXTRA]\+  \\
+\SetCell{c}37  &Sharding (4 shards)  &\SetCell{c}N  &\SetCell{c}+  &shard\+\_\+coordinator.\+zig  &Parallel processing \+[EXTRA]\+  \\
+\SetCell{c}38  &Metachain  &\SetCell{c}N  &\SetCell{c}+  &metachain.\+zig  &Cross-\/shard coordination \+[EXTRA]\+  \\
+\SetCell{c}39  &Compact Blocks  &\SetCell{c}Y  &\SetCell{c}Y  &binary\+\_\+codec.\+zig  &Binary encoding  \\
+\SetCell{c}40  &Block Archive  &\SetCell{c}Y  &\SetCell{c}Y  &archive\+\_\+manager.\+zig  &Historical data  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{BTC has:\+ 17 items}} {\bfseries{Omni\+Bus:\+ 20 implemented, 0 partial, 0 missing, 3 extras}} {\bfseries{Score:\+ 117\%}} (20/\+17 BTC features + 3 unique extras)\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_78384ee4b9b329c3a5a0ad66db88bdf1_autotoc_md3919}{}\doxysubsection{\texorpdfstring{Extras (Omni\+Bus-\/only):\+}{Extras (Omni\+Bus-\/only):\+}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_78384ee4b9b329c3a5a0ad66db88bdf1_autotoc_md3919}
+
+\begin{DoxyItemize}
+\item Sub-\/block Engine — 10 sub-\/blocks/\+key block \+[EXTRA]\+
+\item Sharding (4 shards) — Parallel processing \+[EXTRA]\+
+\item Metachain — Cross-\/shard coordination \+[EXTRA]\+ 
+\end{DoxyItemize}

@@ -1,0 +1,201 @@
+\chapter{Bitcoin-\/style Storage Refactor — Architecture Spec }
+\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e}{}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e}\index{Bitcoin-\/style Storage Refactor — Architecture Spec@{Bitcoin-\/style Storage Refactor — Architecture Spec}}
+\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md0}%
+\Hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md0}%
+
+
+{\bfseries{Status:\+}} Design only. Implementation tracked in branch {\ttfamily arch/\+leveldb-\/storage}. {\bfseries{Trigger:\+}} 2026-\/04-\/28 testnet data loss — 51 of 54 faucet recipients lost their balances at restart because state lived only in {\ttfamily bc.\+balances} Hash\+Map, not in chain TXs, and the in-\/mining-\/loop save had been removed to recover p99 latency.
+
+This document specifies how Omni\+Bus should store its chain on disk, modelled on Bitcoin Core\textquotesingle{}s design and adapted for our higher block rate (60/\+min vs Bitcoin\textquotesingle{}s 0.\+16/\+min).\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md1}{}\doxysection{\texorpdfstring{What Bitcoin actually does}{What Bitcoin actually does}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md1}
+Three independent storage layers, each with a single job:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\string~/.bitcoin/}
+\DoxyCodeLine{├──\ blocks/}
+\DoxyCodeLine{│\ \ \ ├──\ blk00000.dat\ \ \ \ \ \ \ \ ←\ raw\ block\ data,\ append-\/only,\ 128\ MB\ chunks}
+\DoxyCodeLine{│\ \ \ ├──\ blk00001.dat}
+\DoxyCodeLine{│\ \ \ ├──\ blk00002.dat}
+\DoxyCodeLine{│\ \ \ ├──\ rev00000.dat\ \ \ \ \ \ \ \ ←\ undo\ data\ per\ block\ (for\ reorgs)}
+\DoxyCodeLine{│\ \ \ ├──\ rev00001.dat}
+\DoxyCodeLine{│\ \ \ └──\ index/\ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ LevelDB}
+\DoxyCodeLine{│\ \ \ \ \ \ \ ├──\ 000003.log}
+\DoxyCodeLine{│\ \ \ \ \ \ \ ├──\ CURRENT}
+\DoxyCodeLine{│\ \ \ \ \ \ \ └──\ MANIFEST-\/000002}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \#\ block\_hash\ →\ (file\_no,\ offset,\ height,\ status,\ ...)}
+\DoxyCodeLine{├──\ chainstate/\ \ \ \ \ \ \ \ \ \ \ \ \ ←\ LevelDB}
+\DoxyCodeLine{│\ \ \ ├──\ 000123.log}
+\DoxyCodeLine{│\ \ \ ├──\ CURRENT}
+\DoxyCodeLine{│\ \ \ └──\ MANIFEST-\/000122}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \#\ UTXO\ set:\ outpoint\ →\ (amount,\ script,\ height,\ coinbase\_flag)}
+\DoxyCodeLine{├──\ mempool.dat\ \ \ \ \ \ \ \ \ \ \ \ \ ←\ serialised\ mempool,\ persisted\ at\ shutdown}
+\DoxyCodeLine{├──\ peers.dat\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ peer\ addresses\ for\ next\ startup}
+\DoxyCodeLine{└──\ wallet.dat\ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ wallet\ (legacy\ or\ BDB-\/only\ setups)}
+
+\end{DoxyCode}
+
+
+Properties:\+
+
+
+\begin{DoxyItemize}
+\item {\bfseries{{\ttfamily blocks/\+blk\+NNNNN.\+dat}}} — append-\/only. Once a block is written, the bytes never change. New blocks always extend the most recent file until it hits \texorpdfstring{$\sim$}{\string~}128 MB, then a new file starts. Zero rewrites means zero opportunity for corruption from interrupted writes.
+\item {\bfseries{{\ttfamily blocks/\+index/\+}}} — small Level\+DB. Maps every known block hash to {\ttfamily (file\+\_\+number, byte\+\_\+offset, height, validity\+\_\+status)}. Allows {\ttfamily getblock(hash)} in O(log n) without scanning files.
+\item {\bfseries{{\ttfamily chainstate/\+}}} — the live state. UTXO set (every unspent output currently in existence). Updated incrementally at every block:\+ add the new TX outputs, remove the consumed inputs. Level\+DB\textquotesingle{}s WAL (write-\/ahead log) makes this crash-\/safe — at restart the last partial batch is rolled back from the log.
+\item {\bfseries{{\ttfamily rev00000.\+dat}}} — undo data. For every block, we record how to reverse its effect on the UTXO set. Needed only for reorgs.
+\item {\bfseries{{\ttfamily mempool.\+dat}}} — the unconfirmed-\/\+TX pool. Serialised at graceful shutdown, replayed at startup so the mempool isn\textquotesingle{}t empty for the first 10 minutes.
+\end{DoxyItemize}
+
+Why this is robust:\+
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Block files are append-\/only.}} A crash mid-\/write at most leaves a torn last record, detected by length+\+CRC at the next read; the block in question is rejected and re-\/fetched from peers.
+\item {\bfseries{Chainstate is always derivable from blocks.}} If chainstate is corrupt or missing, {\ttfamily bitcoind -\/reindex-\/chainstate} rebuilds it from the block files. Slow (hours on mainnet) but always possible.
+\item {\bfseries{No single "{}kitchen-\/sink"{} file.}} Each layer has one responsibility. A bug in mempool persistence can\textquotesingle{}t poison chainstate; a bug in chainstate writes can\textquotesingle{}t corrupt blocks.
+\end{DoxyEnumerate}\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md2}{}\doxysection{\texorpdfstring{What we have today (the broken design)}{What we have today (the broken design)}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md2}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{data/<chain>/}
+\DoxyCodeLine{├──\ chain.dat\ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ monolithic\ single\ file}
+\DoxyCodeLine{├──\ chain.dat.bak\ \ \ \ \ \ \ \ \ \ ←\ copy\ of\ last\ good\ version}
+\DoxyCodeLine{├──\ orders.jsonl\ \ \ \ \ \ \ \ \ \ \ ←\ exchange\ orders\ journal}
+\DoxyCodeLine{├──\ faucet-\/claims.json\ \ \ \ \ ←\ faucet\ rate-\/limit\ log}
+\DoxyCodeLine{├──\ exchange-\/users.jsonl\ \ \ ←\ exchange\ auth\ journal}
+\DoxyCodeLine{└──\ dns\_registry.bin\ \ \ \ \ \ \ ←\ .omnibus\ name\ registry}
+
+\end{DoxyCode}
+
+
+The single {\ttfamily chain.\+dat} carries:\+
+
+
+\begin{DoxyItemize}
+\item header (magic + version)
+\item N blocks (full)
+\item balances Hash\+Map (address → sat)
+\item nonces Hash\+Map
+\item pubkey registry
+\item tx\+\_\+block\+\_\+height index
+\end{DoxyItemize}
+
+Persisted as one atomic tmp+rename operation. At 70 k blocks that\textquotesingle{}s a \texorpdfstring{$\sim$}{\string~}14 MB rewrite per save. Pre-\/{\ttfamily b363095} we did this every 100 blocks or every 60 s; pre-\/{\ttfamily ea9e0bc} we {\itshape also} did it inline on every block, which is what stole 8-\/9 s from the mining loop in the periodic spikes.
+
+What broke:\+ {\ttfamily b363095} made the per-\/block save a no-\/op while leaving the inputs (faucet grants, in-\/memory balance writes) untouched. State that wasn\textquotesingle{}t a chain TX was now ephemeral. Since faucet didn\textquotesingle{}t emit TXs, faucet recipients silently disappeared on the next restart.\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md3}{}\doxysection{\texorpdfstring{What we move to (Bitcoin-\/style, Omni\+Bus-\/tuned)}{What we move to (Bitcoin-\/style, Omni\+Bus-\/tuned)}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md3}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{data/<chain>/}
+\DoxyCodeLine{├──\ blocks/}
+\DoxyCodeLine{│\ \ \ ├──\ blk00000.dat\ \ \ \ \ \ \ ←\ append-\/only,\ 128\ MB\ cap,\ then\ rotate}
+\DoxyCodeLine{│\ \ \ ├──\ blk00001.dat}
+\DoxyCodeLine{│\ \ \ ├──\ ...}
+\DoxyCodeLine{│\ \ \ ├──\ rev00000.dat\ \ \ \ \ \ \ ←\ undo\ data,\ parallel\ numbering}
+\DoxyCodeLine{│\ \ \ ├──\ rev00001.dat}
+\DoxyCodeLine{│\ \ \ └──\ index/\ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Zig-\/native\ key-\/value\ store}
+\DoxyCodeLine{│\ \ \ \ \ \ \ ├──\ manifest.bin}
+\DoxyCodeLine{│\ \ \ \ \ \ \ ├──\ 000001.log}
+\DoxyCodeLine{│\ \ \ \ \ \ \ └──\ 000001.sst\ \ \ \ \ ←\ block\_hash\ →\ (file\_no,\ offset,\ height)}
+\DoxyCodeLine{├──\ chainstate/\ \ \ \ \ \ \ \ \ \ \ \ ←\ Zig-\/native\ key-\/value\ store}
+\DoxyCodeLine{│\ \ \ ├──\ manifest.bin}
+\DoxyCodeLine{│\ \ \ ├──\ 000001.log\ \ \ \ \ \ \ \ \ ←\ write-\/ahead\ log}
+\DoxyCodeLine{│\ \ \ └──\ 000001.sst\ \ \ \ \ \ \ \ \ ←\ \{addr\ →\ balance,\ addr\ →\ nonce,\ ...\}}
+\DoxyCodeLine{├──\ mempool.dat\ \ \ \ \ \ \ \ \ \ \ \ ←\ serialised\ mempool}
+\DoxyCodeLine{└──\ peers.dat\ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ peer\ addresses}
+
+\end{DoxyCode}
+
+
+Key design decisions tailored for Omni\+Bus:\+
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Decision  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Why  \\
+{\bfseries{Pure Zig KV store}}, no Level\+DB dependency  &Keeps build simple. Our QPS is far below Level\+DB\textquotesingle{}s design point — a tiny WAL+\+SSTable in \texorpdfstring{$<$}{<}600 LoC is enough.  \\
+{\bfseries{Block file size 128 MB}}  &Same as Bitcoin. At 60/\+min × \texorpdfstring{$\sim$}{\string~}1 KB/\+block we rotate every \texorpdfstring{$\sim$}{\string~}36 hours.  \\
+{\bfseries{Block height limit per file:\+}} also 128 k blocks  &Hard cap so a corrupted block file is bounded.  \\
+{\bfseries{Chainstate is a flat KV}} (not UTXO model yet)  &Bitcoin tracks every output as an entry. \doxylink{namespace_we}{We} use account-\/based balances (Ethereum-\/style). Smaller key space. UTXO can come later if we want full SPV proofs.  \\
+{\bfseries{Reorg undo data}}  &Same as Bitcoin\textquotesingle{}s {\ttfamily rev\+NNNNN.\+dat}. For every block, record {\ttfamily (addr, old\+\_\+balance, new\+\_\+balance)} pairs; reorg replays them in reverse.  \\
+{\bfseries{Mempool persist}}  &Same as Bitcoin — {\ttfamily mempool.\+dat} at graceful shutdown only.  \\
+{\bfseries{Migration tool}}  &One-\/shot:\+ read old {\ttfamily chain.\+dat}, re-\/emit as {\ttfamily blk\+NNNNN.\+dat} + chainstate. Reversible by keeping the original file.  \\
+\end{DoxyTable}
+\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md4}{}\doxysection{\texorpdfstring{Component sizes (estimated)}{Component sizes (estimated)}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md4}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}LoC  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Difficulty  \\
+{\ttfamily core/\+store/\+block\+\_\+files.\+zig} — append-\/only block writer + reader  &350  &Medium  \\
+{\ttfamily core/\+store/\+wal.\+zig} — write-\/ahead log for crash safety  &250  &Hard  \\
+{\ttfamily core/\+store/\+sstable.\+zig} — sorted string table reader/\+writer  &400  &Hard  \\
+{\ttfamily core/\+store/\+kv.\+zig} — thin KV wrapper over WAL+\+SSTable  &300  &Medium  \\
+{\ttfamily core/\+store/\+chainstate.\+zig} — typed wrapper over KV (balance/\+nonce/\+pubkey)  &200  &Easy  \\
+{\ttfamily core/\+store/\+block\+\_\+index.\+zig} — block\+\_\+hash → \href{file:offset}{\texttt{file:\+offset}} KV  &150  &Easy  \\
+{\ttfamily core/\+store/\+undo.\+zig} — reorg undo record format  &200  &Medium  \\
+{\ttfamily core/\+store/\+migration.\+zig} — one-\/shot chain.\+dat → new format  &300  &Medium  \\
+Mempool persist (already exists, minor change)  &50  &Easy  \\
+Integration into main.\+zig + RPC handlers  &200  &Medium  \\
+Tests + benchmarks  &600  &High effort  \\
+{\bfseries{Total}}  &\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\texorpdfstring{$\sim$}{\string~}3 000 Lo\+C\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}  &{\bfseries{3–5 working days}}  \\
+\end{DoxyTable}
+\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md5}{}\doxysection{\texorpdfstring{Migration strategy}{Migration strategy}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md5}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Side-\/by-\/side first.}} New code writes both old {\ttfamily chain.\+dat} (as today) and new {\ttfamily blocks/\+} + {\ttfamily chainstate/\+}. Read still comes from the old path. Run for one week on regtest + testnet.
+\item {\bfseries{Switch read path}} to new format with old kept as a checksum reference. If they diverge, log + alert.
+\item {\bfseries{Drop old writer}} once a full release cycle (30 days) without divergence is confirmed.
+\item {\bfseries{Keep old chain.\+dat read path}} indefinitely for restoring from archived backups.
+\end{DoxyEnumerate}\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md6}{}\doxysection{\texorpdfstring{Crash-\/safety contract (target)}{Crash-\/safety contract (target)}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md6}
+After the refactor, this test must pass:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1.\ wipe\ data/<chain>/}
+\DoxyCodeLine{2.\ start\ node\ from\ genesis}
+\DoxyCodeLine{3.\ run\ a\ workload:\ faucet\ claims,\ mining,\ signed\ transfers,\ exchange\ orders}
+\DoxyCodeLine{4.\ send\ SIGKILL\ to\ the\ node\ mid-\/write\ (no\ graceful\ shutdown)}
+\DoxyCodeLine{5.\ start\ node\ again}
+\DoxyCodeLine{6.\ verify:\ every\ committed\ block\ survives,\ every\ committed\ balance}
+\DoxyCodeLine{\ \ \ change\ survives,\ mempool\ reloads,\ no\ manual\ repair\ needed}
+
+\end{DoxyCode}
+
+
+Today\textquotesingle{}s chain.\+dat fails this test (we proved it). The new design must pass.\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md7}{}\doxysection{\texorpdfstring{What stays the same}{What stays the same}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md7}
+
+\begin{DoxyItemize}
+\item Wire format for blocks (P2P doesn\textquotesingle{}t care about local storage).
+\item RPC surface ({\ttfamily getblock}, {\ttfamily getaddressbalance}, {\ttfamily getrichlist} etc.).
+\item Genesis bootstrap path.
+\item Reorg /\+ fork-\/choice rules.
+\item Validator set + slot-\/leader selection.
+\item Mining loop logic (orchestrator, stabilizer, slot-\/leader gate).
+\end{DoxyItemize}
+
+This is a storage layer swap, not a consensus change.\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md8}{}\doxysection{\texorpdfstring{Stretch goals (post-\/\+MVP)}{Stretch goals (post-\/\+MVP)}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md8}
+
+\begin{DoxyItemize}
+\item {\bfseries{Snapshots /\+ pruning.}} After N blocks the early {\ttfamily blk\+NNNNN.\+dat} files are append-\/only history; we can compress them into a single archive once they\textquotesingle{}re past the deepest possible reorg.
+\item {\bfseries{SPV proofs.}} With block files + chainstate it\textquotesingle{}s straightforward to serve light-\/client merkle proofs without holding the whole chain.
+\item {\bfseries{{\ttfamily -\/reindex-\/chainstate}.}} Drop chainstate, rebuild from blocks. Same CLI flag as Bitcoin.
+\item {\bfseries{Networked snapshots.}} Bitcoin has {\ttfamily assumeutxo}; we could ship signed chainstate snapshots so a fresh node syncs in seconds.
+\end{DoxyItemize}\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md9}{}\doxysection{\texorpdfstring{Open questions to resolve before coding}{Open questions to resolve before coding}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md9}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Atomic batch granularity.}} Bitcoin commits chainstate per block. At our 60/\+min that\textquotesingle{}s a write every second — fine, but verify the WAL flush rate isn\textquotesingle{}t a SSD-\/life issue on small VPSs.
+\item {\bfseries{Account vs UTXO model.}} Sticking with account-\/based balances (current design) keeps chainstate \texorpdfstring{$\sim$}{\string~}10× smaller than UTXO. But if we ever want script-\/based spending or coin selection at the chain layer, UTXO becomes mandatory. Decide before writing the SSTable schema.
+\item {\bfseries{Endianness.}} Bitcoin uses little-\/endian throughout. \doxylink{namespace_we}{We}\textquotesingle{}ve been inconsistent. Pick one (LE) and document it.
+\item {\bfseries{Compaction.}} SSTables need periodic merge. Background thread or on-\/demand at startup?
+\item {\bfseries{Multi-\/chain support.}} mainnet /\+ testnet /\+ regtest each get their own subdirectory? (Yes — already the convention.)
+\end{DoxyEnumerate}\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md10}{}\doxysection{\texorpdfstring{Branch layout}{Branch layout}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md10}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{arch/leveldb-\/storage\ \ \ \ \ \ \ \ \ ←\ all\ storage\ refactor\ work,\ off\ main}
+\DoxyCodeLine{\ \ ├──\ core/store/\ \ \ \ \ \ \ \ \ \ \ \ ←\ new\ modules}
+\DoxyCodeLine{\ \ ├──\ core/storage.zig\ \ \ \ \ \ \ ←\ OLD,\ kept\ for\ migration\ tool\ reference}
+\DoxyCodeLine{\ \ └──\ tests/storage\_*\ \ \ \ \ \ \ \ ←\ new\ tests}
+
+\end{DoxyCode}
+
+
+Merge to {\ttfamily main} only after the side-\/by-\/side validation + the crash-\/safety test pass on regtest {\itshape and} testnet.\hypertarget{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md11}{}\doxysection{\texorpdfstring{Why this matters}{Why this matters}}\label{md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e_autotoc_md11}
+\doxylink{namespace_we}{We}\textquotesingle{}ve been losing data because storage was implicit and one-\/shot. Bitcoin solved this in 2010 with the layered design above. Adopting it doesn\textquotesingle{}t make us "{}\+Bitcoin-\/derivative"{} — it makes us a proper L1 rather than a fancy in-\/memory toy that happens to mine blocks.
+
+Until this lands, the band-\/aid is the background state-\/save thread ({\ttfamily start\+State\+Save\+Thread} in main.\+zig). It saves the same monolithic {\ttfamily chain.\+dat} every 60 s, on a worker, off the mining hot path. That keeps faucet grants and other in-\/memory writes durable across restarts without re-\/introducing the p99 spike. Not pretty, not fast, not ideal — but stops the bleeding while we build the real fix. 

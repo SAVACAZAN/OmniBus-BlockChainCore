@@ -1,0 +1,249 @@
+\doxysection{block-\/malformation-\/tester Namespace Reference}
+\hypertarget{namespaceblock-malformation-tester}{}\label{namespaceblock-malformation-tester}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespaceblock-malformation-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceblock-malformation-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceblock-malformation-tester_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceblock-malformation-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+dict \doxymbox{\hyperlink{namespaceblock-malformation-tester_ad296483187680cf270e2e2758508944f}{rpc\+\_\+call}} (str url, str method, params=None, auth=None, float timeout=10.\+0)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceblock-malformation-tester_adf085ee52d18a2d94076014b67ac344d}{make\+\_\+tx}} (list\+[dict\+[str, Any]\+]\+ inputs, list\+[dict\+[str, Any]\+]\+ outputs)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceblock-malformation-tester_a526f93ac21a17217fc814b2057849e91}{make\+\_\+block}} (str prev\+\_\+hash, str merkle\+\_\+root, int timestamp, int bits, int nonce, list\+[dict\+[str, Any]\+]\+ txs)
+\item 
+bytes \doxymbox{\hyperlink{namespaceblock-malformation-tester_a6f1759e66e7265068efadd6e05c02f97}{double\+\_\+sha256}} (bytes data)
+\item 
+str \doxymbox{\hyperlink{namespaceblock-malformation-tester_ab618f244638d90a2b8b108aee4df6193}{hash\+\_\+block\+\_\+header}} (dict\+[str, Any]\+ header)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespaceblock-malformation-tester_abfcf06a7f9957f718139b7ee71f83325}{malformed\+\_\+blocks}} (dict\+[str, Any]\+ node\+\_\+info)
+\item 
+int \doxymbox{\hyperlink{namespaceblock-malformation-tester_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{namespaceblock-malformation-tester_a6b7c63e432b627879f1f4450fc8067d9}{HAVE\+\_\+\+REQUESTS}} = True
+\item 
+str \doxymbox{\hyperlink{namespaceblock-malformation-tester_abb68182f1b6841edc8627a0007443618}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblock-malformation-tester_affbbbe088393c1bf6cf86e5f1e3ba726}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblock-malformation-tester_a25728c7ee1bc2c46a13278791d94a389}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblock-malformation-tester_ad2179e3af75ffeb1cef55fef7481cfea}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblock-malformation-tester_aa29090ce25eabd1757238ef2d39b0b45}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespaceblock-malformation-tester_doc-func-members}
+\Hypertarget{namespaceblock-malformation-tester_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceblock-malformation-tester_a6f1759e66e7265068efadd6e05c02f97}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!double\_sha256@{double\_sha256}}
+\index{double\_sha256@{double\_sha256}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{double\_sha256()}{double\_sha256()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_a6f1759e66e7265068efadd6e05c02f97} 
+ bytes double\+\_\+sha256 (\begin{DoxyParamCaption}\item[{bytes}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00098}{98}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceblock-malformation-tester_ab618f244638d90a2b8b108aee4df6193}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!hash\_block\_header@{hash\_block\_header}}
+\index{hash\_block\_header@{hash\_block\_header}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{hash\_block\_header()}{hash\_block\_header()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_ab618f244638d90a2b8b108aee4df6193} 
+ str hash\+\_\+block\+\_\+header (\begin{DoxyParamCaption}\item[{dict\+[str, Any]\+}]{header}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Minimal block header hash for testing (little-endian concatenation).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00102}{102}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceblock-malformation-tester_abf994b8269849d29e07697ea8a840f74}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceblock-malformation-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceblock-malformation-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceblock-malformation-tester_adf0e2aa4d06b5ca38e44721821eca783}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceblock-malformation-tester_a7431cb90017e54fe695b23d4190db046}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!main@{main}}
+\index{main@{main}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00223}{223}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespaceblock-malformation-tester_a526f93ac21a17217fc814b2057849e91}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!make\_block@{make\_block}}
+\index{make\_block@{make\_block}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{make\_block()}{make\_block()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_a526f93ac21a17217fc814b2057849e91} 
+ dict\+[str, Any]\+ make\+\_\+block (\begin{DoxyParamCaption}\item[{str}]{prev\+\_\+hash}{, }\item[{str}]{merkle\+\_\+root}{, }\item[{int}]{timestamp}{, }\item[{int}]{bits}{, }\item[{int}]{nonce}{, }\item[{list\+[dict\+[str, Any]\+]\+}]{txs}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00083}{83}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceblock-malformation-tester_adf085ee52d18a2d94076014b67ac344d}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!make\_tx@{make\_tx}}
+\index{make\_tx@{make\_tx}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{make\_tx()}{make\_tx()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_adf085ee52d18a2d94076014b67ac344d} 
+ dict\+[str, Any]\+ make\+\_\+tx (\begin{DoxyParamCaption}\item[{list\+[dict\+[str, Any]\+]\+}]{inputs}{, }\item[{list\+[dict\+[str, Any]\+]\+}]{outputs}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespaceblock-malformation-tester_abfcf06a7f9957f718139b7ee71f83325}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!malformed\_blocks@{malformed\_blocks}}
+\index{malformed\_blocks@{malformed\_blocks}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{malformed\_blocks()}{malformed\_blocks()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_abfcf06a7f9957f718139b7ee71f83325} 
+ list\+[dict\+[str, Any]\+]\+ malformed\+\_\+blocks (\begin{DoxyParamCaption}\item[{dict\+[str, Any]\+}]{node\+\_\+info}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00116}{116}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespaceblock-malformation-tester_ad296483187680cf270e2e2758508944f}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!rpc\_call@{rpc\_call}}
+\index{rpc\_call@{rpc\_call}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{rpc\_call()}{rpc\_call()}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_ad296483187680cf270e2e2758508944f} 
+ dict rpc\+\_\+call (\begin{DoxyParamCaption}\item[{str}]{url}{, }\item[{str}]{method}{, }\item[{}]{params}{ = {\ttfamily None}, }\item[{}]{auth}{ = {\ttfamily None}, }\item[{float }]{timeout}{ = {\ttfamily 10.0}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00060}{60}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+
+
+\label{namespaceblock-malformation-tester_doc-var-members}
+\Hypertarget{namespaceblock-malformation-tester_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceblock-malformation-tester_ad2179e3af75ffeb1cef55fef7481cfea}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_ad2179e3af75ffeb1cef55fef7481cfea} 
+str \doxymbox{\hyperlink{namespaceblock}{block}}-\/malformation-\/tester.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+\Hypertarget{namespaceblock-malformation-tester_abb68182f1b6841edc8627a0007443618}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_abb68182f1b6841edc8627a0007443618} 
+str \doxymbox{\hyperlink{namespaceblock}{block}}-\/malformation-\/tester.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+\Hypertarget{namespaceblock-malformation-tester_a6b7c63e432b627879f1f4450fc8067d9}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!HAVE\_REQUESTS@{HAVE\_REQUESTS}}
+\index{HAVE\_REQUESTS@{HAVE\_REQUESTS}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{HAVE\_REQUESTS}{HAVE\_REQUESTS}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_a6b7c63e432b627879f1f4450fc8067d9} 
+bool HAVE\+\_\+\+REQUESTS = True}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+\Hypertarget{namespaceblock-malformation-tester_affbbbe088393c1bf6cf86e5f1e3ba726}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!RED@{RED}}
+\index{RED@{RED}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_affbbbe088393c1bf6cf86e5f1e3ba726} 
+str \doxymbox{\hyperlink{namespaceblock}{block}}-\/malformation-\/tester.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+\Hypertarget{namespaceblock-malformation-tester_aa29090ce25eabd1757238ef2d39b0b45}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!RESET@{RESET}}
+\index{RESET@{RESET}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_aa29090ce25eabd1757238ef2d39b0b45} 
+str \doxymbox{\hyperlink{namespaceblock}{block}}-\/malformation-\/tester.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+
+\Hypertarget{namespaceblock-malformation-tester_a25728c7ee1bc2c46a13278791d94a389}\index{block-\/malformation-\/tester@{block-\/malformation-\/tester}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!block-\/malformation-\/tester@{block-\/malformation-\/tester}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespaceblock-malformation-tester_a25728c7ee1bc2c46a13278791d94a389} 
+str \doxymbox{\hyperlink{namespaceblock}{block}}-\/malformation-\/tester.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{block-malformation-tester_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{block-malformation-tester_8py_source}{block-\/malformation-\/tester.\+py}}.
+

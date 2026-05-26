@@ -11,10 +11,9 @@
 // row has its own "Save" button; nothing batched, so a partial failure
 // only stops one slot at a time.
 
-import { useEffect, useMemo, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { useEffect, useState } from "react";
+import { rpc } from "../../api/rpc-client";
 
-const rpc = new OmniBusRpcClient();
 
 // Same canon as core/dns_registry.zig:Category.
 const CATEGORIES = ["personal", "bank", "gov", "mil", "fin", "edu", "org", "dev", "trading", "none"] as const;
@@ -32,6 +31,14 @@ const CATEGORY_LABEL: Record<Category, string> = {
   trading:  "Trading / market-maker",
   none:     "(unset)",
 };
+
+const PREFERRED_SLOT_OPTIONS: { idx: number; label: string }[] = [
+  { idx: 0, label: "Primary (ECDSA)" },
+  { idx: 1, label: "ML-DSA-87" },
+  { idx: 2, label: "Falcon-512" },
+  { idx: 3, label: "Dilithium-5" },
+  { idx: 4, label: "SLH-DSA-256s" },
+];
 
 // Slot letters → chain enum names (must match handleSetPqAddress mapping).
 const SLOT_INFO: { slot: string; label: string; algoLabel: string; prefix: string }[] = [
@@ -105,7 +112,7 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
       setMsg(null);
       try {
         const [name, tld] = selected.split(".");
-        const r = (await rpc.request_raw("resolvename", [name, tld])) as ResolveResp;
+        const r = (await rpc.resolveName(name, tld)) as unknown as ResolveResp;
         if (cancelled) return;
         setResolved(r);
         if (r.addresses) {
@@ -124,7 +131,7 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
         if (!cancelled) setLoading(false);
       }
     };
-    run();
+    void run();
     return () => { cancelled = true; };
   }, [selected]);
 
@@ -132,7 +139,7 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
     if (!selected) return;
     const [name, tld] = selected.split(".");
     try {
-      const r = (await rpc.request_raw("resolvename", [name, tld])) as ResolveResp;
+      const r = (await rpc.resolveName(name, tld)) as unknown as ResolveResp;
       setResolved(r);
     } catch { /* keep existing */ }
   };
@@ -270,8 +277,9 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
             </p>
             {SLOT_INFO.map((info) => {
               const cur = slotInputs[info.slot] ?? "";
-              const onChain = (resolved.addresses as any)?.[info.slot.charAt(0) === "m" ? "k" : info.slot.charAt(0) === "f" ? "f" : info.slot.charAt(0) === "d" ? "s" : "d"];
-              const setOnChain = (resolved.addresses as any)?.[`${info.slot.charAt(0) === "m" ? "k" : info.slot.charAt(0) === "f" ? "f" : info.slot.charAt(0) === "d" ? "s" : "d"}_set`];
+              const slotKey = (info.slot.charAt(0) === "m" ? "k" : info.slot.charAt(0) === "f" ? "f" : info.slot.charAt(0) === "d" ? "s" : "d") as "k" | "f" | "s" | "d";
+              const onChain = resolved.addresses?.[slotKey];
+              const setOnChain = resolved.addresses?.[`${slotKey}_set` as "k_set" | "f_set" | "s_set" | "d_set"];
               void onChain;
               void setOnChain;
               return (
@@ -305,13 +313,7 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
               Preferred receiving scheme — wallets that send to your name pick this scheme by default.
             </p>
             <div className="flex flex-wrap gap-1 mb-2">
-              {[
-                { idx: 0, label: "Primary (ECDSA)" },
-                { idx: 1, label: "ML-DSA-87" },
-                { idx: 2, label: "Falcon-512" },
-                { idx: 3, label: "Dilithium-5" },
-                { idx: 4, label: "SLH-DSA-256s" },
-              ].map((opt) => (
+              {PREFERRED_SLOT_OPTIONS.map((opt) => (
                 <button
                   key={opt.idx}
                   onClick={() => setPreferredInput(opt.idx)}

@@ -1,1 +1,0 @@
-receive_tab.adb:7:18: warning: use clause for package "Enums" has no effect [-gnatwu]

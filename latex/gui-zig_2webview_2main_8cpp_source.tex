@@ -1,0 +1,236 @@
+\doxysection{main.\+cpp}
+\hypertarget{gui-zig_2webview_2main_8cpp_source}{}\label{gui-zig_2webview_2main_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/zig/webview/main.cpp@{archived-\/4-\/eterniti/gui-\/zig/webview/main.cpp}}
+\doxymbox{\hyperlink{gui-zig_2webview_2main_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00001}00001\ \textcolor{comment}{//\ OmniBus\ Wallet\ —\ WebView2\ GUI\ with\ Encrypted\ Vault}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00002}00002\ \textcolor{comment}{//\ DPAPI-\/encrypted\ vault\ for\ API\ keys\ (same\ approach\ as\ OmnibusSidebar\ SuperVault)}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00004}\doxymbox{\hyperlink{gui-zig_2webview_2main_8cpp_af08ec37a8c99d747fb60fa15bc28678b}{00004}}\ \textcolor{preprocessor}{\#define\ \_CRT\_SECURE\_NO\_WARNINGS}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00005}\doxymbox{\hyperlink{gui-zig_2webview_2main_8cpp_aae78aadf5d48b821ef2608db72a39c01}{00005}}\ \textcolor{preprocessor}{\#define\ WEBVIEW\_STATIC}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00006}\doxymbox{\hyperlink{gui-zig_2webview_2main_8cpp_ae05a042af9eccd5b0f048d33b982f3a9}{00006}}\ \textcolor{preprocessor}{\#define\ WEBVIEW\_MSEDGE}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <webview/webview.h>}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <windows.h>}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <wincrypt.h>}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00010}00010\ \textcolor{preprocessor}{\#include\ <shlobj.h>}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00011}00011\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00012}00012\ \textcolor{preprocessor}{\#include\ <cstdio>}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00013}00013\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00014}00014\ \textcolor{preprocessor}{\#include\ <sstream>}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00016}00016\ \textcolor{preprocessor}{\#pragma\ comment(lib,\ "{}crypt32.lib"{})}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00018}00018\ \textcolor{comment}{//\ ═══════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00019}00019\ \textcolor{comment}{//\ \ Vault:\ DPAPI-\/encrypted\ API\ key\ storage}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00020}00020\ \textcolor{comment}{//\ ═══════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00022}00022\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ VAULT\_MAGIC[4]\ =\ \{\ \textcolor{charliteral}{'O'},\ \textcolor{charliteral}{'B'},\ \textcolor{charliteral}{'V'},\ \textcolor{charliteral}{'2'}\ \};\ \textcolor{comment}{//\ OmniBus\ Vault\ v2}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00023}00023\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ uint32\_t\ VAULT\_VERSION\ =\ 2;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00025}00025\ \textcolor{keyword}{static}\ std::string\ getVaultPath()\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00026}00026\ \ \ \ \ \textcolor{keywordtype}{char}\ appdata[MAX\_PATH];}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00027}00027\ \ \ \ \ \textcolor{keywordflow}{if}\ (SUCCEEDED(SHGetFolderPathA(NULL,\ CSIDL\_APPDATA,\ NULL,\ 0,\ appdata)))\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00028}00028\ \ \ \ \ \ \ \ \ std::string\ dir\ =\ std::string(appdata)\ +\ \textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)OmniBus\(\backslash\)\(\backslash\)OmniBus-\/Qt"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00029}00029\ \ \ \ \ \ \ \ \ CreateDirectoryA((std::string(appdata)\ +\ \textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)OmniBus"{}}).c\_str(),\ NULL);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00030}00030\ \ \ \ \ \ \ \ \ CreateDirectoryA(dir.c\_str(),\ NULL);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00031}00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ dir\ +\ \textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)api\_vault.dat"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00032}00032\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00033}00033\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}api\_vault.dat"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00034}00034\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00036}00036\ \textcolor{comment}{//\ DPAPI\ encrypt}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00037}00037\ \textcolor{keyword}{static}\ std::vector<uint8\_t>\ dpapiEncrypt(\textcolor{keyword}{const}\ std::vector<uint8\_t>\&\ plain)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00038}00038\ \ \ \ \ DATA\_BLOB\ in\_blob,\ out\_blob;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00039}00039\ \ \ \ \ in\_blob.pbData\ =\ \textcolor{keyword}{const\_cast<}BYTE*\textcolor{keyword}{>}(plain.data());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00040}00040\ \ \ \ \ in\_blob.cbData\ =\ (DWORD)plain.size();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00041}00041\ \ \ \ \ \textcolor{keywordflow}{if}\ (!CryptProtectData(\&in\_blob,\ \doxymbox{\hyperlink{test__mini_8c_a03b0290e2969942a5c40d830149940df}{L}}\textcolor{stringliteral}{"{}OmniBusVault"{}},\ NULL,\ NULL,\ NULL,\ 0,\ \&out\_blob))}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00043}00043\ \ \ \ \ std::vector<uint8\_t>\ result(out\_blob.pbData,\ out\_blob.pbData\ +\ out\_blob.cbData);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00044}00044\ \ \ \ \ LocalFree(out\_blob.pbData);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00045}00045\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00046}00046\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00048}00048\ \textcolor{comment}{//\ DPAPI\ decrypt}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00049}00049\ \textcolor{keyword}{static}\ std::vector<uint8\_t>\ dpapiDecrypt(\textcolor{keyword}{const}\ std::vector<uint8\_t>\&\ cipher)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00050}00050\ \ \ \ \ DATA\_BLOB\ in\_blob,\ out\_blob;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00051}00051\ \ \ \ \ in\_blob.pbData\ =\ \textcolor{keyword}{const\_cast<}BYTE*\textcolor{keyword}{>}(cipher.data());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00052}00052\ \ \ \ \ in\_blob.cbData\ =\ (DWORD)cipher.size();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00053}00053\ \ \ \ \ \textcolor{keywordflow}{if}\ (!CryptUnprotectData(\&in\_blob,\ NULL,\ NULL,\ NULL,\ NULL,\ 0,\ \&out\_blob))}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00054}00054\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00055}00055\ \ \ \ \ std::vector<uint8\_t>\ result(out\_blob.pbData,\ out\_blob.pbData\ +\ out\_blob.cbData);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00056}00056\ \ \ \ \ SecureZeroMemory(out\_blob.pbData,\ out\_blob.cbData);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00057}00057\ \ \ \ \ LocalFree(out\_blob.pbData);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00059}00059\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00061}00061\ \textcolor{comment}{//\ Serialize\ string:\ [4-\/byte\ len][data]}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00062}00062\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ writeStr(std::vector<uint8\_t>\&\ buf,\ \textcolor{keyword}{const}\ std::string\&\ s)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00063}00063\ \ \ \ \ uint32\_t\ len\ =\ (uint32\_t)s.size();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00064}00064\ \ \ \ \ buf.insert(buf.end(),\ (uint8\_t*)\&len,\ (uint8\_t*)\&len\ +\ 4);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00065}00065\ \ \ \ \ buf.insert(buf.end(),\ s.begin(),\ s.end());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00066}00066\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00068}00068\ \textcolor{keyword}{static}\ std::string\ readStr(\textcolor{keyword}{const}\ uint8\_t*\&\ ptr,\ \textcolor{keyword}{const}\ uint8\_t*\ end)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr\ +\ 4\ >\ end)\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00070}00070\ \ \ \ \ uint32\_t\ len\ =\ *(uint32\_t*)ptr;\ ptr\ +=\ 4;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr\ +\ len\ >\ end\ ||\ len\ >\ 65536)\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00072}00072\ \ \ \ \ std::string\ s((\textcolor{keywordtype}{char}*)ptr,\ len);\ ptr\ +=\ len;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{return}\ s;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00074}00074\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00076}00076\ \textcolor{comment}{//\ Save\ vault\ JSON\ as\ DPAPI-\/encrypted\ file}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00077}00077\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ saveVault(\textcolor{keyword}{const}\ std::string\&\ json)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00078}00078\ \ \ \ \ std::vector<uint8\_t>\ plain;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00079}00079\ \ \ \ \ \textcolor{comment}{//\ Header}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00080}00080\ \ \ \ \ plain.insert(plain.end(),\ VAULT\_MAGIC,\ VAULT\_MAGIC\ +\ 4);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00081}00081\ \ \ \ \ uint32\_t\ ver\ =\ VAULT\_VERSION;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00082}00082\ \ \ \ \ plain.insert(plain.end(),\ (uint8\_t*)\&ver,\ (uint8\_t*)\&ver\ +\ 4);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00083}00083\ \ \ \ \ \textcolor{comment}{//\ JSON\ payload}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00084}00084\ \ \ \ \ writeStr(plain,\ json);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00086}00086\ \ \ \ \ \textcolor{keyword}{auto}\ encrypted\ =\ dpapiEncrypt(plain);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00087}00087\ \ \ \ \ SecureZeroMemory(plain.data(),\ plain.size());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00088}00088\ \ \ \ \ \textcolor{keywordflow}{if}\ (encrypted.empty())\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00090}00090\ \ \ \ \ std::string\ path\ =\ getVaultPath();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00091}00091\ \ \ \ \ FILE*\ f\ =\ fopen(path.c\_str(),\ \textcolor{stringliteral}{"{}wb"{}});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00092}00092\ \ \ \ \ \textcolor{keywordflow}{if}\ (!f)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00093}00093\ \ \ \ \ fwrite(encrypted.data(),\ 1,\ encrypted.size(),\ f);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00094}00094\ \ \ \ \ fclose(f);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00096}00096\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00098}00098\ \textcolor{comment}{//\ Load\ vault:\ read\ file,\ DPAPI\ decrypt,\ return\ JSON}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00099}00099\ \textcolor{keyword}{static}\ std::string\ loadVault()\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00100}00100\ \ \ \ \ std::string\ path\ =\ getVaultPath();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00101}00101\ \ \ \ \ FILE*\ f\ =\ fopen(path.c\_str(),\ \textcolor{stringliteral}{"{}rb"{}});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00102}00102\ \ \ \ \ \textcolor{keywordflow}{if}\ (!f)\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}[]"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00103}00103\ \ \ \ \ fseek(f,\ 0,\ SEEK\_END);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00104}00104\ \ \ \ \ \textcolor{keywordtype}{long}\ sz\ =\ ftell(f);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00105}00105\ \ \ \ \ fseek(f,\ 0,\ SEEK\_SET);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00106}00106\ \ \ \ \ \textcolor{keywordflow}{if}\ (sz\ <=\ 0\ ||\ sz\ >\ 10*1024*1024)\ \{\ fclose(f);\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}[]"{}};\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00107}00107\ \ \ \ \ std::vector<uint8\_t>\ cipher(sz);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00108}00108\ \ \ \ \ fread(cipher.data(),\ 1,\ sz,\ f);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00109}00109\ \ \ \ \ fclose(f);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00111}00111\ \ \ \ \ \textcolor{keyword}{auto}\ plain\ =\ dpapiDecrypt(cipher);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00112}00112\ \ \ \ \ \textcolor{keywordflow}{if}\ (plain.size()\ <\ 12)\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}[]"{}};\ \textcolor{comment}{//\ magic(4)\ +\ version(4)\ +\ len(4)\ min}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00114}00114\ \ \ \ \ \textcolor{comment}{//\ Verify\ magic}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{if}\ (memcmp(plain.data(),\ VAULT\_MAGIC,\ 4)\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00116}00116\ \ \ \ \ \ \ \ \ SecureZeroMemory(plain.data(),\ plain.size());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}[]"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00118}00118\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00120}00120\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ ptr\ =\ plain.data()\ +\ 8;\ \textcolor{comment}{//\ skip\ magic\ +\ version}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00121}00121\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ end\ =\ plain.data()\ +\ plain.size();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00122}00122\ \ \ \ \ std::string\ json\ =\ readStr(ptr,\ end);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00123}00123\ \ \ \ \ SecureZeroMemory(plain.data(),\ plain.size());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00124}00124\ \ \ \ \ \textcolor{keywordflow}{return}\ json;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00125}00125\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00127}00127\ \textcolor{comment}{//\ ═══════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00128}00128\ \textcolor{comment}{//\ \ HTML\ loader}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00129}00129\ \textcolor{comment}{//\ ═══════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00131}00131\ \textcolor{keyword}{static}\ std::string\ loadHtmlFile()\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00132}00132\ \ \ \ \ \textcolor{keywordtype}{char}\ path[MAX\_PATH];}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00133}00133\ \ \ \ \ GetModuleFileNameA(\textcolor{keyword}{nullptr},\ path,\ MAX\_PATH);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00134}00134\ \ \ \ \ std::string\ dir(path);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00135}00135\ \ \ \ \ dir\ =\ dir.substr(0,\ dir.find\_last\_of(\textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)/"{}})\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00136}00136\ \ \ \ \ dir\ +=\ \textcolor{stringliteral}{"{}ui.html"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00138}00138\ \ \ \ \ FILE*\ f\ =\ fopen(dir.c\_str(),\ \textcolor{stringliteral}{"{}rb"{}});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00139}00139\ \ \ \ \ \textcolor{keywordflow}{if}\ (f)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00140}00140\ \ \ \ \ \ \ \ \ fseek(f,\ 0,\ SEEK\_END);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}\ sz\ =\ ftell(f);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00142}00142\ \ \ \ \ \ \ \ \ fseek(f,\ 0,\ SEEK\_SET);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00143}00143\ \ \ \ \ \ \ \ \ std::string\ html(sz,\ \textcolor{charliteral}{'\(\backslash\)0'});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00144}00144\ \ \ \ \ \ \ \ \ fread(\&html[0],\ 1,\ sz,\ f);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00145}00145\ \ \ \ \ \ \ \ \ fclose(f);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ html;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00147}00147\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00148}00148\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}<html><body\ style='background:\#11131f;color:\#e0e0f0;font-\/family:Segoe\ UI;padding:40px;'>"{}}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<h1\ style='color:\#00b3a4'>OmniBus\ Wallet</h1>"{}}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<p>Error:\ ui.html\ not\ found</p></body></html>"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00151}00151\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00153}00153\ \textcolor{comment}{//\ ═══════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00154}00154\ \textcolor{comment}{//\ \ WebView2\ bindings\ (JS\ ↔\ C++)}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00155}00155\ \textcolor{comment}{//\ ═══════════════════════════════════════════════════════════════}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00157}\doxymbox{\hyperlink{gui-zig_2webview_2main_8cpp_a8ddc2859798367e56bd2ccf1b5dcdb3a}{00157}}\ \textcolor{keywordtype}{int}\ WINAPI\ \doxymbox{\hyperlink{gui-zig_2webview_2main_8cpp_a8ddc2859798367e56bd2ccf1b5dcdb3a}{WinMain}}(HINSTANCE,\ HINSTANCE,\ LPSTR,\ \textcolor{keywordtype}{int})\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00158}00158\ \ \ \ \ webview\_t\ w\ =\ webview\_create(1,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00159}00159\ \ \ \ \ \textcolor{keywordflow}{if}\ (!w)\ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00161}00161\ \ \ \ \ \textcolor{comment}{//\ Bind:\ vault\_load()\ →\ returns\ JSON\ array\ of\ API\ keys}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00162}00162\ \ \ \ \ webview\_bind(w,\ \textcolor{stringliteral}{"{}vault\_load"{}},}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00163}00163\ \ \ \ \ \ \ \ \ [](\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keywordtype}{id},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ req,\ \textcolor{keywordtype}{void}*\ arg)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ webview\_t\ wv\ =\ (webview\_t)arg;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ json\ =\ loadVault();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Escape\ for\ JSON\ string\ return}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ escaped\ =\ \textcolor{stringliteral}{"{}\(\backslash\)"{}"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{char}\ c\ :\ json)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ \textcolor{charliteral}{'"{}'})\ escaped\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)\(\backslash\)"{}"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (c\ ==\ \textcolor{charliteral}{'\(\backslash\)\(\backslash\)'})\ escaped\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)\(\backslash\)\(\backslash\)"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (c\ ==\ \textcolor{charliteral}{'\(\backslash\)n'})\ escaped\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)n"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ escaped\ +=\ c;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ escaped\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)"{}"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ webview\_return(wv,\ \textcolor{keywordtype}{id},\ 0,\ escaped.c\_str());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00176}00176\ \ \ \ \ \ \ \ \ \},\ w);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00177}00177\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00178}00178\ \ \ \ \ \textcolor{comment}{//\ Bind:\ vault\_save(json\_string)\ →\ saves\ encrypted}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00179}00179\ \ \ \ \ webview\_bind(w,\ \textcolor{stringliteral}{"{}vault\_save"{}},}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00180}00180\ \ \ \ \ \ \ \ \ [](\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keywordtype}{id},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ req,\ \textcolor{keywordtype}{void}*\ arg)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ webview\_t\ wv\ =\ (webview\_t)arg;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ req\ is\ JSON\ array\ of\ arguments:\ ["{}json\_string"{}]}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ r(req);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Extract\ first\ argument\ (the\ JSON\ string)}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Format:\ ["{}escaped\_json\_content"{}]}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ first\_quote\ =\ r.find(\textcolor{charliteral}{'"{}'});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ last\_quote\ =\ r.rfind(\textcolor{charliteral}{'"{}'});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ json\_escaped;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (first\_quote\ !=\ std::string::npos\ \&\&\ last\_quote\ >\ first\_quote)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ json\_escaped\ =\ r.substr(first\_quote\ +\ 1,\ last\_quote\ -\/\ first\_quote\ -\/\ 1);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Unescape}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ json;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ i\ =\ 0;\ i\ <\ json\_escaped.size();\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (json\_escaped[i]\ ==\ \textcolor{charliteral}{'\(\backslash\)\(\backslash\)'}\ \&\&\ i\ +\ 1\ <\ json\_escaped.size())\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ next\ =\ json\_escaped[i+1];}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (next\ ==\ \textcolor{charliteral}{'"{}'})\ \{\ json\ +=\ \textcolor{charliteral}{'"{}'};\ i++;\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (next\ ==\ \textcolor{charliteral}{'\(\backslash\)\(\backslash\)'})\ \{\ json\ +=\ \textcolor{charliteral}{'\(\backslash\)\(\backslash\)'};\ i++;\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (next\ ==\ \textcolor{charliteral}{'n'})\ \{\ json\ +=\ \textcolor{charliteral}{'\(\backslash\)n'};\ i++;\ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ json\ +=\ json\_escaped[i];}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ json\ +=\ json\_escaped[i];}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ ok\ =\ saveVault(json);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ webview\_return(wv,\ \textcolor{keywordtype}{id},\ 0,\ ok\ ?\ \textcolor{stringliteral}{"{}true"{}}\ :\ \textcolor{stringliteral}{"{}false"{}});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00207}00207\ \ \ \ \ \ \ \ \ \},\ w);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00209}00209\ \ \ \ \ \textcolor{comment}{//\ Bind:\ vault\_path()\ →\ returns\ vault\ file\ path}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00210}00210\ \ \ \ \ webview\_bind(w,\ \textcolor{stringliteral}{"{}vault\_path"{}},}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00211}00211\ \ \ \ \ \ \ \ \ [](\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keywordtype}{id},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ req,\ \textcolor{keywordtype}{void}*\ arg)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ webview\_t\ wv\ =\ (webview\_t)arg;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ path\ =\ getVaultPath();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ escaped\ =\ \textcolor{stringliteral}{"{}\(\backslash\)"{}"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{char}\ c\ :\ path)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00216}00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ \textcolor{charliteral}{'\(\backslash\)\(\backslash\)'})\ escaped\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)\(\backslash\)\(\backslash\)"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ escaped\ +=\ c;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ escaped\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)"{}"{}};}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ webview\_return(wv,\ \textcolor{keywordtype}{id},\ 0,\ escaped.c\_str());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00221}00221\ \ \ \ \ \ \ \ \ \},\ w);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00223}00223\ \ \ \ \ std::string\ html\ =\ loadHtmlFile();}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00224}00224\ \ \ \ \ webview\_set\_title(w,\ \textcolor{stringliteral}{"{}OmniBus\ Wallet\ \(\backslash\)xe2\(\backslash\)x80\(\backslash\)x94\ WebView2"{}});}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00225}00225\ \ \ \ \ webview\_set\_size(w,\ 1280,\ 800,\ WEBVIEW\_HINT\_NONE);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00226}00226\ \ \ \ \ webview\_set\_html(w,\ html.c\_str());}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00227}00227\ \ \ \ \ webview\_run(w);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00228}00228\ \ \ \ \ webview\_destroy(w);}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00229}00229\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{gui-zig_2webview_2main_8cpp_source_l00230}00230\ \}}
+
+\end{DoxyCode}

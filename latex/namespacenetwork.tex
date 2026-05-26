@@ -1,0 +1,39 @@
+\doxysection{network Namespace Reference}
+\hypertarget{namespacenetwork}{}\label{namespacenetwork}\index{network@{network}}
+
+
+-\/health-\/scorer  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/health-\/scorer 
+
+-\/partition-\/sim
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Network Health Scorer
+
+Scoring model: peer count, block propagation time, mempool size -> health score 0-100.
+Outputs: health-score.json
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}network-partition-sim.py
+
+Simulate a network partition on a BlockChainCore-like network:
+  1. Launch 6 virtual/minimal nodes.
+  2. Partition into 2 groups of 3.
+  3. Each group mines independently.
+  4. Reconnect and verify:
+       - chain reorganisation correctness
+       - no double-spend survived
+       - no lost transactions
+
+This script uses RPC endpoints (assumed local on ports 18332-18337) to
+orchestrate the simulation.  It can also run in pure-simulation mode if
+no live nodes are available.
+
+Outputs: network-partition-sim.json
+\end{DoxyVerb}
+ 

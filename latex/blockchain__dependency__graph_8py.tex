@@ -1,0 +1,60 @@
+\doxysection{archived-\/4-\/eterniti/\+tools-\/python/\+\+ANALYSIS/\+blockchain\+\_\+dependency\+\_\+graph.py File Reference}
+\hypertarget{blockchain__dependency__graph_8py}{}\label{blockchain__dependency__graph_8py}\index{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_dependency\_graph.py@{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_dependency\_graph.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{blockchain\+\_\+dependency\+\_\+graph.\+Module\+Node}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{blockchain\+\_\+dependency\+\_\+graph.\+Cycle\+Info}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceblockchain__dependency__graph}{blockchain\+\_\+dependency\+\_\+graph}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3}{blockchain\+\_\+dependency\+\_\+graph.\+get\+\_\+layer}} (str module\+\_\+name)
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acc5a869094c2ac5af1ff0ba033d881ea}{blockchain\+\_\+dependency\+\_\+graph.\+get\+\_\+layer\+\_\+name}} (int layer\+\_\+num)
+\item 
+Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a7f60f3dcdd372bda3568ebeb527fc1ac}{blockchain\+\_\+dependency\+\_\+graph.\+build\+\_\+graph}} ()
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{Cycle\+Info}}]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acbc4cf9b825fb9b2879592b0da4c60b5}{blockchain\+\_\+dependency\+\_\+graph.\+find\+\_\+cycles}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph)
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a01de46534cc2c180c06766a586162181}{blockchain\+\_\+dependency\+\_\+graph.\+find\+\_\+zombies}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph)
+\item 
+List\+[Tuple\+[str, int, int]\+]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a5cca26f89782b4c0c79fbe47192229e6}{blockchain\+\_\+dependency\+\_\+graph.\+find\+\_\+hubs}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph, int threshold=5)
+\item 
+Dict\+[str, float]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ad9f4b464c8993ba19bc2446e39577511}{blockchain\+\_\+dependency\+\_\+graph.\+calc\+\_\+coupling}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph)
+\item 
+List\+[Tuple\+[str, str, int, int]\+]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a893bee52ec18f36de87d575466780d6d}{blockchain\+\_\+dependency\+\_\+graph.\+find\+\_\+layer\+\_\+violations}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ae18befc196ea62997094c8c99cff9439}{blockchain\+\_\+dependency\+\_\+graph.\+print\+\_\+report}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph, List\+[\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{Cycle\+Info}}]\+ cycles, List\+[str]\+ zombies, List\+[Tuple\+[str, int, int]\+]\+ hubs, List\+[Tuple\+[str, str, int, int]\+]\+ violations, Dict\+[str, float]\+ coupling, str specific\+\_\+module=None)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_abbe46775c3db481e0313603a16f011a8}{blockchain\+\_\+dependency\+\_\+graph.\+generate\+\_\+dot}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acf6beaf5c3d7150474e87362c40204dd}{blockchain\+\_\+dependency\+\_\+graph.\+export\+\_\+json}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph, cycles, zombies, hubs, violations, coupling, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a51af30a60f9f02777c6396b8247e356f}{blockchain\+\_\+dependency\+\_\+graph.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{blockchain\+\_\+dependency\+\_\+graph.\+ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a9947f545ca43dd66ab6a5724fd274a22}{blockchain\+\_\+dependency\+\_\+graph.\+CORE}} = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_af61b6af30eecf96a396683de52b2625c}{blockchain\+\_\+dependency\+\_\+graph.\+TEST}} = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}test"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a4e037d847ed432e386473611d2c563ea}{blockchain\+\_\+dependency\+\_\+graph.\+AGENT}} = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}agent"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a9419e8c90e67ae64045278eedd75ecbe}{blockchain\+\_\+dependency\+\_\+graph.\+LAYER\+\_\+\+MAP}}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a3175b29b638dbf3f9adffab763f308fa}{blockchain\+\_\+dependency\+\_\+graph.\+G}} = "{}\textbackslash{}033\+[94m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ad70fc3a167ee273295a9b24614cf3859}{blockchain\+\_\+dependency\+\_\+graph.\+C}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ae8c8cc0e97cf2bda1ea16d01be60cd6f}{blockchain\+\_\+dependency\+\_\+graph.\+LAYER\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}

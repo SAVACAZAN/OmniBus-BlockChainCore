@@ -1,0 +1,5 @@
+var builder = ton.cell.CellBuilder.init(allocator);
+try builder.writeUint(value, bits);
+try builder.writeBytes(data);
+try builder.addRef(child_cell);
+const cell = try builder.build();

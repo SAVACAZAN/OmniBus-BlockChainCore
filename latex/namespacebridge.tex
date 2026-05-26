@@ -1,0 +1,26 @@
+\doxysection{bridge Namespace Reference}
+\hypertarget{namespacebridge}{}\label{namespacebridge}\index{bridge@{bridge}}
+
+
+-\/e2e-\/test  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/e2e-\/test 
+
+\begin{DoxyVerb}bridge-e2e-test.py
+
+End-to-end bridge test for OmniBus ecosystem:
+  1. Mint an asset on BlockChainCore (via RPC).
+  2. Submit bridge lock/burn transaction.
+  3. Verify the corresponding mint / unlock on aweb3 Liberty (Solidity side).
+
+Requires:
+  - BlockChainCore node RPC (default http://127.0.0.1:8332)
+  - aweb3 Liberty RPC endpoint (default http://127.0.0.1:8545)
+
+Outputs: bridge-e2e-result.json
+\end{DoxyVerb}
+ 

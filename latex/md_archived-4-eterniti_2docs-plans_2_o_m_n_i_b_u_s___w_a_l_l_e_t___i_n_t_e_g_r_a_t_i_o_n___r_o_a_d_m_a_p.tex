@@ -1,0 +1,464 @@
+\chapter{Omni\+Bus Wallet Integration Roadmap }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p}{}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p}\index{OmniBus Wallet Integration Roadmap@{OmniBus Wallet Integration Roadmap}}
+\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3677}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3677}%
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3678}{}\doxysection{\texorpdfstring{Integrare cu Wallet-\/uri Externe -\/ Plan Complet}{Integrare cu Wallet-\/uri Externe -\/ Plan Complet}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3678}
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3680}{}\doxysection{\texorpdfstring{📊 Ce aveți acum (Analiză)}{📊 Ce aveți acum (Analiză)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3680}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3681}{}\doxysubsection{\texorpdfstring{Arhitectură curentă Omni\+Bus:\+}{Arhitectură curentă Omni\+Bus:\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3681}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OMNIUS\ BLOCKCHAIN\ CORE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ Wallet\ (bip32\_wallet.zig)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ BIP-\/39\ mnemonic\ →\ seed\ (PBKDF2-\/HMAC-\/SHA512)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ BIP-\/32\ HD\ derivation\ (HMAC-\/SHA512\ +\ secp256k1\ real)\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ 5\ domenii\ PQ:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ •\ ob\_omni\_\ \ \ \ \ (777)\ -\/\ ML-\/DSA-\/87\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ •\ ob\_k1\_\ \ \ \ \ \ \ (778)\ -\/\ ML-\/DSA-\/87\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ •\ ob\_f5\_\ \ \ \ \ \ \ (779)\ -\/\ Falcon-\/512\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ •\ ob\_d5\_\ \ \ \ \ \ \ (780)\ -\/\ ML-\/DSA-\/87\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ •\ ob\_s3\_\ \ \ \ \ \ \ (781)\ -\/\ SLH-\/DSA-\/256s\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ RPC\ Server\ (rpc\_server.zig)\ -\/\ Port\ 8332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ getbalance,\ getblockcount,\ getlatestblock\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ sendtransaction,\ gettransactions\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ getnonce,\ estimatefee,\ gettransaction\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ registerminer,\ getpoolstats,\ getnetworkinfo\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ Transaction\ (transaction.zig)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ SHA256d\ hashing\ (Bitcoin\ style)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ ECDSA\ secp256k1\ signing\ (REAL)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ Nonce-\/based\ replay\ protection\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ├──\ OP\_RETURN\ support\ (80\ bytes\ max)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ └──\ Locktime\ support\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3682}{}\doxysubsection{\texorpdfstring{Puncte forte:\+}{Puncte forte:\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3682}
+
+\begin{DoxyItemize}
+\item ✅ BIP-\/32/\+39 implementare reală și testată
+\item ✅ secp256k1 nativ (compatibil cu toate wallet-\/urile)
+\item ✅ 5 domenii PQ cu algoritmi diferiți
+\item ✅ RPC JSON funcțional
+\item ✅ Cod Zig pur, fără dependințe externe critice
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3683}{}\doxysubsection{\texorpdfstring{Puncte care necesită adaptare:\+}{Puncte care necesită adaptare:\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3683}
+
+\begin{DoxyItemize}
+\item ⚠️ Format adresă custom (nu EVM nativ)
+\item ⚠️ RPC propriu (nu standard EVM)
+\item ⚠️ Post-\/quantum semnare separată de flow-\/ul standard
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3685}{}\doxysection{\texorpdfstring{🏗️ SOLUȚ\+II OPEN SOURCE PENTRU WALLET OMNIBUS}{🏗️ SOLUȚ\+II OPEN SOURCE PENTRU WALLET OMNIBUS}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3685}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3686}{}\doxysubsection{\texorpdfstring{Opțiuni Identificate (100\% Open Source)}{Opțiuni Identificate (100\% Open Source)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3686}
+
+\begin{DoxyTable}{8}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Proiect  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Git\+Hub  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Licență  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Stack  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Crypto PQ  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Platformă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Relevanță  \\
+1  &{\bfseries{QRL Wallet}}  &the\+QRL/\+qrl-\/wallet  &MIT  &Meteor + Node\+JS + Electron  &XMSS (hash-\/based)  &Web + Desktop  &🟢🟢🟢 Arhitectură matură, Ledger integration  \\
+2  &{\bfseries{e\+Stream App}}  &polyquantum/\+estream-\/app  &Open  &React Native + Rust  &{\bfseries{Dilithium5}} + Kyber  &Mobile (i\+OS/\+\+Android)  &🟢🟢🟢 {\bfseries{Dilithium5 ca voi!}}  \\
+3  &{\bfseries{Tether WDK}}  &tetherto/\+wdk  &Open  &Type\+Script SDK  &Extensibil  &Any (SDK multi-\/chain)  &🟢🟢🟢 Wallet SDK complet  \\
+4  &{\bfseries{PQC Vault}}  &Simedru\+F/\+\+PQC\+\_\+\+Vault  &Open  &Tauri + Rust  &Kyber + AES  &Desktop  &🟢🟢 Implementare liboqs  \\
+5  &{\bfseries{Quantum Safe}}  &(ETHGlobal winner)  &Open  &Rust + STM32  &Falcon-\/512  &Embedded/\+\+Hardware  &🟢🟢 Firmware hardware  \\
+6  &{\bfseries{Trezor Safe 7}}  &trezor/\+trezor-\/firmware  &GPL  &C + Micro\+Python  &SLH-\/\+DSA-\/128  &Hardware  &🟢🟢🟢 Open source complet  \\
+7  &{\bfseries{Meta\+Mask Snaps}}  &metamask/\+snaps  &Open  &Type\+Script  &Extensibil  &Browser extension  &🟢🟢🟢 Standard industry  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3688}{}\doxysection{\texorpdfstring{🎯 ARHITECTURĂ HIBRIDĂ UNIFICATĂ:\+ "{}\+Omni\+Bus Universal Wallet"{}}{🎯 ARHITECTURĂ HIBRIDĂ UNIFICATĂ:\+ "{}\+Omni\+Bus Universal Wallet"{}}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3688}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3689}{}\doxysubsection{\texorpdfstring{Viziune:\+ Un singur wallet care le recunoaște pe toate}{Viziune:\+ Un singur wallet care le recunoaște pe toate}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3689}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OMNIUS\ UNIVERSAL\ WALLET\ ARCHITECTURE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌─────────────────────────────────────────────────────────────────────────┐\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ADAPTER\ LAYER\ (Multi-\/Protocol)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ ┌──────────┐\ \ ┌──────────────┐\ \ ┌─────────────┐\ \ ┌──────────────────┐\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ EVM\ \ \ \ \ │\ \ │\ WalletConnect│\ \ │\ \ \ OmniBus\ \ \ │\ \ │\ \ \ Hardware\ \ \ \ \ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ Adapter\ \ │\ \ │\ \ \ Provider\ \ \ │\ \ │\ \ \ \ Native\ \ \ │\ \ │\ \ \ Bridge\ \ \ \ \ \ \ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ (MetaMask│\ \ │\ \ \ (v2)\ \ \ \ \ \ \ │\ \ │\ \ \ (RPC)\ \ \ \ \ │\ \ │\ (Ledger/Trezor)\ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ etc.)\ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ └──────────┘\ \ └──────────────┘\ \ └─────────────┘\ \ └──────────────────┘\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ └─────────────────────────────────────────────────────────────────────────┘\ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌─────────────────────────────────────────────────────────────────────────┐\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WALLET\ CORE\ (BIP-\/32/39\ +\ PQ\ Manager)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ ┌─────────────────────────────────────────────────────────────────┐\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BIP-\/39\ Mnemonic\ Seed\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ▼\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ ┌─────────────────────────────────────────────────────────┐\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ BIP-\/32\ Master\ Key\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ \ m/44'/777'/0'/0/0\ \ →\ \ secp256k1\ \ →\ \ ob1q...\ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ \ m/44'/778'/0'/0/0\ \ →\ \ secp256k1\ \ →\ \ ob\_k1\_...\ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ \ m/44'/779'/0'/0/0\ \ →\ \ secp256k1\ \ →\ \ ob\_f5\_...\ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ \ m/44'/780'/0'/0/0\ \ →\ \ secp256k1\ \ →\ \ ob\_d5\_...\ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ \ m/44'/781'/0'/0/0\ \ →\ \ secp256k1\ \ →\ \ ob\_s3\_...\ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ └─────────────────────────────────────────────────────────┘\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ▼\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ ┌─────────────────────────────────────────────────────────┐\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ POST-\/QUANTUM\ KEY\ GENERATOR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ Entropy\ from\ BIP-\/32\ \ →\ \ ML-\/DSA-\/87\ \ (2592B\ pk)\ \ \ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ Entropy\ from\ BIP-\/32\ \ →\ \ Falcon-\/512\ (897B\ pk)\ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ │\ \ Entropy\ from\ BIP-\/32\ \ →\ \ SLH-\/DSA-\/256s\ (64B\ pk)\ \ \ \ \ \ \ \ \ │\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ └─────────────────────────────────────────────────────────┘\ \ │\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ └─────────────────────────────────────────────────────────────────┘\ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ └─────────────────────────────────────────────────────────────────────────┘\ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ ┌─────────────────────────────────────────────────────────────────────────┐\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ UI\ FRONTEND\ (Multi-\/Platform)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ ┌──────────────┐\ \ ┌──────────────┐\ \ ┌──────────────┐\ \ ┌──────────────┐\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ \ Desktop\ \ \ \ │\ \ │\ \ \ \ Mobile\ \ \ \ │\ \ │\ \ \ \ \ Web\ \ \ \ \ \ │\ \ │\ \ \ Browser\ \ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ (Electron)\ \ │\ \ │(React\ Native)│\ \ │\ \ \ (WASM)\ \ \ \ \ │\ \ │\ \ Extension\ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ \ \ \ \ \ \ \ \ \ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ •\ QRL\ style\ \ │\ \ │\ •\ eStream\ \ \ \ │\ \ │\ •\ PQC\ Vault\ \ │\ \ │\ •\ MetaMask\ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ •\ Full\ node\ \ │\ \ │\ \ \ style\ \ \ \ \ \ │\ \ │\ \ \ style\ \ \ \ \ \ │\ \ │\ \ \ Snap\ \ \ \ \ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ │\ •\ PQ\ crypto\ \ │\ \ │\ •\ Seeker\ \ \ \ \ │\ \ │\ •\ Cross-\/plat\ │\ \ │\ •\ Injected\ \ \ │\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ │\ \ └──────────────┘\ \ └──────────────┘\ \ └──────────────┘\ \ └──────────────┘\ \ │\ \ \ │}
+\DoxyCodeLine{│\ \ └─────────────────────────────────────────────────────────────────────────┘\ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3691}{}\doxysection{\texorpdfstring{🚀 IMPLEMENTARE PRACTICĂ:\+ "{}\+Omni\+Bus Hybrid Wallet"{}}{🚀 IMPLEMENTARE PRACTICĂ:\+ "{}\+Omni\+Bus Hybrid Wallet"{}}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3691}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3692}{}\doxysubsection{\texorpdfstring{Concept:\+ Fork + Adaptare Inteligentă}{Concept:\+ Fork + Adaptare Inteligentă}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3692}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3693}{}\doxysubsubsection{\texorpdfstring{A. Mobile Wallet (bazat pe e\+Stream)}{A. Mobile Wallet (bazat pe e\+Stream)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3693}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ wallet-\/omnibus-\/mobile/}
+\DoxyCodeLine{//\ Fork\ din\ estream-\/app,\ adaptat\ pentru\ 5\ domenii}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ src/services/vault/OmniBusVault.ts}
+\DoxyCodeLine{export\ class\ OmniBusVault\ \{}
+\DoxyCodeLine{\ \ //\ Suportă\ toți\ algoritmii}
+\DoxyCodeLine{\ \ private\ algorithms\ =\ \{}
+\DoxyCodeLine{\ \ \ \ omni:\ \{\ name:\ 'ML-\/DSA-\/87',\ coinType:\ 777,\ prefix:\ 'ob\_omni\_'\ \},}
+\DoxyCodeLine{\ \ \ \ love:\ \{\ name:\ 'ML-\/DSA-\/87',\ coinType:\ 778,\ prefix:\ 'ob\_k1\_'\ \},}
+\DoxyCodeLine{\ \ \ \ food:\ \{\ name:\ 'Falcon-\/512',\ coinType:\ 779,\ prefix:\ 'ob\_f5\_'\ \},}
+\DoxyCodeLine{\ \ \ \ rent:\ \{\ name:\ 'ML-\/DSA-\/87',\ coinType:\ 780,\ prefix:\ 'ob\_d5\_'\ \},}
+\DoxyCodeLine{\ \ \ \ vacation:\ \{\ name:\ 'SLH-\/DSA-\/256s',\ coinType:\ 781,\ prefix:\ 'ob\_s3\_'\ \}}
+\DoxyCodeLine{\ \ \};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ async\ generateAddresses(mnemonic:\ string):\ Promise<OmniBusAddresses>\ \{}
+\DoxyCodeLine{\ \ \ \ //\ Generează\ toate\ cele\ 5\ adrese\ din\ același\ seed}
+\DoxyCodeLine{\ \ \ \ return\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ omni:\ await\ this.deriveAddress(mnemonic,\ 777,\ 'ML-\/DSA-\/87'),}
+\DoxyCodeLine{\ \ \ \ \ \ love:\ await\ this.deriveAddress(mnemonic,\ 778,\ 'ML-\/DSA-\/87'),}
+\DoxyCodeLine{\ \ \ \ \ \ food:\ await\ this.deriveAddress(mnemonic,\ 779,\ 'Falcon-\/512'),}
+\DoxyCodeLine{\ \ \ \ \ \ rent:\ await\ this.deriveAddress(mnemonic,\ 780,\ 'ML-\/DSA-\/87'),}
+\DoxyCodeLine{\ \ \ \ \ \ vacation:\ await\ this.deriveAddress(mnemonic,\ 781,\ 'SLH-\/DSA-\/256s')}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ async\ signTransaction(domain:\ string,\ tx:\ Transaction):\ Promise<Signature>\ \{}
+\DoxyCodeLine{\ \ \ \ //\ Alege\ algoritmul\ corect\ în\ funcție\ de\ domeniu}
+\DoxyCodeLine{\ \ \ \ switch(domain)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ case\ 'food':\ return\ this.falconSign(tx);}
+\DoxyCodeLine{\ \ \ \ \ \ case\ 'vacation':\ return\ this.slhDsaSign(tx);}
+\DoxyCodeLine{\ \ \ \ \ \ default:\ return\ this.mlDsaSign(tx);}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Avantaje:\+}}
+\begin{DoxyItemize}
+\item ✅ React Native = i\+OS + Android
+\item ✅ Rust module = performanță nativă
+\item ✅ Are deja Dilithium5 (similar ML-\/\+DSA-\/87)
+\item ✅ Hardware-\/backed keys (Seeker Secure Enclave)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3694}{}\doxysubsubsection{\texorpdfstring{B. Desktop Wallet (bazat pe QRL)}{B. Desktop Wallet (bazat pe QRL)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3694}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ wallet-\/omnibus-\/desktop/}
+\DoxyCodeLine{//\ Fork\ din\ qrl-\/wallet,\ adaptat\ pentru\ OmniBus}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Adaptări\ necesare:}
+\DoxyCodeLine{//\ 1.\ Înlocuiește\ XMSS\ cu\ ML-\/DSA/Falcon/SLH-\/DSA}
+\DoxyCodeLine{//\ 2.\ Adaugă\ suport\ pentru\ 5\ coin\ types}
+\DoxyCodeLine{//\ 3.\ Păstrează\ arhitectura\ Meteor\ +\ Electron}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ imports/ui/pages/create/create.js}
+\DoxyCodeLine{Template.appCreateOmniBus.onRendered(()\ =>\ \{}
+\DoxyCodeLine{\ \ //\ Generează\ wallet\ cu\ 5\ domenii}
+\DoxyCodeLine{\ \ const\ mnemonic\ =\ generateMnemonic(256);\ //\ 24\ cuvinte}
+\DoxyCodeLine{\ \ const\ wallet\ =\ \{}
+\DoxyCodeLine{\ \ \ \ mnemonic,}
+\DoxyCodeLine{\ \ \ \ addresses:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ omni:\ generateOmniAddress(mnemonic,\ 777),}
+\DoxyCodeLine{\ \ \ \ \ \ love:\ generateOmniAddress(mnemonic,\ 778),}
+\DoxyCodeLine{\ \ \ \ \ \ food:\ generateOmniAddress(mnemonic,\ 779),}
+\DoxyCodeLine{\ \ \ \ \ \ rent:\ generateOmniAddress(mnemonic,\ 780),}
+\DoxyCodeLine{\ \ \ \ \ \ vacation:\ generateOmniAddress(mnemonic,\ 781)}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \};}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+
+
+{\bfseries{Avantaje:\+}}
+\begin{DoxyItemize}
+\item ✅ Matur și testat (QRL rulează de ani)
+\item ✅ Web\+Assembly pentru crypto în browser
+\item ✅ Electron = Windows, Mac, Linux
+\item ✅ Ledger integration deja funcțional
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3695}{}\doxysubsubsection{\texorpdfstring{C. SDK Wallet (bazat pe Tether WDK)}{C. SDK Wallet (bazat pe Tether WDK)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3695}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ omnibus-\/wdk-\/sdk/}
+\DoxyCodeLine{//\ Extensie\ Tether\ WDK\ pentru\ OmniBus}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ \{\ Wallet\ \}\ from\ '@tether/wdk';}
+\DoxyCodeLine{import\ \{\ OmniBusCrypto\ \}\ from\ '@omnibus/crypto-\/pq';}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ class\ OmniBusWallet\ extends\ Wallet\ \{}
+\DoxyCodeLine{\ \ private\ pqCrypto:\ OmniBusCrypto;}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ constructor(config:\ OmniBusConfig)\ \{}
+\DoxyCodeLine{\ \ \ \ super(\{}
+\DoxyCodeLine{\ \ \ \ \ \ ...config,}
+\DoxyCodeLine{\ \ \ \ \ \ chainId:\ 777,}
+\DoxyCodeLine{\ \ \ \ \ \ rpcUrl:\ config.omnibusRpc\ ||\ 'https://rpc.omnibus.network'}
+\DoxyCodeLine{\ \ \ \ \});}
+\DoxyCodeLine{\ \ \ \ this.pqCrypto\ =\ new\ OmniBusCrypto();}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ //\ Metodă\ unică\ pentru\ toate\ cele\ 5\ domenii}
+\DoxyCodeLine{\ \ async\ getAllBalances():\ Promise<OmniBusBalances>\ \{}
+\DoxyCodeLine{\ \ \ \ const\ addresses\ =\ await\ this.getAllAddresses();}
+\DoxyCodeLine{\ \ \ \ return\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ omni:\ await\ this.getBalance(addresses.omni),}
+\DoxyCodeLine{\ \ \ \ \ \ love:\ await\ this.getBalance(addresses.love),}
+\DoxyCodeLine{\ \ \ \ \ \ food:\ await\ this.getBalance(addresses.food),}
+\DoxyCodeLine{\ \ \ \ \ \ rent:\ await\ this.getBalance(addresses.rent),}
+\DoxyCodeLine{\ \ \ \ \ \ vacation:\ await\ this.getBalance(addresses.vacation)}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ async\ sendToDomain(}
+\DoxyCodeLine{\ \ \ \ domain:\ 'omni'\ |\ 'love'\ |\ 'food'\ |\ 'rent'\ |\ 'vacation',}
+\DoxyCodeLine{\ \ \ \ to:\ string,}
+\DoxyCodeLine{\ \ \ \ amount:\ bigint}
+\DoxyCodeLine{\ \ ):\ Promise<TransactionHash>\ \{}
+\DoxyCodeLine{\ \ \ \ const\ coinType\ =\ this.getCoinTypeForDomain(domain);}
+\DoxyCodeLine{\ \ \ \ const\ algorithm\ =\ this.getAlgorithmForDomain(domain);}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ //\ Semnează\ cu\ algoritmul\ corespunzător}
+\DoxyCodeLine{\ \ \ \ const\ signature\ =\ await\ this.pqCrypto.sign(algorithm,\ txHash);}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ return\ this.broadcastTransaction(\{...tx,\ signature\});}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Avantaje:\+}}
+\begin{DoxyItemize}
+\item ✅ SDK profesional, production-\/ready
+\item ✅ Suport embedded devices
+\item ✅ Multi-\/chain nativ
+\item ✅ Poate crea wallet-\/uri AI/\+machine
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3697}{}\doxysection{\texorpdfstring{🔄 INTEROPERABILITATE:\+ Recunoaștere între Wallet-\/uri}{🔄 INTEROPERABILITATE:\+ Recunoaștere între Wallet-\/uri}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3697}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3698}{}\doxysubsection{\texorpdfstring{1. Format Adresă Unificat}{1. Format Adresă Unificat}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3698}
+Toate wallet-\/urile Omni\+Bus trebuie să recunoască:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Format\ adresă:\ prefix\ +\ base58check(hash160(pubkey))}
+\DoxyCodeLine{//\ Prefixuri\ oficiale:}
+\DoxyCodeLine{const\ PREFIXES\ =\ \{}
+\DoxyCodeLine{\ \ \ \ .omni\ =\ "{}ob1q"{},\ \ \ \ \ \ //\ Coin\ 777}
+\DoxyCodeLine{\ \ \ \ .love\ =\ "{}ob\_k1\_"{},\ \ \ \ \ \ \ \ //\ Coin\ 778}
+\DoxyCodeLine{\ \ \ \ .food\ =\ "{}ob\_f5\_"{},\ \ \ \ \ \ \ \ //\ Coin\ 779}
+\DoxyCodeLine{\ \ \ \ .rent\ =\ "{}ob\_d5\_"{},\ \ \ \ \ \ \ \ //\ Coin\ 780}
+\DoxyCodeLine{\ \ \ \ .vacation\ =\ "{}ob\_s3\_"{}\ \ \ \ \ //\ Coin\ 781}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Version\ byte:\ 0x4F\ (79)\ -\/\ unic\ OmniBus}
+\DoxyCodeLine{const\ VERSION\_BYTE\ =\ 0x4F;}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3699}{}\doxysubsection{\texorpdfstring{2. Export/\+\+Import Wallet}{2. Export/\+\+Import Wallet}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3699}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}omnibus\_wallet\_version"{}:\ "{}1.0.0"{},}
+\DoxyCodeLine{\ \ "{}format"{}:\ "{}bip39-\/mnemonic"{},}
+\DoxyCodeLine{\ \ "{}mnemonic"{}:\ "{}abandon\ abandon\ abandon\ ...\ about"{},}
+\DoxyCodeLine{\ \ "{}derivation\_path"{}:\ "{}m/44'/777'/0'/0/0"{},}
+\DoxyCodeLine{\ \ "{}addresses"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}omni"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}address"{}:\ "{}ob\_omni\_1A2B3C..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}coin\_type"{}:\ 777,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}algorithm"{}:\ "{}ML-\/DSA-\/87"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}public\_key"{}:\ "{}02abc..."{}}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ "{}love"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}address"{}:\ "{}ob\_k1\_4D5E6F..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}coin\_type"{}:\ 778,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}algorithm"{}:\ "{}ML-\/DSA-\/87"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}public\_key"{}:\ "{}02def..."{}}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ //\ ...\ toate\ cele\ 5}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3700}{}\doxysubsection{\texorpdfstring{3. Deep Linking Standard}{3. Deep Linking Standard}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3700}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ URI\ Scheme\ pentru\ OmniBus}
+\DoxyCodeLine{omnibus://pay?to=ob1qx787af2p22knzjlakn7ehz9r77p3ak2w\&amount=1000000000\&domain=omni}
+\DoxyCodeLine{omnibus://pay?to=ob\_f5\_def456\&amount=500000000\&domain=food}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ QR\ Code\ standard}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}type"{}:\ "{}omnibus\_payment"{},}
+\DoxyCodeLine{\ \ "{}version"{}:\ 1,}
+\DoxyCodeLine{\ \ "{}domain"{}:\ "{}omni"{},}
+\DoxyCodeLine{\ \ "{}to"{}:\ "{}ob1qx787af2p22knzjlakn7ehz9r77p3ak2w..."{},}
+\DoxyCodeLine{\ \ "{}amount"{}:\ "{}1000000000"{},}
+\DoxyCodeLine{\ \ "{}memo"{}:\ "{}optional"{}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3701}{}\doxysubsection{\texorpdfstring{4. Protocol Discovery}{4. Protocol Discovery}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3701}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Wallet\ capability\ negotiation}
+\DoxyCodeLine{const\ WalletCapabilities\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ version:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ supported\_domains:\ []const\ DomainCapability,}
+\DoxyCodeLine{\ \ \ \ supported\_protocols:\ []const\ Protocol,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ const\ DomainCapability\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ name:\ []const\ u8,\ \ \ \ \ \ //\ "{}omni"{},\ "{}love"{},\ etc.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ coin\_type:\ u32,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ algorithm:\ []const\ u8,\ //\ "{}ML-\/DSA-\/87"{},\ "{}Falcon-\/512"{},\ etc.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ can\_sign:\ bool,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ hardware\_backed:\ bool,}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ const\ Protocol\ =\ enum\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ omnibus\_native\_rpc,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ evm\_json\_rpc,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ walletconnect\_v2,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ledger\_hid,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ trezor\_bridge,}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3703}{}\doxysection{\texorpdfstring{📋 ROADMAP IMPLEMENTARE}{📋 ROADMAP IMPLEMENTARE}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3703}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3704}{}\doxysubsection{\texorpdfstring{Faza 1:\+ SDK Core (2-\/3 săptămâni)}{Faza 1:\+ SDK Core (2-\/3 săptămâni)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3704}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{core/wallet/}
+\DoxyCodeLine{├──\ sdk/}
+\DoxyCodeLine{│\ \ \ ├──\ typescript/\ \ \ \ \ \#\ SDK\ Tether\ WDK-\/style}
+\DoxyCodeLine{│\ \ \ ├──\ rust/\ \ \ \ \ \ \ \ \ \ \ \#\ Module\ native\ (din\ eStream)}
+\DoxyCodeLine{│\ \ \ └──\ zig/\ \ \ \ \ \ \ \ \ \ \ \ \#\ Core\ logic\ (vostru)}
+\DoxyCodeLine{├──\ crypto/}
+\DoxyCodeLine{│\ \ \ ├──\ pq/\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ ML-\/DSA,\ Falcon,\ SLH-\/DSA}
+\DoxyCodeLine{│\ \ \ └──\ classic/\ \ \ \ \ \ \ \ \#\ secp256k1}
+\DoxyCodeLine{└──\ protocols/}
+\DoxyCodeLine{\ \ \ \ ├──\ evm.ts\ \ \ \ \ \ \ \ \ \ \#\ EVM\ adapter}
+\DoxyCodeLine{\ \ \ \ ├──\ walletconnect.ts\ \#\ WC\ provider}
+\DoxyCodeLine{\ \ \ \ └──\ hardware.ts\ \ \ \ \ \#\ Ledger/Trezor\ bridge}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3705}{}\doxysubsection{\texorpdfstring{Faza 2:\+ Mobile Wallet (2-\/3 săptămâni)}{Faza 2:\+ Mobile Wallet (2-\/3 săptămâni)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3705}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{wallet-\/omnibus-\/mobile/}
+\DoxyCodeLine{├──\ Fork\ eStream\ App}
+\DoxyCodeLine{├──\ Adaugă\ suport\ Falcon\ +\ SLH-\/DSA}
+\DoxyCodeLine{├──\ UI\ pentru\ 5\ domenii}
+\DoxyCodeLine{└──\ Deep\ linking}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3706}{}\doxysubsection{\texorpdfstring{Faza 3:\+ Desktop Wallet (2-\/3 săptămâni)}{Faza 3:\+ Desktop Wallet (2-\/3 săptămâni)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3706}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{wallet-\/omnibus-\/desktop/}
+\DoxyCodeLine{├──\ Fork\ QRL\ Wallet}
+\DoxyCodeLine{├──\ Adaugă\ suport\ 5\ domenii}
+\DoxyCodeLine{├──\ WebAssembly\ PQ\ crypto}
+\DoxyCodeLine{└──\ Ledger\ integration}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3707}{}\doxysubsection{\texorpdfstring{Faza 4:\+ Meta\+Mask Snap (1-\/2 săptămâni)}{Faza 4:\+ Meta\+Mask Snap (1-\/2 săptămâni)}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3707}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{wallet-\/omnibus-\/snap/}
+\DoxyCodeLine{├──\ Snap\ manifest}
+\DoxyCodeLine{├──\ PQ\ signing\ (WASM)}
+\DoxyCodeLine{└──\ Multi-\/domain\ UI}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3709}{}\doxysection{\texorpdfstring{🎯 RECOMANDARE FINALĂ}{🎯 RECOMANDARE FINALĂ}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3709}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3710}{}\doxysubsection{\texorpdfstring{Strategia "{}3-\/\+Wallet Unified"{}}{Strategia "{}3-\/\+Wallet Unified"{}}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3710}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Mobile}} = Fork e\+Stream App (React Native + Rust)
+\item {\bfseries{Desktop}} = Fork QRL Wallet (Meteor + Electron + WASM)
+\item {\bfseries{SDK}} = Extend Tether WDK (Type\+Script, pentru integratori)
+\end{DoxyEnumerate}
+
+Toate trei folosesc {\bfseries{același core Zig}} compilat în:\+
+\begin{DoxyItemize}
+\item Rust (pentru mobile native modules)
+\item WASM (pentru web/\+desktop)
+\item Node-\/\+API (pentru SDK)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3711}{}\doxysubsection{\texorpdfstring{Avantaje:\+}{Avantaje:\+}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3711}
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{Code reuse maxim}} -\/ Core Zig unic
+\item ✅ {\bfseries{Platform coverage total}} -\/ Mobile, Desktop, Web, SDK
+\item ✅ {\bfseries{Interoperabilitate}} -\/ Aceleași adrese, aceleași seed
+\item ✅ {\bfseries{Open source}} -\/ Toate bazele sunt OSS
+\item ✅ {\bfseries{Timp rapid}} -\/ Fork + adaptare, nu de la zero
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3713}{}\doxysection{\texorpdfstring{📚 Referințe Open Source}{📚 Referințe Open Source}}\label{md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p_autotoc_md3713}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Proiect  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Link  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Folosit pentru  \\
+QRL Wallet  &github.\+com/\+the\+QRL/\+qrl-\/wallet  &Desktop wallet architecture  \\
+e\+Stream App  &github.\+com/\+polyquantum/\+estream-\/app  &Mobile wallet (React Native)  \\
+Tether WDK  &docs.\+wdk.\+tether.\+io  &SDK multi-\/chain  \\
+PQC Vault  &github.\+com/\+\+Simedru\+F/\+\+PQC\+\_\+\+Vault  &Desktop PQ reference  \\
+Trezor FW  &github.\+com/\+trezor/\+trezor-\/firmware  &Hardware wallet  \\
+Meta\+Mask Snaps  &github.\+com/\+\+Meta\+Mask/\+snaps-\/monorepo  &Browser extension  \\
+OKX Go SDK  &github.\+com/\+okx/\+go-\/wallet-\/sdk  &Go SDK reference  \\
+Wallet\+Connect  &github.\+com/\+\+Wallet\+Connect/\+walletconnect-\/monorepo  &Mobile connection  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Document actualizat cu soluții open source concrete} {\itshape Arhitectură hibridă pentru suport universal wallet} 

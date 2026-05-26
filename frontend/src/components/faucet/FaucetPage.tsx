@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
+import { satToOmni } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
 type FaucetStatus = {
   enabled: boolean;
@@ -48,20 +49,30 @@ export function FaucetPage() {
         if (!cancelled) setStatusLoading(false);
       }
     };
-    refresh();
-    const id = setInterval(refresh, 6000);
-    return () => { cancelled = true; clearInterval(id); };
+    void refresh();
+    // Live refresh on every new block (faucet balance changes on claims/rewards).
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    // Slow fallback poll for when WS is disconnected.
+    const id = setInterval(() => { void refresh(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
+
+  const isOmniBusAddr = (a: string) =>
+    a.startsWith("ob1") ||
+    a.startsWith("obk1_") || a.startsWith("obf5_") ||
+    a.startsWith("obd5_") || a.startsWith("obs3_") ||
+    a.startsWith("ob_k1_") || a.startsWith("ob_f5_") ||
+    a.startsWith("ob_d5_") || a.startsWith("ob_s3_");
 
   const claim = async () => {
     setError(null);
     setResult(null);
     const addr = recipient.trim();
-    if (!addr.startsWith("ob1")) {
-      setError("Address must start with ob1 (OmniBus native).");
+    if (!isOmniBusAddr(addr)) {
+      setError("Address must be an OmniBus native address (ob1… / obk1_/obf5_/obd5_/obs3_ / ob_k1_/ob_f5_/ob_d5_/ob_s3_).");
       return;
     }
-    if (addr.length < 20 || addr.length > 64) {
+    if (addr.length < 20 || addr.length > 90) {
       setError("Address length looks wrong.");
       return;
     }
@@ -81,7 +92,7 @@ export function FaucetPage() {
     }
   };
 
-  const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(4);
+  const omniFmt = (sat: number) => satToOmni(sat, 4);
   const canClaim = !!wallet && !!status?.enabled && (status.balance >= status.grantPerClaim);
 
   return (
@@ -197,7 +208,14 @@ export function FaucetPage() {
         <div className="mt-4 rounded-lg border border-green-600 bg-mempool-bg-elev p-4">
           <div className="text-green-400 font-medium mb-2">✓ {result.message}</div>
           <div className="text-xs text-mempool-text-dim space-y-1">
-            <div>TX: <span className="font-mono">{result.txid}</span></div>
+            <div>TX:{" "}
+              <button
+                onClick={() => { window.location.hash = `#/tx/${result.txid}`; }}
+                className="font-mono text-mempool-blue hover:underline"
+              >
+                {result.txid}
+              </button>
+            </div>
             <div>Amount: <span className="font-mono">{omniFmt(result.amount)} OMNI</span></div>
             <div>Declaration: <span className="text-green-400">{result.declaration}</span></div>
           </div>

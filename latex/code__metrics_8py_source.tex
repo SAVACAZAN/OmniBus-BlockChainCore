@@ -1,0 +1,327 @@
+\doxysection{code\+\_\+metrics.\+py}
+\hypertarget{code__metrics_8py_source}{}\label{code__metrics_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/agentscripts/code\_metrics.py@{archived-\/4-\/eterniti/tools-\/python/agentscripts/code\_metrics.py}}
+\doxymbox{\hyperlink{code__metrics_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00001}\doxymbox{\hyperlink{namespacecode__metrics}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ -\/\ Code\ Metrics}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00004}00004\ \textcolor{stringliteral}{==================================}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00005}00005\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00006}00006\ \textcolor{stringliteral}{Calculează\ metrici\ de\ cod:\ LOC,\ complexitate,\ raport\ teste/cod,\ etc.}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00007}00007\ \textcolor{stringliteral}{Ideal\ pentru\ a\ monitoriza\ creșterea\ proiectului.}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00008}00008\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00009}00009\ \textcolor{stringliteral}{Utilizare:}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ \ \ python\ code\_metrics.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Metrici\ complete}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ python\ code\_metrics.py\ -\/-\/summary\ \ \ \ \#\ Doar\ sumar}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ python\ code\_metrics.py\ -\/-\/trend\ \ \ \ \ \ \#\ Compară\ cu\ rularea\ anterioară}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ python\ code\_metrics.py\ -\/-\/json\ \ \ \ \ \ \ \#\ Output\ JSON}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00014}00014\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00015}00015\ \textcolor{stringliteral}{Autor:\ OmniBus\ AI\ Collective}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00016}00016\ \textcolor{stringliteral}{Versiune:\ 1.0.0}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00017}00017\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00021}00021\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00022}00022\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00023}00023\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00024}00024\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ asdict}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00025}00025\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Dict,\ List,\ Tuple}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00026}00026\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00027}00027\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00030}00030\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00031}\doxymbox{\hyperlink{classcode__metrics_1_1_file_metrics}{00031}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classcode__metrics_1_1_file_metrics}{FileMetrics}}:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00032}00032\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Metrici\ pentru\ un\ singur\ fișier."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00033}00033\ \ \ \ \ path:\ str}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00034}00034\ \ \ \ \ lines\_total:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00035}00035\ \ \ \ \ lines\_code:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00036}00036\ \ \ \ \ lines\_blank:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00037}00037\ \ \ \ \ lines\_comment:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00038}00038\ \ \ \ \ functions:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00039}00039\ \ \ \ \ structs:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00040}00040\ \ \ \ \ tests:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00041}00041\ \ \ \ \ complexity\_score:\ int\ \ \textcolor{comment}{\#\ Aproximativ}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00044}00044\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00045}\doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{00045}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{ProjectMetrics}}:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00046}00046\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Metrici\ pentru\ întregul\ proiect."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00047}00047\ \ \ \ \ total\_files:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00048}00048\ \ \ \ \ total\_lines:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00049}00049\ \ \ \ \ total\_code\_lines:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00050}00050\ \ \ \ \ total\_blank\_lines:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00051}00051\ \ \ \ \ total\_comment\_lines:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00052}00052\ \ \ \ \ total\_functions:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00053}00053\ \ \ \ \ total\_structs:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00054}00054\ \ \ \ \ total\_tests:\ int}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00055}00055\ \ \ \ \ avg\_file\_size:\ float}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00056}\doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics_a3a4fc6ac1c8fd29396ef22da41de3326}{00056}}\ \ \ \ \ largest\_files:\ List[Tuple[str,\ int]]}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00057}00057\ \ \ \ \ test\_to\_code\_ratio:\ float}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00058}00058\ \ \ \ \ complexity\_avg:\ float}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00061}\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer}{00061}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer}{CodeAnalyzer}}:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00062}00062\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Analizează\ codul\ Zig\ pentru\ metrici."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00063}00063\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00064}\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a76773340d0d5b52be6cd5122147a2789}{00064}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a76773340d0d5b52be6cd5122147a2789}{\_\_init\_\_}}(self,\ project\_root:\ Path):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00065}\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ac1792589adddd6e025ea207a5f55a19d}{00065}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ac1792589adddd6e025ea207a5f55a19d}{project\_root}}\ =\ project\_root}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00066}\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{00066}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}}:\ List[FileMetrics]\ =\ []}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00068}\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_af10c84e1f878f18a99b3ac237e12c8e0}{00068}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_af10c84e1f878f18a99b3ac237e12c8e0}{analyze\_file}}(self,\ filepath:\ Path)\ -\/>\ FileMetrics:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Analizează\ un\ singur\ fișier."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(filepath,\ \textcolor{stringliteral}{'r'},\ encoding=\textcolor{stringliteral}{'utf-\/8'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ content\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lines\ =\ content.split(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ total\_lines\ =\ len(lines)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ blank\_lines\ =\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ comment\_lines\ =\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ code\_lines\ =\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ functions\ =\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ structs\ =\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ tests\ =\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ in\_multiline\_comment\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ lines:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ stripped\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Blank\ line}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ stripped:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ blank\_lines\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Comment}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stripped.startswith(\textcolor{stringliteral}{'//'}):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ comment\_lines\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stripped.startswith(\textcolor{stringliteral}{'/*'}):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ in\_multiline\_comment\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ in\_multiline\_comment:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ comment\_lines\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'*/'}\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ in\_multiline\_comment\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Code\ line}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ code\_lines\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Count\ functions}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ re.match(\textcolor{stringliteral}{r'\string^\(\backslash\)s*(pub\(\backslash\)s+)?fn\(\backslash\)s+\(\backslash\)w+'},\ line):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ functions\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Count\ structs}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ re.match(\textcolor{stringliteral}{r'\string^\(\backslash\)s*(pub\(\backslash\)s+)?const\(\backslash\)s+\(\backslash\)w+\(\backslash\)s*=\(\backslash\)s*struct'},\ line):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ structs\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Count\ tests}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ re.match(\textcolor{stringliteral}{r'\string^\(\backslash\)s*test\(\backslash\)s+["{}\(\backslash\)']'},\ line)\ \textcolor{keywordflow}{or}\ re.match(\textcolor{stringliteral}{r'\string^\(\backslash\)s*test\(\backslash\)s*\(\backslash\)\{'},\ line):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tests\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Calculate\ complexity\ (simplified)}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ complexity\ =\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a6ea786bd2a50fa9f6f8f590c439b3155}{\_calculate\_complexity}}(content)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classcode__metrics_1_1_file_metrics}{FileMetrics}}(}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ path=str(filepath.relative\_to(self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ac1792589adddd6e025ea207a5f55a19d}{project\_root}})),}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ lines\_total=total\_lines,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ lines\_code=code\_lines,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ lines\_blank=blank\_lines,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ lines\_comment=comment\_lines,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ functions=functions,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ structs=structs,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ tests=tests,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ complexity\_score=complexity}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00138}00138\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00139}\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a6ea786bd2a50fa9f6f8f590c439b3155}{00139}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a6ea786bd2a50fa9f6f8f590c439b3155}{\_calculate\_complexity}}(self,\ content:\ str)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Calculează\ un\ scor\ de\ complexitate\ aproximativ."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ complexity\ =\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Control\ flow\ statements}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ complexity\ +=\ len(re.findall(\textcolor{stringliteral}{r'\(\backslash\)b(if|else|while|for|switch|return)\(\backslash\)b'},\ content))}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Function\ calls\ (indică\ modularity)}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ complexity\ +=\ len(re.findall(\textcolor{stringliteral}{r'\(\backslash\)w+\(\backslash\)('},\ content))\ //\ 5}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Error\ handling}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ complexity\ +=\ len(re.findall(\textcolor{stringliteral}{r'try\(\backslash\)s+|catch\(\backslash\)s+|err\(\backslash\)s*!=\(\backslash\)s*null'},\ content))}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ complexity}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00153}00153\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00154}\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a95f4b12f5916b229b3c86f557c3be94d}{00154}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a95f4b12f5916b229b3c86f557c3be94d}{analyze\_project}}(self)\ -\/>\ ProjectMetrics:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Analizează\ întregul\ proiect."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ zig\_files\ =\ list(self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ac1792589adddd6e025ea207a5f55a19d}{project\_root}}.rglob(\textcolor{stringliteral}{'*.zig'}))}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ zig\_files\ =\ [}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ zig\_files\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ any(part.startswith(\textcolor{stringliteral}{'.'})\ \textcolor{keywordflow}{or}\ part\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{'zig-\/out'},\ \textcolor{stringliteral}{'.zig-\/cache'}]}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ part\ \textcolor{keywordflow}{in}\ f.parts)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ filepath\ \textcolor{keywordflow}{in}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ metrics\ =\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_af10c84e1f878f18a99b3ac237e12c8e0}{analyze\_file}}(filepath)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ metrics:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}}.append(metrics)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Calculate\ totals}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ total\_lines\ =\ sum(f.lines\_total\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ total\_code\ =\ sum(f.lines\_code\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ total\_blank\ =\ sum(f.lines\_blank\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ total\_comment\ =\ sum(f.lines\_comment\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ total\_functions\ =\ sum(f.functions\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ total\_structs\ =\ sum(f.structs\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ total\_tests\ =\ sum(f.tests\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Find\ largest\ files}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ largest\ =\ sorted(}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ [(f.path,\ f.lines\_total)\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}}],}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ key=\textcolor{keyword}{lambda}\ x:\ x[1],}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ reverse=\textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ )[:10]}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Calculate\ ratios}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ test\_ratio\ =\ (total\_tests\ *\ 10)\ /\ total\_code\ \textcolor{keywordflow}{if}\ total\_code\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ avg\_complexity\ =\ sum(f.complexity\_score\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})\ /\ len(self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})\ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}}\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{ProjectMetrics}}(}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ total\_files=len(self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}}),}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ total\_lines=total\_lines,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ total\_code\_lines=total\_code,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ total\_blank\_lines=total\_blank,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ total\_comment\_lines=total\_comment,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ total\_functions=total\_functions,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ total\_structs=total\_structs,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ total\_tests=total\_tests,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ avg\_file\_size=total\_lines\ /\ len(self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}})\ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\_metrics}}\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ largest\_files=largest,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ test\_to\_code\_ratio=test\_ratio,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ complexity\_avg=avg\_complexity}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00204}\doxymbox{\hyperlink{namespacecode__metrics_a653ca4e0b7c88dca5c098c845f6849e2}{00204}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecode__metrics_a653ca4e0b7c88dca5c098c845f6849e2}{print\_metrics}}(metrics:\ ProjectMetrics,\ file\_metrics:\ List[FileMetrics]):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00205}00205\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Afișează\ metricile\ într-\/un\ format\ uman-\/citibil."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00206}00206\ \ \ \ \ GREEN\ =\ \textcolor{stringliteral}{'\(\backslash\)033[92m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00207}00207\ \ \ \ \ YELLOW\ =\ \textcolor{stringliteral}{'\(\backslash\)033[93m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00208}00208\ \ \ \ \ RED\ =\ \textcolor{stringliteral}{'\(\backslash\)033[91m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00209}00209\ \ \ \ \ BLUE\ =\ \textcolor{stringliteral}{'\(\backslash\)033[94m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00210}00210\ \ \ \ \ RESET\ =\ \textcolor{stringliteral}{'\(\backslash\)033[0m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00211}00211\ \ \ \ \ BOLD\ =\ \textcolor{stringliteral}{'\(\backslash\)033[1m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00212}00212\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00213}00213\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}╔══════════════════════════════════════════════════════════════╗\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00214}00214\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}║\ \ \ \ \ \ \ \ \ \ \ \ \ \ OmniBus\ Blockchain\ -\/\ Code\ Metrics\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ║\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00215}00215\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}╚══════════════════════════════════════════════════════════════╝\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00216}00216\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00217}00217\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00218}00218\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{BOLD\}Sumar\ General:\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00219}00219\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Fișiere\ .zig:\ \ \ \ \ \ \ \{BOLD\}\{metrics.total\_files\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00220}00220\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Linii\ totale:\ \ \ \ \ \ \ \{metrics.total\_lines:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00221}00221\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Linii\ de\ cod:\ \ \ \ \ \ \ \{GREEN\}\{metrics.total\_code\_lines:,\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00222}00222\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Linii\ goale:\ \ \ \ \ \ \ \ \{metrics.total\_blank\_lines:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00223}00223\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Linii\ comentarii:\ \ \ \{YELLOW\}\{metrics.total\_comment\_lines:,\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00224}00224\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Medie/fișier:\ \ \ \ \ \ \ \{metrics.avg\_file\_size:.0f\}\ linii"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00225}00225\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00226}00226\ \ \ \ \ \textcolor{comment}{\#\ Code\ components}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00227}00227\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Componente\ Cod:\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00228}00228\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Funcții:\ \ \ \ \ \ \ \ \ \ \ \ \{metrics.total\_functions\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00229}00229\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Structuri:\ \ \ \ \ \ \ \ \ \ \{metrics.total\_structs\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00230}00230\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Teste:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \{BLUE\}\{metrics.total\_tests\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00231}00231\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00232}00232\ \ \ \ \ \textcolor{comment}{\#\ Quality\ metrics}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00233}00233\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Metrici\ Calitate:\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00234}00234\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00235}00235\ \ \ \ \ \textcolor{comment}{\#\ Test\ ratio}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00236}00236\ \ \ \ \ ratio\_color\ =\ GREEN\ \textcolor{keywordflow}{if}\ metrics.test\_to\_code\_ratio\ >\ 0.3\ \textcolor{keywordflow}{else}\ YELLOW\ \textcolor{keywordflow}{if}\ metrics.test\_to\_code\_ratio\ >\ 0.1\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00237}00237\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Raport\ test/cod:\ \ \ \ \{ratio\_color\}\{metrics.test\_to\_code\_ratio:.1\%\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00238}00238\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (țintă:\ >30\%,\ minim:\ 10\%)"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00239}00239\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00240}00240\ \ \ \ \ \textcolor{comment}{\#\ Comment\ ratio}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00241}00241\ \ \ \ \ comment\_ratio\ =\ metrics.total\_comment\_lines\ /\ metrics.total\_code\_lines\ \textcolor{keywordflow}{if}\ metrics.total\_code\_lines\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00242}00242\ \ \ \ \ comment\_color\ =\ GREEN\ \textcolor{keywordflow}{if}\ comment\_ratio\ >\ 0.1\ \textcolor{keywordflow}{else}\ YELLOW}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00243}00243\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Raport\ comment/cod:\ \{comment\_color\}\{comment\_ratio:.1\%\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00244}00244\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00245}00245\ \ \ \ \ \textcolor{comment}{\#\ Complexity}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00246}00246\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Complexitate\ medie:\ \{metrics.complexity\_avg:.0f\}/fișier"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00247}00247\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00248}00248\ \ \ \ \ \textcolor{comment}{\#\ Largest\ files}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00249}00249\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Top\ 10\ Fișiere\ ca\ Mărime:\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00250}00250\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ (path,\ lines)\ \textcolor{keywordflow}{in}\ enumerate(metrics.largest\_files,\ 1):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ color\ =\ RED\ \textcolor{keywordflow}{if}\ lines\ >\ 1000\ \textcolor{keywordflow}{else}\ YELLOW\ \textcolor{keywordflow}{if}\ lines\ >\ 500\ \textcolor{keywordflow}{else}\ RESET}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{i:2\}.\ \{path:45\}\ \{color\}\{lines:5\}\{RESET\}\ linii"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00253}00253\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00254}00254\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00257}\doxymbox{\hyperlink{namespacecode__metrics_af9f2e570f17c0f17eb66345ded7dfad3}{00257}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecode__metrics_af9f2e570f17c0f17eb66345ded7dfad3}{print\_summary}}(metrics:\ ProjectMetrics):}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00258}00258\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Afișează\ doar\ sumarul."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00259}00259\ \ \ \ \ GREEN\ =\ \textcolor{stringliteral}{'\(\backslash\)033[92m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00260}00260\ \ \ \ \ RESET\ =\ \textcolor{stringliteral}{'\(\backslash\)033[0m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00261}00261\ \ \ \ \ BOLD\ =\ \textcolor{stringliteral}{'\(\backslash\)033[1m'}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00262}00262\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00263}00263\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Sumar\ Rapid:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00264}00264\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{metrics.total\_files\}\ fișiere,\ \{metrics.total\_lines:,\}\ linii,\ \{metrics.total\_tests\}\ teste"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00265}00265\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00266}00266\ \ \ \ \ ratio\ =\ metrics.test\_to\_code\_ratio}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00267}00267\ \ \ \ \ status\ =\ \textcolor{stringliteral}{"{}✓"{}}\ \textcolor{keywordflow}{if}\ ratio\ >\ 0.3\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}⚠"{}}\ \textcolor{keywordflow}{if}\ ratio\ >\ 0.1\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}✗"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00268}00268\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Raport\ test/cod:\ \{ratio:.1\%\}\ \{status\}"{}})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00269}00269\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00272}\doxymbox{\hyperlink{namespacecode__metrics_a51af30a60f9f02777c6396b8247e356f}{00272}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecode__metrics_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00273}00273\ \ \ \ \ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00274}00274\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00275}00275\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{'Calculează\ metrici\ de\ cod\ pentru\ OmniBus'},}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ epilog=\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00279}00279\ \textcolor{stringliteral}{Exemple:}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00280}00280\ \textcolor{stringliteral}{\ \ python\ code\_metrics.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Metrici\ complete}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00281}00281\ \textcolor{stringliteral}{\ \ python\ code\_metrics.py\ -\/-\/summary\ \ \ \ \#\ Doar\ sumar}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00282}00282\ \textcolor{stringliteral}{\ \ python\ code\_metrics.py\ -\/-\/json\ \ \ \ \ \ \ \#\ Output\ JSON}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00283}00283\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00284}00284\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00285}00285\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/summary'},\ \textcolor{stringliteral}{'-\/s'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ sumar,\ nu\ detalii\ complete'})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00287}00287\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/json'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Output\ în\ format\ JSON'})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00289}00289\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/top'},\ type=int,\ default=10,}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Număr\ fișiere\ top\ (default:\ 10)'})}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00291}00291\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00292}00292\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00293}00293\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00294}00294\ \ \ \ \ \textcolor{comment}{\#\ Find\ project\ root}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00295}00295\ \ \ \ \ script\_dir\ =\ Path(\_\_file\_\_).parent}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00296}00296\ \ \ \ \ project\_root\ =\ script\_dir.parent.parent}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00297}00297\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00298}00298\ \ \ \ \ \textcolor{comment}{\#\ Analyze}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00299}00299\ \ \ \ \ analyzer\ =\ \doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer}{CodeAnalyzer}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00300}00300\ \ \ \ \ metrics\ =\ analyzer.analyze\_project()}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00301}00301\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00302}00302\ \ \ \ \ \textcolor{comment}{\#\ Output}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00303}00303\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ data\ =\ \{}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'project'}:\ asdict(metrics),}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'files'}:\ [asdict(f)\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ analyzer.file\_metrics]}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ print(json.dumps(data,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00309}00309\ \ \ \ \ \textcolor{keywordflow}{elif}\ args.summary:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacecode__metrics_af9f2e570f17c0f17eb66345ded7dfad3}{print\_summary}}(metrics)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00311}00311\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacecode__metrics_a653ca4e0b7c88dca5c098c845f6849e2}{print\_metrics}}(metrics,\ analyzer.file\_metrics)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00313}00313\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00314}00314\ \ \ \ \ \textcolor{comment}{\#\ Exit\ code\ based\ on\ test\ coverage}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00315}00315\ \ \ \ \ \textcolor{keywordflow}{if}\ metrics.test\_to\_code\_ratio\ <\ 0.1:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ sys.exit(1)\ \ \textcolor{comment}{\#\ Prea\ puține\ teste}}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00317}00317\ \ \ \ \ sys.exit(0)}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00318}00318\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00319}00319\ }
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00320}00320\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{'\_\_main\_\_'}:}
+\DoxyCodeLine{\Hypertarget{code__metrics_8py_source_l00321}00321\ \ \ \ \ \doxymbox{\hyperlink{namespacecode__metrics_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

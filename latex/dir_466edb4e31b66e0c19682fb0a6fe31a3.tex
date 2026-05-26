@@ -1,0 +1,303 @@
+\doxysection{frontend/\+node\+\_\+modules/\+prop-\/types Directory Reference}
+\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3}{}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3}\index{frontend/node\_modules/prop-\/types Directory Reference@{frontend/node\_modules/prop-\/types Directory Reference}}
+Directory dependency graph for prop-\/types:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_e59500d248a1c6a4ddba4072c5fed4b4}{node\+\_\+modules}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7903}{}\doxysubsection{\texorpdfstring{prop-\/types \+[!\+[Build Status]\+(\href{https://travis-ci.com/facebook/prop-types.svg?branch=main}{\texttt{https:\+/\+/\+travis-\/ci.\+com/\+facebook/\+prop-\/types.\+svg?branch=main}})]\+(\href{https://travis-ci.org/facebook/prop-types}{\texttt{https:\+/\+/\+travis-\/ci.\+org/\+facebook/\+prop-\/types}})}{prop-\/types \+[!\+[Build Status]\+(\href{https://travis-ci.com/facebook/prop-types.svg?branch=main}{\texttt{https:\+/\+/\+travis-\/ci.\+com/\+facebook/\+prop-\/types.\+svg?branch=main}})]\+(\href{https://travis-ci.org/facebook/prop-types}{\texttt{https:\+/\+/\+travis-\/ci.\+org/\+facebook/\+prop-\/types}})}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7903}
+Runtime type checking for React props and similar objects.
+
+You can use prop-\/types to document the intended types of properties passed to components. React (and potentially other libraries—see the {\ttfamily check\+Prop\+Types()} reference below) will check props passed to your components against those definitions, and warn in development if they don’t match.\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7904}{}\doxysubsection{\texorpdfstring{Installation}{Installation}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7904}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ install\ -\/-\/save\ prop-\/types}
+
+\end{DoxyCode}
+\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7905}{}\doxysubsection{\texorpdfstring{Importing}{Importing}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7905}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ PropTypes\ from\ 'prop-\/types';\ //\ ES6}
+\DoxyCodeLine{var\ PropTypes\ =\ require('prop-\/types');\ //\ ES5\ with\ npm}
+
+\end{DoxyCode}
+\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7906}{}\doxysubsubsection{\texorpdfstring{CDN}{CDN}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7906}
+If you prefer to exclude {\ttfamily prop-\/types} from your application and use it globally via {\ttfamily window.\+Prop\+Types}, the {\ttfamily prop-\/types} package provides single-\/file distributions, which are hosted on the following CDNs:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://unpkg.com/prop-types/}{\texttt{{\bfseries{unpkg}}}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<!-\/-\/\ development\ version\ -\/-\/>}
+\DoxyCodeLine{<script\ src="{}https://unpkg.com/prop-\/types@15.6/prop-\/types.js"{}></script>}
+\DoxyCodeLine{}
+\DoxyCodeLine{<!-\/-\/\ production\ version\ -\/-\/>}
+\DoxyCodeLine{<script\ src="{}https://unpkg.com/prop-\/types@15.6/prop-\/types.min.js"{}></script>}
+
+\end{DoxyCode}
+
+\item \href{https://cdnjs.com/libraries/prop-types}{\texttt{{\bfseries{cdnjs}}}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<!-\/-\/\ development\ version\ -\/-\/>}
+\DoxyCodeLine{<script\ src="{}https://cdnjs.cloudflare.com/ajax/libs/prop-\/types/15.6.0/prop-\/types.js"{}></script>}
+\DoxyCodeLine{}
+\DoxyCodeLine{<!-\/-\/\ production\ version\ -\/-\/>}
+\DoxyCodeLine{<script\ src="{}https://cdnjs.cloudflare.com/ajax/libs/prop-\/types/15.6.0/prop-\/types.min.js"{}></script>}
+
+\end{DoxyCode}
+
+\end{DoxyItemize}
+
+To load a specific version of {\ttfamily prop-\/types} replace {\ttfamily 15.\+6.\+0} with the version number.\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7907}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7907}
+Prop\+Types was originally exposed as part of the React core module, and is commonly used with React components. Here is an example of using Prop\+Types with a React component, which also documents the different validators provided:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ React\ from\ 'react';}
+\DoxyCodeLine{import\ PropTypes\ from\ 'prop-\/types';}
+\DoxyCodeLine{}
+\DoxyCodeLine{class\ MyComponent\ extends\ React.Component\ \{}
+\DoxyCodeLine{\ \ render()\ \{}
+\DoxyCodeLine{\ \ \ \ //\ ...\ do\ things\ with\ the\ props}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{MyComponent.propTypes\ =\ \{}
+\DoxyCodeLine{\ \ //\ You\ can\ declare\ that\ a\ prop\ is\ a\ specific\ JS\ primitive.\ By\ default,\ these}
+\DoxyCodeLine{\ \ //\ are\ all\ optional.}
+\DoxyCodeLine{\ \ optionalArray:\ PropTypes.array,}
+\DoxyCodeLine{\ \ optionalBigInt:\ PropTypes.bigint,}
+\DoxyCodeLine{\ \ optionalBool:\ PropTypes.bool,}
+\DoxyCodeLine{\ \ optionalFunc:\ PropTypes.func,}
+\DoxyCodeLine{\ \ optionalNumber:\ PropTypes.number,}
+\DoxyCodeLine{\ \ optionalObject:\ PropTypes.object,}
+\DoxyCodeLine{\ \ optionalString:\ PropTypes.string,}
+\DoxyCodeLine{\ \ optionalSymbol:\ PropTypes.symbol,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ Anything\ that\ can\ be\ rendered:\ numbers,\ strings,\ elements\ or\ an\ array}
+\DoxyCodeLine{\ \ //\ (or\ fragment)\ containing\ these\ types.}
+\DoxyCodeLine{\ \ //\ see\ https://reactjs.org/docs/rendering-\/elements.html\ for\ more\ info}
+\DoxyCodeLine{\ \ optionalNode:\ PropTypes.node,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ A\ React\ element\ (ie.\ <MyComponent\ />).}
+\DoxyCodeLine{\ \ optionalElement:\ PropTypes.element,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ A\ React\ element\ type\ (eg.\ MyComponent).}
+\DoxyCodeLine{\ \ //\ a\ function,\ string,\ or\ "{}element-\/like"{}\ object\ (eg.\ React.Fragment,\ Suspense,\ etc.)}
+\DoxyCodeLine{\ \ //\ see\ https://github.com/facebook/react/blob/HEAD/packages/shared/isValidElementType.js}
+\DoxyCodeLine{\ \ optionalElementType:\ PropTypes.elementType,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ You\ can\ also\ declare\ that\ a\ prop\ is\ an\ instance\ of\ a\ class.\ This\ uses}
+\DoxyCodeLine{\ \ //\ JS's\ instanceof\ operator.}
+\DoxyCodeLine{\ \ optionalMessage:\ PropTypes.instanceOf(Message),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ You\ can\ ensure\ that\ your\ prop\ is\ limited\ to\ specific\ values\ by\ treating}
+\DoxyCodeLine{\ \ //\ it\ as\ an\ enum.}
+\DoxyCodeLine{\ \ optionalEnum:\ PropTypes.oneOf(['News',\ 'Photos']),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ An\ object\ that\ could\ be\ one\ of\ many\ types}
+\DoxyCodeLine{\ \ optionalUnion:\ PropTypes.oneOfType([}
+\DoxyCodeLine{\ \ \ \ PropTypes.string,}
+\DoxyCodeLine{\ \ \ \ PropTypes.number,}
+\DoxyCodeLine{\ \ \ \ PropTypes.instanceOf(Message)}
+\DoxyCodeLine{\ \ ]),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ An\ array\ of\ a\ certain\ type}
+\DoxyCodeLine{\ \ optionalArrayOf:\ PropTypes.arrayOf(PropTypes.number),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ An\ object\ with\ property\ values\ of\ a\ certain\ type}
+\DoxyCodeLine{\ \ optionalObjectOf:\ PropTypes.objectOf(PropTypes.number),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ You\ can\ chain\ any\ of\ the\ above\ with\ \`{}isRequired`\ to\ make\ sure\ a\ warning}
+\DoxyCodeLine{\ \ //\ is\ shown\ if\ the\ prop\ isn't\ provided.}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ An\ object\ taking\ on\ a\ particular\ shape}
+\DoxyCodeLine{\ \ optionalObjectWithShape:\ PropTypes.shape(\{}
+\DoxyCodeLine{\ \ \ \ optionalProperty:\ PropTypes.string,}
+\DoxyCodeLine{\ \ \ \ requiredProperty:\ PropTypes.number.isRequired}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ An\ object\ with\ warnings\ on\ extra\ properties}
+\DoxyCodeLine{\ \ optionalObjectWithStrictShape:\ PropTypes.exact(\{}
+\DoxyCodeLine{\ \ \ \ optionalProperty:\ PropTypes.string,}
+\DoxyCodeLine{\ \ \ \ requiredProperty:\ PropTypes.number.isRequired}
+\DoxyCodeLine{\ \ \}),}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ requiredFunc:\ PropTypes.func.isRequired,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ A\ value\ of\ any\ data\ type}
+\DoxyCodeLine{\ \ requiredAny:\ PropTypes.any.isRequired,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ You\ can\ also\ specify\ a\ custom\ validator.\ It\ should\ return\ an\ Error}
+\DoxyCodeLine{\ \ //\ object\ if\ the\ validation\ fails.\ Don't\ \`{}console.warn`\ or\ throw,\ as\ this}
+\DoxyCodeLine{\ \ //\ won't\ work\ inside\ \`{}oneOfType`.}
+\DoxyCodeLine{\ \ customProp:\ function(props,\ propName,\ componentName)\ \{}
+\DoxyCodeLine{\ \ \ \ if\ (!/matchme/.test(props[propName]))\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ new\ Error(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 'Invalid\ prop\ \`{}'\ +\ propName\ +\ '`\ supplied\ to'\ +}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ '\ \`{}'\ +\ componentName\ +\ '`.\ Validation\ failed.'}
+\DoxyCodeLine{\ \ \ \ \ \ );}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ You\ can\ also\ supply\ a\ custom\ validator\ to\ \`{}arrayOf`\ and\ \`{}objectOf`.}
+\DoxyCodeLine{\ \ //\ It\ should\ return\ an\ Error\ object\ if\ the\ validation\ fails.\ The\ validator}
+\DoxyCodeLine{\ \ //\ will\ be\ called\ for\ each\ key\ in\ the\ array\ or\ object.\ The\ first\ two}
+\DoxyCodeLine{\ \ //\ arguments\ of\ the\ validator\ are\ the\ array\ or\ object\ itself,\ and\ the}
+\DoxyCodeLine{\ \ //\ current\ item's\ key.}
+\DoxyCodeLine{\ \ customArrayProp:\ PropTypes.arrayOf(function(propValue,\ key,\ componentName,\ location,\ propFullName)\ \{}
+\DoxyCodeLine{\ \ \ \ if\ (!/matchme/.test(propValue[key]))\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ return\ new\ Error(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 'Invalid\ prop\ \`{}'\ +\ propFullName\ +\ '`\ supplied\ to'\ +}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ '\ \`{}'\ +\ componentName\ +\ '`.\ Validation\ failed.'}
+\DoxyCodeLine{\ \ \ \ \ \ );}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \})}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+Refer to the \href{https://facebook.github.io/react/docs/typechecking-with-proptypes.html}{\texttt{React documentation}} for more information.\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7908}{}\doxysubsection{\texorpdfstring{Migrating from React.\+Prop\+Types}{Migrating from React.\+Prop\+Types}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7908}
+Check out \href{https://facebook.github.io/react/blog/2017/04/07/react-v15.5.0.html\#migrating-from-react.proptypes}{\texttt{Migrating from React.\+Prop\+Types}} for details on how to migrate to {\ttfamily prop-\/types} from {\ttfamily React.\+Prop\+Types}.
+
+Note that this blog posts {\bfseries{mentions a codemod script that performs the conversion automatically}}.
+
+There are also important notes below.\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7909}{}\doxysubsection{\texorpdfstring{How to Depend on This Package?}{How to Depend on This Package?}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7909}
+For apps, we recommend putting it in {\ttfamily dependencies} with a caret range. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{"{}dependencies"{}:\ \{}
+\DoxyCodeLine{\ \ "{}prop-\/types"{}:\ "{}\string^15.5.7"{}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+For libraries, we {\itshape also} recommend leaving it in {\ttfamily dependencies}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{"{}dependencies"{}:\ \{}
+\DoxyCodeLine{\ \ "{}prop-\/types"{}:\ "{}\string^15.5.7"{}}
+\DoxyCodeLine{\},}
+\DoxyCodeLine{"{}peerDependencies"{}:\ \{}
+\DoxyCodeLine{\ \ "{}react"{}:\ "{}\string^15.5.0"{}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Note:\+}} there are known issues in versions before 15.\+5.\+7 so we recommend using it as the minimal version.
+
+Make sure that the version range uses a caret ({\ttfamily \texorpdfstring{$^\wedge$}{\string^}}) and thus is broad enough for npm to efficiently deduplicate packages.
+
+For UMD bundles of your components, make sure you {\bfseries{don’t}} include {\ttfamily Prop\+Types} in the build. Usually this is done by marking it as an external (the specifics depend on your bundler), just like you do with React.\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7910}{}\doxysubsection{\texorpdfstring{Compatibility}{Compatibility}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7910}
+\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7911}{}\doxysubsubsection{\texorpdfstring{React 0.\+14}{React 0.\+14}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7911}
+This package is compatible with {\bfseries{React 0.\+14.\+9}}. Compared to 0.\+14.\+8 (which was released in March of 2016), there are no other changes in 0.\+14.\+9, so it should be a painless upgrade.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ ATTENTION:\ Only\ run\ this\ if\ you\ still\ use\ React\ 0.14!}
+\DoxyCodeLine{npm\ install\ -\/-\/save\ react@\string^0.14.9\ react-\/dom@\string^0.14.9}
+
+\end{DoxyCode}
+\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7912}{}\doxysubsubsection{\texorpdfstring{React 15+}{React 15+}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7912}
+This package is compatible with {\bfseries{React 15.\+3.\+0}} and higher.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ install\ -\/-\/save\ react@\string^15.3.0\ react-\/dom@\string^15.3.0}
+
+\end{DoxyCode}
+\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7913}{}\doxysubsubsection{\texorpdfstring{What happens on other React versions?}{What happens on other React versions?}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7913}
+It outputs warnings with the message below even though the developer doesn’t do anything wrong. Unfortunately there is no solution for this other than updating React to either 15.\+3.\+0 or higher, or 0.\+14.\+9 if you’re using React 0.\+14.\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7914}{}\doxysubsection{\texorpdfstring{Difference from {\ttfamily React.\+Prop\+Types}:\+ Don’t Call Validator Functions}{Difference from {\ttfamily React.\+Prop\+Types}:\+ Don’t Call Validator Functions}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7914}
+First of all, {\bfseries{which version of React are you using}}? You might be seeing this message because a component library has updated to use {\ttfamily prop-\/types} package, but your version of React is incompatible with it. See the above sectionabove section for more details.
+
+Are you using either React 0.\+14.\+9 or a version higher than React 15.\+3.\+0? Read on.
+
+When you migrate components to use the standalone {\ttfamily prop-\/types}, {\bfseries{all validator functions will start throwing an error if you call them directly}}. This makes sure that nobody relies on them in production code, and it is safe to strip their implementations to optimize the bundle size.
+
+Code like this is still fine:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{MyComponent.propTypes\ =\ \{}
+\DoxyCodeLine{\ \ myProp:\ PropTypes.bool}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+However, code like this will not work with the {\ttfamily prop-\/types} package:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Will\ not\ work\ with\ \`{}prop-\/types`\ package!}
+\DoxyCodeLine{var\ errorOrNull\ =\ PropTypes.bool(42,\ 'myProp',\ 'MyComponent',\ 'prop');}
+
+\end{DoxyCode}
+
+
+It will throw an error:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Calling\ PropTypes\ validators\ directly\ is\ not\ supported\ by\ the\ \`{}prop-\/types`\ package.}
+\DoxyCodeLine{Use\ PropTypes.checkPropTypes()\ to\ call\ them.}
+
+\end{DoxyCode}
+
+
+(If you see {\bfseries{a warning}} rather than an error with this message, please check the above section about compatibilityabove section about compatibility.)
+
+This is new behavior, and you will only encounter it when you migrate from {\ttfamily React.\+Prop\+Types} to the {\ttfamily prop-\/types} package. For the vast majority of components, this doesn’t matter, and if you didn’t see \href{https://facebook.github.io/react/warnings/dont-call-proptypes.html}{\texttt{this warning}} in your components, your code is safe to migrate. This is not a breaking change in React because you are only opting into this change for a component by explicitly changing your imports to use {\ttfamily prop-\/types}. If you temporarily need the old behavior, you can keep using {\ttfamily React.\+Prop\+Types} until React 16.
+
+{\bfseries{If you absolutely need to trigger the validation manually}}, call {\ttfamily Prop\+Types.\+check\+Prop\+Types()}. Unlike the validators themselves, this function is safe to call in production, as it will be replaced by an empty function:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Works\ with\ standalone\ PropTypes}
+\DoxyCodeLine{PropTypes.checkPropTypes(MyComponent.propTypes,\ props,\ 'prop',\ 'MyComponent');}
+
+\end{DoxyCode}
+ See below for more info.
+
+{\bfseries{If you DO want to use validation in production}}, you can choose to use the {\bfseries{development version}} by importing/\+requiring {\ttfamily prop-\/types/\+prop-\/types} instead of {\ttfamily prop-\/types}.
+
+{\bfseries{You might also see this error}} if you’re calling a {\ttfamily Prop\+Types} validator from your own custom {\ttfamily Prop\+Types} validator. In this case, the fix is to make sure that you are passing {\itshape all} of the arguments to the inner function. There is a more in-\/depth explanation of how to fix it \href{https://facebook.github.io/react/warnings/dont-call-proptypes.html\#fixing-the-false-positive-in-third-party-proptypes}{\texttt{on this page}}. Alternatively, you can temporarily keep using {\ttfamily React.\+Prop\+Types} until React 16, as it would still only warn in this case.
+
+If you use a bundler like Browserify or Webpack, don’t forget to \href{https://reactjs.org/docs/optimizing-performance.html\#use-the-production-build}{\texttt{follow these instructions}} to correctly bundle your application in development or production mode. Otherwise you’ll ship unnecessary code to your users.\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7915}{}\doxysubsection{\texorpdfstring{Prop\+Types.\+check\+Prop\+Types}{Prop\+Types.\+check\+Prop\+Types}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7915}
+React will automatically check the prop\+Types you set on the component, but if you are using Prop\+Types without React then you may want to manually call {\ttfamily Prop\+Types.\+check\+Prop\+Types}, like so:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ myPropTypes\ =\ \{}
+\DoxyCodeLine{\ \ name:\ PropTypes.string,}
+\DoxyCodeLine{\ \ age:\ PropTypes.number,}
+\DoxyCodeLine{\ \ //\ ...\ define\ your\ prop\ validations}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ props\ =\ \{}
+\DoxyCodeLine{\ \ name:\ 'hello',\ //\ is\ valid}
+\DoxyCodeLine{\ \ age:\ 'world',\ //\ not\ valid}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Let's\ say\ your\ component\ is\ called\ 'MyComponent'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Works\ with\ standalone\ PropTypes}
+\DoxyCodeLine{PropTypes.checkPropTypes(myPropTypes,\ props,\ 'prop',\ 'MyComponent');}
+\DoxyCodeLine{//\ This\ will\ warn\ as\ follows:}
+\DoxyCodeLine{//\ Warning:\ Failed\ prop\ type:\ Invalid\ prop\ \`{}age`\ of\ type\ \`{}string`\ supplied\ to}
+\DoxyCodeLine{//\ \`{}MyComponent`,\ expected\ \`{}number`.}
+
+\end{DoxyCode}
+\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7916}{}\doxysubsection{\texorpdfstring{Prop\+Types.\+reset\+Warning\+Cache()}{Prop\+Types.\+reset\+Warning\+Cache()}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7916}
+{\ttfamily Prop\+Types.\+check\+Prop\+Types(...)} only {\ttfamily console.\+error}s a given message once. To reset the error warning cache in tests, call {\ttfamily Prop\+Types.\+reset\+Warning\+Cache()}\hypertarget{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7917}{}\doxysubsubsection{\texorpdfstring{License}{License}}\label{dir_466edb4e31b66e0c19682fb0a6fe31a3_autotoc_md7917}
+prop-\/types is \href{./LICENSE}{\texttt{MIT licensed}}. 

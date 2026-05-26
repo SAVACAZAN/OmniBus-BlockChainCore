@@ -1,0 +1,257 @@
+\chapter{Omni\+Bus-\/\+Block\+Chain\+Core }
+\hypertarget{md__r_e_a_d_m_e}{}\label{md__r_e_a_d_m_e}\index{OmniBus-\/BlockChainCore@{OmniBus-\/BlockChainCore}}
+\label{md__r_e_a_d_m_e_autotoc_md94}%
+\Hypertarget{md__r_e_a_d_m_e_autotoc_md94}%
+
+
+{\bfseries{Blockchain post-\/quantum nativ Windows + Linux — 115\% Bitcoin parity}} {\bfseries{Versiune:\+}} 0.\+2.\+0-\/dev · {\bfseries{Limbă:\+}} Zig 0.\+15.\+2 + Node.\+js + Type\+Script/\+\+React {\bfseries{Module:\+}} 78 Zig core modules · {\bfseries{Git\+Hub:\+}} \href{https://github.com/SAVACAZAN/OmniBus-BlockChainCore}{\texttt{https:\+/\+/\+github.\+com/\+\+SAVACAZAN/\+\+Omni\+Bus-\/\+Block\+Chain\+Core}}
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md96}{}\doxysection{\texorpdfstring{Ce este}{Ce este}}\label{md__r_e_a_d_m_e_autotoc_md96}
+Nod blockchain complet cu criptografie post-\/quantum reala, 115\% Bitcoin feature parity + 30 extra features:\+
+
+{\bfseries{Crypto \& Wallet:\+}}
+\begin{DoxyItemize}
+\item {\bfseries{secp256k1 ECDSA}} pur Zig (Bitcoin-\/compatible, zero dependente externe)
+\item {\bfseries{Bech32/\+\+Bech32m}} adrese {\ttfamily ob1q...} (BIP-\/173/\+350, identic cu BTC {\ttfamily bc1q})
+\item {\bfseries{BIP-\/32/\+39/\+44}} HD wallet cu xpub/\+xprv, WIF, master\+\_\+fingerprint, full metadata
+\item {\bfseries{5 domenii PQ}}:\+ ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA-\/256s, ML-\/\+KEM-\/768
+\item {\bfseries{19-\/chain multi-\/wallet}}:\+ OMNI + BTC(4 tipuri) + ETH + SOL + ADA + DOT + EGLD + ATOM + XLM + XRP + BNB + OP + LTC + DOGE + BCH
+\end{DoxyItemize}
+
+{\bfseries{Core:\+}}
+\begin{DoxyItemize}
+\item {\bfseries{UTXO model}} + account balances (hybrid), RBF, CPFP, change addresses
+\item {\bfseries{PSBT}} (BIP-\/174), {\bfseries{HTLC}}, {\bfseries{Lightning Network}} (channels, invoices, routing)
+\item {\bfseries{Block Filters}} (BIP-\/157/\+158), {\bfseries{Tor SOCKS5}}, {\bfseries{BIP-\/324 encrypted P2P}}
+\item {\bfseries{JSON-\/\+RPC 2.\+0}} pe port 8332, {\bfseries{Web\+Socket}} pe port 8334
+\item {\bfseries{Mining pool}} Node.\+js, sub-\/block engine (10x0.\+1s), Casper FFG finality
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md98}{}\doxysection{\texorpdfstring{Build rapid}{Build rapid}}\label{md__r_e_a_d_m_e_autotoc_md98}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Instalare\ Zig\ 0.15.2\ (Windows)}
+\DoxyCodeLine{winget\ install\ zig.zig}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Build}
+\DoxyCodeLine{cd\ "{}C:\(\backslash\)Kits\ work\(\backslash\)limaje\ de\ programare\(\backslash\)OmniBus-\/BlockChainCore"{}}
+\DoxyCodeLine{zig\ build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Rulare\ nod\ seed}
+\DoxyCodeLine{.\(\backslash\)zig-\/out\(\backslash\)bin\(\backslash\)omnibus-\/node.exe\ -\/-\/mode\ seed\ -\/-\/node-\/id\ node-\/1\ -\/-\/port\ 9000}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Rulare\ ca\ miner}
+\DoxyCodeLine{.\(\backslash\)zig-\/out\(\backslash\)bin\(\backslash\)omnibus-\/node.exe\ -\/-\/mode\ miner\ -\/-\/node-\/id\ miner-\/1\ -\/-\/seed-\/host\ 127.0.0.1\ -\/-\/seed-\/port\ 9000}
+
+\end{DoxyCode}
+
+
+{\bfseries{Prerequisit liboqs}} (compilat cu Min\+GW):\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ clone\ https://github.com/open-\/quantum-\/safe/liboqs\ liboqs-\/src}
+\DoxyCodeLine{cd\ liboqs-\/src\ \&\&\ mkdir\ build\ \&\&\ cd\ build}
+\DoxyCodeLine{cmake\ -\/G\ "{}MinGW\ Makefiles"{}\ -\/DOQS\_USE\_OPENSSL=OFF\ ..}
+\DoxyCodeLine{mingw32-\/make\ -\/j4}
+
+\end{DoxyCode}
+ Path așteptat:\+ {\ttfamily C:\+\textbackslash{}Kits work\textbackslash{}limaje de programare\textbackslash{}liboqs-\/src\textbackslash{}build\textbackslash{}lib\textbackslash{}liboqs.\+a}
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md100}{}\doxysection{\texorpdfstring{Structura proiectului}{Structura proiectului}}\label{md__r_e_a_d_m_e_autotoc_md100}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmniBus-\/BlockChainCore/}
+\DoxyCodeLine{├──\ core/}
+\DoxyCodeLine{│\ \ \ ├──\ main.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ Entry:\ vault\ reader,\ blockchain,\ wallet,\ RPC\ thread,\ mining}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain.zig\ \ \ \ \ \ \ \ Chain\ ArrayList,\ PoW\ mining\ SHA256d,\ mempool}
+\DoxyCodeLine{│\ \ \ ├──\ block.zig\ \ \ \ \ \ \ \ \ \ \ \ \ Block\ struct,\ hash,\ validare}
+\DoxyCodeLine{│\ \ \ ├──\ transaction.zig\ \ \ \ \ \ \ TX\ sign/verify\ secp256k1,\ SHA256d,\ VALID\_PREFIXES}
+\DoxyCodeLine{│\ \ \ ├──\ wallet.zig\ \ \ \ \ \ \ \ \ \ \ \ fromMnemonic(),\ 5\ adrese\ PQ,\ createTransaction()}
+\DoxyCodeLine{│\ \ \ ├──\ bip32\_wallet.zig\ \ \ \ \ \ BIP-\/32/39\ PBKDF2-\/HMAC-\/SHA512\ real}
+\DoxyCodeLine{│\ \ \ ├──\ secp256k1.zig\ \ \ \ \ \ \ \ \ ECDSA\ real\ via\ Zig\ stdlib\ (zero\ dep\ externe)}
+\DoxyCodeLine{│\ \ \ ├──\ ripemd160.zig\ \ \ \ \ \ \ \ \ RIPEMD-\/160\ complet\ pur\ Zig,\ 80\ runde}
+\DoxyCodeLine{│\ \ \ ├──\ crypto.zig\ \ \ \ \ \ \ \ \ \ \ \ SHA256,\ SHA256d,\ HMAC-\/SHA256/512}
+\DoxyCodeLine{│\ \ \ ├──\ pq\_crypto.zig\ \ \ \ \ \ \ \ \ liboqs\ FFI:\ ML-\/DSA-\/87,\ Falcon-\/512,\ SLH-\/DSA,\ KEM}
+\DoxyCodeLine{│\ \ \ ├──\ rpc\_server.zig\ \ \ \ \ \ \ \ HTTP\ JSON-\/RPC\ 2.0,\ ws2\_32.recv,\ port\ 8332}
+\DoxyCodeLine{│\ \ \ ├──\ vault\_reader.zig\ \ \ \ \ \ Mnemonic:\ Named\ Pipe\ →\ env\ →\ dev\ default}
+\DoxyCodeLine{│\ \ \ ├──\ cli.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/-\/mode\ /\ -\/-\/node-\/id\ /\ -\/-\/port\ /\ -\/-\/hashrate}
+\DoxyCodeLine{│\ \ \ ├──\ node\_launcher.zig\ \ \ \ \ Seed\ /\ Miner\ mode,\ readyForMining}
+\DoxyCodeLine{│\ \ \ ├──\ network.zig\ \ \ \ \ \ \ \ \ \ \ P2P\ peer\ management}
+\DoxyCodeLine{│\ \ \ ├──\ bootstrap.zig\ \ \ \ \ \ \ \ \ Peer\ registration,\ stale\ cleanup\ 60s}
+\DoxyCodeLine{│\ \ \ ├──\ mining\_pool.zig\ \ \ \ \ \ \ Reward\ proporțional,\ inactive\ cleanup\ 300s}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain\_v2.zig\ \ \ \ \ Sub-\/blocks\ 0.1s,\ 7\ shards,\ pruning,\ binary\ codec}
+\DoxyCodeLine{│\ \ \ ├──\ compact\_transaction.zig\ \ 161\ bytes/TX\ (63\%\ vs\ 432B)}
+\DoxyCodeLine{│\ \ \ ├──\ state\_trie.zig\ \ \ \ \ \ \ \ AccountState\ HashMap,\ merkle\ root\ SHA256}
+\DoxyCodeLine{│\ \ \ ├──\ light\_client.zig\ \ \ \ \ \ BlockHeader\ 200B,\ SPV,\ BloomFilter,\ fastSync}
+\DoxyCodeLine{│\ \ \ ├──\ storage.zig\ \ \ \ \ \ \ \ \ \ \ In-\/memory\ KV:\ BlockStore,\ TxIndex,\ AddrIndex}
+\DoxyCodeLine{│\ \ \ └──\ database.zig\ \ \ \ \ \ \ \ \ \ Database\ unified\ (RocksDB\ =\ TODO)}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ agent/}
+\DoxyCodeLine{│\ \ \ └──\ agent\_manager.zig\ \ \ \ \ Agent\ struct,\ AgentManager\ (3\ sample\ agents)}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ frontend/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TypeScript\ +\ React}
+\DoxyCodeLine{│\ \ \ └──\ src/}
+\DoxyCodeLine{│\ \ \ \ \ \ \ ├──\ App.tsx\ \ \ \ \ \ \ \ \ \ \ SPA\ 5\ pagini:\ dashboard/miners/distribution/blocks/network}
+\DoxyCodeLine{│\ \ \ \ \ \ \ ├──\ api/rpc-\/client.ts\ JSON-\/RPC\ 2.0\ wrapper,\ 18\ metode}
+\DoxyCodeLine{│\ \ \ \ \ \ \ ├──\ pages/GenesisCountdown.tsx}
+\DoxyCodeLine{│\ \ \ \ \ \ \ └──\ components/\ \ \ \ \ \ \ Stats.tsx,\ BlockExplorer.tsx,\ Wallet.tsx}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ rpc-\/server.js\ \ \ \ \ \ \ \ \ \ \ \ \ Mining\ pool\ Node.js:\ 18\ metode\ RPC,\ balances.json}
+\DoxyCodeLine{├──\ miner-\/client.js\ \ \ \ \ \ \ \ \ \ \ Miner:\ registerminer\ +\ keepalive\ 5s}
+\DoxyCodeLine{├──\ create-\/wallet.js\ \ \ \ \ \ \ \ \ \ Generator\ wallet\ BIP-\/39\ +\ ob1q\ address}
+\DoxyCodeLine{├──\ wallets/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ genesis-\/allocation.json,\ genesis\_miners\_*.json}
+\DoxyCodeLine{├──\ wiki-\/omnibus/\ \ \ \ \ \ \ \ \ \ \ \ \ Documentație\ completă\ (INDEX.md\ +\ OMNIBUS\_ACADEMIC\_REPORT.md)}
+\DoxyCodeLine{└──\ build.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Build\ config\ Zig\ 0.15.2\ +\ liboqs\ linkage}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md102}{}\doxysection{\texorpdfstring{RPC API — port 8332}{RPC API — port 8332}}\label{md__r_e_a_d_m_e_autotoc_md102}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Status\ nod}
+\DoxyCodeLine{curl\ -\/s\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,"{}method"{}:"{}getstatus"{},"{}params"{}:[]\}'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Balance\ wallet}
+\DoxyCodeLine{curl\ -\/s\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,"{}method"{}:"{}getbalance"{},"{}params"{}:[]\}'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Trimite\ tranzacție\ (amount\ în\ SAT,\ 1\ OMNI\ =\ 1e9\ SAT)}
+\DoxyCodeLine{curl\ -\/s\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,"{}method"{}:"{}sendtransaction"{},"{}params"{}:["{}ob1qx787af2p22knzjlakn7ehz9r77p3ak2w8zkk2s"{},1000000000]\}'}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metodă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily getblockcount}  &Număr blocuri în chain  \\
+{\ttfamily getbalance}  &Address + balance OMNI + confirmed + node\+Height  \\
+{\ttfamily getlatestblock}  &Ultimul bloc:\+ hash, index, nonce, tx\+Count  \\
+{\ttfamily getmempoolsize}  &TX în așteptare  \\
+{\ttfamily getstatus}  &Status complet:\+ block\+Count, mempool\+Size, address, balance  \\
+{\ttfamily sendtransaction}  &Creează + semnează TX secp256k1 → mempool  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md104}{}\doxysection{\texorpdfstring{Wallet — 5 Domenii Post-\/\+Quantum}{Wallet — 5 Domenii Post-\/\+Quantum}}\label{md__r_e_a_d_m_e_autotoc_md104}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prefix  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coin\+Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Algoritm  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Security  \\
+{\ttfamily ob1q...} (Bech32)  &777  &ML-\/\+DSA-\/87 + ML-\/\+KEM-\/768  &256 bit  \\
+{\ttfamily ob\+\_\+k1\+\_\+}  &778  &ML-\/\+DSA-\/87 (Dilithium-\/5)  &256 bit  \\
+{\ttfamily ob\+\_\+f5\+\_\+}  &779  &Falcon-\/512  &128 bit  \\
+{\ttfamily ob\+\_\+d5\+\_\+}  &780  &ML-\/\+DSA-\/87  &256 bit  \\
+{\ttfamily ob\+\_\+s3\+\_\+}  &781  &SLH-\/\+DSA-\/256s (SPHINCS+)  &256 bit  \\
+\end{DoxyTable}
+
+
+Derivare:\+ {\ttfamily m/\+44\textquotesingle{}/\+coin\+\_\+type\textquotesingle{}/\+0} via HMAC-\/\+SHA512 (BIP-\/32 complet) Format adresă:\+ {\ttfamily prefix} + primii 12 hex din {\ttfamily RIPEMD160(\+SHA256(pubkey))}
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md106}{}\doxysection{\texorpdfstring{Parametri Blockchain}{Parametri Blockchain}}\label{md__r_e_a_d_m_e_autotoc_md106}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  \\
+Block time  &10s  \\
+Difficulty start  &4 zero hex (PoW SHA256d)  \\
+Block reward  &50 OMNI  \\
+1 OMNI  &1,000,000,000 SAT  \\
+Supply maxim  &21,000,000 OMNI  \\
+Halving  &la 210,000 blocuri  \\
+Signature  &secp256k1 ECDSA  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md108}{}\doxysection{\texorpdfstring{Mining Pool (Node.\+js)}{Mining Pool (Node.\+js)}}\label{md__r_e_a_d_m_e_autotoc_md108}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Generează\ wallets\ pentru\ miners}
+\DoxyCodeLine{node\ create-\/wallet.js\ batch\ 10}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Start\ complet\ (pool\ +\ 10\ genesis\ miners)}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Adaugă\ miners\ extra}
+\DoxyCodeLine{bash\ add-\/miners-\/staggered.sh\ 100\ 10\ 5\ \ \ \#\ 100\ miners,\ batch\ 10,\ delay\ 5s}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Monitorizare}
+\DoxyCodeLine{curl\ -\/s\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,"{}method"{}:"{}getpoolstats"{},"{}params"{}:[]\}'}
+
+\end{DoxyCode}
+
+
+Pool features:\+
+\begin{DoxyItemize}
+\item Zero hardcoding — miners se înregistrează dinamic via {\ttfamily registerminer}
+\item Keepalive timeout 30s (auto-\/remove miners inactivi)
+\item Reward distribuit egal la toți miners activi
+\item {\ttfamily balances.\+json} persistent
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md110}{}\doxysection{\texorpdfstring{Tests}{Tests}}\label{md__r_e_a_d_m_e_autotoc_md110}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{zig\ build\ test-\/crypto\ \ \ \ \#\ secp256k1,\ BIP32,\ SHA256d}
+\DoxyCodeLine{zig\ build\ test-\/pq\ \ \ \ \ \ \ \ \#\ ML-\/DSA-\/87,\ Falcon-\/512,\ SLH-\/DSA-\/256s,\ ML-\/KEM-\/768}
+\DoxyCodeLine{zig\ build\ test-\/wallet\ \ \ \ \#\ wallet\ complet\ +\ PQ\ signing\ (Test\ H\ —\ toate\ 5\ domenii)}
+\DoxyCodeLine{zig\ build\ test\ \ \ \ \ \ \ \ \ \ \ \#\ toate\ testele}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md112}{}\doxysection{\texorpdfstring{Integrare Super\+Vault}{Integrare Super\+Vault}}\label{md__r_e_a_d_m_e_autotoc_md112}
+Mnemonicul se citește automat în ordine de prioritate:\+
+\begin{DoxyEnumerate}
+\item Named Pipe {\ttfamily \textbackslash{}\textbackslash{}.\textbackslash{}pipe\textbackslash{}Omnibus\+Vault} (dacă {\ttfamily vault\+\_\+service.\+exe} rulează)
+\item Env var {\ttfamily OMNIBUS\+\_\+\+MNEMONIC}
+\item Dev default ({\ttfamily abandon} × 11 + {\ttfamily about})
+\end{DoxyEnumerate}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{set\ OMNIBUS\_MNEMONIC=word1\ word2\ ...\ word12}
+\DoxyCodeLine{.\(\backslash\)zig-\/out\(\backslash\)bin\(\backslash\)omnibus-\/node.exe\ -\/-\/mode\ seed}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md114}{}\doxysection{\texorpdfstring{Status implementare}{Status implementare}}\label{md__r_e_a_d_m_e_autotoc_md114}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Scor  \\
+Crypto (secp256k1, BIP32, PQ liboqs)  &Funcțional  &90\%  \\
+Blockchain (blocks, PoW, mempool)  &Funcțional  &90\%  \\
+Transaction signing (ECDSA real)  &Funcțional  &95\%  \\
+RPC Server JSON-\/\+RPC 2.\+0  &Funcțional  &95\%  \\
+Mining Pool Node.\+js  &Funcțional  &95\%  \\
+React Frontend  &Funcțional  &85\%  \\
+Super\+Vault integration  &Funcțional  &90\%  \\
+Storage /\+ Persistență disc  &TODO  &30\%  \\
+P2P Network TCP real  &Parțial  &35\%  \\
+Trading Agent  &Planificat  &0\%  \\
+\end{DoxyTable}
+
+
+{\bfseries{Audit complet:\+}} {\ttfamily wiki-\/omnibus/\+\+OMNIBUS\+\_\+\+ACADEMIC\+\_\+\+REPORT.\+md}
+
+\DoxyHorRuler{0}
+\hypertarget{md__r_e_a_d_m_e_autotoc_md116}{}\doxysection{\texorpdfstring{Legătură cu Omnibus\+Sidebar}{Legătură cu Omnibus\+Sidebar}}\label{md__r_e_a_d_m_e_autotoc_md116}
+{\ttfamily mod\+\_\+wallet.\+cpp} din Omnibus\+Sidebar (C++) se conectează direct la acest nod via Win\+HTTP:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmnibusSidebar.exe\ →\ HTTP\ POST\ 127.0.0.1:8332\ →\ omnibus-\/node.exe}
+
+\end{DoxyCode}
+ Aceleasi adrese Bech32 ({\ttfamily ob1q...} nativ, {\ttfamily ob\+\_\+k1\+\_\+}, {\ttfamily ob\+\_\+f5\+\_\+}, {\ttfamily ob\+\_\+d5\+\_\+}, {\ttfamily ob\+\_\+s3\+\_\+} PQ) si aceleasi coin types (777-\/781) in ambele proiecte. 

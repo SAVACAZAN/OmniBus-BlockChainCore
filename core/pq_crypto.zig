@@ -431,12 +431,15 @@ pub const MlKem768 = struct {
         return Oqs.mlKem768KeyPairFromSeed(d);
     }
 
-    pub fn encapsulate(self: *const MlKem768, allocator: std.mem.Allocator) !struct {
+    pub const EncapsResult = struct {
         ciphertext: []u8,
         shared_secret: [SHARED_SECRET_SIZE]u8,
-    } {
+    };
+
+    pub fn encapsulate(self: *const MlKem768, allocator: std.mem.Allocator) !EncapsResult {
         if (!has_oqs) return OqsSigError.OqsDisabled;
-        return Oqs.mlKem768Encapsulate(self, allocator);
+        const r = try Oqs.mlKem768Encapsulate(self, allocator);
+        return .{ .ciphertext = r.ciphertext, .shared_secret = r.shared_secret };
     }
 
     pub fn decapsulate(self: *const MlKem768, ciphertext: []const u8) ![SHARED_SECRET_SIZE]u8 {

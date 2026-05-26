@@ -1,0 +1,207 @@
+\doxysection{peer-\/behavior-\/learner.py}
+\hypertarget{peer-behavior-learner_8py_source}{}\label{peer-behavior-learner_8py_source}\index{tools/LEARNING/peer-\/behavior-\/learner.py@{tools/LEARNING/peer-\/behavior-\/learner.py}}
+\doxymbox{\hyperlink{peer-behavior-learner_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00001}\doxymbox{\hyperlink{namespacepeer-behavior-learner}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00002}\doxymbox{\hyperlink{namespacepeer}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00003}00003\ \textcolor{stringliteral}{peer-\/behavior-\/learner.py}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00005}00005\ \textcolor{stringliteral}{Learn\ from\ peer\ scoring\ history\ to\ identify\ malicious\ patterns\ and}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00006}00006\ \textcolor{stringliteral}{\ optimize\ peer\ scoring\ weights.}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00007}00007\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00008}00008\ \textcolor{stringliteral}{Scans:}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ core/peer\_scoring.zig\ (if\ present)\ for\ constants\ /\ weights}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ tools/LEARNING/data/peer-\/scores.jsonl\ for\ historical\ records}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ RPC\ getpeerinfo\ for\ live\ peer\ data}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00013}00013\ \textcolor{stringliteral}{Outputs:\ peer-\/behavior-\/model.json}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00014}00014\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00016}00016\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00017}00017\ \textcolor{keyword}{import}\ glob}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00018}00018\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00020}00020\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00021}00021\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00022}00022\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00023}00023\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00024}00024\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00025}00025\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00026}00026\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00028}00028\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00030}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a1d046a5423ee40e797a98004052586bb}{00030}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00031}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a9ebd567099b5df0483d1c4a72dda7d23}{00031}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00032}\doxymbox{\hyperlink{namespacepeer-behavior-learner_ae28f4aa32dea5f51330def2b42e19a1a}{00032}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00033}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a2413b044b2f0f011ed9f84cac640379d}{00033}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00034}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a7bb9fbcaa8d20775d0a1c51fb021dda3}{00034}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00037}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00037}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00038}00038\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00041}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00041}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00042}00042\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00045}\doxymbox{\hyperlink{namespacepeer-behavior-learner_abf994b8269849d29e07697ea8a840f74}{00045}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00046}00046\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00049}\doxymbox{\hyperlink{namespacepeer-behavior-learner_adf0e2aa4d06b5ca38e44721821eca783}{00049}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00050}00050\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00053}00053\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00054}00054\ \textcolor{comment}{\#\ Data\ ingestion}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00055}00055\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00056}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a9746061d6b523864736f07c0c4ff2453}{00056}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_a9746061d6b523864736f07c0c4ff2453}{load\_peer\_score\_jsonl}}(data\_dir:\ str)\ -\/>\ list[dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00057}00057\ \ \ \ \ records:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00058}00058\ \ \ \ \ pattern\ =\ os.path.join(data\_dir,\ \textcolor{stringliteral}{"{}*.jsonl"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00059}00059\ \ \ \ \ \textcolor{keywordflow}{for}\ fpath\ \textcolor{keywordflow}{in}\ glob.glob(pattern):}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(fpath,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ fh:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ line\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ line:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ records.append(json.loads(line))}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ json.JSONDecodeError:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{return}\ records}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00072}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a6c9a5d25d4036338444eca738de9d8b4}{00072}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_a6c9a5d25d4036338444eca738de9d8b4}{fetch\_live\_peers}}(rpc\_url:\ str,\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ list[dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00073}00073\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}getpeerinfo"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00074}00074\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(rpc\_url,\ json=payload,\ auth=auth,\ timeout=10.0)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ result\ =\ resp.json().get(\textcolor{stringliteral}{"{}result"{}},\ [])}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(result,\ list):}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00079}00079\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacepeer-behavior-learner_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}RPC\ getpeerinfo\ failed:\ \{exc\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{return}\ []}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00084}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a3b162889d3a16df711ad999ce6e2d334}{00084}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_a3b162889d3a16df711ad999ce6e2d334}{parse\_scoring\_weights}}(repo\_path:\ str)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00085}00085\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Extract\ heuristic\ weights\ from\ peer\_scoring.zig\ if\ available."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00086}00086\ \ \ \ \ fpath\ =\ os.path.join(repo\_path,\ \textcolor{stringliteral}{"{}core"{}},\ \textcolor{stringliteral}{"{}peer\_scoring.zig"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isfile(fpath):}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00089}00089\ \ \ \ \ text\ =\ Path(fpath).read\_text(encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00090}00090\ \ \ \ \ weights:\ dict[str,\ Any]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00091}00091\ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ re.finditer(\textcolor{stringliteral}{r"{}(\(\backslash\)w+)\(\backslash\)s*[=:]\(\backslash\)s*(\(\backslash\)d+)"{}},\ text):}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ key,\ val\ =\ m.group(1),\ int(m.group(2))}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ any(k\ \textcolor{keywordflow}{in}\ key.lower()\ \textcolor{keywordflow}{for}\ k\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}score"{}},\ \textcolor{stringliteral}{"{}weight"{}},\ \textcolor{stringliteral}{"{}penalt"{}},\ \textcolor{stringliteral}{"{}ban"{}},\ \textcolor{stringliteral}{"{}threshold"{}}]):}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ weights[key]\ =\ val}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{return}\ weights}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00098}00098\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00099}00099\ \textcolor{comment}{\#\ Learning}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00100}00100\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00101}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a5b8d8408bd554e3b460a122f841da833}{00101}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_a5b8d8408bd554e3b460a122f841da833}{analyze\_records}}(records:\ list[dict[str,\ Any]])\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00102}00102\ \ \ \ \ peer\_stats:\ dict[str,\ dict[str,\ Any]]\ =\ defaultdict(}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{keyword}{lambda}:\ \{\textcolor{stringliteral}{"{}events"{}}:\ 0,\ \textcolor{stringliteral}{"{}penalties"{}}:\ 0,\ \textcolor{stringliteral}{"{}last\_score"{}}:\ \textcolor{keywordtype}{None},\ \textcolor{stringliteral}{"{}reasons"{}}:\ defaultdict(int)\}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00104}00104\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00106}00106\ \ \ \ \ \textcolor{keywordflow}{for}\ rec\ \textcolor{keywordflow}{in}\ records:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ peer\_id\ =\ rec.get(\textcolor{stringliteral}{"{}peer\_id"{}})\ \textcolor{keywordflow}{or}\ rec.get(\textcolor{stringliteral}{"{}id"{}})\ \textcolor{keywordflow}{or}\ rec.get(\textcolor{stringliteral}{"{}addr"{}},\ \textcolor{stringliteral}{"{}unknown"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ stats\ =\ peer\_stats[peer\_id]}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}events"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ score\ =\ rec.get(\textcolor{stringliteral}{"{}score"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ score\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stats[\textcolor{stringliteral}{"{}last\_score"{}}]\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{and}\ score\ <\ stats[\textcolor{stringliteral}{"{}last\_score"{}}]:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}penalties"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reason\ =\ rec.get(\textcolor{stringliteral}{"{}reason"{}},\ \textcolor{stringliteral}{"{}unknown"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}reasons"{}}][reason]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ stats[\textcolor{stringliteral}{"{}last\_score"{}}]\ =\ score}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00118}00118\ \ \ \ \ \textcolor{comment}{\#\ Identify\ malicious\ patterns}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00119}00119\ \ \ \ \ malicious:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00120}00120\ \ \ \ \ \textcolor{keywordflow}{for}\ peer\_id,\ stats\ \textcolor{keywordflow}{in}\ peer\_stats.items():}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stats[\textcolor{stringliteral}{"{}penalties"{}}]\ >=\ 3:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ top\_reason\ =\ max(stats[\textcolor{stringliteral}{"{}reasons"{}}].items(),\ key=\textcolor{keyword}{lambda}\ kv:\ kv[1])[0]\ \textcolor{keywordflow}{if}\ stats[\textcolor{stringliteral}{"{}reasons"{}}]\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}unknown"{}}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ malicious.append(}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}peer\_id"{}}:\ peer\_id,}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_events"{}}:\ stats[\textcolor{stringliteral}{"{}events"{}}],}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}penalties"{}}:\ stats[\textcolor{stringliteral}{"{}penalties"{}}],}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}top\_reason"{}}:\ top\_reason,}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00132}00132\ \ \ \ \ \textcolor{comment}{\#\ Optimize\ weights\ (simple\ heuristic:\ increase\ weight\ for\ top\ penalty\ reasons)}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00133}00133\ \ \ \ \ global\_reasons:\ dict[str,\ int]\ =\ defaultdict(int)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00134}00134\ \ \ \ \ \textcolor{keywordflow}{for}\ stats\ \textcolor{keywordflow}{in}\ peer\_stats.values():}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ reason,\ count\ \textcolor{keywordflow}{in}\ stats[\textcolor{stringliteral}{"{}reasons"{}}].items():}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ global\_reasons[reason]\ +=\ count}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00138}00138\ \ \ \ \ optimized\_weights:\ dict[str,\ float]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00139}00139\ \ \ \ \ total\ =\ sum(global\_reasons.values())\ \textcolor{keywordflow}{or}\ 1}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00140}00140\ \ \ \ \ \textcolor{keywordflow}{for}\ reason,\ count\ \textcolor{keywordflow}{in}\ global\_reasons.items():}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ optimized\_weights[reason]\ =\ round(count\ /\ total,\ 4)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00143}00143\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}peers\_observed"{}}:\ len(peer\_stats),}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}malicious\_peers\_detected"{}}:\ len(malicious),}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}malicious\_list"{}}:\ malicious,}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}penalty\_reason\_distribution"{}}:\ dict(global\_reasons),}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}optimized\_weight\_map"{}}:\ optimized\_weights,}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00149}00149\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00152}00152\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00153}00153\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00154}00154\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00155}\doxymbox{\hyperlink{namespacepeer-behavior-learner_a7431cb90017e54fe695b23d4190db046}{00155}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacepeer-behavior-learner_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00156}00156\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Learn\ peer\ behavior\ patterns."{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00157}00157\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/repo"{}},\ default=\textcolor{stringliteral}{"{}."{}},\ help=\textcolor{stringliteral}{"{}Repository\ path"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00158}00158\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/data-\/dir"{}},\ default=\textcolor{stringliteral}{"{}tools/LEARNING/data"{}},\ help=\textcolor{stringliteral}{"{}JSONL\ data\ directory"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00159}00159\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc-\/url"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Optional\ RPC\ URL\ for\ live\ peers"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00160}00160\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ user"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00161}00161\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00162}00162\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}tools/LEARNING/peer-\/behavior-\/model.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00163}00163\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00165}00165\ \ \ \ \ repo\ =\ os.path.abspath(args.repo)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00166}00166\ \ \ \ \ data\_dir\ =\ os.path.join(repo,\ args.data\_dir)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00168}00168\ \ \ \ \ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Loading\ historical\ peer\ score\ records\ …"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00169}00169\ \ \ \ \ records\ =\ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a9746061d6b523864736f07c0c4ff2453}{load\_peer\_score\_jsonl}}(data\_dir)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00170}00170\ \ \ \ \ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Loaded\ \{len(records)\}\ records"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00172}00172\ \ \ \ \ \textcolor{keywordflow}{if}\ args.rpc\_url:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ auth\ =\ (args.user,\ args.password)\ \textcolor{keywordflow}{if}\ args.user\ \textcolor{keywordflow}{or}\ args.password\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ live\ =\ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a6c9a5d25d4036338444eca738de9d8b4}{fetch\_live\_peers}}(args.rpc\_url,\ auth)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Live\ peers\ fetched:\ \{len(live)\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ records.extend(live)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00177}00177\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00178}00178\ \ \ \ \ weights\ =\ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a3b162889d3a16df711ad999ce6e2d334}{parse\_scoring\_weights}}(repo)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00179}00179\ \ \ \ \ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Scoring\ weights\ from\ source:\ \{len(weights)\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00181}00181\ \ \ \ \ analysis\ =\ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a5b8d8408bd554e3b460a122f841da833}{analyze\_records}}(records)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00182}00182\ \ \ \ \ analysis[\textcolor{stringliteral}{"{}static\_weights\_from\_code"{}}]\ =\ weights}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00184}00184\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}records\_processed"{}}:\ len(records),}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}analysis"{}}:\ analysis,}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00188}00188\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00190}00190\ \ \ \ \ out\_path\ =\ os.path.join(repo,\ args.output)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00191}00191\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00192}00192\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00195}00195\ \ \ \ \ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Peer\ behavior\ model\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00196}00196\ \ \ \ \ \doxymbox{\hyperlink{namespacepeer-behavior-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Malicious\ peers\ detected:\ \{analysis['malicious\_peers\_detected']\}"{}})}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00197}00197\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00200}00200\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{peer-behavior-learner_8py_source_l00201}00201\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacepeer-behavior-learner_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

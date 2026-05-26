@@ -1,0 +1,180 @@
+\doxysection{franchise\+\_\+client Namespace Reference}
+\hypertarget{namespacefranchise__client}{}\label{namespacefranchise__client}\index{franchise\_client@{franchise\_client}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{banner}} (str title)
+\item 
+dict \doxymbox{\hyperlink{namespacefranchise__client_afdf1e98d686483a6bf1eab7cad25f1ca}{step\+\_\+probe\+\_\+chain}} (\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}} c)
+\item 
+str \doxymbox{\hyperlink{namespacefranchise__client_a1b33c487e5e23a28ad7a35a4a3bda63a}{step\+\_\+load\+\_\+or\+\_\+create\+\_\+mnemonic}} (Path path)
+\item 
+None \doxymbox{\hyperlink{namespacefranchise__client_af8582f80c4f7fc4517167b0b8a5c28db}{step\+\_\+claim\+\_\+faucet}} (\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}} c, str address)
+\item 
+int \doxymbox{\hyperlink{namespacefranchise__client_ae6f745904010d8f862f1005024ed4846}{step\+\_\+watch\+\_\+balance}} (\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}} c, str address, int seconds=30)
+\item 
+dict\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacefranchise__client_a5d6afe1210fda6379f322b5368674eea}{step\+\_\+place\+\_\+paper\+\_\+order}} (\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}} c, str address, str mnemonic)
+\item 
+None \doxymbox{\hyperlink{namespacefranchise__client_a9a61d7e2fe3327ba72e61f844cd4f40e}{step\+\_\+summary}} (\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}} c, int start\+\_\+height)
+\item 
+int \doxymbox{\hyperlink{namespacefranchise__client_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}franchise_client.py — Reference Python client for OmniBus L1.
+
+The "franchise" model: the chain is public infrastructure (consensus,
+P2P, RPC, REST exchange, faucet, WebSocket events). Anyone can plug
+in with any client they like — Python, Node.js, Rust, browser, mobile,
+even a spreadsheet. The chain doesn't care who you are; it enforces
+the same on-chain rules for everyone (signatures, balances, nonces,
+fee schedule, paper-vs-real isolation).
+
+This script demonstrates the full happy path of a "franchisee":
+
+    1. Connect to a public RPC endpoint
+    2. Probe the chain (block height, peer count, status)
+    3. Claim faucet (testnet only, gives free OMNI)
+    4. Watch balance grow as the chain mines
+    5. Place a tiny order on the in-chain DEX (paper mode by default)
+    6. Cancel it after a few seconds
+    7. Print a summary
+
+Everything goes through the public RPC. There's no shared library,
+no chain-side hook, no internal state. If you can speak HTTP+JSON,
+you can build a franchisee.
+
+Run:
+
+    python3 franchise_client.py [--endpoint URL] [--mnemonic "..."]
+
+Defaults:
+
+    endpoint = https://omnibusblockchain.cc:8443/api-testnet/
+    mnemonic = generated fresh + saved to .franchise_mnemonic.txt
+
+Requires:
+
+    pip install requests
+\end{DoxyVerb}
+ 
+
+\label{namespacefranchise__client_doc-func-members}
+\Hypertarget{namespacefranchise__client_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}\index{franchise\_client@{franchise\_client}!banner@{banner}}
+\index{banner@{banner}!franchise\_client@{franchise\_client}}
+\doxysubsubsection{\texorpdfstring{banner()}{banner()}}
+{\footnotesize\ttfamily \label{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6} 
+ None banner (\begin{DoxyParamCaption}\item[{str}]{title}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00098}{98}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacefranchise__client_a7431cb90017e54fe695b23d4190db046}\index{franchise\_client@{franchise\_client}!main@{main}}
+\index{main@{main}!franchise\_client@{franchise\_client}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacefranchise__client_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00210}{210}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacefranchise__client_af8582f80c4f7fc4517167b0b8a5c28db}\index{franchise\_client@{franchise\_client}!step\_claim\_faucet@{step\_claim\_faucet}}
+\index{step\_claim\_faucet@{step\_claim\_faucet}!franchise\_client@{franchise\_client}}
+\doxysubsubsection{\texorpdfstring{step\_claim\_faucet()}{step\_claim\_faucet()}}
+{\footnotesize\ttfamily \label{namespacefranchise__client_af8582f80c4f7fc4517167b0b8a5c28db} 
+ None step\+\_\+claim\+\_\+faucet (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}}}]{c}{, }\item[{str}]{address}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00135}{135}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacefranchise__client_a1b33c487e5e23a28ad7a35a4a3bda63a}\index{franchise\_client@{franchise\_client}!step\_load\_or\_create\_mnemonic@{step\_load\_or\_create\_mnemonic}}
+\index{step\_load\_or\_create\_mnemonic@{step\_load\_or\_create\_mnemonic}!franchise\_client@{franchise\_client}}
+\doxysubsubsection{\texorpdfstring{step\_load\_or\_create\_mnemonic()}{step\_load\_or\_create\_mnemonic()}}
+{\footnotesize\ttfamily \label{namespacefranchise__client_a1b33c487e5e23a28ad7a35a4a3bda63a} 
+ str step\+\_\+load\+\_\+or\+\_\+create\+\_\+mnemonic (\begin{DoxyParamCaption}\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00119}{119}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacefranchise__client_a5d6afe1210fda6379f322b5368674eea}\index{franchise\_client@{franchise\_client}!step\_place\_paper\_order@{step\_place\_paper\_order}}
+\index{step\_place\_paper\_order@{step\_place\_paper\_order}!franchise\_client@{franchise\_client}}
+\doxysubsubsection{\texorpdfstring{step\_place\_paper\_order()}{step\_place\_paper\_order()}}
+{\footnotesize\ttfamily \label{namespacefranchise__client_a5d6afe1210fda6379f322b5368674eea} 
+ dict \texorpdfstring{$\vert$}{|} None step\+\_\+place\+\_\+paper\+\_\+order (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}}}]{c}{, }\item[{str}]{address}{, }\item[{str }]{mnemonic}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00165}{165}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacefranchise__client_afdf1e98d686483a6bf1eab7cad25f1ca}\index{franchise\_client@{franchise\_client}!step\_probe\_chain@{step\_probe\_chain}}
+\index{step\_probe\_chain@{step\_probe\_chain}!franchise\_client@{franchise\_client}}
+\doxysubsubsection{\texorpdfstring{step\_probe\_chain()}{step\_probe\_chain()}}
+{\footnotesize\ttfamily \label{namespacefranchise__client_afdf1e98d686483a6bf1eab7cad25f1ca} 
+ dict step\+\_\+probe\+\_\+chain (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}}}]{c}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00104}{104}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacefranchise__client_a9a61d7e2fe3327ba72e61f844cd4f40e}\index{franchise\_client@{franchise\_client}!step\_summary@{step\_summary}}
+\index{step\_summary@{step\_summary}!franchise\_client@{franchise\_client}}
+\doxysubsubsection{\texorpdfstring{step\_summary()}{step\_summary()}}
+{\footnotesize\ttfamily \label{namespacefranchise__client_a9a61d7e2fe3327ba72e61f844cd4f40e} 
+ None step\+\_\+summary (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}}}]{c}{, }\item[{int}]{start\+\_\+height}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00194}{194}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 11
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacefranchise__client_ae6f745904010d8f862f1005024ed4846}\index{franchise\_client@{franchise\_client}!step\_watch\_balance@{step\_watch\_balance}}
+\index{step\_watch\_balance@{step\_watch\_balance}!franchise\_client@{franchise\_client}}
+\doxysubsubsection{\texorpdfstring{step\_watch\_balance()}{step\_watch\_balance()}}
+{\footnotesize\ttfamily \label{namespacefranchise__client_ae6f745904010d8f862f1005024ed4846} 
+ int step\+\_\+watch\+\_\+balance (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{Omni\+Bus\+Client}}}]{c}{, }\item[{str}]{address}{, }\item[{int }]{seconds}{ = {\ttfamily 30}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00147}{147}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14

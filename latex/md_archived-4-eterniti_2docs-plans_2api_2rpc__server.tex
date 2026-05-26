@@ -1,0 +1,363 @@
+\chapter{Module:\+ {\ttfamily rpc\+\_\+server} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server}{}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server}\index{Module: $<$tt$>$rpc\_server$<$/tt$>$@{Module: $<$tt$>$rpc\_server$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2796}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2796}%
+
+
+\begin{quote}
+JSON-\/\+RPC 2.\+0 HTTP server on port 8332 — 39 methods including blockchain queries, wallet operations, staking, multisig, payment channels, and mining. Uses ws2\+\_\+32 on Windows. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+rpc\+\_\+server.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 1965 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 8 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 7 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 24
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2798}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2798}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2799}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2799}
+
+\begin{DoxyItemize}
+\item \`{}\+RPCServer\`{}{\ttfamily RPCServer}
+\end{DoxyItemize}— Data structure for r p c server. Fields include:\+ blockchain, wallet, allocator.
+\begin{DoxyItemize}
+\item \`{}\+Registered\+Miner\`{}{\ttfamily Registered\+Miner}
+\end{DoxyItemize}— Un miner inregistrat in retea (via RPC registerminer)
+\begin{DoxyItemize}
+\item \`{}\+Server\+Ctx\`{}{\ttfamily Server\+Ctx}
+\end{DoxyItemize}— Context partajat intre thread-\/uri (blockchain + wallet + module noi)
+\begin{DoxyItemize}
+\item \`{}\+HTTPConfig\`{}{\ttfamily HTTPConfig}
+\end{DoxyItemize}— Context extins pentru start\+HTTP cu module optionale
+\begin{DoxyItemize}
+\item \`{}\+Conn\+Ctx\`{}{\ttfamily Conn\+Ctx}
+\end{DoxyItemize}— Data structure for conn ctx. Fields include:\+ conn, server\+\_\+ctx, active\+\_\+counter.
+\begin{DoxyItemize}
+\item \`{}\+Miner\+Entry\`{}{\ttfamily Miner\+Entry}
+\end{DoxyItemize}— Data structure representing a miner entry in the rpc\+\_\+server module.
+\begin{DoxyItemize}
+\item \`{}find\+Or\+Add\`{}{\ttfamily find\+Or\+Add}
+\end{DoxyItemize}— Data structure representing a find or add in the rpc\+\_\+server module.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2800}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2800}
+
+\begin{DoxyItemize}
+\item 4 constants defined4 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2801}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2801}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}get\+Block\+Count()\`{}{\ttfamily get\+Block\+Count()}
+\end{DoxyItemize}— Returns the current block count.
+\begin{DoxyItemize}
+\item \`{}get\+Balance()\`{}{\ttfamily get\+Balance()}
+\end{DoxyItemize}— Returns the current balance.
+\begin{DoxyItemize}
+\item \`{}get\+Mempool\+Size()\`{}{\ttfamily get\+Mempool\+Size()}
+\end{DoxyItemize}— Returns the current mempool size.
+\begin{DoxyItemize}
+\item \`{}start\+HTTP()\`{}{\ttfamily start\+HTTP()}
+\end{DoxyItemize}— Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread se...
+\begin{DoxyItemize}
+\item \`{}start\+HTTPEx()\`{}{\ttfamily start\+HTTPEx()}
+\end{DoxyItemize}— Versiunea extinsa cu module optionale (mempool, \doxylink{namespacep2p}{p2p}, sync)
+\begin{DoxyItemize}
+\item \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_23_831_80_2_compiler_id_c_x_x_2_c_make_c_x_x_compiler_id_8cpp_a0ddf1224851353fc92bfbff6f499fa97}{\`{}main()\`{}}{\ttfamily \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_2_show_includes_2main_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}{main()}}
+\end{DoxyItemize}— Performs the main operation on the rpc\+\_\+server module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2803}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2803}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2804}{}\doxysubsection{\texorpdfstring{{\ttfamily RPCServer}}{{\ttfamily RPCServer}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2804}
+Data structure for r p c server. Fields include:\+ blockchain, wallet, allocator.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily blockchain}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &Blockchain  \\
+{\ttfamily \doxylink{namespacewallet}{wallet}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}  &Wallet  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 30}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2806}{}\doxysubsection{\texorpdfstring{{\ttfamily Registered\+Miner}}{{\ttfamily Registered\+Miner}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2806}
+Un miner inregistrat in retea (via RPC registerminer)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[64]\+u8}  &Address  \\
+{\ttfamily address\+\_\+len}  &{\ttfamily u8}  &Address\+\_\+len  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Node\+\_\+id  \\
+{\ttfamily node\+\_\+id\+\_\+len}  &{\ttfamily u8}  &Node\+\_\+id\+\_\+len  \\
+{\ttfamily registered\+\_\+at}  &{\ttfamily i64}  &Registered\+\_\+at  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 52}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2808}{}\doxysubsection{\texorpdfstring{{\ttfamily Server\+Ctx}}{{\ttfamily Server\+Ctx}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2808}
+Context partajat intre thread-\/uri (blockchain + wallet + module noi)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &Bc  \\
+{\ttfamily \doxylink{namespacewallet}{wallet}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}  &Wallet  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily mempool}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}mempool\+\_\+mod.Mempool}  &Mempool  \\
+{\ttfamily \doxylink{namespacep2p}{p2p}}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}p2p\+\_\+mod.P2\+PNode}  &P2p  \\
+{\ttfamily sync\+\_\+mgr}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}sync\+\_\+mod.Sync\+Manager}  &Sync\+\_\+mgr  \\
+{\ttfamily metrics}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}\+Metrics}  &Metrics  \\
+{\ttfamily staking}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}staking\+\_\+mod.Staking\+Engine}  &Staking  \\
+{\ttfamily channel\+\_\+mgr}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}payment\+\_\+mod.Channel\+Manager}  &Channel\+\_\+mgr  \\
+{\ttfamily is\+\_\+idle}  &{\ttfamily bool}  &Is\+\_\+idle  \\
+{\ttfamily registered\+\_\+miners}  &{\ttfamily \+[MAX\+\_\+\+REGISTERED\+\_\+\+MINERS]\+Registered\+Miner}  &Registered\+\_\+miners  \\
+{\ttfamily registered\+\_\+miner\+\_\+count}  &{\ttfamily u16}  &Registered\+\_\+miner\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 63}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2810}{}\doxysubsection{\texorpdfstring{{\ttfamily HTTPConfig}}{{\ttfamily HTTPConfig}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2810}
+Context extins pentru start\+HTTP cu module optionale
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mempool}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}mempool\+\_\+mod.Mempool}  &Mempool  \\
+{\ttfamily \doxylink{namespacep2p}{p2p}}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}p2p\+\_\+mod.P2\+PNode}  &P2p  \\
+{\ttfamily sync\+\_\+mgr}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}sync\+\_\+mod.Sync\+Manager}  &Sync\+\_\+mgr  \\
+{\ttfamily metrics}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}\+Metrics}  &Metrics  \\
+{\ttfamily staking}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}staking\+\_\+mod.Staking\+Engine}  &Staking  \\
+{\ttfamily channel\+\_\+mgr}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}payment\+\_\+mod.Channel\+Manager}  &Channel\+\_\+mgr  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 89}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2812}{}\doxysubsection{\texorpdfstring{{\ttfamily Conn\+Ctx}}{{\ttfamily Conn\+Ctx}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2812}
+Data structure for conn ctx. Fields include:\+ conn, server\+\_\+ctx, active\+\_\+counter.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily conn}  &{\ttfamily std.\+net.\+Server.\+Connection}  &Conn  \\
+{\ttfamily server\+\_\+ctx}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Server\+Ctx}  &Server\+\_\+ctx  \\
+{\ttfamily active\+\_\+counter}  &{\ttfamily \texorpdfstring{$\ast$}{*}std.atomic.\+Value(u32)}  &Active\+\_\+counter  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 148}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2814}{}\doxysubsection{\texorpdfstring{{\ttfamily Miner\+Entry}}{{\ttfamily Miner\+Entry}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2814}
+Data structure representing a miner entry in the rpc\+\_\+server module.
+
+{\itshape Defined at line 1052}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2816}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Or\+Add}}{{\ttfamily find\+Or\+Add}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2816}
+Data structure representing a find or add in the rpc\+\_\+server module.
+
+{\itshape Defined at line 1058}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2818}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2818}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Metrics}  &{\ttfamily benchmark\+\_\+mod.\+Metrics}  &Metrics  \\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &Blockchain  \\
+{\ttfamily Wallet}  &{\ttfamily wallet\+\_\+mod.\+Wallet}  &Wallet  \\
+{\ttfamily RPCContext}  &{\ttfamily Server\+Ctx}  &R p c context  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2820}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2820}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2821}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2821}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ bc:\ *Blockchain,\ w:\ *Wallet)\ !RPCServer\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &Bc  \\
+{\ttfamily w}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}  &W  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+RPCServer}
+
+{\itshape Defined at line 35}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2823}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2823}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(\_:\ *RPCServer)\ void\ \{\}}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \+\_\+}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+RPCServer}  &\+\_\+  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 39}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2825}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block\+Count()}}{{\ttfamily get\+Block\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2825}
+Returns the current block count.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlockCount(self:\ *RPCServer)\ u32\ \ \{\ return\ self.blockchain.getBlockCount();\ \}}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+RPCServer}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 41}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2827}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance()}}{{\ttfamily get\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2827}
+Returns the current balance.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalance(self:\ *RPCServer)\ \ \ \ u64\ \ \{\ return\ self.wallet.getBalance();\ \}}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+RPCServer}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 42}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2829}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Mempool\+Size()}}{{\ttfamily get\+Mempool\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2829}
+Returns the current mempool size.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMempoolSize(self:\ *RPCServer)\ u32\ \{\ return\ std.math.cast(u32,\ self.blockchain.mempool.items.len)\ orelse\ std.math.maxInt(u32);\ \}}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+RPCServer}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 43}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2831}{}\doxysubsection{\texorpdfstring{{\ttfamily start\+HTTP()}}{{\ttfamily start\+HTTP()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2831}
+Porneste serverul HTTP pe portul 8332 (blocking — ruleaza pe thread separat)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ startHTTP(bc:\ *Blockchain,\ wallet:\ *Wallet,\ allocator:\ std.mem.Allocator)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &Bc  \\
+{\ttfamily \doxylink{namespacewallet}{wallet}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}  &Wallet  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 99}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2833}{}\doxysubsection{\texorpdfstring{{\ttfamily start\+HTTPEx()}}{{\ttfamily start\+HTTPEx()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2833}
+Versiunea extinsa cu module optionale (mempool, \doxylink{namespacep2p}{p2p}, sync)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ startHTTPEx(bc:\ *Blockchain,\ wallet:\ *Wallet,\ allocator:\ std.mem.Allocator,\ cfg:\ HTTPConfig)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &Bc  \\
+{\ttfamily \doxylink{namespacewallet}{wallet}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}  &Wallet  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily cfg}  &{\ttfamily HTTPConfig}  &Cfg  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 104}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2835}{}\doxysubsection{\texorpdfstring{{\ttfamily main()}}{{\ttfamily main()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2rpc__server_autotoc_md2835}
+Performs the main operation on the rpc\+\_\+server module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ main()\ !void\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 1574}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

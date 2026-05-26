@@ -1,0 +1,37 @@
+\doxysection{frontend/\+node\+\_\+modules/\+es-\/errors Directory Reference}
+\hypertarget{dir_1e266dc0db49f254d579fc02e1a193cb}{}\label{dir_1e266dc0db49f254d579fc02e1a193cb}\index{frontend/node\_modules/es-\/errors Directory Reference@{frontend/node\_modules/es-\/errors Directory Reference}}
+Directory dependency graph for es-\/errors:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_1e266dc0db49f254d579fc02e1a193cb_autotoc_md6522}{}\doxysubsection{\texorpdfstring{es-\/errors \textsuperscript{\+[!\+[Version Badge]\+\+[npm-\/version-\/svg]\+]\+\+[package-\/url]\+}}{es-\/errors \textsuperscript{\+[!\+[Version Badge]\+\+[npm-\/version-\/svg]\+]\+\+[package-\/url]\+}}}\label{dir_1e266dc0db49f254d579fc02e1a193cb_autotoc_md6522}
+\href{https://github.com/ljharb/es-errors/actions}{\texttt{}} \href{https://app.codecov.io/gh/ljharb/es-errors/}{\texttt{}} \+[]\+\+[license-\/url]\+ \href{https://npm-stat.com/charts.html?package=es-errors}{\texttt{}}
+
+\href{https://npmjs.org/package/es-errors}{\texttt{}}
+
+A simple cache for a few of the JS Error constructors.\hypertarget{dir_1e266dc0db49f254d579fc02e1a193cb_autotoc_md6523}{}\doxysubsection{\texorpdfstring{Example}{Example}}\label{dir_1e266dc0db49f254d579fc02e1a193cb_autotoc_md6523}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ assert\ =\ require('assert');}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ Base\ =\ require('es-\/errors');}
+\DoxyCodeLine{const\ Eval\ =\ require('es-\/errors/eval');}
+\DoxyCodeLine{const\ Range\ =\ require('es-\/errors/range');}
+\DoxyCodeLine{const\ Ref\ =\ require('es-\/errors/ref');}
+\DoxyCodeLine{const\ Syntax\ =\ require('es-\/errors/syntax');}
+\DoxyCodeLine{const\ Type\ =\ require('es-\/errors/type');}
+\DoxyCodeLine{const\ URI\ =\ require('es-\/errors/uri');}
+\DoxyCodeLine{}
+\DoxyCodeLine{assert.equal(Base,\ Error);}
+\DoxyCodeLine{assert.equal(Eval,\ EvalError);}
+\DoxyCodeLine{assert.equal(Range,\ RangeError);}
+\DoxyCodeLine{assert.equal(Ref,\ ReferenceError);}
+\DoxyCodeLine{assert.equal(Syntax,\ SyntaxError);}
+\DoxyCodeLine{assert.equal(Type,\ TypeError);}
+\DoxyCodeLine{assert.equal(URI,\ URIError);}
+
+\end{DoxyCode}
+\hypertarget{dir_1e266dc0db49f254d579fc02e1a193cb_autotoc_md6524}{}\doxysubsection{\texorpdfstring{Tests}{Tests}}\label{dir_1e266dc0db49f254d579fc02e1a193cb_autotoc_md6524}
+Simply clone the repo, {\ttfamily npm install}, and run {\ttfamily npm \doxylink{namespacetest}{test}}\hypertarget{dir_1e266dc0db49f254d579fc02e1a193cb_autotoc_md6525}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_1e266dc0db49f254d579fc02e1a193cb_autotoc_md6525}
+Please email \href{https://github.com/ljharb}{\texttt{@ljharb}} or see \href{https://tidelift.com/security}{\texttt{https:\+/\+/\+tidelift.\+com/\+security}} if you have a potential security vulnerability to report. 

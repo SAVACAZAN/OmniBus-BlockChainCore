@@ -1,0 +1,46 @@
+\chapter{
+\begin{DoxyEnumerate}
+\item Storage \& Database 
+\end{DoxyEnumerate}}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_8bd7462bb2409eec5c53a5ec6f1d3a51}{}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_8bd7462bb2409eec5c53a5ec6f1d3a51}\index{8. Storage \& Database@{8. Storage \& Database}}
+\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_8bd7462bb2409eec5c53a5ec6f1d3a51_autotoc_md3936}%
+\Hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_8bd7462bb2409eec5c53a5ec6f1d3a51_autotoc_md3936}%
+
+
+\begin{quote}
+Omni\+Bus vs Bitcoin — Category 8/\+10 Generated:\+ 2026-\/03-\/31 19:\+42 \end{quote}
+
+
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}BTC  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}OMNI  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}141  &Block Storage (files)  &\SetCell{c}Y  &\SetCell{c}Y  &database.\+zig  &omnibus-\/chain.\+dat  \\
+\SetCell{c}142  &Binary Codec  &\SetCell{c}Y  &\SetCell{c}Y  &binary\+\_\+codec.\+zig  &Compact encoding  \\
+\SetCell{c}143  &State Trie  &\SetCell{c}N  &\SetCell{c}+  &state\+\_\+trie.\+zig  &Ethereum-\/style state \+[EXTRA]\+  \\
+\SetCell{c}144  &Archive Manager  &\SetCell{c}Y  &\SetCell{c}Y  &archive\+\_\+manager.\+zig  &Old block management  \\
+\SetCell{c}145  &Pruning Configuration  &\SetCell{c}Y  &\SetCell{c}Y  &prune\+\_\+config.\+zig  &Space-\/saving  \\
+\SetCell{c}146  &Witness Storage  &\SetCell{c}Y  &\SetCell{c}N  &witness.\+zig  &Segregated witness data  \\
+\SetCell{c}147  &Compact Transactions  &\SetCell{c}Y  &\SetCell{c}N  &compact\+\_\+tx.\+zig  &Compressed TXs  \\
+\SetCell{c}148  &UTXO Index  &\SetCell{c}Y  &\SetCell{c}Y  &utxo.\+zig  &Full UTXO set + address index  \\
+\SetCell{c}149  &Blockchain V2 Engine  &\SetCell{c}N  &\SetCell{c}+  &blockchain\+\_\+v2.\+zig  &Next-\/gen arch \+[EXTRA]\+  \\
+\SetCell{c}150  &Shard Config  &\SetCell{c}N  &\SetCell{c}+  &shard\+\_\+config.\+zig  &4-\/shard storage \+[EXTRA]\+  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{BTC has:\+ 7 items}} {\bfseries{Omni\+Bus:\+ 8 implemented, 0 partial, 2 missing, 3 extras}} {\bfseries{Score:\+ 114\%}} (8/\+7 BTC features + 3 unique extras)\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_8bd7462bb2409eec5c53a5ec6f1d3a51_autotoc_md3938}{}\doxysubsection{\texorpdfstring{Missing (TODO):\+}{Missing (TODO):\+}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_8bd7462bb2409eec5c53a5ec6f1d3a51_autotoc_md3938}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Witness Storage — Segregated witness data
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Compact Transactions — Compressed TXs
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_8bd7462bb2409eec5c53a5ec6f1d3a51_autotoc_md3939}{}\doxysubsection{\texorpdfstring{Extras (Omni\+Bus-\/only):\+}{Extras (Omni\+Bus-\/only):\+}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_8bd7462bb2409eec5c53a5ec6f1d3a51_autotoc_md3939}
+
+\begin{DoxyItemize}
+\item State Trie — Ethereum-\/style state \+[EXTRA]\+
+\item Blockchain V2 Engine — Next-\/gen arch \+[EXTRA]\+
+\item Shard Config — 4-\/shard storage \+[EXTRA]\+ 
+\end{DoxyItemize}

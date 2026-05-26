@@ -1,0 +1,6 @@
+// Original transaction with RBF enabled
+tx.inputs[0].sequence = 0xFFFFFFFD;  // Enable RBF
+
+// Replace with higher fee
+const new_fee_rate = old_fee_rate * 2;
+const result = try builder.build(utxos, outputs, change_addr, change_script, new_fee_rate);

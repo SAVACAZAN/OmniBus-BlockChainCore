@@ -1,0 +1,340 @@
+\doxysection{archived-\/4-\/eterniti/\+tools-\/python Directory Reference}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2}{}\label{dir_e4cbadfb3e79e02b6d416116f179bad2}\index{archived-\/4-\/eterniti/tools-\/python Directory Reference@{archived-\/4-\/eterniti/tools-\/python Directory Reference}}
+Directory dependency graph for tools-\/python:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_d147bc643bfa9de686471d4bfc540fd5}{agentscripts}}
+\item 
+directory \doxymbox{\hyperlink{dir_706f91727de8e3d02b9ed12025230577}{ANALYSIS}}
+\item 
+directory \doxymbox{\hyperlink{dir_9a8d98d542e6264bb3bf1ae27326c95a}{BRIDGE}}
+\item 
+directory \doxymbox{\hyperlink{dir_d3133d49e0b9468e2795aa258edacd6e}{COMPARISON}}
+\item 
+directory \doxymbox{\hyperlink{dir_d5ad4e361823ea783840bb6a0877fa2a}{DOCUMENTATION}}
+\item 
+directory \doxymbox{\hyperlink{dir_16a3b76827dcd0490ac683c863ae34fb}{MONITORING}}
+\item 
+directory \doxymbox{\hyperlink{dir_a198e3c92ce569d11981a7bb70a1ea51}{PERFORMANCE}}
+\item 
+directory \doxymbox{\hyperlink{dir_e3df35f8f8c4fd0347eb301cff4af9b6}{SECURITY}}
+\item 
+directory \doxymbox{\hyperlink{dir_fbdc328b43b3d81ea4ba0f4b56ba6afc}{SYNC}}
+\item 
+directory \doxymbox{\hyperlink{dir_3534a140595df5c2ca3ad3e6e39601e0}{TESTING}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Files}
+\begin{DoxyCompactItemize}
+\item 
+file \doxymbox{\hyperlink{blockchain__master__audit_8py}{blockchain\+\_\+master\+\_\+audit.\+py}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4126}{}\doxysubsection{\texorpdfstring{🔧 Omni\+Bus Blockchain Tools}{🔧 Omni\+Bus Blockchain Tools}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4126}
+Tool-\/uri Python pentru dezvoltarea, testarea și monitorizarea Omni\+Bus Block\+Chain Core.\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4127}{}\doxysubsection{\texorpdfstring{📁 Structura Tool-\/urilor}{📁 Structura Tool-\/urilor}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4127}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{tools/}
+\DoxyCodeLine{├──\ ANALYSIS/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Analiză\ cod\ și\ calitate}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain\_analyzer.py}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain\_deep\_audit.py}
+\DoxyCodeLine{│\ \ \ └──\ blockchain\_dependency\_graph.py}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ SECURITY/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Securitate\ și\ audit}
+\DoxyCodeLine{│\ \ \ └──\ vulnerability\_scanner.py}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ MONITORING/\ \ \ \ \ \ \ \ \ \ \ \ \#\ Observabilitate\ și\ metrici}
+\DoxyCodeLine{│\ \ \ └──\ metrics\_exporter.py}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ PERFORMANCE/\ \ \ \ \ \ \ \ \ \ \ \#\ Benchmarking\ și\ optimizare}
+\DoxyCodeLine{│\ \ \ └──\ benchmark.py}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ TESTING/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Testare\ și\ validare}
+\DoxyCodeLine{│\ \ \ └──\ test\_runner.py}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ COMPARISON/\ \ \ \ \ \ \ \ \ \ \ \ \#\ Analiză\ competitivă}
+\DoxyCodeLine{│\ \ \ └──\ blockchain\_vs\_comparison.py}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ DOCUMENTATION/\ \ \ \ \ \ \ \ \ \#\ Generare\ documentație\ ⭐\ NOU}
+\DoxyCodeLine{│\ \ \ ├──\ doc\_generator.py}
+\DoxyCodeLine{│\ \ \ └──\ changelog\_manager.py}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ BRIDGE/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Cross-\/chain\ tools\ ⭐\ NOU}
+\DoxyCodeLine{│\ \ \ ├──\ bridge\_validator.py}
+\DoxyCodeLine{│\ \ \ └──\ oracle\_verifier.py}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ blockchain\_master\_audit.py}
+\DoxyCodeLine{└──\ README.md}
+\DoxyCodeLine{}
+\DoxyCodeLine{TOTAL:\ 15\ tool-\/uri\ funcționale}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4128}{}\doxysubsection{\texorpdfstring{🚀 Quick Start}{🚀 Quick Start}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4128}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Analiză\ completă}
+\DoxyCodeLine{python\ tools/ANALYSIS/blockchain\_analyzer.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Scanare\ securitate}
+\DoxyCodeLine{python\ tools/SECURITY/vulnerability\_scanner.py\ -\/-\/critical}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Metrici\ live}
+\DoxyCodeLine{python\ tools/MONITORING/metrics\_exporter.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 4.\ Comparativ\ blockchain-\/uri}
+\DoxyCodeLine{python\ tools/COMPARISON/blockchain\_vs\_comparison.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 5.\ Generează\ documentație\ API\ ⭐\ NOU}
+\DoxyCodeLine{python\ tools/DOCUMENTATION/doc\_generator.py\ -\/-\/format\ html}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 6.\ Validează\ tranzacție\ cross-\/chain\ ⭐\ NOU}
+\DoxyCodeLine{python\ tools/BRIDGE/bridge\_validator.py\ -\/-\/proof\ tx\_proof.json}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4129}{}\doxysubsection{\texorpdfstring{📊 Tool-\/uri Disponibile}{📊 Tool-\/uri Disponibile}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4129}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4130}{}\doxysubsubsection{\texorpdfstring{ANALYSIS -\/ Analiză Cod}{ANALYSIS -\/ Analiză Cod}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4130}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Usage  \\
+{\ttfamily \doxylink{blockchain__analyzer_8py}{blockchain\+\_\+analyzer.\+py}}  &Analiză module Zig, status REAL/\+\+PARTIAL/\+\+STUB  &{\ttfamily python \doxylink{blockchain__analyzer_8py}{ANALYSIS/\+blockchain\+\_\+analyzer.\+py}}  \\
+{\ttfamily \doxylink{blockchain__deep__audit_8py}{blockchain\+\_\+deep\+\_\+audit.\+py}}  &Securitate, CWE, complexitate ciclomatică  &{\ttfamily python \doxylink{blockchain__deep__audit_8py}{ANALYSIS/\+blockchain\+\_\+deep\+\_\+audit.\+py}}  \\
+{\ttfamily \doxylink{blockchain__dependency__graph_8py}{blockchain\+\_\+dependency\+\_\+graph.\+py}}  &Graf dependențe între module  &{\ttfamily python \doxylink{blockchain__dependency__graph_8py}{ANALYSIS/\+blockchain\+\_\+dependency\+\_\+graph.\+py} -\/-\/dot graph.\+dot}  \\
+\end{DoxyTable}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4131}{}\doxysubsubsection{\texorpdfstring{SECURITY -\/ Securitate}{SECURITY -\/ Securitate}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4131}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Usage  \\
+{\ttfamily \doxylink{vulnerability__scanner_8py}{vulnerability\+\_\+scanner.\+py}}  &Scanare CWE, hardcoded secrets, unsafe patterns  &{\ttfamily python \doxylink{vulnerability__scanner_8py}{SECURITY/\+vulnerability\+\_\+scanner.\+py} -\/-\/critical}  \\
+\end{DoxyTable}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4132}{}\doxysubsubsection{\texorpdfstring{MONITORING -\/ Monitorizare}{MONITORING -\/ Monitorizare}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4132}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Usage  \\
+{\ttfamily \doxylink{metrics__exporter_8py}{metrics\+\_\+exporter.\+py}}  &Exportă metrici Prometheus  &{\ttfamily python \doxylink{metrics__exporter_8py}{MONITORING/\+metrics\+\_\+exporter.\+py} -\/-\/http -\/-\/port 9090}  \\
+\end{DoxyTable}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4133}{}\doxysubsubsection{\texorpdfstring{PERFORMANCE -\/ Performanță}{PERFORMANCE -\/ Performanță}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4133}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Usage  \\
+{\ttfamily \doxylink{benchmark_8py}{benchmark.\+py}}  &Benchmark TPS, hashrate, memory  &{\ttfamily python \doxylink{benchmark_8py}{PERFORMANCE/\+benchmark.\+py}}  \\
+\end{DoxyTable}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4134}{}\doxysubsubsection{\texorpdfstring{TESTING -\/ Testare}{TESTING -\/ Testare}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4134}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Usage  \\
+{\ttfamily test\+\_\+runner.\+py}  &Rulează testele Zig  &{\ttfamily python \doxylink{_t_e_s_t_i_n_g_2test__runner_8py}{TESTING/\+test\+\_\+runner.\+py}}  \\
+\end{DoxyTable}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4135}{}\doxysubsubsection{\texorpdfstring{COMPARISON -\/ Analiză Competitivă}{COMPARISON -\/ Analiză Competitivă}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4135}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Usage  \\
+{\ttfamily \doxylink{blockchain__vs__comparison_8py}{blockchain\+\_\+vs\+\_\+comparison.\+py}}  &Compară cu Bitcoin, Ethereum, Solana, EGLD  &{\ttfamily python \doxylink{blockchain__vs__comparison_8py}{COMPARISON/\+blockchain\+\_\+vs\+\_\+comparison.\+py}}  \\
+\end{DoxyTable}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4136}{}\doxysubsubsection{\texorpdfstring{DOCUMENTATION -\/ Documentație ⭐ NOU}{DOCUMENTATION -\/ Documentație ⭐ NOU}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4136}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Usage  \\
+{\ttfamily \doxylink{doc__generator_8py}{doc\+\_\+generator.\+py}}  &Generează API docs din cod Zig  &{\ttfamily python \doxylink{doc__generator_8py}{DOCUMENTATION/\+doc\+\_\+generator.\+py} -\/-\/format html}  \\
+{\ttfamily \doxylink{changelog__manager_8py}{changelog\+\_\+manager.\+py}}  &Gestionează CHANGELOG.\+md și release notes  &{\ttfamily python \doxylink{changelog__manager_8py}{DOCUMENTATION/\+changelog\+\_\+manager.\+py} -\/-\/release}  \\
+\end{DoxyTable}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4137}{}\doxysubsubsubsection{\texorpdfstring{doc\+\_\+generator.\+py}{doc\+\_\+generator.\+py}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4137}
+Generează documentație API din comentarii Zig:\+
+\begin{DoxyItemize}
+\item Extrage {\ttfamily /\+/\+/\+} doc comments
+\item Parsează funcții publice și structuri
+\item Generează Markdown sau HTML
+\item Creează index navigabil
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Generează\ toată\ documentația\ în\ HTML}
+\DoxyCodeLine{python\ tools/DOCUMENTATION/doc\_generator.py\ -\/-\/format\ html\ -\/-\/output\ ./docs/api}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Doar\ pentru\ un\ modul\ specific}
+\DoxyCodeLine{python\ tools/DOCUMENTATION/doc\_generator.py\ -\/-\/module\ wallet\ -\/-\/format\ md}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4138}{}\doxysubsubsubsection{\texorpdfstring{changelog\+\_\+manager.\+py}{changelog\+\_\+manager.\+py}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4138}
+Gestionează changelog și versiuni:\+
+\begin{DoxyItemize}
+\item Parsează commit-\/uri git
+\item Categorizează:\+ Added, Changed, Fixed, Security
+\item Sugerează version bumping (semver)
+\item Generează release notes
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Generează\ changelog}
+\DoxyCodeLine{python\ tools/DOCUMENTATION/changelog\_manager.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Crează\ release\ notes}
+\DoxyCodeLine{python\ tools/DOCUMENTATION/changelog\_manager.py\ -\/-\/release\ -\/-\/bump\ minor}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ De\ la\ o\ versiune\ specifică}
+\DoxyCodeLine{python\ tools/DOCUMENTATION/changelog\_manager.py\ -\/-\/since\ v1.0.0}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4139}{}\doxysubsubsection{\texorpdfstring{BRIDGE -\/ Cross-\/\+Chain ⭐ NOU}{BRIDGE -\/ Cross-\/\+Chain ⭐ NOU}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4139}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Usage  \\
+{\ttfamily \doxylink{bridge__validator_8py}{bridge\+\_\+validator.\+py}}  &Validează tranzacții cross-\/chain  &{\ttfamily python \doxylink{bridge__validator_8py}{BRIDGE/\+bridge\+\_\+validator.\+py} -\/-\/proof tx.\+json}  \\
+{\ttfamily \doxylink{oracle__verifier_8py}{oracle\+\_\+verifier.\+py}}  &Verifică datele de la oracles  &{\ttfamily python \doxylink{oracle__verifier_8py}{BRIDGE/\+oracle\+\_\+verifier.\+py} -\/-\/\doxylink{namespaceconsensus}{consensus} BTC}  \\
+\end{DoxyTable}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4140}{}\doxysubsubsubsection{\texorpdfstring{bridge\+\_\+validator.\+py}{bridge\+\_\+validator.\+py}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4140}
+Validează tranzacții cross-\/chain:\+
+\begin{DoxyItemize}
+\item Verifică SPV proofs (Bitcoin)
+\item Verifică Merkle Patricia proofs (Ethereum)
+\item Detectează double-\/spend
+\item Estimează timp finalizare
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Validează\ cu\ proof\ file}
+\DoxyCodeLine{python\ tools/BRIDGE/bridge\_validator.py\ -\/-\/proof\ btc\_lock\_proof.json}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Verifică\ status}
+\DoxyCodeLine{python\ tools/BRIDGE/bridge\_validator.py\ -\/-\/tx\ <hash>\ -\/-\/source\ bitcoin}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4141}{}\doxysubsubsubsection{\texorpdfstring{oracle\+\_\+verifier.\+py}{oracle\+\_\+verifier.\+py}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4141}
+Verifică integritatea datelor de la oracles:\+
+\begin{DoxyItemize}
+\item Price feed validation
+\item Outlier detection
+\item Multi-\/oracle consensus
+\item Manipulation detection
+\item Stale data detection
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Verifică\ consens\ pentru\ BTC}
+\DoxyCodeLine{python\ tools/BRIDGE/oracle\_verifier.py\ -\/-\/consensus\ BTC}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Raport\ complet}
+\DoxyCodeLine{python\ tools/BRIDGE/oracle\_verifier.py\ -\/-\/report\ -\/-\/json}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Verifică\ specific}
+\DoxyCodeLine{python\ tools/BRIDGE/oracle\_verifier.py\ -\/-\/price\ BTC\ -\/-\/value\ 45000}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4142}{}\doxysubsection{\texorpdfstring{🎯 Workflow Recomandat}{🎯 Workflow Recomandat}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4142}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4143}{}\doxysubsubsection{\texorpdfstring{1. Înainte de commit}{1. Înainte de commit}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4143}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Verifică\ calitatea\ codului}
+\DoxyCodeLine{python\ tools/ANALYSIS/blockchain\_analyzer.py\ -\/-\/json\ report.json}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Scanare\ securitate}
+\DoxyCodeLine{python\ tools/SECURITY/vulnerability\_scanner.py\ -\/-\/critical}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Rulează\ testele}
+\DoxyCodeLine{python\ tools/TESTING/test\_runner.py}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4144}{}\doxysubsubsection{\texorpdfstring{2. Pentru release}{2. Pentru release}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4144}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Audit\ complet}
+\DoxyCodeLine{python\ tools/ANALYSIS/blockchain\_deep\_audit.py\ -\/-\/json\ audit.json}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Generează\ documentație}
+\DoxyCodeLine{python\ tools/DOCUMENTATION/doc\_generator.py\ -\/-\/format\ html}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Update\ changelog}
+\DoxyCodeLine{python\ tools/DOCUMENTATION/changelog\_manager.py\ -\/-\/release\ -\/-\/bump\ minor}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 4.\ Comparativ\ cu\ altele}
+\DoxyCodeLine{python\ tools/COMPARISON/blockchain\_vs\_comparison.py\ -\/-\/html\ comparison.html}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4145}{}\doxysubsubsection{\texorpdfstring{3. Monitorizare în producție}{3. Monitorizare în producție}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4145}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Pornește\ metrics\ server}
+\DoxyCodeLine{python\ tools/MONITORING/metrics\_exporter.py\ -\/-\/http\ -\/-\/port\ 9090}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Monitorizează\ oracles}
+\DoxyCodeLine{python\ tools/BRIDGE/oracle\_verifier.py\ -\/-\/report}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ În\ Prometheus,\ adaugă:}
+\DoxyCodeLine{\#\ -\/\ targets:\ ['localhost:9090']}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4146}{}\doxysubsubsection{\texorpdfstring{4. Pentru cross-\/chain operations}{4. Pentru cross-\/chain operations}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4146}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Validează\ o\ tranzacție\ bridge}
+\DoxyCodeLine{python\ tools/BRIDGE/bridge\_validator.py\ -\/-\/proof\ tx\_proof.json}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Verifică\ consens\ prețuri}
+\DoxyCodeLine{python\ tools/BRIDGE/oracle\_verifier.py\ -\/-\/consensus\ BTC}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4147}{}\doxysubsection{\texorpdfstring{📈 Interpretare Rezultate}{📈 Interpretare Rezultate}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4147}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4148}{}\doxysubsubsection{\texorpdfstring{Scor Module (din blockchain\+\_\+analyzer.\+py)}{Scor Module (din blockchain\+\_\+analyzer.\+py)}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4148}
+
+\begin{DoxyItemize}
+\item {\bfseries{90-\/100\%}}:\+ Excellent -\/ Production ready
+\item {\bfseries{70-\/89\%}}:\+ Good -\/ Minor improvements needed
+\item {\bfseries{50-\/69\%}}:\+ Fair -\/ Needs work
+\item \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\texorpdfstring{$<$}{<}50\%\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}:\+ Poor -\/ Major refactoring needed
+\end{DoxyItemize}\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4149}{}\doxysubsubsection{\texorpdfstring{Severity Vulnerabilități (din vulnerability\+\_\+scanner.\+py)}{Severity Vulnerabilități (din vulnerability\+\_\+scanner.\+py)}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4149}
+
+\begin{DoxyItemize}
+\item {\bfseries{CRITICAL}}:\+ Exploitable vulnerability -\/ Fix immediately
+\item {\bfseries{HIGH}}:\+ Serious security issue -\/ Fix before release
+\item {\bfseries{MEDIUM}}:\+ Potential issue -\/ Fix in next sprint
+\item {\bfseries{LOW}}:\+ Minor issue -\/ Fix when convenient
+\end{DoxyItemize}\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4150}{}\doxysubsubsection{\texorpdfstring{Consens Oracle (din oracle\+\_\+verifier.\+py)}{Consens Oracle (din oracle\+\_\+verifier.\+py)}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4150}
+
+\begin{DoxyItemize}
+\item {\bfseries{VALID}}:\+ Date verificate, pot fi folosite on-\/chain
+\item {\bfseries{STALE}}:\+ Date vechi, nu folosi
+\item {\bfseries{OUTLIER}}:\+ Prea multă variație între surse
+\item {\bfseries{MANIPULATED}}:\+ Posibilă manipulare, investighează
+\end{DoxyItemize}\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4151}{}\doxysubsection{\texorpdfstring{🔧 Cerințe}{🔧 Cerințe}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4151}
+
+\begin{DoxyItemize}
+\item Python 3.\+8+
+\item Zig 0.\+15.\+2+ (pentru teste și syntax check)
+\item Node.\+js (pentru mining pool tests)
+\item Git (pentru \doxylink{changelog__manager_8py}{changelog\+\_\+manager.\+py})
+\end{DoxyItemize}\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4152}{}\doxysubsection{\texorpdfstring{📝 Adăugare Tool Nou}{📝 Adăugare Tool Nou}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4152}
+
+\begin{DoxyEnumerate}
+\item Creează fișier în directorul corespunzător
+\item Adaugă docstring cu descriere și usage
+\item Adaugă în acest README
+\item Testează cu:\+ {\ttfamily python tools/\+\+CATEGORY/\+new\+\_\+tool.\+py}
+\end{DoxyEnumerate}\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4153}{}\doxysubsection{\texorpdfstring{🐛 Debugging}{🐛 Debugging}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4153}
+Dacă un tool nu funcționează:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Verifică\ path-\/ul}
+\DoxyCodeLine{python\ -\/c\ "{}import\ sys;\ print(sys.path)"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Rulează\ cu\ verbose}
+\DoxyCodeLine{python\ tools/ANALYSIS/blockchain\_analyzer.py\ -\/-\/verbose}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Verifică\ dacă\ Zig\ e\ în\ PATH}
+\DoxyCodeLine{zig\ version}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Verifică\ git\ (pentru\ changelog\_manager)}
+\DoxyCodeLine{git\ -\/-\/version}
+
+\end{DoxyCode}
+\hypertarget{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4154}{}\doxysubsection{\texorpdfstring{📚 Referințe}{📚 Referințe}}\label{dir_e4cbadfb3e79e02b6d416116f179bad2_autotoc_md4154}
+
+\begin{DoxyItemize}
+\item Omni\+Bus Blockchain Core
+\item Arhitectura Dual OS
+\item Viziune Proiect 
+\end{DoxyItemize}

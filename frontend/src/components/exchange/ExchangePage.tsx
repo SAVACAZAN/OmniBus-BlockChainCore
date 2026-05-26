@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import OmniBusRpcClient, {
-  ExchangeBalance,
-  OrderbookLevel,
-  PairInfo,
-  TradeFill,
-} from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOrderbookUpdateEvent, WsNewTradeEvent, WsNewBlockEvent } from "../../types";
+import { rpc, type ExchangeBalance, type OrderbookLevel, type PairInfo, type TradeFill } from "../../api/rpc-client";
+import { SAT_PER_OMNI, MICRO_PER_USD, fmtAge } from "../../utils/fmt";
 import { usePairs } from "../../api/use-pairs";
 import { PlaceOrderForm } from "./PlaceOrderForm";
 import { DexBuyPanel } from "./DexBuyPanel";
@@ -16,20 +14,34 @@ import { IdentityPanel } from "./IdentityPanel";
 import { KycPanel } from "./KycPanel";
 import { TraderModeToggle, useTraderMode } from "./TraderModeToggle";
 import { GridPanel } from "./GridPanel";
-import { HtlcTradePanel } from "./HtlcTradePanel";
+import { HtlcTradePanel, HtlcLookupPanel } from "./HtlcTradePanel";
 import { AmmOrderbookPanel } from "./AmmOrderbookPanel";
 import { OraclePricePanel } from "./OraclePricePanel";
 import { IntentSwapPanel } from "./IntentSwapPanel";
 import { useWallet } from "../../api/use-wallet";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 
-const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
-const MICRO_PER_USD = 1_000_000;
 
 type Tab = "trade" | "grid" | "htlc" | "amm" | "oracle" | "account" | "intent";
 type AccountTab = "balances" | "identity" | "kyc" | "apikeys";
+
+const EXCHANGE_TABS: { id: Tab; label: string }[] = [
+  { id: "trade",   label: "Trade" },
+  { id: "grid",    label: "Grid" },
+  { id: "htlc",    label: "⚡ HTLC Swap" },
+  { id: "amm",     label: "🦄 Uniswap AMM" },
+  { id: "oracle",  label: "📡 Oracle" },
+  { id: "account", label: "Account" },
+  { id: "intent",  label: "🤝 Intent Swap" },
+];
+
+const ACCOUNT_TABS: { id: AccountTab; label: string }[] = [
+  { id: "balances", label: "💰 Balances" },
+  { id: "identity", label: "👤 Identity" },
+  { id: "kyc",      label: "🛡 KYC" },
+  { id: "apikeys",  label: "🔑 API Keys" },
+];
 
 export function ExchangePage() {
   const [tab, setTab] = useState<Tab>("trade");
@@ -57,26 +69,40 @@ export function ExchangePage() {
   const walletAddress: string = wallet?.address ?? "";
   const globalBal = useGlobalBalance();
 
+  const tradesForPair = useMemo(() => trades.filter((t) => t.pairId === pairId), [trades, pairId]);
+
   // pairInfo is now available directly from the loaded ChainPair.
   const pairInfo: PairInfo | null = useMemo(() => {
     const found = allPairs.find((p) => p.id === pairId);
     return found?.info ?? null;
   }, [allPairs, pairId]);
 
-  // Poll exchange internal balances for the connected wallet
+  const makerLabels = useMemo(() => pairInfo?.maker_chains.map((c) => c.chain) ?? [], [pairInfo]);
+  const takerLabels = useMemo(() => pairInfo?.taker_chains.map((c) => c.chain) ?? [], [pairInfo]);
+
+  // Poll exchange internal balances for the connected wallet.
+  // Refresh on new_block events so the "in orders" vs "available" numbers
+  // update immediately after fills, not after 10 s.
   useEffect(() => {
     if (!walletAddress) return;
     let cancelled = false;
     const fetch = async () => {
-      const bal = await rpc.exchangeGetBalances(walletAddress);
-      if (!cancelled && bal.length > 0) setExchBalances(bal);
+      try {
+        const bal = await rpc.exchangeGetBalances(walletAddress);
+        if (!cancelled && bal.length > 0) setExchBalances(bal);
+      } catch {
+        // balance fetch is best-effort; PlaceOrderForm falls back gracefully
+      }
     };
-    fetch();
-    const id = setInterval(fetch, 10000);
-    return () => { cancelled = true; clearInterval(id); };
+    void fetch();
+    const unsubBal = wsSubscribe<WsNewBlockEvent>("new_block", () => { void fetch(); });
+    const id = setInterval(() => { void fetch(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsubBal(); };
   }, [walletAddress]);
 
-  // Poll orderbook + trades. Mode-aware — switches engine on toggle.
+  // Orderbook + trades — WS-driven. orderbook_update fires when the book
+  // changes; new_trade fires when a fill happens. Both are pair-filtered.
+  // Slow fallback poll at 10 s for WS-disconnected clients.
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
@@ -104,11 +130,19 @@ export function ExchangePage() {
         }
       }
     };
-    refresh();
-    const id = setInterval(refresh, 3000);
+    void refresh();
+    const unsubOb = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
+      if (ev.pair_id === pairId) void refresh();
+    });
+    const unsubTr = wsSubscribe<WsNewTradeEvent>("new_trade", (ev) => {
+      if (ev.pair_id === pairId) void refresh();
+    });
+    const id = setInterval(() => { void refresh(); }, 30_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsubOb();
+      unsubTr();
     };
   }, [pairId, refreshNonce, traderMode]);
 
@@ -120,10 +154,9 @@ export function ExchangePage() {
   );
   const pairLabel = activePair?.label ?? "?";
 
-  const maxAmount = Math.max(
-    1,
-    ...bids.map((b) => b.remaining),
-    ...asks.map((a) => a.remaining),
+  const maxAmount = useMemo(
+    () => Math.max(1, ...bids.map((b) => b.remaining), ...asks.map((a) => a.remaining)),
+    [bids, asks],
   );
 
   const fmtPrice = (p: number) => (p / MICRO_PER_USD).toFixed(4);
@@ -178,11 +211,11 @@ export function ExchangePage() {
         <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-mempool-bg-elev border border-mempool-border">
           <span className="text-[10px] text-mempool-text-dim self-center mr-1 uppercase tracking-wider">Exchange:</span>
           {exchBalances.map((b) => {
-            const avail = b.token === "OMNI" ? (b.available / 1e9).toFixed(4)
+            const avail = b.token === "OMNI" ? (b.available / SAT_PER_OMNI).toFixed(4)
               : b.token === "ETH"  ? (b.available / 1e18).toFixed(6)
               : b.token === "USDC" || b.token === "LCX" ? (b.available / 1e6).toFixed(2)
               : b.available.toString();
-            const locked = b.token === "OMNI" ? (b.locked / 1e9).toFixed(4)
+            const locked = b.token === "OMNI" ? (b.locked / SAT_PER_OMNI).toFixed(4)
               : b.token === "ETH"  ? (b.locked / 1e18).toFixed(6)
               : b.token === "USDC" || b.token === "LCX" ? (b.locked / 1e6).toFixed(2)
               : b.locked.toString();
@@ -201,15 +234,7 @@ export function ExchangePage() {
 
       {/* Top-level tabs */}
       <div className="flex gap-1 border-b border-mempool-border overflow-x-auto scrollbar-none flex-nowrap">
-        {([
-          { id: "trade",   label: "Trade" },
-          { id: "grid",    label: "Grid" },
-          { id: "htlc",    label: "⚡ HTLC Swap" },
-          { id: "amm",     label: "🦄 Uniswap AMM" },
-          { id: "oracle",  label: "📡 Oracle" },
-          { id: "account", label: "Account" },
-          { id: "intent",  label: "🤝 Intent Swap" },
-        ] as { id: Tab; label: string }[]).map((t) => (
+        {EXCHANGE_TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -228,12 +253,7 @@ export function ExchangePage() {
         <div className="space-y-4">
           {/* Account sub-tabs (Balances | Identity | KYC | API Keys) */}
           <div className="flex gap-1 bg-mempool-bg-elev rounded-lg p-1 overflow-x-auto scrollbar-none flex-nowrap">
-            {([
-              { id: "balances", label: "💰 Balances" },
-              { id: "identity", label: "👤 Identity" },
-              { id: "kyc",      label: "🛡 KYC" },
-              { id: "apikeys",  label: "🔑 API Keys" },
-            ] as const).map((it) => (
+            {ACCOUNT_TABS.map((it) => (
               <button
                 key={it.id}
                 onClick={() => setAccountTab(it.id)}
@@ -262,8 +282,9 @@ export function ExchangePage() {
       )}
 
       {tab === "htlc" && (
-        <div className="max-w-2xl">
+        <div className="max-w-2xl space-y-4">
           <HtlcTradePanel />
+          <HtlcLookupPanel />
         </div>
       )}
 
@@ -337,30 +358,20 @@ export function ExchangePage() {
               {bids.length}b / {asks.length}a
             </span>
           </div>
-          {(() => {
-            const makerLabels = pairInfo
-              ? pairInfo.maker_chains.map(c => c.chain)
-              : [];
-            const takerLabels = pairInfo
-              ? pairInfo.taker_chains.map(c => c.chain)
-              : [];
-            return (
-              <div className="flex flex-wrap gap-2 mb-3">
-                <div className="flex items-center gap-1">
-                  <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Maker (sells {activePair?.base}):</span>
-                  {makerLabels.map((c) => (
-                    <span key={c} className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[9px] font-mono">{c}</span>
-                  ))}
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Taker (pays {activePair?.quote}):</span>
-                  {takerLabels.map((c) => (
-                    <span key={c} className="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 rounded text-[9px] font-mono">{c}</span>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
+          <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Maker (sells {activePair?.base}):</span>
+              {makerLabels.map((c) => (
+                <span key={c} className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[9px] font-mono">{c}</span>
+              ))}
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Taker (pays {activePair?.quote}):</span>
+              {takerLabels.map((c) => (
+                <span key={c} className="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 rounded text-[9px] font-mono">{c}</span>
+              ))}
+            </div>
+          </div>
 
           {loading && bids.length === 0 && asks.length === 0 ? (
             <div className="p-8 text-center text-mempool-text-dim text-sm">Loading…</div>
@@ -394,6 +405,10 @@ export function ExchangePage() {
                     </span>
                     <span className="text-xs text-mempool-text-dim ml-2">
                       Spread ${(spread / MICRO_PER_USD).toFixed(4)}
+                      {" "}
+                      <span className="text-[10px] text-mempool-text-dim/70">
+                        ({((spread / mid) * 100).toFixed(2)}%)
+                      </span>
                     </span>
                   </>
                 ) : (
@@ -452,17 +467,20 @@ export function ExchangePage() {
               <div className="grid grid-cols-3 text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1">
                 <span>Price</span>
                 <span className="text-right">Size</span>
-                <span className="text-right">Time</span>
+                <span className="text-right">Age</span>
               </div>
-              {trades.filter((t) => t.pairId === pairId).map((t) => (
-                <div key={t.fillId} className="grid grid-cols-3 text-xs font-mono py-0.5">
-                  <span className="text-mempool-text">{fmtPrice(t.price)}</span>
-                  <span className="text-right text-mempool-text">{fmtAmount(t.amount)}</span>
-                  <span className="text-right text-mempool-text-dim">
-                    {new Date(t.ts).toLocaleTimeString()}
-                  </span>
-                </div>
-              ))}
+              {tradesForPair.map((t, i, arr) => {
+                const prev = arr[i + 1];
+                const dir = !prev ? null : t.price > prev.price ? "up" : t.price < prev.price ? "down" : null;
+                const priceColor = dir === "up" ? "text-green-400" : dir === "down" ? "text-red-400" : "text-mempool-text";
+                return (
+                  <div key={t.fillId} className="grid grid-cols-3 text-xs font-mono py-0.5" title={new Date(t.ts).toLocaleString()}>
+                    <span className={priceColor}>{fmtPrice(t.price)}</span>
+                    <span className="text-right text-mempool-text">{fmtAmount(t.amount)}</span>
+                    <span className="text-right text-mempool-text-dim">{fmtAge(t.ts)}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

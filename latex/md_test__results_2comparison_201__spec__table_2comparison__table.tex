@@ -1,0 +1,188 @@
+\chapter{Blockchain Comparison Table — 17 Chains }
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table}{}\label{md_test__results_2comparison_201__spec__table_2comparison__table}\index{Blockchain Comparison Table — 17 Chains@{Blockchain Comparison Table — 17 Chains}}
+\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9778}%
+\Hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9778}%
+
+
+{\bfseries{Generated:\+}} 2026-\/04-\/25 {\bfseries{Data as-\/of:\+}} 2025-\/Q1 {\bfseries{Methodology:\+}} TPS-\/realistic = sustained mainnet observed (block explorers /\+ public benchmarks). TPS-\/theoretical = whitepaper /\+ docs claim. Finality = practical wait (not just probabilistic). {\bfseries{Honesty note:\+}} Omni\+Bus is {\bfseries{testnet/\+devnet only}} — no mainnet exists. All Omni\+Bus economic /\+ TVL /\+ TPS-\/realistic values are {\ttfamily null} or {\ttfamily 0}.
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9780}{}\doxysection{\texorpdfstring{1. Performance}{1. Performance}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9780}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Chain  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Block time  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}TPS theoretical  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}TPS realistic  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Finality  \\
+{\bfseries{Omni\+Bus}}  &1000 ms (sub-\/block 100 ms)  &n/\+a  &n/\+a (no mainnet)  &\texorpdfstring{$\sim$}{\string~}1 s (design)  \\
+Bitcoin  &600 000 ms  &7  &\texorpdfstring{$\sim$}{\string~}4.6  &\texorpdfstring{$\sim$}{\string~}3600 s (6 conf)  \\
+Ethereum  &12 000 ms  &30  &\texorpdfstring{$\sim$}{\string~}15  &900 s (2 epochs)  \\
+MultiversX (EGLD)  &6 000 ms  &263 000 (peak)  &\texorpdfstring{$\sim$}{\string~}30 000 (peak)  &\texorpdfstring{$\sim$}{\string~}6 s  \\
+Solana  &400 ms  &65 000  &1 500–3 000  &\texorpdfstring{$\sim$}{\string~}13 s  \\
+Sui  &390 ms  &297 000 (peak)  &500–1 500  &\texorpdfstring{$<$}{<}1 s  \\
+Optimism  &2 000 ms  &\texorpdfstring{$\sim$}{\string~}2 000  &10–20  &7 days (challenge)  \\
+Cardano  &20 000 ms  &250  &\texorpdfstring{$\sim$}{\string~}7  &\texorpdfstring{$\sim$}{\string~}720 s  \\
+Polygon PoS  &2 000 ms  &7 000  &30–100  &\texorpdfstring{$\sim$}{\string~}256 s  \\
+Avalanche C-\/\+Chain  &\texorpdfstring{$\sim$}{\string~}2 000 ms  &4 500  &10–50  &\texorpdfstring{$<$}{<}2 s  \\
+Aptos  &250 ms  &160 000 (peak)  &1 000–3 000  &\texorpdfstring{$\sim$}{\string~}1 s  \\
+NEAR  &1 100 ms  &100 000 (sharded)  &50–200  &\texorpdfstring{$\sim$}{\string~}2 s  \\
+Cosmos Hub  &6 000 ms  &10 000  &\texorpdfstring{$\sim$}{\string~}30  &6 s  \\
+Polkadot  &6 000 ms  &1 000 000 (full set)  &\texorpdfstring{$\sim$}{\string~}100  &\texorpdfstring{$\sim$}{\string~}60 s  \\
+{\bfseries{QRL}}  &60 000 ms  &70  &\texorpdfstring{$\sim$}{\string~}1  &\texorpdfstring{$\sim$}{\string~}600 s  \\
+{\bfseries{QANplatform}}  &3 000 ms  &1 600  &n/\+a (no mainnet)  &\texorpdfstring{$\sim$}{\string~}3 s  \\
+{\bfseries{IOTA (Rebased)}}  &200 ms  &\texorpdfstring{$\sim$}{\string~}1 000  &\texorpdfstring{$\sim$}{\string~}20  &\texorpdfstring{$\sim$}{\string~}5 s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9782}{}\doxysection{\texorpdfstring{2. Architecture}{2. Architecture}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9782}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Chain  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Consensus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}VM  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Sharding  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Layer  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Language  \\
+{\bfseries{Omni\+Bus}}  &Po\+UW + sub-\/blocks  &native  &planned (4)  &L1  &Zig  \\
+Bitcoin  &PoW (SHA-\/256d)  &Script  &no  &L1  &C++  \\
+Ethereum  &PoS (Gasper)  &EVM  &no (blobs only)  &L1  &Go/\+\+Rust/\+\+Java  \\
+MultiversX  &Secure PoS  &WASM  &yes (3+meta)  &L1  &Go  \\
+Solana  &PoH + Tower BFT  &SVM (BPF)  &no  &L1  &Rust  \\
+Sui  &Mysticeti DAG-\/\+BFT  &Move\+VM  &no (object-\/parallel)  &L1  &Rust  \\
+Optimism  &OP Rollup  &EVM  &no  &L2 (Eth)  &Go/\+\+Rust  \\
+Cardano  &Ouroboros Praos  &Plutus (UTxO)  &no (Hydra L2)  &L1  &Haskell  \\
+Polygon PoS  &Tendermint+\+Bor  &EVM  &no  &sidechain  &Go  \\
+Avalanche C  &Snowman  &EVM  &no (subnets)  &L1  &Go  \\
+Aptos  &Aptos\+BFT (Jolteon)  &Move\+VM + Block-\/\+STM  &no  &L1  &Rust  \\
+NEAR  &Doomslug + PoS  &WASM  &yes (6 shards)  &L1  &Rust  \\
+Cosmos Hub  &Comet\+BFT  &Cosm\+Wasm  &no (zones via IBC)  &L1  &Go  \\
+Polkadot  &BABE + GRANDPA  &WASM  &yes (\texorpdfstring{$\sim$}{\string~}50 parachains)  &L0+parachains  &Rust  \\
+QRL  &PoS (post-\/\+Zond)  &EVM  &no  &L1  &Python/\+\+Go  \\
+QANplatform  &PoR (BFT)  &QVM (multi-\/lang)  &no  &L1 (testnet)  &Rust  \\
+IOTA Rebased  &Mysticeti DAG-\/\+BFT  &Move\+VM  &no  &L1  &Rust  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9784}{}\doxysection{\texorpdfstring{3. Crypto}{3. Crypto}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9784}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Chain  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Signature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Hash  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}PQ-\/resistant?  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}PQ scheme  \\
+{\bfseries{Omni\+Bus}}  &secp256k1 ECDSA + liboqs PQ  &SHA-\/256, Blake3  &{\bfseries{YES}} (native)  &ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA-\/256s, ML-\/\+KEM-\/768  \\
+Bitcoin  &secp256k1 ECDSA + Schnorr  &SHA-\/256, RIPEMD-\/160  &no  &—  \\
+Ethereum  &secp256k1 + BLS12-\/381  &Keccak-\/256  &no  &—  \\
+MultiversX  &BLS + Ed25519  &Blake2b, Keccak  &no  &—  \\
+Solana  &Ed25519  &SHA-\/256, Blake3  &no  &—  \\
+Sui  &Ed25519/\+\+ECDSA/\+\+BLS/\+zk\+Login  &Blake2b  &no  &—  \\
+Optimism  &secp256k1 (inherits Eth)  &Keccak-\/256  &no  &—  \\
+Cardano  &Ed25519 + KES + VRF  &Blake2b-\/256  &no  &—  \\
+Polygon PoS  &secp256k1 + BLS  &Keccak-\/256  &no  &—  \\
+Avalanche  &secp256k1 + BLS (Warp)  &Keccak/\+\+SHA-\/256  &no  &—  \\
+Aptos  &Ed25519/\+secp256k1/\+\+BLS  &SHA-\/3, Blake3  &no  &—  \\
+NEAR  &Ed25519, secp256k1  &SHA-\/256  &no  &—  \\
+Cosmos Hub  &secp256k1, Ed25519  &SHA-\/256  &no  &—  \\
+Polkadot  &sr25519 /\+ Ed25519 /\+ ECDSA  &Blake2b, Keccak  &no  &—  \\
+{\bfseries{QRL}}  &XMSS (hash-\/based, RFC 8391)  &SHA-\/256, SHAKE-\/128  &{\bfseries{YES}} (live since 2018)  &XMSS stateful; Dilithium planned (Zond)  \\
+{\bfseries{QANplatform}}  &CRYSTALS-\/\+Dilithium (ML-\/\+DSA)  &SHA-\/3  &{\bfseries{YES}} (testnet)  &ML-\/\+DSA /\+ FIPS 204  \\
+IOTA Rebased  &Ed25519 (current)  &Blake2b  &{\bfseries{NO}} (Winternitz abandoned)  &PQ on roadmap, not live  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9786}{}\doxysection{\texorpdfstring{4. Economics}{4. Economics}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9786}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Chain  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Max supply  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Block reward (current)  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Halving  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Avg fee USD  \\
+{\bfseries{Omni\+Bus}}  &21 M OMNI  &0.\+00833333 OMNI  &every 126 144 000 blocks  &n/\+a  \\
+Bitcoin  &21 M BTC  &3.\+125 BTC  &every 210 000 blocks  &\texorpdfstring{$\sim$}{\string~}\$1.50  \\
+Ethereum  &unlimited (deflationary)  &\texorpdfstring{$\sim$}{\string~}0 net (issuance ≈ burn)  &none  &\texorpdfstring{$\sim$}{\string~}\$2.00  \\
+MultiversX  &31.\+42 M EGLD  &decreasing schedule  &none  &\texorpdfstring{$\sim$}{\string~}\$0.001  \\
+Solana  &unlimited (5→1.5\%)  &inflation + fees  &none  &\texorpdfstring{$\sim$}{\string~}\$0.00025  \\
+Sui  &10 B SUI  &stake + storage fund  &none  &\texorpdfstring{$\sim$}{\string~}\$0.001  \\
+Optimism  &4.\+29 B OP  &sequencer fees only  &none  &\texorpdfstring{$\sim$}{\string~}\$0.05  \\
+Cardano  &45 B ADA  &reserve decay + fees  &none  &\texorpdfstring{$\sim$}{\string~}\$0.15  \\
+Polygon PoS  &10 B POL  &inflation + fees  &none  &\texorpdfstring{$\sim$}{\string~}\$0.02  \\
+Avalanche  &720 M AVAX  &stake + fees (burn)  &none  &\texorpdfstring{$\sim$}{\string~}\$0.05  \\
+Aptos  &unlimited (capped curve)  &\texorpdfstring{$\sim$}{\string~}7\%/\+y stake  &none  &\texorpdfstring{$\sim$}{\string~}\$0.00012  \\
+NEAR  &1 B + 5\%/\+y  &5\% inflation  &none  &\texorpdfstring{$\sim$}{\string~}\$0.0008  \\
+Cosmos Hub  &unlimited (7-\/20\%)  &inflation  &none  &\texorpdfstring{$\sim$}{\string~}\$0.005  \\
+Polkadot  &unlimited (\texorpdfstring{$\sim$}{\string~}10\%)  &stake + treasury  &none  &\texorpdfstring{$\sim$}{\string~}\$0.05  \\
+QRL  &105 M QRL  &decreasing  &smooth decay  &\texorpdfstring{$\sim$}{\string~}\$0.005  \\
+QANplatform  &3.\+33 B QANX (ERC-\/20)  &n/\+a (no mainnet)  &none  &n/\+a  \\
+IOTA  &4.\+6 B IOTA  &validator rewards  &none  &\texorpdfstring{$\sim$}{\string~}\$0.001  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9788}{}\doxysection{\texorpdfstring{5. Networking}{5. Networking}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9788}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Chain  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}P2P protocol  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}P2P port  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}RPC protocol  \\
+{\bfseries{Omni\+Bus}}  &custom TCP (magic "{}\+OMNI"{})  &8333  &JSON-\/\+RPC 2.\+0 (port 8332)  \\
+Bitcoin  &custom TCP  &8333  &JSON-\/\+RPC over HTTP  \\
+Ethereum  &devp2p/\+\+RLPx + libp2p (CL)  &30303  &JSON-\/\+RPC 2.\+0  \\
+MultiversX  &libp2p  &37373  &REST + Web\+Socket  \\
+Solana  &Gulf Stream /\+ QUIC  &8001  &JSON-\/\+RPC + WS  \\
+Sui  &anemo (QUIC)  &8084  &JSON-\/\+RPC + Graph\+QL  \\
+Optimism  &libp2p  &9003  &JSON-\/\+RPC 2.\+0  \\
+Cardano  &Ouroboros networking  &3001  &Ogmios WS /\+ Blockfrost  \\
+Polygon PoS  &devp2p + Tendermint  &30303  &JSON-\/\+RPC 2.\+0  \\
+Avalanche  &TCP (custom)  &9651  &JSON-\/\+RPC 2.\+0  \\
+Aptos  &Aptos\+Net (Noise)  &6180  &REST (Open\+API)  \\
+NEAR  &custom TCP  &24567  &JSON-\/\+RPC 2.\+0  \\
+Cosmos Hub  &Tendermint \doxylink{namespacep2p}{p2p}  &26656  &RPC + g\+RPC + REST  \\
+Polkadot  &libp2p  &30333  &Substrate JSON-\/\+RPC + WS  \\
+QRL  &custom TCP  &19000  &g\+RPC  \\
+QANplatform  &libp2p  &n/\+a  &JSON-\/\+RPC + REST  \\
+IOTA Rebased  &libp2p  &15600  &REST + g\+RPC  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9790}{}\doxysection{\texorpdfstring{6. Ecosystem}{6. Ecosystem}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9790}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Chain  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}TVL USD  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Daily active addr.  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Mainnet  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Audit  \\
+{\bfseries{Omni\+Bus}}  &\$0  &0  &{\bfseries{NONE (testnet only)}}  &none  \\
+Bitcoin  &\texorpdfstring{$\sim$}{\string~}\$6 B (defi)  &\texorpdfstring{$\sim$}{\string~}850 k  &2009  &most-\/reviewed; no formal verif  \\
+Ethereum  &\texorpdfstring{$\sim$}{\string~}\$60 B  &\texorpdfstring{$\sim$}{\string~}450 k  &2015  &spec-\/tested + audits  \\
+MultiversX  &\texorpdfstring{$\sim$}{\string~}\$80 M  &\texorpdfstring{$\sim$}{\string~}25 k  &2020  &Trail of Bits + others  \\
+Solana  &\texorpdfstring{$\sim$}{\string~}\$8 B  &\texorpdfstring{$\sim$}{\string~}1.5 M  &2020  &multiple audits  \\
+Sui  &\texorpdfstring{$\sim$}{\string~}\$1.5 B  &\texorpdfstring{$\sim$}{\string~}400 k  &2023  &Otter\+Sec, Zellic  \\
+Optimism  &\texorpdfstring{$\sim$}{\string~}\$850 M  &\texorpdfstring{$\sim$}{\string~}80 k  &2021  &Sigma Prime, ToB, Spearbit  \\
+Cardano  &\texorpdfstring{$\sim$}{\string~}\$350 M  &\texorpdfstring{$\sim$}{\string~}35 k  &2017  &peer-\/reviewed papers  \\
+Polygon PoS  &\texorpdfstring{$\sim$}{\string~}\$800 M  &\texorpdfstring{$\sim$}{\string~}350 k  &2020  &multiple audits  \\
+Avalanche C  &\texorpdfstring{$\sim$}{\string~}\$1.1 B  &\texorpdfstring{$\sim$}{\string~}60 k  &2020  &ToB, Halborn  \\
+Aptos  &\texorpdfstring{$\sim$}{\string~}\$1.0 B  &\texorpdfstring{$\sim$}{\string~}600 k  &2022  &Move Prover + audits  \\
+NEAR  &\texorpdfstring{$\sim$}{\string~}\$200 M  &\texorpdfstring{$\sim$}{\string~}1.5 M  &2020  &Halborn, ToB  \\
+Cosmos Hub  &\texorpdfstring{$\sim$}{\string~}\$50 M (hub)  &\texorpdfstring{$\sim$}{\string~}8 k  &2019  &Informal Systems  \\
+Polkadot  &\texorpdfstring{$\sim$}{\string~}\$150 M  &\texorpdfstring{$\sim$}{\string~}15 k  &2020  &SR Labs, Halborn, ToB  \\
+QRL  &\texorpdfstring{$\sim$}{\string~}\$0  &\texorpdfstring{$\sim$}{\string~}200  &2018  &X1 Five Bears (XMSS)  \\
+QANplatform  &\$0  &n/\+a  &{\bfseries{NONE (testnet)}}  &internal only  \\
+IOTA Rebased  &\texorpdfstring{$\sim$}{\string~}\$50 M  &\texorpdfstring{$\sim$}{\string~}5 k  &May 2025 (Rebased)  &multiple over years  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9792}{}\doxysection{\texorpdfstring{Summary}{Summary}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9792}
+\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9793}{}\doxysubsection{\texorpdfstring{Stats}{Stats}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9793}
+
+\begin{DoxyItemize}
+\item {\bfseries{17 chains catalogued}} (Omni\+Bus + 6 user-\/requested + 10 recommended).
+\item {\bfseries{PQ-\/resistant chains:\+ 3}} with live PQ crypto (Omni\+Bus, QRL) and 1 with PQ on testnet (QANplatform). IOTA\textquotesingle{}s PQ legacy was abandoned.
+\item {\bfseries{Highest sustained TPS}} observed in production:\+
+\begin{DoxyEnumerate}
+\item {\bfseries{Solana}} \texorpdfstring{$\sim$}{\string~}1 500–3 000 sustained, peaks \texorpdfstring{$\sim$}{\string~}7 000
+\item {\bfseries{Aptos}} \texorpdfstring{$\sim$}{\string~}1 000–3 000 sustained
+\item {\bfseries{Sui}} \texorpdfstring{$\sim$}{\string~}500–1 500 sustained (MultiversX claims 263k peak in stress test but is not sustained.)
+\end{DoxyEnumerate}
+\item {\bfseries{Sub-\/second finality:\+}} Sui, Aptos, Avalanche C-\/\+Chain, Omni\+Bus (design).
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9794}{}\doxysubsection{\texorpdfstring{Honest takes}{Honest takes}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9794}
+
+\begin{DoxyItemize}
+\item {\bfseries{Omni\+Bus}} has best PQ story on paper (4 NIST schemes) but {\bfseries{zero economic security and no mainnet}} — purely a research /\+ dev project at 2025-\/Q1.
+\item {\bfseries{QRL}} has the longest live PQ track record (since 2018) but tiny ecosystem and 2-\/4 KB signatures hurt UX.
+\item {\bfseries{IOTA}} is widely cited as PQ — {\bfseries{this is incorrect post-\/\+Chrysalis}}:\+ current Ed25519 sigs are not PQ. Marketing legacy from Winternitz era.
+\item {\bfseries{Solana}} "{}65k TPS"{} includes vote tx; user-\/facing throughput is \texorpdfstring{$\sim$}{\string~}10x lower but still highest of any L1.
+\item {\bfseries{Polkadot}} "{}1\+M TPS"{} requires the full parachain set fully utilized — observed \texorpdfstring{$<$}{<}100 TPS aggregate in practice.
+\item {\bfseries{MultiversX}} 263k TPS is a stress-\/test peak with idle shards, not real production load.
+\end{DoxyItemize}\hypertarget{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9795}{}\doxysubsection{\texorpdfstring{Files}{Files}}\label{md_test__results_2comparison_201__spec__table_2comparison__table_autotoc_md9795}
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{comparison__table_8md}{comparison\+\_\+table.\+md}} (this file)
+\item {\ttfamily comparison\+\_\+data.\+json} — structured data for dashboard
+\item {\ttfamily \doxylink{sources_8md}{sources.\+md}} — citation list per chain 
+\end{DoxyItemize}

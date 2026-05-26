@@ -1,0 +1,216 @@
+\chapter{Omni\+Bus Blockchain -\/ Test Coverage Report }
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t}{}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t}\index{OmniBus Blockchain -\/ Test Coverage Report@{OmniBus Blockchain -\/ Test Coverage Report}}
+\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9725}%
+\Hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9725}%
+
+
+{\bfseries{Generated:\+}} 2026-\/03-\/30 ~\newline
+ {\bfseries{Total Modules:\+}} 66 ~\newline
+ {\bfseries{Modules with Tests:\+}} 45+ ~\newline
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9727}{}\doxysection{\texorpdfstring{Summary}{Summary}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9727}
+The Omni\+Bus blockchain project has comprehensive test coverage using Zig\textquotesingle{}s built-\/in testing framework. Tests are embedded directly in the source files within {\ttfamily core/\+} directory.\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9728}{}\doxysubsection{\texorpdfstring{How to Run Tests}{How to Run Tests}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9728}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Run\ all\ crypto\ tests}
+\DoxyCodeLine{zig\ build\ test-\/crypto}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ blockchain\ tests\ \ }
+\DoxyCodeLine{zig\ build\ test-\/chain}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ network\ tests}
+\DoxyCodeLine{zig\ build\ test-\/net}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Run\ all\ tests}
+\DoxyCodeLine{zig\ build\ test}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Or\ test\ individual\ modules}
+\DoxyCodeLine{zig\ test\ core/schnorr.zig}
+\DoxyCodeLine{zig\ test\ core/mempool.zig}
+\DoxyCodeLine{zig\ test\ core/sub\_block.zig}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9730}{}\doxysection{\texorpdfstring{Test Coverage by Category}{Test Coverage by Category}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9730}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9731}{}\doxysubsection{\texorpdfstring{🔐 Cryptography (Crypto) -\/ 13 modules}{🔐 Cryptography (Crypto) -\/ 13 modules}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9731}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tests  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coverage  \\
+{\ttfamily crypto.\+zig}  &6  &SHA-\/256, HMAC, AES-\/\+GCM, password validation  \\
+{\ttfamily secp256k1.\+zig}  &8  &Key generation, signing, verification  \\
+{\ttfamily schnorr.\+zig}  &16  &BIP-\/340 Schnorr signatures  \\
+{\ttfamily bls\+\_\+signatures.\+zig}  &16  &BLS12-\/381 signatures, aggregation, threshold  \\
+{\ttfamily pq\+\_\+crypto.\+zig}  &13  &ML-\/\+DSA-\/87, Falcon-\/512, SPHINCS+, ML-\/\+KEM-\/768  \\
+{\ttfamily ripemd160.\+zig}  &4  &RIPEMD-\/160 hashing  \\
+{\ttfamily bip32\+\_\+wallet.\+zig}  &5  &HD wallet derivation  \\
+{\ttfamily key\+\_\+encryption.\+zig}  &4  &Key encryption/\+decryption  \\
+{\ttfamily multisig.\+zig}  &6  &Multi-\/signature schemes  \\
+{\bfseries{Subtotal}}  &{\bfseries{78+}}  &\\
+\end{DoxyTable}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9732}{}\doxysubsection{\texorpdfstring{⛓️ Blockchain Core -\/ 10 modules}{⛓️ Blockchain Core -\/ 10 modules}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9732}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tests  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coverage  \\
+{\ttfamily blockchain.\+zig}  &72  &Chain operations, mining, validation  \\
+{\ttfamily block.\+zig}  &12  &Block creation, hashing, verification  \\
+{\ttfamily genesis.\+zig}  &78  &Genesis block initialization  \\
+{\ttfamily transaction.\+zig}  &33  &TX validation, signing, serialization  \\
+{\ttfamily mempool.\+zig}  &42  &FIFO mempool, TX management  \\
+{\ttfamily consensus.\+zig}  &7  &PoS consensus, voting, quorum  \\
+{\ttfamily finality.\+zig}  &8  &Casper FFG finality gadget  \\
+{\ttfamily staking.\+zig}  &11  &Validator staking, rewards, slashing  \\
+{\ttfamily governance.\+zig}  &5  &Proposal creation, voting  \\
+{\bfseries{Subtotal}}  &{\bfseries{268+}}  &\\
+\end{DoxyTable}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9733}{}\doxysubsection{\texorpdfstring{🌐 Networking -\/ 8 modules}{🌐 Networking -\/ 8 modules}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9733}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tests  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coverage  \\
+{\ttfamily p2p.\+zig}  &6  &Peer-\/to-\/peer communication  \\
+{\ttfamily sync.\+zig}  &4  &Chain synchronization  \\
+{\ttfamily network.\+zig}  &5  &Network layer  \\
+{\ttfamily bootstrap.\+zig}  &3  &Node bootstrap  \\
+{\ttfamily rpc\+\_\+server.\+zig}  &4  &RPC endpoints  \\
+{\ttfamily kademlia\+\_\+dht.\+zig}  &4  &Distributed hash table  \\
+{\bfseries{Subtotal}}  &{\bfseries{26+}}  &\\
+\end{DoxyTable}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9734}{}\doxysubsection{\texorpdfstring{📦 Sharding -\/ 4 modules}{📦 Sharding -\/ 4 modules}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9734}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tests  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coverage  \\
+{\ttfamily sub\+\_\+block.\+zig}  &40  &Sub-\/blocks (0.\+1s), Key\+Block aggregation  \\
+{\ttfamily shard\+\_\+config.\+zig}  &4  &Shard configuration  \\
+{\ttfamily shard\+\_\+coordinator.\+zig}  &5  &Cross-\/shard routing  \\
+{\ttfamily blockchain\+\_\+v2.\+zig}  &6  &Sharded blockchain  \\
+{\bfseries{Subtotal}}  &{\bfseries{55+}}  &\\
+\end{DoxyTable}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9735}{}\doxysubsection{\texorpdfstring{💾 Storage -\/ 7 modules}{💾 Storage -\/ 7 modules}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9735}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tests  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coverage  \\
+{\ttfamily storage.\+zig}  &6  &Key-\/value storage  \\
+{\ttfamily database.\+zig}  &5  &Database operations  \\
+{\ttfamily state\+\_\+trie.\+zig}  &7  &Merkle Patricia Trie  \\
+{\ttfamily binary\+\_\+codec.\+zig}  &8  &Binary encoding/\+decoding  \\
+{\ttfamily archive\+\_\+manager.\+zig}  &4  &Block archiving  \\
+{\ttfamily prune\+\_\+config.\+zig}  &5  &State pruning  \\
+{\bfseries{Subtotal}}  &{\bfseries{35+}}  &\\
+\end{DoxyTable}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9736}{}\doxysubsection{\texorpdfstring{💡 Light Client -\/ 4 modules}{💡 Light Client -\/ 4 modules}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9736}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tests  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coverage  \\
+{\ttfamily light\+\_\+client.\+zig}  &4  &Light client verification  \\
+{\ttfamily light\+\_\+miner.\+zig}  &5  &Light miner operations  \\
+{\ttfamily mining\+\_\+pool.\+zig}  &6  &Pool coordination  \\
+{\bfseries{Subtotal}}  &{\bfseries{15+}}  &\\
+\end{DoxyTable}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9737}{}\doxysubsection{\texorpdfstring{🔒 Security \& Utils -\/ 10 modules}{🔒 Security \& Utils -\/ 10 modules}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9737}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Module  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tests  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coverage  \\
+{\ttfamily hex\+\_\+utils.\+zig}  &8  &Hex encoding/\+decoding  \\
+{\ttfamily guardian.\+zig}  &3  &Security monitoring  \\
+{\ttfamily peer\+\_\+scoring.\+zig}  &4  &Peer reputation  \\
+{\ttfamily chain\+\_\+config.\+zig}  &4  &Chain parameters  \\
+{\ttfamily dns\+\_\+registry.\+zig}  &3  &DNS for peers  \\
+{\bfseries{Subtotal}}  &{\bfseries{22+}}  &\\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9739}{}\doxysection{\texorpdfstring{Test Files in {\ttfamily test/\+} Directory}{Test Files in {\ttfamily test/\+} Directory}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9739}
+Integration tests that combine multiple modules:\+
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Purpose  \\
+{\ttfamily blockchain\+\_\+test.\+zig}  &Blockchain integration tests  \\
+{\ttfamily phase2\+\_\+crypto\+\_\+test.\+zig}  &Phase 2 crypto + wallet tests  \\
+{\ttfamily crypto\+\_\+advanced\+\_\+test.\+zig}  &Advanced crypto (BLS, Schnorr, PQ)  \\
+{\ttfamily mempool\+\_\+test.\+zig}  &Mempool + transaction tests  \\
+{\ttfamily sharding\+\_\+test.\+zig}  &Sharding + sub-\/block tests  \\
+{\ttfamily consensus\+\_\+test.\+zig}  &Consensus + staking + governance  \\
+{\ttfamily storage\+\_\+test.\+zig}  &Storage + database + archive  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9741}{}\doxysection{\texorpdfstring{Estimated Total Test Coverage}{Estimated Total Test Coverage}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9741}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Category\ \ \ \ \ \ \ \ \ \ \ \ \ \ Tests\ \ \ \ Status}
+\DoxyCodeLine{─────────────────────────────────────────}
+\DoxyCodeLine{Cryptography\ \ \ \ \ \ \ \ \ \ 78+\ \ \ \ \ \ ✅\ Excellent}
+\DoxyCodeLine{Blockchain\ Core\ \ \ \ \ \ \ 268+\ \ \ \ \ ✅\ Excellent\ \ }
+\DoxyCodeLine{Networking\ \ \ \ \ \ \ \ \ \ \ \ 26+\ \ \ \ \ \ ✅\ Good}
+\DoxyCodeLine{Sharding\ \ \ \ \ \ \ \ \ \ \ \ \ \ 55+\ \ \ \ \ \ ✅\ Excellent}
+\DoxyCodeLine{Storage\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 35+\ \ \ \ \ \ ✅\ Good}
+\DoxyCodeLine{Light\ Client\ \ \ \ \ \ \ \ \ \ 15+\ \ \ \ \ \ ✅\ Good}
+\DoxyCodeLine{Security\ \&\ Utils\ \ \ \ \ \ 22+\ \ \ \ \ \ ✅\ Good}
+\DoxyCodeLine{─────────────────────────────────────────}
+\DoxyCodeLine{TOTAL\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 500+\ \ \ \ \ ✅\ Excellent}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9743}{}\doxysection{\texorpdfstring{Running Test Suite}{Running Test Suite}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9743}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9744}{}\doxysubsection{\texorpdfstring{Quick Test (select modules)}{Quick Test (select modules)}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9744}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Test\ core\ crypto}
+\DoxyCodeLine{zig\ test\ core/pq\_crypto.zig}
+\DoxyCodeLine{zig\ test\ core/schnorr.zig}
+\DoxyCodeLine{zig\ test\ core/bls\_signatures.zig}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Test\ core\ blockchain}
+\DoxyCodeLine{zig\ test\ core/blockchain.zig}
+\DoxyCodeLine{zig\ test\ core/mempool.zig}
+\DoxyCodeLine{zig\ test\ core/sub\_block.zig}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Test\ consensus}
+\DoxyCodeLine{zig\ test\ core/consensus.zig}
+\DoxyCodeLine{zig\ test\ core/staking.zig}
+\DoxyCodeLine{zig\ test\ core/finality.zig}
+
+\end{DoxyCode}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9745}{}\doxysubsection{\texorpdfstring{Full Test Suite}{Full Test Suite}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9745}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Using\ build\ system}
+\DoxyCodeLine{zig\ build\ test-\/crypto}
+\DoxyCodeLine{zig\ build\ test-\/chain}
+\DoxyCodeLine{zig\ build\ test-\/net}
+\DoxyCodeLine{zig\ build\ test-\/shard}
+\DoxyCodeLine{zig\ build\ test-\/storage}
+\DoxyCodeLine{zig\ build\ test-\/light}
+\DoxyCodeLine{zig\ build\ test-\/pq}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9747}{}\doxysection{\texorpdfstring{Notes}{Notes}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9747}
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{All tests pass}} -\/ No failing tests detected
+\item ✅ {\bfseries{Embedded tests}} -\/ Tests are in {\ttfamily core/\+\texorpdfstring{$\ast$}{*}.\doxylink{namespacezig}{zig}} using {\ttfamily \doxylink{namespacetest}{test} "{}name"{} \{ ... \}}
+\item ✅ {\bfseries{Offline tests}} -\/ Tests don\textquotesingle{}t require running blockchain node
+\item ✅ {\bfseries{Fast execution}} -\/ Most tests complete in \texorpdfstring{$<$}{<}1 second per module
+\item ✅ \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Deterministic\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} -\/ Tests use fixed seeds where applicable
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9749}{}\doxysection{\texorpdfstring{Future Improvements}{Future Improvements}}\label{md_test_2_t_e_s_t___c_o_v_e_r_a_g_e___r_e_p_o_r_t_autotoc_md9749}
+
+\begin{DoxyEnumerate}
+\item Add integration tests for P2P networking (requires mock network)
+\item Add benchmark tests for crypto operations
+\item Add fuzzing tests for transaction parsing
+\item Add property-\/based tests for consensus 
+\end{DoxyEnumerate}

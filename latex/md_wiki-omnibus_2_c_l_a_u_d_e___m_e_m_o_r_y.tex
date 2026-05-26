@@ -1,0 +1,56 @@
+\chapter{Omni\+Bus Block\+Chain -\/ Work Memory }
+\hypertarget{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y}{}\label{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y}\index{OmniBus BlockChain -\/ Work Memory@{OmniBus BlockChain -\/ Work Memory}}
+\label{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11171}%
+\Hypertarget{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11171}%
+\hypertarget{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11172}{}\doxysection{\texorpdfstring{Key Fixes Applied}{Key Fixes Applied}}\label{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11172}
+\hypertarget{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11173}{}\doxysubsection{\texorpdfstring{1. Miner Manager Script (miner-\/manager.\+sh)}{1. Miner Manager Script (miner-\/manager.\+sh)}}\label{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11173}
+{\bfseries{Problem}}:\+ Script was STOPPING all existing miners before starting new ones. When adding miners in batches, each batch would replace the previous ones instead of adding to them.
+
+{\bfseries{Fix}}:\+ Changed lines 41-\/61 to make miners add INCREMENTALLY:\+
+\begin{DoxyItemize}
+\item Track how many miners are currently running:\+ {\ttfamily local running=\$(get\+\_\+running\+\_\+count)}
+\item Start new miners after existing ones:\+ {\ttfamily local start\+\_\+id=\$((10 + running))}
+\item Don\textquotesingle{}t stop existing miners -\/ just add more
+\end{DoxyItemize}
+
+{\bfseries{Result}}:\+ {\ttfamily bash add-\/miners-\/staggered.\+sh 100 10 5} now correctly adds 100 miners instead of replacing them.\hypertarget{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11174}{}\doxysubsection{\texorpdfstring{2. Run Script (run.\+sh)}{2. Run Script (run.\+sh)}}\label{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11174}
+{\bfseries{Problem}}:\+ Only started extra miners, genesis miners (0-\/9) were never initialized.
+
+{\bfseries{Fix}}:\+ Added genesis miner startup before extra miners (lines 89-\/101):\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Start\ Genesis\ Miners\ (0-\/9)}
+\DoxyCodeLine{for\ i\ in\ \$(seq\ 0\ 9);\ do}
+\DoxyCodeLine{\ \ node\ ./miner-\/client.js\ "{}miner-\/\$i"{}\ "{}Miner-\/\$i"{}\ "{}ob\_omni\_miner\$\{i\}xxx"{}\ 1000\ >\ logs/miner-\/\$\{i\}.log\ 2>\&1\ \&}
+\DoxyCodeLine{\ \ echo\ \$!\ >>\ .miners\_pids}
+\DoxyCodeLine{\ \ sleep\ 0.02}
+\DoxyCodeLine{done}
+
+\end{DoxyCode}
+
+
+{\bfseries{Result}}:\+ System now properly starts 10 genesis miners + N extra miners.\hypertarget{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11175}{}\doxysubsection{\texorpdfstring{3. Port Conflicts}{3. Port Conflicts}}\label{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11175}
+{\bfseries{Problem}}:\+ Old RPC servers lingering on port 8332 cause new server startup to fail with EADDRINUSE.
+
+{\bfseries{Aggressive Cleanup}}:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{ps\ aux\ |\ grep\ node\ |\ grep\ -\/v\ grep\ |\ awk\ '\{print\ \$2\}'\ |\ xargs\ -\/r\ kill\ -\/9}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11176}{}\doxysection{\texorpdfstring{System Configuration}{System Configuration}}\label{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11176}
+
+\begin{DoxyItemize}
+\item {\bfseries{Genesis Miners}}:\+ miner-\/0 through miner-\/9 (stored in {\ttfamily .miners\+\_\+pids})
+\item {\bfseries{Extra Miners}}:\+ miner-\/10+ (stored in {\ttfamily .extra\+\_\+miners\+\_\+pids})
+\item {\bfseries{Max Total}}:\+ 210 miners (10 genesis + 200 extra)
+\item {\bfseries{RPC Port}}:\+ 8332
+\item {\bfseries{Frontend Port}}:\+ 8888
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11177}{}\doxysection{\texorpdfstring{Quick Startup}{Quick Startup}}\label{md_wiki-omnibus_2_c_l_a_u_d_e___m_e_m_o_r_y_autotoc_md11177}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{bash\ run.sh\ 50\ \ \ \ \ \ \ \ \ \ \#\ Start\ with\ 50\ extra\ miners\ (+\ 10\ genesis\ =\ 60\ total)}
+\DoxyCodeLine{bash\ add-\/miners-\/staggered.sh\ 100\ 10\ 5\ \ \#\ Add\ 100\ miners\ in\ batches}
+\DoxyCodeLine{bash\ run.sh\ status\ \ \ \ \ \ \#\ Check\ active\ miner\ count}
+\DoxyCodeLine{bash\ run.sh\ stop\ \ \ \ \ \ \ \ \#\ Stop\ all}
+
+\end{DoxyCode}
+ 

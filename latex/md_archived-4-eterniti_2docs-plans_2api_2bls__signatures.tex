@@ -1,0 +1,382 @@
+\chapter{Module:\+ {\ttfamily bls\+\_\+signatures} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures}{}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures}\index{Module: $<$tt$>$bls\_signatures$<$/tt$>$@{Module: $<$tt$>$bls\_signatures$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1045}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1045}%
+
+
+\begin{quote}
+BLS threshold signatures (t-\/of-\/n) — aggregate multiple signatures into one, verify against aggregate public key, used for consensus efficiency. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+bls\+\_\+signatures.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 294 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 11 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1047}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1047}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1048}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1048}
+
+\begin{DoxyItemize}
+\item \`{}\+Bls\+Public\+Key\`{}{\ttfamily Bls\+Public\+Key}
+\end{DoxyItemize}— Data structure for bls public key. Fields include:\+ bytes.
+\begin{DoxyItemize}
+\item \`{}\+Bls\+Secret\+Key\`{}{\ttfamily Bls\+Secret\+Key}
+\end{DoxyItemize}— Data structure for bls secret key. Fields include:\+ bytes.
+\begin{DoxyItemize}
+\item \`{}\+Bls\+Signature\`{}{\ttfamily Bls\+Signature}
+\end{DoxyItemize}— Data structure for bls signature. Fields include:\+ bytes.
+\begin{DoxyItemize}
+\item \`{}\+Bls\+Threshold\`{}{\ttfamily Bls\+Threshold}
+\end{DoxyItemize}— BLS Threshold Signature (t-\/of-\/n) Requires t out of n partial signatures to recon...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1049}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1049}
+
+\begin{DoxyItemize}
+\item 3 constants defined3 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1050}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1050}
+
+\begin{DoxyItemize}
+\item \`{}from\+Secret\+Key()\`{}{\ttfamily from\+Secret\+Key()}
+\end{DoxyItemize}— Performs the from secret key operation on the bls\+\_\+signatures module.
+\begin{DoxyItemize}
+\item \doxylink{namespacegenerate}{\`{}generate()\`{}}{\ttfamily \doxylink{namespacegenerate}{generate()}}
+\end{DoxyItemize}— Performs the generate operation on the bls\+\_\+signatures module.
+\begin{DoxyItemize}
+\item \`{}to\+Bytes()\`{}{\ttfamily to\+Bytes()}
+\end{DoxyItemize}— Serialize to bytes
+\begin{DoxyItemize}
+\item \`{}bls\+Sign()\`{}{\ttfamily bls\+Sign()}
+\end{DoxyItemize}— Sign a message with BLS secret key sig = H(m)\texorpdfstring{$^\wedge$}{\string^}sk (BLS12-\/381 pairing-\/ba...
+\begin{DoxyItemize}
+\item \`{}bls\+Verify()\`{}{\ttfamily bls\+Verify()}
+\end{DoxyItemize}— Verify a BLS signature e(sig, G) == e(\+H(m), pk) (pairing check)
+\begin{DoxyItemize}
+\item \`{}bls\+Aggregate()\`{}{\ttfamily bls\+Aggregate()}
+\end{DoxyItemize}— Aggregate multiple BLS signatures into one agg\+\_\+sig = sig\+\_\+1 + sig\+\_\+2 + ....
+\begin{DoxyItemize}
+\item \`{}bls\+Aggregate\+Keys()\`{}{\ttfamily bls\+Aggregate\+Keys()}
+\end{DoxyItemize}— Aggregate multiple BLS public keys
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Partial()\`{}{\ttfamily add\+Partial()}
+\end{DoxyItemize}— Add a partial signature
+\begin{DoxyItemize}
+\item \`{}is\+Threshold\+Met()\`{}{\ttfamily is\+Threshold\+Met()}
+\end{DoxyItemize}— Check if threshold is met
+\begin{DoxyItemize}
+\item \`{}reconstruct()\`{}{\ttfamily reconstruct()}
+\end{DoxyItemize}— Reconstruct full signature from partials (Lagrange interpolation)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1052}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1052}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1053}{}\doxysubsection{\texorpdfstring{{\ttfamily Bls\+Public\+Key}}{{\ttfamily Bls\+Public\+Key}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1053}
+Data structure for bls public key. Fields include:\+ bytes.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bytes}  &{\ttfamily \+[BLS\+\_\+\+PUBKEY\+\_\+\+SIZE]\+u8}  &Bytes  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 31}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1055}{}\doxysubsection{\texorpdfstring{{\ttfamily Bls\+Secret\+Key}}{{\ttfamily Bls\+Secret\+Key}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1055}
+Data structure for bls secret key. Fields include:\+ bytes.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bytes}  &{\ttfamily \+[BLS\+\_\+\+SECKEY\+\_\+\+SIZE]\+u8}  &Bytes  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 46}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1057}{}\doxysubsection{\texorpdfstring{{\ttfamily Bls\+Signature}}{{\ttfamily Bls\+Signature}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1057}
+Data structure for bls signature. Fields include:\+ bytes.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily bytes}  &{\ttfamily \+[BLS\+\_\+\+SIG\+\_\+\+SIZE]\+u8}  &Bytes  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 56}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1059}{}\doxysubsection{\texorpdfstring{{\ttfamily Bls\+Threshold}}{{\ttfamily Bls\+Threshold}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1059}
+BLS Threshold Signature (t-\/of-\/n) Requires t out of n partial signatures to reconstruct full signature
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily threshold}  &{\ttfamily u8}  &Threshold  \\
+{\ttfamily total}  &{\ttfamily u8}  &Total  \\
+{\ttfamily partial\+\_\+sigs}  &{\ttfamily \+[128]\+Bls\+Signature}  &Partial\+\_\+sigs  \\
+{\ttfamily partial\+\_\+count}  &{\ttfamily u8}  &Partial\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 154}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1061}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1061}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily BLS\+\_\+\+PUBKEY\+\_\+\+SIZE}  &{\ttfamily usize = 48}  &B l s\+\_\+ p u b k e y\+\_\+ s i z e  \\
+{\ttfamily BLS\+\_\+\+SIG\+\_\+\+SIZE}  &{\ttfamily usize = 96}  &B l s\+\_\+ s i g\+\_\+ s i z e  \\
+{\ttfamily BLS\+\_\+\+SECKEY\+\_\+\+SIZE}  &{\ttfamily usize = 32}  &B l s\+\_\+ s e c k e y\+\_\+ s i z e  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1063}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1063}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1064}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Secret\+Key()}}{{\ttfamily from\+Secret\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1064}
+Performs the from secret key operation on the bls\+\_\+signatures module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromSecretKey(secret:\ BlsSecretKey)\ BlsPublicKey\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily secret}  &{\ttfamily Bls\+Secret\+Key}  &Secret  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bls\+Public\+Key}
+
+{\itshape Defined at line 34}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1066}{}\doxysubsection{\texorpdfstring{{\ttfamily generate()}}{{\ttfamily generate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1066}
+Performs the generate operation on the bls\+\_\+signatures module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generate()\ BlsSecretKey\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bls\+Secret\+Key}
+
+{\itshape Defined at line 49}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1068}{}\doxysubsection{\texorpdfstring{{\ttfamily to\+Bytes()}}{{\ttfamily to\+Bytes()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1068}
+Serialize to bytes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ toBytes(self:\ *const\ BlsSignature)\ [BLS\_SIG\_SIZE]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bls\+Signature}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[BLS\+\_\+\+SIG\+\_\+\+SIZE]\+u8}
+
+{\itshape Defined at line 60}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1070}{}\doxysubsection{\texorpdfstring{{\ttfamily bls\+Sign()}}{{\ttfamily bls\+Sign()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1070}
+Sign a message with BLS secret key sig = H(m)\texorpdfstring{$^\wedge$}{\string^}sk (BLS12-\/381 pairing-\/based)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ blsSign(secret:\ BlsSecretKey,\ message:\ []const\ u8)\ BlsSignature\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily secret}  &{\ttfamily Bls\+Secret\+Key}  &Secret  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bls\+Signature}
+
+{\itshape Defined at line 67}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1072}{}\doxysubsection{\texorpdfstring{{\ttfamily bls\+Verify()}}{{\ttfamily bls\+Verify()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1072}
+Verify a BLS signature e(sig, G) == e(\+H(m), pk) (pairing check)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ blsVerify(pubkey:\ BlsPublicKey,\ message:\ []const\ u8,\ sig:\ BlsSignature)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily pubkey}  &{\ttfamily Bls\+Public\+Key}  &Pubkey  \\
+{\ttfamily message}  &{\ttfamily \+[]\+const u8}  &Message  \\
+{\ttfamily sig}  &{\ttfamily Bls\+Signature}  &Sig  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 92}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1074}{}\doxysubsection{\texorpdfstring{{\ttfamily bls\+Aggregate()}}{{\ttfamily bls\+Aggregate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1074}
+Aggregate multiple BLS signatures into one agg\+\_\+sig = sig\+\_\+1 + sig\+\_\+2 + ... + sig\+\_\+n (EC point addition) Verification:\+ e(agg\+\_\+sig, G) == e(H(m), pk\+\_\+1 + pk\+\_\+2 + ... + pk\+\_\+n)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ blsAggregate(signatures:\ []const\ BlsSignature)\ BlsSignature\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily signatures}  &{\ttfamily \+[]\+const Bls\+Signature}  &Signatures  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bls\+Signature}
+
+{\itshape Defined at line 117}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1076}{}\doxysubsection{\texorpdfstring{{\ttfamily bls\+Aggregate\+Keys()}}{{\ttfamily bls\+Aggregate\+Keys()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1076}
+Aggregate multiple BLS public keys
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ blsAggregateKeys(pubkeys:\ []const\ BlsPublicKey)\ BlsPublicKey\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily pubkeys}  &{\ttfamily \+[]\+const Bls\+Public\+Key}  &Pubkeys  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bls\+Public\+Key}
+
+{\itshape Defined at line 131}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1078}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1078}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(threshold:\ u8,\ total:\ u8)\ BlsThreshold\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily threshold}  &{\ttfamily u8}  &Threshold  \\
+{\ttfamily total}  &{\ttfamily u8}  &Total  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bls\+Threshold}
+
+{\itshape Defined at line 160}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1080}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Partial()}}{{\ttfamily add\+Partial()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1080}
+Add a partial signature
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addPartial(self:\ *BlsThreshold,\ sig:\ BlsSignature)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bls\+Threshold}  &The instance  \\
+{\ttfamily sig}  &{\ttfamily Bls\+Signature}  &Sig  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 170}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1082}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Threshold\+Met()}}{{\ttfamily is\+Threshold\+Met()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1082}
+Check if threshold is met
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isThresholdMet(self:\ *const\ BlsThreshold)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bls\+Threshold}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 177}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1084}{}\doxysubsection{\texorpdfstring{{\ttfamily reconstruct()}}{{\ttfamily reconstruct()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bls__signatures_autotoc_md1084}
+Reconstruct full signature from partials (Lagrange interpolation)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ reconstruct(self:\ *const\ BlsThreshold)\ !BlsSignature\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bls\+Threshold}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Bls\+Signature}
+
+{\itshape Defined at line 182}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

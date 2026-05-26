@@ -4,9 +4,9 @@ import {
   blockchainReducer,
   initialState,
 } from "./useBlockchainStore";
-import OmniBusRpcClient, { getActiveChain, wsUrlFor } from "../api/rpc-client";
+import { rpc, getActiveChain, wsUrlFor } from "../api/rpc-client";
 import { publish as wsBusPublish } from "../api/ws-bus";
-import type { WsEvent, BlockData, WsOraclePriceEvent, WsOrderbookUpdateEvent, WsNewTradeEvent } from "../types";
+import type { WsEvent, BlockData, WsOraclePriceEvent, WsOrderbookUpdateEvent, WsNewTradeEvent, WsIbdProgressEvent, WsPeerConnectEvent, WsPeerDisconnectEvent } from "../types";
 
 // On HTTP: connects directly to ws://hostname:{8334|18334|28334}.
 // On HTTPS: routes via wss://host/ws-{chain} (Caddy proxy).
@@ -19,7 +19,6 @@ const POLL_INTERVAL_MS = 10000;
 const MINER_REFRESH_MS = 30000; // 30s — reduce load with many miners
 
 // rpc-client auto-picks /api-{chain} from localStorage when no arg given.
-const rpc = new OmniBusRpcClient();
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(blockchainReducer, initialState);
@@ -36,7 +35,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         await Promise.all([
           rpc.getBalance().catch(() => null),
           rpc.getMempoolStats().catch(() => null),
-          rpc.request_raw("getminerstats").catch(() => null),
+          rpc.getMinerStats().catch(() => null),
           rpc.getNetworkInfo().catch(() => null),
         ]);
 
@@ -76,6 +75,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           miners: minerStats?.miners || [],
           networkInfo: networkInfo || null,
           recentBlocks: blocks,
+          lastBlockTimestamp: blocks[0]?.timestamp ?? null,
           difficulty: networkInfo?.difficulty || 4,
           isMining: (blocks.length > 1) || (minerStats?.totalMiners > 0),
         },
@@ -152,6 +152,15 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             case "oracle_price":
               dispatch({ type: "WS_ORACLE_PRICE", payload: data as WsOraclePriceEvent });
               break;
+            case "ibd_progress":
+              dispatch({ type: "WS_IBD_PROGRESS", payload: data as WsIbdProgressEvent });
+              break;
+            case "peer_connect":
+              dispatch({ type: "WS_PEER_CONNECT", payload: data as WsPeerConnectEvent });
+              break;
+            case "peer_disconnect":
+              dispatch({ type: "WS_PEER_DISCONNECT", payload: data as WsPeerDisconnectEvent });
+              break;
             case "heartbeat":
               break;
           }
@@ -216,7 +225,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     minerTimer.current = window.setInterval(async () => {
       try {
         const [minerStats, peers, networkInfo, balanceData] = await Promise.all([
-          rpc.request_raw("getminerstats").catch(() => null),
+          rpc.getMinerStats().catch(() => null),
           rpc.getPeers().catch(() => null),
           rpc.getNetworkInfo().catch(() => null),
           rpc.getBalance().catch(() => null),

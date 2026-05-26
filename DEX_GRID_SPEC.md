@@ -24,19 +24,31 @@ Oracle-ul nu execută trades — doar informează grid-ul la ce preț să active
 
 | pair_id | Pereche | Maker asset | Maker chain | Taker asset | Taker chains |
 |---------|---------|-------------|-------------|-------------|--------------|
-| 0 | OMNI/USDC | OMNI | OmniBus native | USDC | Base Sepolia, Sepolia |
-| 1 | BTC/USDC | BTC | Bitcoin (viitor) | USDC | Base Sepolia, Sepolia |
-| 2 | LCX/USDC | LCX | LCX Liberty | USDC | Base Sepolia, Sepolia |
-| 3 | ETH/USDC | ETH | Sepolia, Base | USDC | Base Sepolia, Sepolia |
-| 4 | OMNI/BTC | OMNI | OmniBus native | BTC | Bitcoin (viitor) |
-| 5 | OMNI/LCX | OMNI | OmniBus native | LCX | LCX Liberty |
-| 6 | OMNI/ETH | OMNI | OmniBus native | ETH | Sepolia, Base Sepolia |
+| 0 | OMNI/USDC | OMNI | OmniBus native | USDC | Sepolia, Base Sepolia |
+| 1 | OMNI/EURC | OMNI | OmniBus native | EURC | Sepolia, Base Sepolia |
+| 2 | LCX/USDC | LCX | LCX Liberty | USDC | (rezervat) |
+| 3 | ETH/USDC | ETH | Sepolia, Base | USDC | (rezervat) |
+| 4 | OMNI/BTC | OMNI | OmniBus native | BTC | (rezervat) |
+| 5 | OMNI/LCX | OMNI | OmniBus native | LCX | (rezervat) |
+| 6 | OMNI/ETH | OMNI | OmniBus native | ETH | Sepolia, Base, Arb, OP, Minato, Liberty |
+| 7 | OMNI/LINK | OMNI | OmniBus native | LINK | Sepolia, Base, Arb, OP |
 
-**Contracte HTLC deployate:**
-- Sepolia: `0x270D74dDAccd7a4ABf668DA6F9b238c042353739`
-- Base Sepolia: `0x8396666C7345D5AFA4BBcd2Dcea3B6C8B9096eB6`
-- LCX Liberty: `0xa4ad3f9bA14500F6F1d991b0D8F897E0E8eDEfFb`
-- OmniBus: nativ via `htlc_init` RPC (nu smart contract)
+> **Update 2026-05-17:** flow real e Hyperliquid-style escrow (single
+> `settle()` call de la operator), NU HTLC cu preimage. Vezi
+> [`DEX_STATUS_2026-05-17.md`](DEX_STATUS_2026-05-17.md) §4.
+
+**Contracte OmnibusDEX deployate (operator unic `0xA662...46A6`):**
+- Sepolia 11155111: `0xC21fD92e5f568a7981d16b9008E3C190842818aE`
+- Base Sepolia 84532: `0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB`
+- Arb Sepolia 421614: `0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB`
+- OP Sepolia 11155420: `0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB`
+- Soneium Minato 1946: `0xAEE1B7dC7a010b6C6D6097BD7d9dDf227aF719EB`
+- LCX Liberty 76847801: `0xE4a3965C4B5205D28259D1CC82fD54060B0bCd19`
+
+Sursă autoritativă: [`evm/deployed_addresses.json`](evm/deployed_addresses.json).
+
+**Contracte HTLC (legacy, doar pt ETH cross-chain experimental):**
+- Sepolia: `0xC95cAED3179B8D2899acAC193411CC65759cEC81` (`OmnibusHTLC`)
 
 ---
 

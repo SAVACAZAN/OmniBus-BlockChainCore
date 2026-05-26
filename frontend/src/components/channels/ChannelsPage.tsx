@@ -16,11 +16,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import {
   Zap,
   RefreshCw,
-  Copy,
-  Check,
   ArrowRight,
   ArrowLeft,
   AlertTriangle,
@@ -30,25 +30,30 @@ import {
   Clock,
 } from "lucide-react";
 import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { CopyButton } from "../common/CopyButton";
+import { satToOmni, SAT_PER_OMNI, midTrunc, fmtInt } from "../../utils/fmt";
+import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 
-const rpc = new OmniBusRpcClient();
 
 // ── SAT / OMNI helpers ──────────────────────────────────────────────────────
 
-const SAT = 1_000_000_000;
-const toOMNI = (sat: number) => (sat / SAT).toFixed(8);
-const toSAT = (omni: number) => Math.round(omni * SAT);
+const toOMNI = (sat: number) => satToOmni(sat, 8);
+const toSAT = (omni: number) => Math.round(omni * SAT_PER_OMNI);
 
-const intFmt = new Intl.NumberFormat("en-US");
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type ChannelState = "open" | "closing" | "settled" | "disputed";
 type SubTab = "overview" | "open" | "pay" | "close";
+
+const CHANNEL_TABS: { id: SubTab; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "open",     label: "Open Channel" },
+  { id: "pay",      label: "Pay" },
+  { id: "close",    label: "Close" },
+];
 
 interface Channel {
   channel_id: string;    // 64-char hex
@@ -98,16 +103,6 @@ interface CloseChannelResp {
 
 // ── Signing ──────────────────────────────────────────────────────────────────
 
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  if (privKeyHex.startsWith("0x")) privKeyHex = privKeyHex.slice(2);
-  const priv = hexToBytes(privKeyHex);
-  const msgBytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(msgBytes));
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
-
 function signChannelPay(args: {
   privateKeyHex: string;
   channelId: string;
@@ -136,27 +131,21 @@ function getPubkeyFromPrivkey(privKeyHex: string): string {
 
 // ── Format helpers ────────────────────────────────────────────────────────────
 
-function shortId(id: string): string {
-  if (id.length <= 14) return id;
-  return `${id.slice(0, 8)}…${id.slice(-4)}`;
-}
-
 function shortPubkey(pk: string): string {
   return pk.length > 8 ? pk.slice(0, 8) : pk;
 }
 
 // ── State badge ───────────────────────────────────────────────────────────────
 
+const STATE_CLS: Record<ChannelState, string> = {
+  open:     "bg-green-500/20 text-green-400 border-green-500/40",
+  closing:  "bg-yellow-500/20 text-yellow-400 border-yellow-500/40",
+  settled:  "bg-gray-500/20 text-gray-400 border-gray-500/40",
+  disputed: "bg-red-500/20 text-red-400 border-red-500/40",
+};
+
 function StateBadge({ state }: { state: ChannelState }) {
-  const cls = (() => {
-    switch (state) {
-      case "open":     return "bg-green-500/20 text-green-400 border-green-500/40";
-      case "closing":  return "bg-yellow-500/20 text-yellow-400 border-yellow-500/40";
-      case "settled":  return "bg-gray-500/20 text-gray-400 border-gray-500/40";
-      case "disputed": return "bg-red-500/20 text-red-400 border-red-500/40";
-      default:         return "bg-gray-500/20 text-gray-400 border-gray-500/40";
-    }
-  })();
+  const cls = STATE_CLS[state] ?? "bg-gray-500/20 text-gray-400 border-gray-500/40";
   return (
     <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-medium ${cls}`}>
       {state}
@@ -171,28 +160,6 @@ function Toast({ msg }: { msg: string }) {
     <div className="fixed bottom-4 right-4 bg-mempool-bg-elev border border-mempool-border rounded px-4 py-2 text-xs text-mempool-text font-mono shadow-lg z-50">
       {msg}
     </div>
-  );
-}
-
-// ── Copy button ───────────────────────────────────────────────────────────────
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const doCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch { /* ignore */ }
-  };
-  return (
-    <button
-      onClick={() => void doCopy()}
-      className="ml-1 p-1 rounded text-mempool-text-dim hover:text-mempool-blue"
-      title="Copy"
-    >
-      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-    </button>
   );
 }
 
@@ -237,12 +204,7 @@ export function ChannelsPage() {
 
       {/* Sub-tab bar */}
       <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
-        {([
-          { id: "overview", label: "Overview" },
-          { id: "open",     label: "Open Channel" },
-          { id: "pay",      label: "Pay" },
-          { id: "close",    label: "Close" },
-        ] as { id: SubTab; label: string }[]).map((t) => {
+        {CHANNEL_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button
@@ -308,7 +270,7 @@ function OverviewTab({
     setLoading(true);
     setErr(null);
     try {
-      const r = (await rpc.request_raw("getchannels", [])) as GetChannelsResp | null;
+      const r = (await rpc.getChannels()) as GetChannelsResp | null;
       setData(r ?? { summary: { open_count: 0, closing_count: 0, settled_count: 0, disputed_count: 0, total_locked_sat: 0 }, channels: [] });
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -317,11 +279,12 @@ function OverviewTab({
     }
   }, []);
 
-  // Initial load + 5s auto-refresh
+  // Initial load + WS-driven refresh on new blocks; 60 s fallback poll.
   useEffect(() => {
     void refresh();
-    const id = window.setInterval(() => { void refresh(); }, 5000);
-    return () => window.clearInterval(id);
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = window.setInterval(() => { void refresh(); }, 60_000);
+    return () => { window.clearInterval(id); unsub(); };
   }, [refresh]);
 
   const channels = useMemo(() => {
@@ -347,13 +310,13 @@ function OverviewTab({
           <div className="bg-mempool-bg border border-mempool-border rounded p-3">
             <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Open channels</div>
             <div className="text-base font-mono text-green-400 mt-1">
-              {intFmt.format(summary.open_count)}
+              {fmtInt(summary.open_count)}
             </div>
           </div>
           <div className="bg-mempool-bg border border-mempool-border rounded p-3">
             <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Settled</div>
             <div className="text-base font-mono text-gray-400 mt-1">
-              {intFmt.format(summary.settled_count)}
+              {fmtInt(summary.settled_count)}
             </div>
           </div>
         </div>
@@ -373,6 +336,33 @@ function OverviewTab({
           </label>
         )}
         <div className="flex-1" />
+        {channels.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["channel_id","party_a","party_b","balance_a_omni","balance_b_omni","capacity_omni","sequence_num","state"].join(","),
+                ...channels.map((c) => [
+                  `"${c.channel_id}"`,
+                  `"${c.party_a}"`,
+                  `"${c.party_b}"`,
+                  toOMNI(c.balance_a),
+                  toOMNI(c.balance_b),
+                  toOMNI(c.capacity_sat),
+                  c.sequence_num,
+                  c.state,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-channels.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
@@ -426,7 +416,7 @@ function OverviewTab({
                   >
                     <td className="py-2 px-2">
                       <span className="text-mempool-blue" title={c.channel_id}>
-                        {shortId(c.channel_id)}
+                        {midTrunc(c.channel_id, 8, 4)}
                       </span>
                       {isMine && (
                         <span className="ml-1 text-[9px] text-mempool-blue opacity-70">(me)</span>
@@ -450,7 +440,7 @@ function OverviewTab({
                       <StateBadge state={c.state} />
                     </td>
                     <td className="py-2 px-2 text-right text-mempool-text-dim">
-                      {intFmt.format(c.sequence_num)}
+                      {fmtInt(c.sequence_num)}
                     </td>
                     <td className="py-2 px-2">
                       <button
@@ -545,7 +535,7 @@ function ChannelDetailsPanel({
         <Row label="Balance A" value={`${toOMNI(c.balance_a)} OMNI`} />
         <Row label="Balance B" value={`${toOMNI(c.balance_b)} OMNI`} />
         <Row label="State" value={<StateBadge state={c.state} />} />
-        <Row label="Sequence #" value={intFmt.format(c.sequence_num)} />
+        <Row label="Sequence #" value={fmtInt(c.sequence_num)} />
       </div>
 
       {/* Balance bar */}
@@ -701,7 +691,7 @@ function OpenChannelTab() {
         />
         {myAmountSat > 0 && (
           <p className="text-[11px] text-mempool-text-dim font-mono">
-            = {intFmt.format(myAmountSat)} SAT
+            = {fmtInt(myAmountSat)} SAT
           </p>
         )}
       </div>
@@ -736,7 +726,7 @@ function OpenChannelTab() {
           </div>
           <Row label="Channel ID" value={
             <span className="flex items-center gap-1">
-              <span title={result.channel_id}>{shortId(result.channel_id)}</span>
+              <span title={result.channel_id}>{midTrunc(result.channel_id, 8, 4)}</span>
               <CopyButton text={result.channel_id} />
             </span>
           } />
@@ -779,7 +769,7 @@ function PayTab({ prefillChannelId }: { prefillChannelId: string }) {
       // Fetch current sequence from chain first so we can compute next
       let nextSeq = 1;
       try {
-        const ch = (await rpc.request_raw("getchannels", [])) as GetChannelsResp | null;
+        const ch = (await rpc.getChannels()) as GetChannelsResp | null;
         const found = ch?.channels.find((c) => c.channel_id === channelId);
         if (found) nextSeq = found.sequence_num + 1;
       } catch { /* use 1 as fallback */ }
@@ -905,7 +895,7 @@ function PayTab({ prefillChannelId }: { prefillChannelId: string }) {
         />
         {amountSat > 0 && (
           <p className="text-[11px] text-mempool-text-dim font-mono">
-            = {intFmt.format(amountSat)} SAT
+            = {fmtInt(amountSat)} SAT
           </p>
         )}
       </div>
@@ -925,7 +915,7 @@ function PayTab({ prefillChannelId }: { prefillChannelId: string }) {
             <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
             <span className="text-xs text-green-400 font-semibold uppercase tracking-wider">Payment sent</span>
           </div>
-          <Row label="Sequence #" value={intFmt.format(result.sequence_num)} />
+          <Row label="Sequence #" value={fmtInt(result.sequence_num)} />
           <Row label="New balance A" value={`${toOMNI(result.balance_a)} OMNI`} />
           <Row label="New balance B" value={`${toOMNI(result.balance_b)} OMNI`} />
         </div>
@@ -959,7 +949,7 @@ function CloseTab({ prefillChannelId }: { prefillChannelId: string }) {
     const load = async () => {
       setLoadingInfo(true);
       try {
-        const r = (await rpc.request_raw("getchannels", [])) as GetChannelsResp | null;
+        const r = (await rpc.getChannels()) as GetChannelsResp | null;
         if (!cancelled) {
           const found = r?.channels.find((c) => c.channel_id === channelId) ?? null;
           setChannelInfo(found);
@@ -1051,7 +1041,7 @@ function CloseTab({ prefillChannelId }: { prefillChannelId: string }) {
           <Row label="State" value={<StateBadge state={channelInfo.state} />} />
           <Row label="Balance A" value={`${toOMNI(channelInfo.balance_a)} OMNI`} />
           <Row label="Balance B" value={`${toOMNI(channelInfo.balance_b)} OMNI`} />
-          <Row label="Sequence #" value={intFmt.format(channelInfo.sequence_num)} />
+          <Row label="Sequence #" value={fmtInt(channelInfo.sequence_num)} />
           {channelInfo.state !== "open" && (
             <p className="text-xs text-yellow-400 font-mono pt-1">
               Channel state is "{channelInfo.state}" — already closed or in dispute.
@@ -1085,12 +1075,12 @@ function CloseTab({ prefillChannelId }: { prefillChannelId: string }) {
           <Row label="Final balance B" value={`${toOMNI(result.final_balance_b)} OMNI`} />
           {result.tx_hash_a && (
             <Row label="TX hash A" value={
-              <span title={result.tx_hash_a}>{shortId(result.tx_hash_a)}</span>
+              <span title={result.tx_hash_a}>{midTrunc(result.tx_hash_a, 8, 4)}</span>
             } />
           )}
           {result.tx_hash_b && (
             <Row label="TX hash B" value={
-              <span title={result.tx_hash_b}>{shortId(result.tx_hash_b)}</span>
+              <span title={result.tx_hash_b}>{midTrunc(result.tx_hash_b, 8, 4)}</span>
             } />
           )}
         </div>

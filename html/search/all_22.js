@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['—_205_20domenii_20post_20quantum_0',['Wallet — 5 Domenii Post-Quantum',['../md__r_e_a_d_m_e.html#autotoc_md104',1,'']]],
+  ['—_207_20missing_20standard_20bitcoin_20rpc_20methods_1',['Added — 7 missing standard Bitcoin RPC methods',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md29',1,'']]],
+  ['—_20agent_20tx_20ification_203_20h_2',['Phase 3 — Agent TX-ification (~3 h)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md20',1,'']]],
+  ['—_20already_20implemented_20currently_3',['&lt;span class=&quot;tt&quot;&gt;core/utxo.zig&lt;/span&gt; (excerpts — already implemented, currently',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md71',1,'']]],
+  ['—_20alternative_20architectures_20for_20omnibus_20block_20rate_20problem_4',['Prompt for Kimi — alternative architectures for OmniBus block-rate problem',['../md__k_i_m_i___p_r_o_m_p_t.html',1,'']]],
+  ['—_20architecture_20spec_5',['Bitcoin-style Storage Refactor — Architecture Spec',['../md__a_r_c_h___b_i_t_c_o_i_n___s_t_o_r_a_g_e.html',1,'']]],
+  ['—_20audit_20assertion_6',['B.3 — Audit assertion',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md78',1,'']]],
+  ['—_20audit_20tooling_202_20h_7',['Phase 5 — Audit + tooling (~2 h)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md22',1,'']]],
+  ['—_20bech32_20addresses_20full_20btc_20parity_20115_8',['Added — Bech32 Addresses + Full BTC Parity (115%)',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md39',1,'']]],
+  ['—_20db_20path_20wiring_20chain_20selection_20was_20incomplete_20in_20v0_203_200_9',['Fixed — DB path wiring + chain selection (was incomplete in v0.3.0)',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md27',1,'']]],
+  ['—_20deliverable_10',['PHASE B — DELIVERABLE',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md75',1,'']]],
+  ['—_20design_20only_11',['PHASE C — DESIGN ONLY',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md81',1,'']]],
+  ['—_20exchange_20match_20settlement_205–8_20h_12',['Phase 4 — Exchange match settlement (~5–8 h)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md21',1,'']]],
+  ['—_20faucet_20tx_20ification_203–4_20h_13',['Phase 1 — Faucet TX-ification (~3–4 h)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md18',1,'']]],
+  ['—_20make_20applyblock_20spend_20the_20inputs_14',['B.1 — Make &lt;span class=&quot;tt&quot;&gt;applyBlock&lt;/span&gt; spend the inputs',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md76',1,'']]],
+  ['—_20multi_20chain_20selection_20mainnet_20testnet_20regtest_15',['Added — Multi-chain Selection (Mainnet / Testnet / Regtest)',['../md__c_h_a_n_g_e_l_o_g.html#autotoc_md33',1,'']]],
+  ['—_20port_208332_16',['RPC API — port 8332',['../md__r_e_a_d_m_e.html#autotoc_md102',1,'']]],
+  ['—_20reputation_20tx_20ification_204–6_20h_17',['Phase 2 — Reputation TX-ification (~4–6 h)',['../md__a_r_c_h___f_i_x___t_x___o_n_l_y.html#autotoc_md19',1,'']]],
+  ['—_20rpc_20propagation_18',['B.5 — RPC propagation',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md80',1,'']]],
+  ['—_20slot_20calendar_20spark_20sub_20block_20consensus_19',['Next Session Plan — Slot Calendar + SPARK Sub-Block Consensus',['../md__n_e_x_t___s_e_s_s_i_o_n___p_l_a_n.html',1,'']]],
+  ['—_20switch_20getaddressbalance_20to_20utxo_20source_20',['B.2 — Switch &lt;span class=&quot;tt&quot;&gt;getAddressBalance&lt;/span&gt; to UTXO source',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md77',1,'']]],
+  ['—_20switch_20omnibus_20l1_20from_20ram_20cached_20balances_20to_20utxo_20source_20of_20truth_21',['Prompt for Kimi — Switch OmniBus L1 from RAM-cached balances to UTXO source-of-truth',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html',1,'']]],
+  ['—_20tests_22',['B.4 — Tests',['../md__k_i_m_i___p_r_o_m_p_t___u_t_x_o.html#autotoc_md79',1,'']]]
+];

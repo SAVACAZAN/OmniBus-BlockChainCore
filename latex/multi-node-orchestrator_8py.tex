@@ -1,0 +1,57 @@
+\doxysection{tools/\+\+DEVOPS/\+multi-\/node-\/orchestrator.py File Reference}
+\hypertarget{multi-node-orchestrator_8py}{}\label{multi-node-orchestrator_8py}\index{tools/DEVOPS/multi-\/node-\/orchestrator.py@{tools/DEVOPS/multi-\/node-\/orchestrator.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacemulti-node-orchestrator}{multi-\/node-\/orchestrator}}
+\item 
+namespace \doxymbox{\hyperlink{namespacemulti}{multi}}
+\begin{DoxyCompactList}\small\item\em -\/node-\/orchestrator \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Path\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a83b6d2eab1289c096549ebd6e1972798}{multi-\/node-\/orchestrator.\+find\+\_\+binary}} ()
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a583010000c41f2f33d6e7e52909b9dfb}{multi-\/node-\/orchestrator.\+save\+\_\+pids}} (list\+[dict]\+ nodes)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a59e5c2b1077e401e11298f2db7df01d5}{multi-\/node-\/orchestrator.\+load\+\_\+pids}} ()
+\item 
+bool \doxymbox{\hyperlink{namespacemulti-node-orchestrator_aa52c47c4769d36b531e478d92c93d390}{multi-\/node-\/orchestrator.\+is\+\_\+pid\+\_\+alive}} (int pid)
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a0b0254b591c691fa0aa3dbee44f4ccdb}{multi-\/node-\/orchestrator.\+kill\+\_\+process}} (int pid)
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_acab535141ad8445d72e055682d020c35}{multi-\/node-\/orchestrator.\+start\+\_\+nodes}} (Path binary, int count, int base\+\_\+port, int rpc\+\_\+base)
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a3944447296c01e5ecfffcd4451a59a69}{multi-\/node-\/orchestrator.\+stop\+\_\+nodes}} ()
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a6009c482ca0a4c4cce97b6d54c8a829d}{multi-\/node-\/orchestrator.\+status\+\_\+nodes}} ()
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a969eb144360ebcb590d789cbc1a64141}{multi-\/node-\/orchestrator.\+monitor\+\_\+loop}} (int interval)
+\item 
+\doxymbox{\hyperlink{namespacemulti-node-orchestrator_a51af30a60f9f02777c6396b8247e356f}{multi-\/node-\/orchestrator.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_acbb0750f34b7c418fddbecf4b279d47d}{multi-\/node-\/orchestrator.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_ac5143606254fae4264adf14db38011c6}{multi-\/node-\/orchestrator.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_ae6ee467da10c83bd713dd96886b853c8}{multi-\/node-\/orchestrator.\+DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_aeeed312163a648f824b4170e76d0a302}{multi-\/node-\/orchestrator.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a5239b03bd55f93a233810749f519367e}{multi-\/node-\/orchestrator.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a69fb996a654449881a201d84ce55d75a}{multi-\/node-\/orchestrator.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_af3d0f96fef3047a2943ebbed44e893fa}{multi-\/node-\/orchestrator.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a22948345a9c99bef4fa6a2873804926c}{multi-\/node-\/orchestrator.\+MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a813be94e485790479dd01c4b74357cbb}{multi-\/node-\/orchestrator.\+WHITE}} = "{}\textbackslash{}033\+[97m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a52a2e0139e1fa1fbb9bf516631a71e8a}{multi-\/node-\/orchestrator.\+BG\+\_\+\+BLUE}} = "{}\textbackslash{}033\+[44m"{}
+\item 
+str \doxymbox{\hyperlink{namespacemulti-node-orchestrator_a3c3e42e9d7f21268af1aa83cbfcec842}{multi-\/node-\/orchestrator.\+PID\+\_\+\+FILE}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent /\+ "{}.orchestrator-\/pids.\+json"{}
+\end{DoxyCompactItemize}

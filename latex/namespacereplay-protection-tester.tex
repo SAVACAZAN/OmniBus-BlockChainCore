@@ -1,0 +1,214 @@
+\doxysection{replay-\/protection-\/tester Namespace Reference}
+\hypertarget{namespacereplay-protection-tester}{}\label{namespacereplay-protection-tester}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c}{Omnibus\+RPC}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+dict \doxymbox{\hyperlink{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}{build\+\_\+test\+\_\+transaction}} (str sender, str recipient, int amount, int nonce, str genesis\+\_\+hash)
+\item 
+str \doxymbox{\hyperlink{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}{fake\+\_\+sign\+\_\+transaction}} (dict tx, str private\+\_\+key\+\_\+hex)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacereplay-protection-tester_a9a30f32ef5794d937aca272245a7325b}{run\+\_\+tests}} (\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c}{Omnibus\+RPC}} rpc)
+\item 
+int \doxymbox{\hyperlink{namespacereplay-protection-tester_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacereplay-protection-tester_a06f4112d4bf139d1d1ef1cfdd505ad6b}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacereplay-protection-tester_a6b9e30f3ffbe450d5504c43c709db1a2}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacereplay-protection-tester_ae51ec820a3ff1f73f03b42c46d65f2ec}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacereplay-protection-tester_ae679babbd3b793a448f0faf286c08c5e}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacereplay-protection-tester_aff839ec6d6173ac37cd0472e35f4c4c7}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacereplay-protection-tester_a2447925153500ec79ee01dcd3aad0399}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacereplay-protection-tester_doc-func-members}
+\Hypertarget{namespacereplay-protection-tester_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!build\_test\_transaction@{build\_test\_transaction}}
+\index{build\_test\_transaction@{build\_test\_transaction}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{build\_test\_transaction()}{build\_test\_transaction()}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc} 
+ dict build\+\_\+test\+\_\+transaction (\begin{DoxyParamCaption}\item[{str}]{sender}{, }\item[{str}]{recipient}{, }\item[{int}]{amount}{, }\item[{int}]{nonce}{, }\item[{str}]{genesis\+\_\+hash}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Build a test transaction JSON matching our chain's format.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00107}{107}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!fake\_sign\_transaction@{fake\_sign\_transaction}}
+\index{fake\_sign\_transaction@{fake\_sign\_transaction}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{fake\_sign\_transaction()}{fake\_sign\_transaction()}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6} 
+ str fake\+\_\+sign\+\_\+transaction (\begin{DoxyParamCaption}\item[{dict}]{tx}{, }\item[{str}]{private\+\_\+key\+\_\+hex}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create a fake signature for testing (not cryptographically valid).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00124}{124}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacereplay-protection-tester_a7431cb90017e54fe695b23d4190db046}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!main@{main}}
+\index{main@{main}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00281}{281}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacereplay-protection-tester_a9a30f32ef5794d937aca272245a7325b}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!run\_tests@{run\_tests}}
+\index{run\_tests@{run\_tests}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{run\_tests()}{run\_tests()}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_a9a30f32ef5794d937aca272245a7325b} 
+ list\+[dict]\+ run\+\_\+tests (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c}{Omnibus\+RPC}}}]{rpc}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run all replay protection tests.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00133}{133}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+
+
+\label{namespacereplay-protection-tester_doc-var-members}
+\Hypertarget{namespacereplay-protection-tester_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacereplay-protection-tester_aff839ec6d6173ac37cd0472e35f4c4c7}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_aff839ec6d6173ac37cd0472e35f4c4c7} 
+str \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+\Hypertarget{namespacereplay-protection-tester_ae679babbd3b793a448f0faf286c08c5e}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_ae679babbd3b793a448f0faf286c08c5e} 
+str \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+\Hypertarget{namespacereplay-protection-tester_a06f4112d4bf139d1d1ef1cfdd505ad6b}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_a06f4112d4bf139d1d1ef1cfdd505ad6b} 
+str \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+\Hypertarget{namespacereplay-protection-tester_a6b9e30f3ffbe450d5504c43c709db1a2}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!RED@{RED}}
+\index{RED@{RED}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_a6b9e30f3ffbe450d5504c43c709db1a2} 
+str \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+\Hypertarget{namespacereplay-protection-tester_a2447925153500ec79ee01dcd3aad0399}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!RESET@{RESET}}
+\index{RESET@{RESET}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_a2447925153500ec79ee01dcd3aad0399} 
+str \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+\Hypertarget{namespacereplay-protection-tester_ae51ec820a3ff1f73f03b42c46d65f2ec}\index{replay-\/protection-\/tester@{replay-\/protection-\/tester}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!replay-\/protection-\/tester@{replay-\/protection-\/tester}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacereplay-protection-tester_ae51ec820a3ff1f73f03b42c46d65f2ec} 
+str \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+

@@ -1,0 +1,963 @@
+\doxysection{doc\+\_\+generator.\+py}
+\hypertarget{doc__generator_8py_source}{}\label{doc__generator_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/DOCUMENTATION/doc\_generator.py@{archived-\/4-\/eterniti/tools-\/python/DOCUMENTATION/doc\_generator.py}}
+\doxymbox{\hyperlink{doc__generator_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00001}\doxymbox{\hyperlink{namespacedoc__generator}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00003}00003\ \textcolor{stringliteral}{doc\_generator.py\ -\/\ OmniBus\ API\ Documentation\ Generator\ v2.0}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00005}00005\ \textcolor{stringliteral}{Generează\ documentație\ API\ din\ codul\ Zig\ cu\ descrieri\ auto-\/generate:}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Extrage\ comentarii\ ///\ (doc\ comments)}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Parsează\ funcții\ publice,\ structuri,\ constante}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ AUTO-\/GENEREAZĂ\ descrieri\ bazate\ pe\ context\ (nume,\ parametri,\ modul,\ corp\ funcție)}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Generează\ markdown\ și\ HTML\ cu\ TOC,\ exemple,\ categorii}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ Creează\ index\ navigabil}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00011}00011\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00012}00012\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ python\ tools/DOCUMENTATION/doc\_generator.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Generează\ toată\ docs}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ python\ tools/DOCUMENTATION/doc\_generator.py\ -\/-\/module\ wallet\ \ \#\ Doar\ un\ modul}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ python\ tools/DOCUMENTATION/doc\_generator.py\ -\/-\/format\ html\ \ \ \ \#\ Format\ HTML}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ python\ tools/DOCUMENTATION/doc\_generator.py\ -\/-\/output\ ./docs\ \ \#\ Director\ output}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00017}00017\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00020}00020\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00021}00021\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00022}00022\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00023}00023\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00024}00024\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ field}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00025}00025\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ List,\ Dict,\ Optional,\ Tuple}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00026}00026\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00028}\doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{00028}}\ ROOT\ =\ Path(\_\_file\_\_).parent.parent.parent}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00029}\doxymbox{\hyperlink{namespacedoc__generator_afba2af4d4fa5a0def5e98bb265892b1d}{00029}}\ CORE\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00030}\doxymbox{\hyperlink{namespacedoc__generator_a2fbe88bbb3c6c9cb4ee545afa63df02e}{00030}}\ OUTPUT\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}docs"{}}\ /\ \textcolor{stringliteral}{"{}api"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00032}00032\ \textcolor{comment}{\#\ ──\ Module\ descriptions\ (manually\ curated\ for\ important\ modules)\ ──────────────}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00034}\doxymbox{\hyperlink{namespacedoc__generator_ac918b2ab10430397178b8891fb6d7dee}{00034}}\ MODULE\_DESCRIPTIONS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00035}00035\ \ \ \ \ \textcolor{stringliteral}{"{}blockchain"{}}:\ \textcolor{stringliteral}{"{}Core\ blockchain\ engine\ —\ manages\ the\ chain,\ validates\ blocks,\ handles\ reorgs,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tracks\ balances\ per\ address,\ and\ implements\ difficulty\ retargeting\ (Bitcoin-\/style,\ every\ 2016\ blocks)."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00037}00037\ \ \ \ \ \textcolor{stringliteral}{"{}block"{}}:\ \textcolor{stringliteral}{"{}Block\ data\ structure\ —\ defines\ a\ block's\ fields\ (index,\ timestamp,\ transactions,\ hash,\ nonce,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}merkle\ root,\ difficulty),\ provides\ hash\ calculation\ and\ validation."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00039}00039\ \ \ \ \ \textcolor{stringliteral}{"{}transaction"{}}:\ \textcolor{stringliteral}{"{}Transaction\ structure\ and\ validation\ —\ defines\ TX\ fields\ (from,\ to,\ amount,\ fee,\ nonce,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signature),\ signing\ via\ secp256k1,\ hash\ integrity\ checks,\ and\ fee\ calculations."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00041}00041\ \ \ \ \ \textcolor{stringliteral}{"{}wallet"{}}:\ \textcolor{stringliteral}{"{}HD\ Wallet\ with\ Post-\/Quantum\ support\ —\ derives\ keys\ from\ BIP-\/39\ mnemonic\ via\ BIP-\/32\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}(HMAC-\/SHA512),\ generates\ 5\ PQ\ address\ domains\ (ML-\/DSA-\/87,\ Falcon-\/512,\ SLH-\/DSA-\/256s,\ ML-\/KEM-\/768),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}and\ creates\ signed\ transactions."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00044}00044\ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1"{}}:\ \textcolor{stringliteral}{"{}Pure\ Zig\ secp256k1\ ECDSA\ implementation\ —\ private\ key\ to\ public\ key\ derivation,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ECDSA\ signing\ and\ verification,\ point\ arithmetic\ on\ the\ secp256k1\ curve.\ Bitcoin-\/compatible."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00046}00046\ \ \ \ \ \textcolor{stringliteral}{"{}rpc\_server"{}}:\ \textcolor{stringliteral}{"{}JSON-\/RPC\ 2.0\ HTTP\ server\ on\ port\ 8332\ —\ 39\ methods\ including\ blockchain\ queries,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}wallet\ operations,\ staking,\ multisig,\ payment\ channels,\ and\ mining.\ Uses\ ws2\_32\ on\ Windows."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00048}00048\ \ \ \ \ \textcolor{stringliteral}{"{}p2p"{}}:\ \textcolor{stringliteral}{"{}TCP\ P2P\ networking\ —\ binary\ protocol\ for\ peer\ connections,\ block/TX\ propagation,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}peer\ discovery,\ knock-\/knock\ duplicate\ detection,\ and\ message\ broadcasting."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00050}00050\ \ \ \ \ \textcolor{stringliteral}{"{}mempool"{}}:\ \textcolor{stringliteral}{"{}Transaction\ memory\ pool\ —\ FIFO\ queue\ with\ size/time\ limits,\ fee-\/based\ priority,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}duplicate\ detection,\ replace-\/by-\/nonce,\ and\ mineable\ TX\ selection."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00052}00052\ \ \ \ \ \textcolor{stringliteral}{"{}consensus"{}}:\ \textcolor{stringliteral}{"{}Proof-\/of-\/Work\ consensus\ engine\ —\ SHA256d\ mining,\ difficulty\ validation,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}block\ verification,\ and\ modular\ design\ for\ future\ PBFT\ support."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00054}00054\ \ \ \ \ \textcolor{stringliteral}{"{}genesis"{}}:\ \textcolor{stringliteral}{"{}Genesis\ block\ initialization\ —\ creates\ the\ first\ block\ with\ network\ config\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}(mainnet/testnet),\ initial\ balances,\ and\ chain\ parameters."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00056}00056\ \ \ \ \ \textcolor{stringliteral}{"{}database"{}}:\ \textcolor{stringliteral}{"{}Persistent\ storage\ —\ binary\ serialization\ of\ blockchain\ state\ to\ omnibus-\/chain.dat,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}atomic\ write\ (tmp\ →\ rename),\ append-\/only\ block\ storage."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00058}00058\ \ \ \ \ \textcolor{stringliteral}{"{}crypto"{}}:\ \textcolor{stringliteral}{"{}Cryptographic\ primitives\ —\ SHA-\/256,\ SHA-\/256d\ (double\ hash),\ HMAC-\/SHA256,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}AES-\/256\ encryption/decryption\ for\ key\ protection."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00060}00060\ \ \ \ \ \textcolor{stringliteral}{"{}pq\_crypto"{}}:\ \textcolor{stringliteral}{"{}Post-\/Quantum\ cryptography\ via\ liboqs\ C\ bindings\ —\ ML-\/DSA-\/87\ (Dilithium-\/5),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Falcon-\/512,\ SLH-\/DSA-\/256s\ (SPHINCS+),\ ML-\/KEM-\/768\ (Kyber)\ key\ generation,\ signing,\ verification."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00062}00062\ \ \ \ \ \textcolor{stringliteral}{"{}bip32\_wallet"{}}:\ \textcolor{stringliteral}{"{}BIP-\/32\ HD\ wallet\ derivation\ —\ HMAC-\/SHA512\ master\ key\ generation\ from\ seed,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}child\ key\ derivation\ (normal\ and\ hardened),\ BIP-\/44\ path\ support\ for\ 5\ PQ\ domains."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00064}00064\ \ \ \ \ \textcolor{stringliteral}{"{}ripemd160"{}}:\ \textcolor{stringliteral}{"{}Pure\ Zig\ RIPEMD-\/160\ hash\ function\ —\ 193\ lines,\ Bitcoin-\/compatible,\ used\ for\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}address\ generation\ (RIPEMD160(SHA256(pubkey)))."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00066}00066\ \ \ \ \ \textcolor{stringliteral}{"{}staking"{}}:\ \textcolor{stringliteral}{"{}Proof-\/of-\/Stake\ validator\ system\ —\ deposit/withdraw\ stake,\ slashing\ for\ equivocation\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}and\ downtime,\ unbonding\ period\ (7\ days),\ minimum\ stake\ enforcement."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00068}00068\ \ \ \ \ \textcolor{stringliteral}{"{}finality"{}}:\ \textcolor{stringliteral}{"{}Casper\ FFG\ finality\ gadget\ —\ checkpoint\ creation,\ validator\ attestations,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}supermajority\ detection\ (2/3+1),\ epoch\ finalization."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00070}00070\ \ \ \ \ \textcolor{stringliteral}{"{}governance"{}}:\ \textcolor{stringliteral}{"{}On-\/chain\ governance\ —\ proposal\ creation,\ voting\ (for/against/abstain),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}quorum\ (33\%),\ approval\ threshold\ (50\%),\ veto\ threshold\ (33\%),\ parameter\ updates."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00072}00072\ \ \ \ \ \textcolor{stringliteral}{"{}multisig"{}}:\ \textcolor{stringliteral}{"{}M-\/of-\/N\ multisig\ —\ create\ multisig\ addresses,\ collect\ signatures,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}verify\ threshold,\ timelock\ contracts\ for\ delayed\ execution."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00074}00074\ \ \ \ \ \textcolor{stringliteral}{"{}schnorr"{}}:\ \textcolor{stringliteral}{"{}BIP-\/340\ Schnorr\ signatures\ over\ secp256k1\ —\ key\ aggregation,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}batch\ verification,\ more\ efficient\ than\ ECDSA\ for\ multi-\/party\ signing."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00076}00076\ \ \ \ \ \textcolor{stringliteral}{"{}bls\_signatures"{}}:\ \textcolor{stringliteral}{"{}BLS\ threshold\ signatures\ (t-\/of-\/n)\ —\ aggregate\ multiple\ signatures\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}into\ one,\ verify\ against\ aggregate\ public\ key,\ used\ for\ consensus\ efficiency."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00078}00078\ \ \ \ \ \textcolor{stringliteral}{"{}kademlia\_dht"{}}:\ \textcolor{stringliteral}{"{}Kademlia\ distributed\ hash\ table\ —\ XOR-\/based\ distance\ metric,\ k-\/bucket\ routing,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}iterative\ node\ lookup,\ peer\ discovery\ without\ central\ servers."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00080}00080\ \ \ \ \ \textcolor{stringliteral}{"{}sync"{}}:\ \textcolor{stringliteral}{"{}Block\ synchronization\ —\ header-\/first\ sync,\ block\ download,\ stall\ detection,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fork\ resolution,\ and\ chain\ reorganization."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00082}00082\ \ \ \ \ \textcolor{stringliteral}{"{}bootstrap"{}}:\ \textcolor{stringliteral}{"{}Peer\ discovery\ and\ bootstrapping\ —\ seed\ node\ connections,\ PEX\ (Peer\ Exchange),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}DNS\ seed\ resolution,\ peer\ persistence\ to\ disk."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00084}00084\ \ \ \ \ \textcolor{stringliteral}{"{}network"{}}:\ \textcolor{stringliteral}{"{}Network\ layer\ —\ manages\ peer\ connections,\ message\ routing,\ broadcast\ to\ all\ peers,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}connection\ lifecycle\ management."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00086}00086\ \ \ \ \ \textcolor{stringliteral}{"{}storage"{}}:\ \textcolor{stringliteral}{"{}Key-\/value\ storage\ engine\ —\ in-\/memory\ with\ optional\ disk\ persistence,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}iterator\ support,\ memory-\/safe\ deinit."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00088}00088\ \ \ \ \ \textcolor{stringliteral}{"{}state\_trie"{}}:\ \textcolor{stringliteral}{"{}Merkle\ Patricia\ Trie\ for\ account\ state\ —\ O(log\ n)\ lookups,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cryptographic\ proofs,\ 50MB\ vs\ 1.6TB\ for\ 1M+\ accounts."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00090}00090\ \ \ \ \ \textcolor{stringliteral}{"{}light\_client"{}}:\ \textcolor{stringliteral}{"{}SPV\ (Simplified\ Payment\ Verification)\ —\ header-\/only\ sync,\ Bloom\ filters,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Merkle\ proofs\ for\ TX\ inclusion,\ mobile-\/friendly\ (200B\ per\ header)."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00092}00092\ \ \ \ \ \textcolor{stringliteral}{"{}light\_miner"{}}:\ \textcolor{stringliteral}{"{}Lightweight\ mining\ client\ —\ reduced\ resource\ usage,\ header-\/only\ validation,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}connects\ to\ full\ nodes\ for\ block\ templates."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00094}00094\ \ \ \ \ \textcolor{stringliteral}{"{}mining\_pool"{}}:\ \textcolor{stringliteral}{"{}Mining\ pool\ coordination\ —\ dynamic\ miner\ registration,\ fair\ reward\ distribution,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}share\ submission,\ pool\ statistics."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00096}00096\ \ \ \ \ \textcolor{stringliteral}{"{}sub\_block"{}}:\ \textcolor{stringliteral}{"{}Sub-\/block\ engine\ —\ 10\ sub-\/blocks\ ×\ 100ms\ =\ 1\ KeyBlock\ (1s),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}faster\ confirmation\ times\ while\ maintaining\ security."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00098}00098\ \ \ \ \ \textcolor{stringliteral}{"{}metachain"{}}:\ \textcolor{stringliteral}{"{}EGLD-\/style\ metachain\ coordination\ —\ aggregates\ shard\ headers,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cross-\/shard\ communication,\ meta-\/block\ finalization."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00100}00100\ \ \ \ \ \textcolor{stringliteral}{"{}shard\_coordinator"{}}:\ \textcolor{stringliteral}{"{}4-\/shard\ routing\ —\ assigns\ addresses\ to\ shards,\ load\ balancing,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cross-\/shard\ TX\ routing."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00102}00102\ \ \ \ \ \textcolor{stringliteral}{"{}shard\_config"{}}:\ \textcolor{stringliteral}{"{}Shard\ configuration\ —\ 7-\/way\ sharding\ parameters,\ load\ thresholds,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}shard\ assignment\ rules."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00104}00104\ \ \ \ \ \textcolor{stringliteral}{"{}payment\_channel"{}}:\ \textcolor{stringliteral}{"{}Lightning-\/style\ Layer\ 2\ —\ open/close\ channels,\ HTLC\ (Hash\ Time-\/Locked\ Contracts),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}off-\/chain\ payments,\ cooperative/unilateral\ close."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00106}00106\ \ \ \ \ \textcolor{stringliteral}{"{}oracle"{}}:\ \textcolor{stringliteral}{"{}Price\ oracle\ —\ BID/ASK\ feeds\ per\ exchange,\ best\ ask/best\ bid\ aggregation,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}on-\/chain\ price\ attestations\ for\ DeFi."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00108}00108\ \ \ \ \ \textcolor{stringliteral}{"{}bridge\_relay"{}}:\ \textcolor{stringliteral}{"{}Ethereum\ bridge\ relay\ —\ lock-\/and-\/mint\ cross-\/chain\ transfers,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}refund\ on\ expiry,\ relay\ verification."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00110}00110\ \ \ \ \ \textcolor{stringliteral}{"{}domain\_minter"{}}:\ \textcolor{stringliteral}{"{}PQ\ domain\ minting\ —\ register\ domains\ (omnibus.omni,\ .love,\ .food,\ .rent,\ .vacation),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ownership\ transfer,\ lookup\ by\ name/owner."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00112}00112\ \ \ \ \ \textcolor{stringliteral}{"{}vault\_engine"{}}:\ \textcolor{stringliteral}{"{}Mnemonic\ vault\ —\ BIP-\/39\ seed\ storage,\ encryption,\ secure\ derivation."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00113}00113\ \ \ \ \ \textcolor{stringliteral}{"{}vault\_reader"{}}:\ \textcolor{stringliteral}{"{}Vault\ access\ —\ reads\ mnemonic\ from\ SuperVault\ Named\ Pipe,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}environment\ variable,\ or\ dev\ default\ fallback."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00115}00115\ \ \ \ \ \textcolor{stringliteral}{"{}ubi\_distributor"{}}:\ \textcolor{stringliteral}{"{}Universal\ Basic\ Income\ —\ 1\ OMNI/day\ per\ eligible\ address,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}epoch-\/based\ distribution,\ built\ into\ protocol."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00117}00117\ \ \ \ \ \textcolor{stringliteral}{"{}bread\_ledger"{}}:\ \textcolor{stringliteral}{"{}Physical\ redemption\ system\ —\ BreadVoucher\ QR\ ledger,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}1\ OMNI\ =\ 1\ bread\ worldwide,\ voucher\ tracking."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00119}00119\ \ \ \ \ \textcolor{stringliteral}{"{}guardian"{}}:\ \textcolor{stringliteral}{"{}Account\ guardians\ —\ social\ recovery,\ activation\ delay\ (20K\ blocks),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}guardian-\/approved\ operations\ for\ lost\ keys."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00121}00121\ \ \ \ \ \textcolor{stringliteral}{"{}peer\_scoring"{}}:\ \textcolor{stringliteral}{"{}Peer\ reputation\ system\ —\ score\ peers\ based\ on\ behavior,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ban\ misbehaving\ peers,\ reward\ good\ behavior."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00123}00123\ \ \ \ \ \textcolor{stringliteral}{"{}dns\_registry"{}}:\ \textcolor{stringliteral}{"{}Decentralized\ DNS\ —\ register\ human-\/readable\ names,\ renewal\ periods,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}on-\/chain\ resolution."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00125}00125\ \ \ \ \ \textcolor{stringliteral}{"{}compact\_blocks"{}}:\ \textcolor{stringliteral}{"{}Compact\ block\ relay\ —\ send\ only\ TX\ short\ IDs,\ \string~90\%\ bandwidth\ reduction,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}reconstruct\ blocks\ from\ mempool."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00127}00127\ \ \ \ \ \textcolor{stringliteral}{"{}compact\_transaction"{}}:\ \textcolor{stringliteral}{"{}SegWit-\/style\ compact\ TX\ —\ 161\ bytes/TX\ (63\%\ reduction),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}witness\ data\ separation."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00129}00129\ \ \ \ \ \textcolor{stringliteral}{"{}witness\_data"{}}:\ \textcolor{stringliteral}{"{}Signature\ witness\ separation\ —\ 95\%\ size\ reduction\ for\ stored\ signatures,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}backward\ compatible\ with\ full\ validation."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00131}00131\ \ \ \ \ \textcolor{stringliteral}{"{}binary\_codec"{}}:\ \textcolor{stringliteral}{"{}Binary\ serialization\ —\ varint\ encoding,\ 93\%\ compression\ ratio,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}block/TX\ serialization\ for\ network\ and\ storage."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00133}00133\ \ \ \ \ \textcolor{stringliteral}{"{}archive\_manager"{}}:\ \textcolor{stringliteral}{"{}Block\ archival\ —\ compress\ old\ blocks\ for\ long-\/term\ storage,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}retrieve\ archived\ blocks\ on\ demand."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00135}00135\ \ \ \ \ \textcolor{stringliteral}{"{}prune\_config"{}}:\ \textcolor{stringliteral}{"{}Pruning\ configuration\ —\ configurable\ retention\ (max\ 10K\ blocks),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}auto-\/prune\ old\ data,\ reduce\ disk\ usage."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00137}00137\ \ \ \ \ \textcolor{stringliteral}{"{}key\_encryption"{}}:\ \textcolor{stringliteral}{"{}Private\ key\ encryption\ —\ AES-\/256\ with\ password-\/derived\ key,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}password\ verification,\ secure\ key\ storage."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00139}00139\ \ \ \ \ \textcolor{stringliteral}{"{}chain\_config"{}}:\ \textcolor{stringliteral}{"{}Chain\ configuration\ —\ mainnet/testnet/regtest\ parameters,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fee\ estimation,\ network-\/specific\ settings."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00141}00141\ \ \ \ \ \textcolor{stringliteral}{"{}cli"{}}:\ \textcolor{stringliteral}{"{}Command-\/line\ interface\ —\ argument\ parsing\ for\ mode\ (seed/miner/light),\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node-\/id,\ host,\ port,\ seed-\/host,\ seed-\/port."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00143}00143\ \ \ \ \ \textcolor{stringliteral}{"{}node\_launcher"{}}:\ \textcolor{stringliteral}{"{}Node\ orchestration\ —\ starts\ all\ subsystems\ in\ order,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}manages\ seed/miner\ mode,\ initiates\ mining\ loop."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00145}00145\ \ \ \ \ \textcolor{stringliteral}{"{}miner\_genesis"{}}:\ \textcolor{stringliteral}{"{}Genesis\ miner\ allocation\ —\ initial\ miner\ addresses,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}pre-\/mine\ distribution\ for\ bootstrap."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00147}00147\ \ \ \ \ \textcolor{stringliteral}{"{}e2e\_mining"{}}:\ \textcolor{stringliteral}{"{}End-\/to-\/end\ mining\ integration\ test\ —\ full\ cycle\ from\ TX\ creation\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}through\ mining\ to\ block\ validation."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00149}00149\ \ \ \ \ \textcolor{stringliteral}{"{}blockchain\_v2"{}}:\ \textcolor{stringliteral}{"{}Enhanced\ blockchain\ v2\ —\ sub-\/block\ support,\ sharding\ integration,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}binary\ encoding,\ pruning\ support."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00151}00151\ \ \ \ \ \textcolor{stringliteral}{"{}ws\_server"{}}:\ \textcolor{stringliteral}{"{}WebSocket\ server\ on\ port\ 8334\ —\ push\ new\_block,\ new\_transaction,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}status\ events\ to\ React\ frontend\ in\ real-\/time."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00153}00153\ \ \ \ \ \textcolor{stringliteral}{"{}omni\_brain"{}}:\ \textcolor{stringliteral}{"{}AI/ML\ node\ intelligence\ —\ auto-\/detect\ optimal\ NodeType\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}(full/trading/validator/light)\ based\ on\ hardware\ and\ network."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00155}00155\ \ \ \ \ \textcolor{stringliteral}{"{}spark\_invariants"{}}:\ \textcolor{stringliteral}{"{}Formal\ verification\ —\ 17\ Ada/SPARK-\/style\ compile-\/time\ invariants\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}for\ critical\ blockchain\ properties."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00157}00157\ \ \ \ \ \textcolor{stringliteral}{"{}synapse\_priority"{}}:\ \textcolor{stringliteral}{"{}Synapse\ scheduler\ —\ priority\ queue\ for\ internal\ node\ operations,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ensures\ critical\ tasks\ execute\ first."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00159}00159\ \ \ \ \ \textcolor{stringliteral}{"{}os\_mode"{}}:\ \textcolor{stringliteral}{"{}OS\ mode\ detection\ —\ detects\ bare-\/metal\ vs\ hosted\ mode,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}adjusts\ behavior\ for\ OmniBus\ OS\ integration."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00161}00161\ \ \ \ \ \textcolor{stringliteral}{"{}tx\_receipt"{}}:\ \textcolor{stringliteral}{"{}Transaction\ receipts\ —\ event\ logs,\ gas\ used,\ status\ codes,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Ethereum-\/compatible\ receipt\ format."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00163}00163\ \ \ \ \ \textcolor{stringliteral}{"{}hex\_utils"{}}:\ \textcolor{stringliteral}{"{}Hex/hash\ utilities\ —\ shared\ hex\ encoding/decoding,\ hash\ formatting\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}functions\ used\ across\ modules."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00165}00165\ \ \ \ \ \textcolor{stringliteral}{"{}script"{}}:\ \textcolor{stringliteral}{"{}Transaction\ scripting\ engine\ —\ Bitcoin-\/style\ script\ opcodes,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}P2PKH/P2SH\ script\ evaluation,\ programmable\ spending\ conditions."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00167}00167\ \ \ \ \ \textcolor{stringliteral}{"{}benchmark"{}}:\ \textcolor{stringliteral}{"{}Performance\ benchmarks\ —\ measure\ hash\ rate,\ TX\ throughput,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}block\ validation\ speed,\ P2P\ latency."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00169}00169\ \ \ \ \ \textcolor{stringliteral}{"{}miner\_wallet"{}}:\ \textcolor{stringliteral}{"{}Miner-\/specific\ wallet\ —\ coinbase\ TX\ creation,\ reward\ tracking,\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}miner\ key\ management."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00171}00171\ \}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00173}00173\ \textcolor{comment}{\#\ ──\ Smart\ description\ generation\ ──────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00175}\doxymbox{\hyperlink{namespacedoc__generator_a8c338d81ff26cd9c872b378e75a84009}{00175}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_a8c338d81ff26cd9c872b378e75a84009}{infer\_function\_description}}(func\_name:\ str,\ params:\ List[Tuple[str,\ str]],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ returns:\ str,\ module\_name:\ str,\ body\_lines:\ List[str])\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00177}00177\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ a\ human-\/readable\ description\ from\ function\ name,\ params,\ and\ context."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00179}00179\ \ \ \ \ \textcolor{comment}{\#\ Common\ patterns}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00180}00180\ \ \ \ \ name\ =\ func\_name}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00181}00181\ \ \ \ \ param\_names\ =\ [p[0]\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ params\ \textcolor{keywordflow}{if}\ p[0]\ !=\ \textcolor{stringliteral}{'self'}]}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00183}00183\ \ \ \ \ \textcolor{comment}{\#\ init/deinit}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00184}00184\ \ \ \ \ \textcolor{keywordflow}{if}\ name\ ==\ \textcolor{stringliteral}{"{}init"{}}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Initialize\ a\ new\ instance.\ Allocates\ required\ memory\ and\ sets\ default\ values."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00186}00186\ \ \ \ \ \textcolor{keywordflow}{if}\ name\ ==\ \textcolor{stringliteral}{"{}deinit"{}}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Clean\ up\ and\ free\ all\ allocated\ memory.\ Must\ be\ called\ when\ done."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00189}00189\ \ \ \ \ \textcolor{comment}{\#\ get*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00190}00190\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}get"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[3:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ param\_names:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Returns\ the\ \{subject\}\ for\ the\ given\ \{',\ '.join(param\_names)\}."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Returns\ the\ current\ \{subject\}."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00196}00196\ \ \ \ \ \textcolor{comment}{\#\ set*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00197}00197\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}set"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[3:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Sets\ the\ \{subject\}\ to\ the\ specified\ value."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00201}00201\ \ \ \ \ \textcolor{comment}{\#\ is*/has*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00202}00202\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}is"{}})\ \textcolor{keywordflow}{or}\ name.startswith(\textcolor{stringliteral}{"{}has"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[2:]\ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}is"{}})\ \textcolor{keywordflow}{else}\ name[3:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Checks\ whether\ the\ \{subject\}\ condition\ is\ true."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00206}00206\ \ \ \ \ \textcolor{comment}{\#\ add*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00207}00207\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}add"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[3:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Adds\ a\ new\ \{subject\}\ to\ the\ collection."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00211}00211\ \ \ \ \ \textcolor{comment}{\#\ remove*/delete*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00212}00212\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}remove"{}})\ \textcolor{keywordflow}{or}\ name.startswith(\textcolor{stringliteral}{"{}delete"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ prefix\_len\ =\ 6\ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}remove"{}})\ \textcolor{keywordflow}{else}\ 6}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[prefix\_len:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Removes\ the\ specified\ \{subject\}."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00217}00217\ \ \ \ \ \textcolor{comment}{\#\ create*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00218}00218\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}create"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[6:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Creates\ a\ new\ \{subject\}\ with\ the\ given\ parameters."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00222}00222\ \ \ \ \ \textcolor{comment}{\#\ validate*/verify*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00223}00223\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}validate"{}})\ \textcolor{keywordflow}{or}\ name.startswith(\textcolor{stringliteral}{"{}verify"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ prefix\_len\ =\ 8\ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}validate"{}})\ \textcolor{keywordflow}{else}\ 6}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[prefix\_len:])\ \textcolor{keywordflow}{or}\ module\_name}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Validates\ the\ \{subject\}.\ Returns\ true\ if\ valid,\ false\ otherwise."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00227}00227\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00228}00228\ \ \ \ \ \textcolor{comment}{\#\ process*/handle*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00229}00229\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}process"{}})\ \textcolor{keywordflow}{or}\ name.startswith(\textcolor{stringliteral}{"{}handle"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ prefix\_len\ =\ 7\ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}process"{}})\ \textcolor{keywordflow}{else}\ 6}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[prefix\_len:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Processes\ the\ incoming\ \{subject\}\ and\ applies\ changes\ to\ state."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00233}00233\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00234}00234\ \ \ \ \ \textcolor{comment}{\#\ broadcast*/send*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00235}00235\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}broadcast"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[9:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Broadcasts\ \{subject\}\ to\ all\ connected\ peers\ in\ the\ network."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00238}00238\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}send"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[4:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Sends\ \{subject\}\ to\ the\ specified\ destination."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00241}00241\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00242}00242\ \ \ \ \ \textcolor{comment}{\#\ mine*/mining\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00243}00243\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}mine"{}}\ \textcolor{keywordflow}{in}\ name.lower():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Executes\ mining\ operation\ —\ finds\ valid\ nonce\ for\ the\ next\ block."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00245}00245\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00246}00246\ \ \ \ \ \textcolor{comment}{\#\ sign/verify}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00247}00247\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}sign"{}})\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}Sign"{}}\ \textcolor{keywordflow}{in}\ name:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Cryptographically\ signs\ the\ data\ using\ the\ private\ key."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00249}00249\ \ \ \ \ \textcolor{keywordflow}{if}\ name\ ==\ \textcolor{stringliteral}{"{}verify"{}}\ \textcolor{keywordflow}{or}\ name.startswith(\textcolor{stringliteral}{"{}verify"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Verifies\ the\ cryptographic\ signature\ against\ the\ public\ key."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00252}00252\ \ \ \ \ \textcolor{comment}{\#\ calculate*/compute*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00253}00253\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}calculate"{}})\ \textcolor{keywordflow}{or}\ name.startswith(\textcolor{stringliteral}{"{}compute"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ prefix\_len\ =\ 9\ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}calculate"{}})\ \textcolor{keywordflow}{else}\ 7}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[prefix\_len:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Calculates\ the\ \{subject\}\ from\ the\ current\ state."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00257}00257\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00258}00258\ \ \ \ \ \textcolor{comment}{\#\ serialize/deserialize}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00259}00259\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}serialize"{}}\ \textcolor{keywordflow}{in}\ name.lower():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}de"{}}\ \textcolor{keywordflow}{in}\ name.lower():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Deserializes\ binary\ data\ back\ into\ the\ structured\ format."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Serializes\ the\ structure\ into\ binary\ format\ for\ storage\ or\ network\ transmission."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00263}00263\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00264}00264\ \ \ \ \ \textcolor{comment}{\#\ encode/decode}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00265}00265\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}encode"{}}\ \textcolor{keywordflow}{in}\ name.lower():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}de"{}}\ \textcolor{keywordflow}{in}\ name.lower():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Decodes\ the\ encoded\ data\ back\ to\ its\ original\ format."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Encodes\ the\ data\ into\ the\ specified\ format."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00269}00269\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00270}00270\ \ \ \ \ \textcolor{comment}{\#\ format/parse}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00271}00271\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}format"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Formats\ the\ data\ into\ a\ human-\/readable\ string\ representation."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00273}00273\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}parse"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[5:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Parses\ the\ raw\ input\ into\ a\ structured\ \{subject\}\ object."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00277}00277\ \ \ \ \ \textcolor{comment}{\#\ update*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00278}00278\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}update"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[6:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Updates\ the\ \{subject\}\ with\ new\ values."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00281}00281\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00282}00282\ \ \ \ \ \textcolor{comment}{\#\ find*/lookup*/search*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00283}00283\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}find"{}})\ \textcolor{keywordflow}{or}\ name.startswith(\textcolor{stringliteral}{"{}lookup"{}})\ \textcolor{keywordflow}{or}\ name.startswith(\textcolor{stringliteral}{"{}search"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ prefix\_len\ =\ 4\ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}find"{}})\ \textcolor{keywordflow}{else}\ (6\ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}lookup"{}})\ \textcolor{keywordflow}{else}\ 6)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[prefix\_len:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Searches\ for\ \{subject\}\ matching\ the\ given\ criteria."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00287}00287\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00288}00288\ \ \ \ \ \textcolor{comment}{\#\ load*/save*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00289}00289\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}load"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[4:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Loads\ \{subject\}\ from\ persistent\ storage."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00292}00292\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}save"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[4:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00294}00294\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Saves\ \{subject\}\ to\ persistent\ storage."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00295}00295\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00296}00296\ \ \ \ \ \textcolor{comment}{\#\ close*/open*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00297}00297\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}close"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[5:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Closes\ the\ \{subject\}\ and\ releases\ associated\ resources."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00300}00300\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}open"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[4:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Opens\ a\ new\ \{subject\}\ connection\ or\ resource."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00304}00304\ \ \ \ \ \textcolor{comment}{\#\ start*/stop*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00305}00305\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}start"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[5:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Starts\ the\ \{subject\}\ service\ or\ process."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00308}00308\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}stop"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[4:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Stops\ the\ \{subject\}\ service\ or\ process."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00311}00311\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00312}00312\ \ \ \ \ \textcolor{comment}{\#\ apply*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00313}00313\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}apply"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[5:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Applies\ the\ \{subject\}\ changes\ to\ the\ current\ state."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00316}00316\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00317}00317\ \ \ \ \ \textcolor{comment}{\#\ count*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00318}00318\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}count"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[5:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Returns\ the\ count\ of\ \{subject\}."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00322}00322\ \ \ \ \ \textcolor{comment}{\#\ reset*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00323}00323\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}reset"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[5:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00325}00325\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Resets\ \{subject\}\ to\ initial/default\ state."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00327}00327\ \ \ \ \ \textcolor{comment}{\#\ register*\ pattern}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00328}00328\ \ \ \ \ \textcolor{keywordflow}{if}\ name.startswith(\textcolor{stringliteral}{"{}register"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name[8:])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00330}00330\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Registers\ a\ new\ \{subject\}\ in\ the\ system."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00332}00332\ \ \ \ \ \textcolor{comment}{\#\ Check\ body\ for\ return\ patterns}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00333}00333\ \ \ \ \ body\_text\ =\ \textcolor{stringliteral}{'\(\backslash\)n'}.join(body\_lines[:10])\ \textcolor{keywordflow}{if}\ body\_lines\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00334}00334\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}return\ true"{}}\ \textcolor{keywordflow}{in}\ body\_text\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}return\ false"{}}\ \textcolor{keywordflow}{in}\ body\_text:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00335}00335\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00336}00336\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Checks\ \{subject\}\ condition.\ Returns\ a\ boolean\ result."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00337}00337\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}return\ null"{}}\ \textcolor{keywordflow}{in}\ body\_text:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00338}00338\ \ \ \ \ \ \ \ \ subject\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Attempts\ to\ find\ \{subject\}.\ Returns\ null\ if\ not\ found."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00340}00340\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00341}00341\ \ \ \ \ \textcolor{comment}{\#\ Fallback:\ make\ description\ from\ function\ name}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00342}00342\ \ \ \ \ words\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00343}00343\ \ \ \ \ \textcolor{keywordflow}{if}\ words:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Performs\ the\ \{words\}\ operation\ on\ the\ \{module\_name\}\ module."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00345}00345\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00346}00346\ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Internal\ function\ of\ the\ \{module\_name\}\ module."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00347}00347\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00348}00348\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00349}\doxymbox{\hyperlink{namespacedoc__generator_afb6688a90a1f27ac7f22d4d0d6a05fc9}{00349}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_afb6688a90a1f27ac7f22d4d0d6a05fc9}{infer\_struct\_description}}(struct\_name:\ str,\ fields:\ List[Tuple[str,\ str]],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00350}00350\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module\_name:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00351}00351\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ description\ for\ a\ struct\ based\ on\ its\ name\ and\ fields."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00352}00352\ \ \ \ \ name\ =\ struct\_name}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00353}00353\ \ \ \ \ field\_names\ =\ [f[0]\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ fields[:5]]}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00354}00354\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00355}00355\ \ \ \ \ STRUCT\_HINTS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00356}00356\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Block"{}}:\ \textcolor{stringliteral}{"{}Represents\ a\ single\ block\ in\ the\ blockchain\ —\ contains\ transactions,\ hash,\ nonce,\ and\ links\ to\ previous\ block."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00357}00357\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Transaction"{}}:\ \textcolor{stringliteral}{"{}A\ single\ transaction\ transferring\ value\ between\ addresses\ —\ includes\ sender,\ recipient,\ amount,\ fee,\ and\ cryptographic\ signature."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Wallet"{}}:\ \textcolor{stringliteral}{"{}User\ wallet\ —\ holds\ derived\ keys,\ addresses\ across\ 5\ PQ\ domains,\ and\ methods\ to\ create\ signed\ transactions."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00359}00359\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Address"{}}:\ \textcolor{stringliteral}{"{}A\ blockchain\ address\ —\ includes\ the\ algorithm\ type,\ public\ key,\ and\ formatted\ address\ string."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00360}00360\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Blockchain"{}}:\ \textcolor{stringliteral}{"{}The\ main\ blockchain\ state\ —\ manages\ the\ chain\ of\ blocks,\ validates\ additions,\ tracks\ balances,\ and\ handles\ reorganizations."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00361}00361\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Peer"{}}:\ \textcolor{stringliteral}{"{}A\ network\ peer\ —\ stores\ connection\ info\ (host,\ port),\ reputation\ score,\ and\ last\ seen\ timestamp."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00362}00362\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}MempoolEntry"{}}:\ \textcolor{stringliteral}{"{}An\ entry\ in\ the\ transaction\ mempool\ —\ wraps\ a\ transaction\ with\ metadata\ like\ arrival\ time\ and\ fee\ rate."{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00363}00363\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00364}00364\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00365}00365\ \ \ \ \ \textcolor{keywordflow}{if}\ name\ \textcolor{keywordflow}{in}\ STRUCT\_HINTS:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00366}00366\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ STRUCT\_HINTS[name]}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00367}00367\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00368}00368\ \ \ \ \ words\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00369}00369\ \ \ \ \ \textcolor{keywordflow}{if}\ field\_names:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00370}00370\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Data\ structure\ for\ \{words\}.\ Fields\ include:\ \{',\ '.join(field\_names[:5])\}."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00371}00371\ \ \ \ \ \textcolor{keywordflow}{return}\ f\textcolor{stringliteral}{"{}Data\ structure\ representing\ a\ \{words\}\ in\ the\ \{module\_name\}\ module."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00372}00372\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00373}00373\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00374}\doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{00374}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00375}00375\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Convert\ camelCase\ or\ PascalCase\ to\ readable\ words."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00376}00376\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ name:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00377}00377\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00378}00378\ \ \ \ \ \textcolor{comment}{\#\ Insert\ space\ before\ uppercase\ letters}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00379}00379\ \ \ \ \ result\ =\ re.sub(\textcolor{stringliteral}{r'([A-\/Z])'},\ \textcolor{stringliteral}{r'\ \(\backslash\)1'},\ name)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00380}00380\ \ \ \ \ \textcolor{comment}{\#\ Handle\ consecutive\ uppercase\ (e.g.,\ "{}DHT"{}\ -\/>\ "{}DHT"{})}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00381}00381\ \ \ \ \ result\ =\ re.sub(\textcolor{stringliteral}{r'([A-\/Z]+)([A-\/Z][a-\/z])'},\ \textcolor{stringliteral}{r'\(\backslash\)1\ \(\backslash\)2'},\ result)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00382}00382\ \ \ \ \ \textcolor{keywordflow}{return}\ result.strip().lower()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00383}00383\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00385}00385\ \textcolor{comment}{\#\ ──\ Data\ classes\ ──────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00386}00386\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00387}00387\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00388}\doxymbox{\hyperlink{classdoc__generator_1_1_function_doc}{00388}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classdoc__generator_1_1_function_doc}{FunctionDoc}}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00389}00389\ \ \ \ \ name:\ str}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00390}00390\ \ \ \ \ signature:\ str}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00391}00391\ \ \ \ \ description:\ str}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00392}\doxymbox{\hyperlink{classdoc__generator_1_1_function_doc_ae734e9af2bf99bb35abf1d2729271f09}{00392}}\ \ \ \ \ params:\ List[Tuple[str,\ str]]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00393}\doxymbox{\hyperlink{classdoc__generator_1_1_function_doc_a9ce174a1b327f9dc68dccfa4694df5e8}{00393}}\ \ \ \ \ returns:\ str\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00394}\doxymbox{\hyperlink{classdoc__generator_1_1_function_doc_a74a9aecf9984448a79672c735dbd8790}{00394}}\ \ \ \ \ examples:\ List[str]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00395}\doxymbox{\hyperlink{classdoc__generator_1_1_function_doc_af965c1b68b23130df9ae6e665dd260ac}{00395}}\ \ \ \ \ line:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00396}\doxymbox{\hyperlink{classdoc__generator_1_1_function_doc_a4b20b55491de118dd6aaf433a4c5c915}{00396}}\ \ \ \ \ body\_preview:\ List[str]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00397}00397\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00398}00398\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00399}\doxymbox{\hyperlink{classdoc__generator_1_1_struct_doc}{00399}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classdoc__generator_1_1_struct_doc}{StructDoc}}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00400}00400\ \ \ \ \ name:\ str}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00401}00401\ \ \ \ \ description:\ str}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00402}\doxymbox{\hyperlink{classdoc__generator_1_1_struct_doc_a9c2db54662b9c43edfb21a4452df7d43}{00402}}\ \ \ \ \ fields:\ List[Tuple[str,\ str,\ str]]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00403}\doxymbox{\hyperlink{classdoc__generator_1_1_struct_doc_a63c7a6d358425172a4ab44d957684984}{00403}}\ \ \ \ \ line:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00404}00404\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00405}00405\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00406}\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{00406}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{ModuleDoc}}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00407}00407\ \ \ \ \ name:\ str}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00408}\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc_ae33ae6e6367c46488d59ca66871fa008}{00408}}\ \ \ \ \ description:\ str\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00409}\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc_a36153849e47d12189b1eb8ec047241ce}{00409}}\ \ \ \ \ functions:\ List[FunctionDoc]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00410}\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc_a0407671607b7650eaca21a57bd066d95}{00410}}\ \ \ \ \ structs:\ List[StructDoc]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00411}\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc_a2297430c4dc8baec4805203646333c98}{00411}}\ \ \ \ \ constants:\ List[Tuple[str,\ str,\ str]]\ =\ field(default\_factory=list)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00412}\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc_a56be4620f89b050578368c685eef978a}{00412}}\ \ \ \ \ line\_count:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00413}\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc_a3f723b9f9702a801d2fdccf71ea30600}{00413}}\ \ \ \ \ test\_count:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00414}00414\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00415}00415\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00416}\doxymbox{\hyperlink{namespacedoc__generator_a37740e47ff9a440a4a858a307233751c}{00416}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_a37740e47ff9a440a4a858a307233751c}{extract\_doc\_comments}}(content:\ str,\ start\_line:\ int)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00417}00417\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Extract\ consecutive\ ///\ comments\ before\ a\ line."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00418}00418\ \ \ \ \ lines\ =\ content.split(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00419}00419\ \ \ \ \ comments\ =\ []}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00420}00420\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(start\_line\ -\/\ 2,\ -\/1,\ -\/1):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00421}00421\ \ \ \ \ \ \ \ \ line\ =\ lines[i].strip()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00422}00422\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ line.startswith(\textcolor{stringliteral}{'///'}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00423}00423\ \ \ \ \ \ \ \ \ \ \ \ \ comments.insert(0,\ line[3:].strip())}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00424}00424\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ line\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ line.startswith(\textcolor{stringliteral}{'//'}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00425}00425\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00426}00426\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{'\(\backslash\)n'}.join(comments)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00427}00427\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00428}00428\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00429}\doxymbox{\hyperlink{namespacedoc__generator_ac6d709371eab2179ca2b6d67052bd529}{00429}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_ac6d709371eab2179ca2b6d67052bd529}{extract\_body\_lines}}(content:\ str,\ start\_line:\ int,\ max\_lines:\ int\ =\ 15)\ -\/>\ List[str]:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00430}00430\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Extract\ the\ first\ N\ lines\ of\ a\ function\ body\ for\ context."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00431}00431\ \ \ \ \ lines\ =\ content.split(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00432}00432\ \ \ \ \ body\ =\ []}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00433}00433\ \ \ \ \ brace\_depth\ =\ 0}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00434}00434\ \ \ \ \ started\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00435}00435\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(start\_line\ -\/\ 1,\ min(len(lines),\ start\_line\ +\ max\_lines)):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00436}00436\ \ \ \ \ \ \ \ \ line\ =\ lines[i]}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00437}00437\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'\{'}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00438}00438\ \ \ \ \ \ \ \ \ \ \ \ \ brace\_depth\ +=\ line.count(\textcolor{stringliteral}{'\{'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00439}00439\ \ \ \ \ \ \ \ \ \ \ \ \ started\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00440}00440\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ started:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00441}00441\ \ \ \ \ \ \ \ \ \ \ \ \ body.append(line.strip())}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00442}00442\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'\}'}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00443}00443\ \ \ \ \ \ \ \ \ \ \ \ \ brace\_depth\ -\/=\ line.count(\textcolor{stringliteral}{'\}'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00444}00444\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ brace\_depth\ <=\ 0\ \textcolor{keywordflow}{and}\ started:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00445}00445\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00446}00446\ \ \ \ \ \textcolor{keywordflow}{return}\ body}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00447}00447\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00448}00448\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00449}\doxymbox{\hyperlink{namespacedoc__generator_a6bd9510228d45b9f6b4d3894dc365ef9}{00449}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_a6bd9510228d45b9f6b4d3894dc365ef9}{extract\_struct\_fields}}(content:\ str,\ start\_line:\ int)\ -\/>\ List[Tuple[str,\ str]]:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00450}00450\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Extract\ fields\ from\ a\ struct\ definition."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00451}00451\ \ \ \ \ lines\ =\ content.split(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00452}00452\ \ \ \ \ fields\ =\ []}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00453}00453\ \ \ \ \ brace\_depth\ =\ 0}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00454}00454\ \ \ \ \ started\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00455}00455\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(start\_line\ -\/\ 1,\ min(len(lines),\ start\_line\ +\ 50)):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00456}00456\ \ \ \ \ \ \ \ \ line\ =\ lines[i].strip()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00457}00457\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'\{'}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00458}00458\ \ \ \ \ \ \ \ \ \ \ \ \ brace\_depth\ +=\ line.count(\textcolor{stringliteral}{'\{'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00459}00459\ \ \ \ \ \ \ \ \ \ \ \ \ started\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00460}00460\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00461}00461\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'\}'}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00462}00462\ \ \ \ \ \ \ \ \ \ \ \ \ brace\_depth\ -\/=\ line.count(\textcolor{stringliteral}{'\}'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00463}00463\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ brace\_depth\ <=\ 0\ \textcolor{keywordflow}{and}\ started:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00464}00464\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00465}00465\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ started\ \textcolor{keywordflow}{and}\ brace\_depth\ ==\ 1\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{':'}\ \textcolor{keywordflow}{in}\ line\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ line.startswith(\textcolor{stringliteral}{'//'}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00466}00466\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Match:\ field\_name:\ Type,}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00467}00467\ \ \ \ \ \ \ \ \ \ \ \ \ m\ =\ re.match(\textcolor{stringliteral}{r'(\(\backslash\)w+)\(\backslash\)s*:\(\backslash\)s*([\string^,=]+)'},\ line)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00468}00468\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ m\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ m.group(1).startswith(\textcolor{stringliteral}{'pub'})\ \textcolor{keywordflow}{and}\ m.group(1)\ !=\ \textcolor{stringliteral}{'fn'}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00469}00469\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fields.append((m.group(1),\ m.group(2).strip().rstrip(\textcolor{stringliteral}{','})))}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00470}00470\ \ \ \ \ \textcolor{keywordflow}{return}\ fields}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00471}00471\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00472}00472\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00473}\doxymbox{\hyperlink{namespacedoc__generator_ad78ac702de4ce8523e7a90b8e94c38cd}{00473}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_ad78ac702de4ce8523e7a90b8e94c38cd}{parse\_function}}(line:\ str)\ -\/>\ Optional[Tuple[str,\ str,\ List[Tuple[str,\ str]]]]:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00474}00474\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Parse\ a\ function\ signature."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00475}00475\ \ \ \ \ match\ =\ re.match(\textcolor{stringliteral}{r'(?:pub\(\backslash\)s+)?(?:export\(\backslash\)s+)?fn\(\backslash\)s+(\(\backslash\)w+)\(\backslash\)s*\(\backslash\)(([\string^)]*)\(\backslash\))\(\backslash\)s*(!?[\string^\(\backslash\)\{]+)?'},\ line)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00476}00476\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ match:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00477}00477\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00478}00478\ \ \ \ \ name\ =\ match.group(1)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00479}00479\ \ \ \ \ params\_str\ =\ match.group(2).strip()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00480}00480\ \ \ \ \ returns\ =\ match.group(3).strip()\ \textcolor{keywordflow}{if}\ match.group(3)\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}void"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00481}00481\ \ \ \ \ params\ =\ []}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00482}00482\ \ \ \ \ \textcolor{keywordflow}{if}\ params\_str:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00483}00483\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ param\ \textcolor{keywordflow}{in}\ params\_str.split(\textcolor{stringliteral}{','}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00484}00484\ \ \ \ \ \ \ \ \ \ \ \ \ param\ =\ param.strip()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00485}00485\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{':'}\ \textcolor{keywordflow}{in}\ param:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00486}00486\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pname,\ ptype\ =\ param.split(\textcolor{stringliteral}{':'},\ 1)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00487}00487\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ params.append((pname.strip(),\ ptype.strip()))}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00488}00488\ \ \ \ \ \textcolor{keywordflow}{return}\ name,\ returns,\ params}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00489}00489\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00490}00490\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00491}\doxymbox{\hyperlink{namespacedoc__generator_ac2262fd610f45d420573944724eed983}{00491}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_ac2262fd610f45d420573944724eed983}{parse\_struct}}(line:\ str)\ -\/>\ Optional[str]:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00492}00492\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Parse\ struct\ name."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00493}00493\ \ \ \ \ match\ =\ re.match(\textcolor{stringliteral}{r'(?:pub\(\backslash\)s+)?const\(\backslash\)s+(\(\backslash\)w+)\(\backslash\)s*=\(\backslash\)s*(?:extern\(\backslash\)s+)?struct'},\ line)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00494}00494\ \ \ \ \ \textcolor{keywordflow}{if}\ match:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00495}00495\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ match.group(1)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00496}00496\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00497}00497\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00498}00498\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00499}\doxymbox{\hyperlink{namespacedoc__generator_a6e198bbc904953f3f9d528638fb1be64}{00499}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_a6e198bbc904953f3f9d528638fb1be64}{parse\_module}}(filepath:\ Path)\ -\/>\ ModuleDoc:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00500}00500\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Parse\ a\ Zig\ module\ and\ extract\ documentation\ with\ smart\ descriptions."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00501}00501\ \ \ \ \ content\ =\ filepath.read\_text(encoding=\textcolor{stringliteral}{'utf-\/8'},\ errors=\textcolor{stringliteral}{'replace'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00502}00502\ \ \ \ \ lines\ =\ content.split(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00503}00503\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00504}00504\ \ \ \ \ module\ =\ \doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{ModuleDoc}}(name=filepath.stem)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00505}00505\ \ \ \ \ module.line\_count\ =\ len(lines)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00506}00506\ \ \ \ \ module.test\_count\ =\ content.count(\textcolor{stringliteral}{'test\ "{}'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00507}00507\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00508}00508\ \ \ \ \ \textcolor{comment}{\#\ Module\ description:\ use\ curated\ if\ available,\ otherwise\ from\ top\ comments}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00509}00509\ \ \ \ \ \textcolor{keywordflow}{if}\ filepath.stem\ \textcolor{keywordflow}{in}\ MODULE\_DESCRIPTIONS:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00510}00510\ \ \ \ \ \ \ \ \ module.description\ =\ MODULE\_DESCRIPTIONS[filepath.stem]}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00511}00511\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00512}00512\ \ \ \ \ \ \ \ \ module\_desc\ =\ []}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00513}00513\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ lines:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00514}00514\ \ \ \ \ \ \ \ \ \ \ \ \ stripped\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00515}00515\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ stripped.startswith(\textcolor{stringliteral}{'//!'}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00516}00516\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module\_desc.append(stripped[3:].strip())}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00517}00517\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ stripped\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ stripped.startswith(\textcolor{stringliteral}{'//'}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00518}00518\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00519}00519\ \ \ \ \ \ \ \ \ module.description\ =\ \textcolor{stringliteral}{'\(\backslash\)n'}.join(module\_desc)\ \textcolor{keywordflow}{if}\ module\_desc\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}Module\ for\ \{camel\_to\_words(filepath.stem)\}\ functionality."{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00520}00520\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00521}00521\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ line\ \textcolor{keywordflow}{in}\ enumerate(lines,\ 1):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00522}00522\ \ \ \ \ \ \ \ \ stripped\ =\ line.strip()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00523}00523\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00524}00524\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Parse\ pub\ functions}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00525}00525\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ re.match(\textcolor{stringliteral}{r'pub\(\backslash\)s+(?:export\(\backslash\)s+)?fn\(\backslash\)s+\(\backslash\)w+'},\ stripped):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00526}00526\ \ \ \ \ \ \ \ \ \ \ \ \ func\_info\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ad78ac702de4ce8523e7a90b8e94c38cd}{parse\_function}}(stripped)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00527}00527\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ func\_info:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00528}00528\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ name,\ returns,\ params\ =\ func\_info}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00529}00529\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc\ =\ \doxymbox{\hyperlink{namespacedoc__generator_a37740e47ff9a440a4a858a307233751c}{extract\_doc\_comments}}(content,\ i)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00530}00530\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ body\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac6d709371eab2179ca2b6d67052bd529}{extract\_body\_lines}}(content,\ i)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00531}00531\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00532}00532\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Auto-\/generate\ description\ if\ none\ from\ comments}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00533}00533\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ doc:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00534}00534\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc\ =\ \doxymbox{\hyperlink{namespacedoc__generator_a8c338d81ff26cd9c872b378e75a84009}{infer\_function\_description}}(name,\ params,\ returns,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00535}00535\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filepath.stem,\ body)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00536}00536\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00537}00537\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ func\_doc\ =\ \doxymbox{\hyperlink{classdoc__generator_1_1_function_doc}{FunctionDoc}}(}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00538}00538\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ name=name,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00539}00539\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ signature=stripped,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00540}00540\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ description=doc,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00541}00541\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ params=params,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00542}00542\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ returns=returns,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00543}00543\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ line=i,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00544}00544\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ body\_preview=body[:5],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00545}00545\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00546}00546\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module.functions.append(func\_doc)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00547}00547\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00548}00548\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Parse\ structs}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00549}00549\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'struct'}\ \textcolor{keywordflow}{in}\ stripped\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{'const'}\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00550}00550\ \ \ \ \ \ \ \ \ \ \ \ \ struct\_name\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac2262fd610f45d420573944724eed983}{parse\_struct}}(stripped)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00551}00551\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ struct\_name:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00552}00552\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc\ =\ \doxymbox{\hyperlink{namespacedoc__generator_a37740e47ff9a440a4a858a307233751c}{extract\_doc\_comments}}(content,\ i)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00553}00553\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fields\ =\ \doxymbox{\hyperlink{namespacedoc__generator_a6bd9510228d45b9f6b4d3894dc365ef9}{extract\_struct\_fields}}(content,\ i)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00554}00554\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00555}00555\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ doc:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00556}00556\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc\ =\ \doxymbox{\hyperlink{namespacedoc__generator_afb6688a90a1f27ac7f22d4d0d6a05fc9}{infer\_struct\_description}}(struct\_name,\ fields,\ filepath.stem)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00557}00557\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00558}00558\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module.structs.append(\doxymbox{\hyperlink{classdoc__generator_1_1_struct_doc}{StructDoc}}(}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00559}00559\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ name=struct\_name,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00560}00560\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ description=doc,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00561}00561\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fields=fields,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00562}00562\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ line=i,}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00563}00563\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ))}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00564}00564\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00565}00565\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Parse\ pub\ constants}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00566}00566\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ re.match(\textcolor{stringliteral}{r'pub\(\backslash\)s+const\(\backslash\)s+\(\backslash\)w+\(\backslash\)s*[:=]'},\ stripped)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{'struct'}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ stripped\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{'fn'}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ stripped:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00567}00567\ \ \ \ \ \ \ \ \ \ \ \ \ match\ =\ re.match(\textcolor{stringliteral}{r'pub\(\backslash\)s+const\(\backslash\)s+(\(\backslash\)w+)\(\backslash\)s*[:=]\(\backslash\)s*([\string^;]+)'},\ stripped)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00568}00568\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ match:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00569}00569\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ name\ =\ match.group(1)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00570}00570\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ value\ =\ match.group(2).strip()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00571}00571\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module.constants.append((name,\ \textcolor{stringliteral}{"{}auto"{}},\ value))}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00572}00572\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00573}00573\ \ \ \ \ \textcolor{keywordflow}{return}\ module}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00574}00574\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00575}00575\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00576}00576\ \textcolor{comment}{\#\ ──\ Markdown\ generation\ ───────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00577}00577\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00578}\doxymbox{\hyperlink{namespacedoc__generator_a84f3b7f785b459a723ee86aaaacbc7d1}{00578}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_a84f3b7f785b459a723ee86aaaacbc7d1}{generate\_markdown}}(module:\ ModuleDoc)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00579}00579\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ rich\ markdown\ documentation\ for\ a\ module."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00580}00580\ \ \ \ \ md\ =\ f\textcolor{stringliteral}{"{}\#\ Module:\ \`{}\{module.name\}`\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00581}00581\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00582}00582\ \ \ \ \ \textcolor{keywordflow}{if}\ module.description:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00583}00583\ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}>\ \{module.description\}\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00584}00584\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00585}00585\ \ \ \ \ \textcolor{comment}{\#\ Stats}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00586}00586\ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}**Source:**\ \`{}core/\{module.name\}.zig`\ |\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00587}00587\ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}**Lines:**\ \{module.line\_count\}\ |\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00588}00588\ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}**Functions:**\ \{len(module.functions)\}\ |\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00589}00589\ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}**Structs:**\ \{len(module.structs)\}\ |\ "{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00590}00590\ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}**Tests:**\ \{module.test\_count\}\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00591}00591\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00592}00592\ \ \ \ \ \textcolor{comment}{\#\ Table\ of\ contents}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00593}00593\ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}-\/-\/-\/\(\backslash\)n\(\backslash\)n\#\#\ Contents\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00594}00594\ \ \ \ \ \textcolor{keywordflow}{if}\ module.structs:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00595}00595\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\#\#\#\ Structs\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00596}00596\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ module.structs:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00597}00597\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}-\/\ [`\{s.name\}`](\#\{s.name.lower()\})\ —\ \{s.description[:80]\}\{'...'\ if\ len(s.description)\ >\ 80\ else\ ''\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00598}00598\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00599}00599\ \ \ \ \ \textcolor{keywordflow}{if}\ module.constants:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00600}00600\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\#\#\#\ Constants\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00601}00601\ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}-\/\ [\{len(module.constants)\}\ constants\ defined](\#constants)\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00602}00602\ \ \ \ \ \textcolor{keywordflow}{if}\ module.functions:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00603}00603\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\#\#\#\ Functions\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00604}00604\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ module.functions:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00605}00605\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}-\/\ [`\{f.name\}()`](\#\{f.name.lower()\})\ —\ \{f.description[:70]\}\{'...'\ if\ len(f.description)\ >\ 70\ else\ ''\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00606}00606\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00607}00607\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00608}00608\ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}-\/-\/-\/\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00609}00609\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00610}00610\ \ \ \ \ \textcolor{comment}{\#\ Structs}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00611}00611\ \ \ \ \ \textcolor{keywordflow}{if}\ module.structs:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00612}00612\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\#\#\ Structs\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00613}00613\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ module.structs:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00614}00614\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}\#\#\#\ \`{}\{s.name\}`\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00615}00615\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}\{s.description\}\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00616}00616\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ s.fields:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00617}00617\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}|\ Field\ |\ Type\ |\ Description\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00618}00618\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}|-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00619}00619\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ fname,\ ftype\ \textcolor{keywordflow}{in}\ s.fields[:20]:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00620}00620\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ desc\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(fname).capitalize()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00621}00621\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}|\ \`{}\{fname\}`\ |\ \`{}\{ftype\}`\ |\ \{desc\}\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00622}00622\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00623}00623\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}*Defined\ at\ line\ \{s.line\}*\(\backslash\)n\(\backslash\)n-\/-\/-\/\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00624}00624\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00625}00625\ \ \ \ \ \textcolor{comment}{\#\ Constants}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00626}00626\ \ \ \ \ \textcolor{keywordflow}{if}\ module.constants:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00627}00627\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\#\#\ Constants\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00628}00628\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}|\ Name\ |\ Value\ |\ Description\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00629}00629\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}|-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00630}00630\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ typ,\ value\ \textcolor{keywordflow}{in}\ module.constants[:30]:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00631}00631\ \ \ \ \ \ \ \ \ \ \ \ \ desc\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(name).capitalize()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00632}00632\ \ \ \ \ \ \ \ \ \ \ \ \ val\_display\ =\ value[:60]\ +\ (\textcolor{stringliteral}{'...'}\ \textcolor{keywordflow}{if}\ len(value)\ >\ 60\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00633}00633\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}|\ \`{}\{name\}`\ |\ \`{}\{val\_display\}`\ |\ \{desc\}\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00634}00634\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00635}00635\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00636}00636\ \ \ \ \ \textcolor{comment}{\#\ Functions}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00637}00637\ \ \ \ \ \textcolor{keywordflow}{if}\ module.functions:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00638}00638\ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\#\#\ Functions\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00639}00639\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ module.functions:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00640}00640\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}\#\#\#\ \`{}\{f.name\}()`\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00641}00641\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}\{f.description\}\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00642}00642\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00643}00643\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\`{}\`{}\`{}zig\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00644}00644\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}\{f.signature\}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00645}00645\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\`{}\`{}\`{}\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00646}00646\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00647}00647\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ f.params:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00648}00648\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}|\ Parameter\ |\ Type\ |\ Description\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00649}00649\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00650}00650\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ pname,\ ptype\ \textcolor{keywordflow}{in}\ f.params:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00651}00651\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ desc\ =\ \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\_to\_words}}(pname).capitalize()\ \textcolor{keywordflow}{if}\ pname\ !=\ \textcolor{stringliteral}{'self'}\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{'The\ instance'}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00652}00652\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}|\ \`{}\{pname\}`\ |\ \`{}\{ptype\}`\ |\ \{desc\}\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00653}00653\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00654}00654\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00655}00655\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ f.returns\ \textcolor{keywordflow}{and}\ f.returns\ !=\ \textcolor{stringliteral}{"{}void"{}}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00656}00656\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}**Returns:**\ \`{}\{f.returns\}`\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00657}00657\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00658}00658\ \ \ \ \ \ \ \ \ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}*Defined\ at\ line\ \{f.line\}*\(\backslash\)n\(\backslash\)n-\/-\/-\/\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00659}00659\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00660}00660\ \ \ \ \ \textcolor{comment}{\#\ Footer}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00661}00661\ \ \ \ \ md\ +=\ f\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\(\backslash\)n\(\backslash\)n*Generated\ by\ OmniBus\ Doc\ Generator\ v2.0\ —\ \{datetime.now().strftime('\%Y-\/\%m-\/\%d\ \%H:\%M')\}*\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00662}00662\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00663}00663\ \ \ \ \ \textcolor{keywordflow}{return}\ md}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00664}00664\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00665}00665\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00666}00666\ \textcolor{comment}{\#\ ──\ HTML\ generation\ ───────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00667}00667\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00668}\doxymbox{\hyperlink{namespacedoc__generator_a7be65388ac661c82dde9642fdcd6c990}{00668}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_a7be65388ac661c82dde9642fdcd6c990}{generate\_html\_index}}(modules:\ List[ModuleDoc])\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00669}00669\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ HTML\ index\ page\ with\ categories."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00670}00670\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00671}00671\ \ \ \ \ \textcolor{comment}{\#\ Categorize\ modules}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00672}00672\ \ \ \ \ categories\ =\ \{}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00673}00673\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Blockchain\ \&\ Consensus"{}}:\ [\textcolor{stringliteral}{"{}blockchain"{}},\ \textcolor{stringliteral}{"{}block"{}},\ \textcolor{stringliteral}{"{}transaction"{}},\ \textcolor{stringliteral}{"{}consensus"{}},\ \textcolor{stringliteral}{"{}genesis"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00674}00674\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}finality"{}},\ \textcolor{stringliteral}{"{}governance"{}},\ \textcolor{stringliteral}{"{}staking"{}},\ \textcolor{stringliteral}{"{}sub\_block"{}},\ \textcolor{stringliteral}{"{}blockchain\_v2"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00675}00675\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}e2e\_mining"{}}],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00676}00676\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Cryptography"{}}:\ [\textcolor{stringliteral}{"{}crypto"{}},\ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}pq\_crypto"{}},\ \textcolor{stringliteral}{"{}bip32\_wallet"{}},\ \textcolor{stringliteral}{"{}ripemd160"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00677}00677\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}schnorr"{}},\ \textcolor{stringliteral}{"{}bls\_signatures"{}},\ \textcolor{stringliteral}{"{}multisig"{}},\ \textcolor{stringliteral}{"{}key\_encryption"{}},\ \textcolor{stringliteral}{"{}hex\_utils"{}}],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00678}00678\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Networking\ \&\ P2P"{}}:\ [\textcolor{stringliteral}{"{}p2p"{}},\ \textcolor{stringliteral}{"{}network"{}},\ \textcolor{stringliteral}{"{}sync"{}},\ \textcolor{stringliteral}{"{}bootstrap"{}},\ \textcolor{stringliteral}{"{}kademlia\_dht"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00679}00679\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}peer\_scoring"{}},\ \textcolor{stringliteral}{"{}rpc\_server"{}},\ \textcolor{stringliteral}{"{}ws\_server"{}},\ \textcolor{stringliteral}{"{}compact\_blocks"{}}],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00680}00680\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Storage\ \&\ Data"{}}:\ [\textcolor{stringliteral}{"{}database"{}},\ \textcolor{stringliteral}{"{}storage"{}},\ \textcolor{stringliteral}{"{}state\_trie"{}},\ \textcolor{stringliteral}{"{}binary\_codec"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00681}00681\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}archive\_manager"{}},\ \textcolor{stringliteral}{"{}prune\_config"{}},\ \textcolor{stringliteral}{"{}compact\_transaction"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00682}00682\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}witness\_data"{}},\ \textcolor{stringliteral}{"{}tx\_receipt"{}}],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00683}00683\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Wallet\ \&\ Identity"{}}:\ [\textcolor{stringliteral}{"{}wallet"{}},\ \textcolor{stringliteral}{"{}miner\_wallet"{}},\ \textcolor{stringliteral}{"{}vault\_engine"{}},\ \textcolor{stringliteral}{"{}vault\_reader"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00684}00684\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}miner\_genesis"{}},\ \textcolor{stringliteral}{"{}mining\_pool"{}},\ \textcolor{stringliteral}{"{}light\_miner"{}},\ \textcolor{stringliteral}{"{}light\_client"{}}],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00685}00685\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Sharding\ \&\ Scaling"{}}:\ [\textcolor{stringliteral}{"{}metachain"{}},\ \textcolor{stringliteral}{"{}shard\_coordinator"{}},\ \textcolor{stringliteral}{"{}shard\_config"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00686}00686\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}payment\_channel"{}},\ \textcolor{stringliteral}{"{}bridge\_relay"{}}],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00687}00687\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Economic\ \&\ Governance"{}}:\ [\textcolor{stringliteral}{"{}bread\_ledger"{}},\ \textcolor{stringliteral}{"{}ubi\_distributor"{}},\ \textcolor{stringliteral}{"{}domain\_minter"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00688}00688\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}oracle"{}},\ \textcolor{stringliteral}{"{}guardian"{}},\ \textcolor{stringliteral}{"{}dns\_registry"{}}],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00689}00689\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Node\ \&\ Infrastructure"{}}:\ [\textcolor{stringliteral}{"{}main"{}},\ \textcolor{stringliteral}{"{}cli"{}},\ \textcolor{stringliteral}{"{}node\_launcher"{}},\ \textcolor{stringliteral}{"{}chain\_config"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00690}00690\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}os\_mode"{}},\ \textcolor{stringliteral}{"{}omni\_brain"{}},\ \textcolor{stringliteral}{"{}spark\_invariants"{}},}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00691}00691\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}synapse\_priority"{}},\ \textcolor{stringliteral}{"{}benchmark"{}},\ \textcolor{stringliteral}{"{}mempool"{}},\ \textcolor{stringliteral}{"{}script"{}}],}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00692}00692\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00693}00693\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00694}00694\ \ \ \ \ modules\_by\_name\ =\ \{m.name:\ m\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules\}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00695}00695\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00696}00696\ \ \ \ \ category\_html\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00697}00697\ \ \ \ \ \textcolor{keywordflow}{for}\ cat\_name,\ cat\_modules\ \textcolor{keywordflow}{in}\ categories.items():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00698}00698\ \ \ \ \ \ \ \ \ items\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00699}00699\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ mname\ \textcolor{keywordflow}{in}\ cat\_modules:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00700}00700\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mname\ \textcolor{keywordflow}{in}\ modules\_by\_name:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00701}00701\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\ =\ modules\_by\_name[mname]}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00702}00702\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ desc\ =\ m.description[:100]\ +\ (\textcolor{stringliteral}{'...'}\ \textcolor{keywordflow}{if}\ len(m.description)\ >\ 100\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00703}00703\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ items\ +=\ f\textcolor{stringliteral}{'''<a\ href="{}\{m.name\}.html"{}\ class="{}module-\/card"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00704}00704\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ <div\ class="{}module-\/name"{}>\{m.name\}.zig</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00705}00705\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ <div\ class="{}module-\/desc"{}>\{desc\}</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00706}00706\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ <div\ class="{}module-\/stats"{}>\{len(m.functions)\}\ functions\ \&bull;\ \{len(m.structs)\}\ structs\ \&bull;\ \{m.line\_count\}\ lines</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00707}00707\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ </a>\(\backslash\)n'''}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00708}00708\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00709}00709\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ items:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00710}00710\ \ \ \ \ \ \ \ \ \ \ \ \ category\_html\ +=\ f\textcolor{stringliteral}{'<h2\ class="{}category"{}>\{cat\_name\}</h2>\(\backslash\)n<div\ class="{}module-\/grid"{}>\{items\}</div>\(\backslash\)n'}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00711}00711\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00712}00712\ \ \ \ \ \textcolor{comment}{\#\ Uncategorized}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00713}00713\ \ \ \ \ all\_categorized\ =\ set()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00714}00714\ \ \ \ \ \textcolor{keywordflow}{for}\ mods\ \textcolor{keywordflow}{in}\ categories.values():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00715}00715\ \ \ \ \ \ \ \ \ all\_categorized.update(mods)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00716}00716\ \ \ \ \ uncategorized\ =\ [m\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules\ \textcolor{keywordflow}{if}\ m.name\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ all\_categorized]}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00717}00717\ \ \ \ \ \textcolor{keywordflow}{if}\ uncategorized:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00718}00718\ \ \ \ \ \ \ \ \ items\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00719}00719\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ uncategorized:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00720}00720\ \ \ \ \ \ \ \ \ \ \ \ \ desc\ =\ m.description[:100]\ +\ (\textcolor{stringliteral}{'...'}\ \textcolor{keywordflow}{if}\ len(m.description)\ >\ 100\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00721}00721\ \ \ \ \ \ \ \ \ \ \ \ \ items\ +=\ f\textcolor{stringliteral}{'''<a\ href="{}\{m.name\}.html"{}\ class="{}module-\/card"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00722}00722\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ <div\ class="{}module-\/name"{}>\{m.name\}.zig</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00723}00723\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ <div\ class="{}module-\/desc"{}>\{desc\}</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00724}00724\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ <div\ class="{}module-\/stats"{}>\{len(m.functions)\}\ functions\ \&bull;\ \{len(m.structs)\}\ structs</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00725}00725\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ </a>\(\backslash\)n'''}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00726}00726\ \ \ \ \ \ \ \ \ category\_html\ +=\ f\textcolor{stringliteral}{'<h2\ class="{}category"{}>Other\ Modules</h2>\(\backslash\)n<div\ class="{}module-\/grid"{}>\{items\}</div>\(\backslash\)n'}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00727}00727\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00728}00728\ \ \ \ \ total\_funcs\ =\ sum(len(m.functions)\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00729}00729\ \ \ \ \ total\_structs\ =\ sum(len(m.structs)\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00730}00730\ \ \ \ \ total\_lines\ =\ sum(m.line\_count\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00731}00731\ \ \ \ \ total\_tests\ =\ sum(m.test\_count\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00732}00732\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00733}00733\ \ \ \ \ html\ =\ f\textcolor{stringliteral}{"{}"{}"{}<!DOCTYPE\ html>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00734}00734\ \textcolor{stringliteral}{<html\ lang="{}en"{}><head>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00735}00735\ \textcolor{stringliteral}{<meta\ charset="{}utf-\/8"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00736}00736\ \textcolor{stringliteral}{<meta\ name="{}viewport"{}\ content="{}width=device-\/width,\ initial-\/scale=1.0"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00737}00737\ \textcolor{stringliteral}{<title>OmniBus\ Blockchain\ —\ API\ Documentation</title>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00738}00738\ \textcolor{stringliteral}{<style>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00739}00739\ \textcolor{stringliteral}{:root\ \{\{\ -\/-\/bg:\ \#0a0e17;\ -\/-\/surface:\ \#111827;\ -\/-\/border:\ \#1e293b;\ -\/-\/accent:\ \#22d3ee;\ -\/-\/green:\ \#34d399;\ -\/-\/text:\ \#e2e8f0;\ -\/-\/muted:\ \#94a3b8;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00740}00740\ \textcolor{stringliteral}{*\ \{\{\ margin:\ 0;\ padding:\ 0;\ box-\/sizing:\ border-\/box;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00741}00741\ \textcolor{stringliteral}{body\ \{\{\ font-\/family:\ 'JetBrains\ Mono',\ 'Fira\ Code',\ monospace;\ background:\ var(-\/-\/bg);\ color:\ var(-\/-\/text);\ padding:\ 40px\ 20px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00742}00742\ \textcolor{stringliteral}{.container\ \{\{\ max-\/width:\ 1200px;\ margin:\ 0\ auto;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00743}00743\ \textcolor{stringliteral}{h1\ \{\{\ color:\ var(-\/-\/accent);\ font-\/size:\ 2rem;\ margin-\/bottom:\ 8px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00744}00744\ \textcolor{stringliteral}{.subtitle\ \{\{\ color:\ var(-\/-\/muted);\ margin-\/bottom:\ 30px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00745}00745\ \textcolor{stringliteral}{.stats-\/bar\ \{\{\ display:\ flex;\ gap:\ 30px;\ flex-\/wrap:\ wrap;\ margin-\/bottom:\ 40px;\ padding:\ 20px;\ background:\ var(-\/-\/surface);\ border:\ 1px\ solid\ var(-\/-\/border);\ border-\/radius:\ 12px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00746}00746\ \textcolor{stringliteral}{.stat\ \{\{\ text-\/align:\ center;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00747}00747\ \textcolor{stringliteral}{.stat-\/value\ \{\{\ font-\/size:\ 1.5rem;\ font-\/weight:\ 700;\ color:\ var(-\/-\/accent);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00748}00748\ \textcolor{stringliteral}{.stat-\/label\ \{\{\ font-\/size:\ 0.75rem;\ color:\ var(-\/-\/muted);\ text-\/transform:\ uppercase;\ letter-\/spacing:\ 1px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00749}00749\ \textcolor{stringliteral}{.category\ \{\{\ color:\ var(-\/-\/green);\ font-\/size:\ 1.1rem;\ margin:\ 30px\ 0\ 15px;\ padding-\/bottom:\ 8px;\ border-\/bottom:\ 1px\ solid\ var(-\/-\/border);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00750}00750\ \textcolor{stringliteral}{.module-\/grid\ \{\{\ display:\ grid;\ grid-\/template-\/columns:\ repeat(auto-\/fill,\ minmax(280px,\ 1fr));\ gap:\ 12px;\ margin-\/bottom:\ 20px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00751}00751\ \textcolor{stringliteral}{.module-\/card\ \{\{\ display:\ block;\ background:\ var(-\/-\/surface);\ border:\ 1px\ solid\ var(-\/-\/border);\ border-\/radius:\ 10px;\ padding:\ 16px;\ text-\/decoration:\ none;\ color:\ var(-\/-\/text);\ transition:\ border-\/color\ 0.2s;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00752}00752\ \textcolor{stringliteral}{.module-\/card:hover\ \{\{\ border-\/color:\ var(-\/-\/accent);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00753}00753\ \textcolor{stringliteral}{.module-\/name\ \{\{\ font-\/weight:\ 700;\ color:\ var(-\/-\/accent);\ margin-\/bottom:\ 6px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00754}00754\ \textcolor{stringliteral}{.module-\/desc\ \{\{\ font-\/size:\ 0.8rem;\ color:\ var(-\/-\/muted);\ line-\/height:\ 1.4;\ margin-\/bottom:\ 8px;\ min-\/height:\ 2.8em;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00755}00755\ \textcolor{stringliteral}{.module-\/stats\ \{\{\ font-\/size:\ 0.7rem;\ color:\ \#64748b;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00756}00756\ \textcolor{stringliteral}{.footer\ \{\{\ text-\/align:\ center;\ margin-\/top:\ 60px;\ color:\ var(-\/-\/muted);\ font-\/size:\ 0.8rem;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00757}00757\ \textcolor{stringliteral}{a\ \{\{\ color:\ var(-\/-\/accent);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00758}00758\ \textcolor{stringliteral}{</style>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00759}00759\ \textcolor{stringliteral}{</head><body>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00760}00760\ \textcolor{stringliteral}{<div\ class="{}container"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00761}00761\ \textcolor{stringliteral}{<h1>OmniBus\ Blockchain\ —\ API\ Documentation</h1>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00762}00762\ \textcolor{stringliteral}{<p\ class="{}subtitle"{}>Complete\ reference\ for\ all\ \{len(modules)\}\ core\ modules\ \&bull;\ Generated\ \{datetime.now().strftime('\%Y-\/\%m-\/\%d\ \%H:\%M')\}</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00763}00763\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00764}00764\ \textcolor{stringliteral}{<div\ class="{}stats-\/bar"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00765}00765\ \textcolor{stringliteral}{<div\ class="{}stat"{}><div\ class="{}stat-\/value"{}>\{len(modules)\}</div><div\ class="{}stat-\/label"{}>Modules</div></div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00766}00766\ \textcolor{stringliteral}{<div\ class="{}stat"{}><div\ class="{}stat-\/value"{}>\{total\_funcs\}</div><div\ class="{}stat-\/label"{}>Functions</div></div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00767}00767\ \textcolor{stringliteral}{<div\ class="{}stat"{}><div\ class="{}stat-\/value"{}>\{total\_structs\}</div><div\ class="{}stat-\/label"{}>Structs</div></div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00768}00768\ \textcolor{stringliteral}{<div\ class="{}stat"{}><div\ class="{}stat-\/value"{}>\{total\_lines:,\}</div><div\ class="{}stat-\/label"{}>Lines\ of\ Code</div></div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00769}00769\ \textcolor{stringliteral}{<div\ class="{}stat"{}><div\ class="{}stat-\/value"{}>\{total\_tests\}</div><div\ class="{}stat-\/label"{}>Tests</div></div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00770}00770\ \textcolor{stringliteral}{</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00771}00771\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00772}00772\ \textcolor{stringliteral}{\{category\_html\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00773}00773\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00774}00774\ \textcolor{stringliteral}{<div\ class="{}footer"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00775}00775\ \textcolor{stringliteral}{<p>OmniBus\ BlockChain\ Core\ —\ Post-\/Quantum\ Hybrid\ Blockchain</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00776}00776\ \textcolor{stringliteral}{<p\ style="{}margin-\/top:8px"{}><a\ href="{}https://github.com/SAVACAZAN/OmniBus-\/BlockChainCore"{}>GitHub</a>\ \&bull;\ Built\ with\ Zig\ \&bull;\ Generated\ by\ doc\_generator\ v2.0</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00777}00777\ \textcolor{stringliteral}{</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00778}00778\ \textcolor{stringliteral}{</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00779}00779\ \textcolor{stringliteral}{</body></html>"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00780}00780\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00781}00781\ \ \ \ \ \textcolor{keywordflow}{return}\ html}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00782}00782\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00783}00783\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00784}\doxymbox{\hyperlink{namespacedoc__generator_a21b302799823a913d20ca0646b2b06c6}{00784}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_a21b302799823a913d20ca0646b2b06c6}{generate\_html}}(module:\ ModuleDoc)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00785}00785\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ HTML\ documentation\ for\ a\ module."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00786}00786\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00787}00787\ \ \ \ \ struct\_sections\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00788}00788\ \ \ \ \ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ module.structs:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00789}00789\ \ \ \ \ \ \ \ \ fields\_html\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00790}00790\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ s.fields:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00791}00791\ \ \ \ \ \ \ \ \ \ \ \ \ rows\ =\ \textcolor{stringliteral}{"{}"{}}.join(f\textcolor{stringliteral}{"{}<tr><td><code>\{f[0]\}</code></td><td><code>\{f[1]\}</code></td><td>\{camel\_to\_words(f[0]).capitalize()\}</td></tr>"{}}\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ s.fields[:20])}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00792}00792\ \ \ \ \ \ \ \ \ \ \ \ \ fields\_html\ =\ f\textcolor{stringliteral}{"{}<table><tr><th>Field</th><th>Type</th><th>Description</th></tr>\{rows\}</table>"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00793}00793\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00794}00794\ \ \ \ \ \ \ \ \ struct\_sections\ +=\ f\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00795}00795\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ <div\ class="{}section"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00796}00796\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <h3><code>\{s.name\}</code></h3>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00797}00797\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <p>\{s.description\}</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00798}00798\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \{fields\_html\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00799}00799\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <p\ class="{}line"{}>Line:\ \{s.line\}</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00800}00800\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ </div>"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00801}00801\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00802}00802\ \ \ \ \ func\_sections\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00803}00803\ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ module.functions:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00804}00804\ \ \ \ \ \ \ \ \ params\_html\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00805}00805\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ f.params:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00806}00806\ \ \ \ \ \ \ \ \ \ \ \ \ rows\ =\ \textcolor{stringliteral}{"{}"{}}.join(f\textcolor{stringliteral}{"{}<tr><td><code>\{p[0]\}</code></td><td><code>\{p[1]\}</code></td><td>\{camel\_to\_words(p[0]).capitalize()\ if\ p[0]\ !=\ 'self'\ else\ 'The\ instance'\}</td></tr>"{}}\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ f.params)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00807}00807\ \ \ \ \ \ \ \ \ \ \ \ \ params\_html\ =\ f\textcolor{stringliteral}{"{}<table><tr><th>Parameter</th><th>Type</th><th>Description</th></tr>\{rows\}</table>"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00808}00808\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00809}00809\ \ \ \ \ \ \ \ \ returns\_html\ =\ f\textcolor{stringliteral}{'<p\ class="{}returns"{}><strong>Returns:</strong>\ <code>\{f.returns\}</code></p>'}\ \textcolor{keywordflow}{if}\ f.returns\ \textcolor{keywordflow}{and}\ f.returns\ !=\ \textcolor{stringliteral}{"{}void"{}}\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00810}00810\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00811}00811\ \ \ \ \ \ \ \ \ func\_sections\ +=\ f\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00812}00812\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ <div\ class="{}section"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00813}00813\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <h3><code>\{f.name\}()</code></h3>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00814}00814\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <p\ class="{}desc"{}>\{f.description\}</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00815}00815\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <pre><code>\{f.signature\}</code></pre>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00816}00816\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \{params\_html\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00817}00817\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \{returns\_html\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00818}00818\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <p\ class="{}line"{}>Line:\ \{f.line\}</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00819}00819\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ </div>"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00820}00820\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00821}00821\ \ \ \ \ const\_rows\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00822}00822\ \ \ \ \ \textcolor{keywordflow}{if}\ module.constants:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00823}00823\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ typ,\ value\ \textcolor{keywordflow}{in}\ module.constants[:30]:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00824}00824\ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ value[:60]\ +\ (\textcolor{stringliteral}{'...'}\ \textcolor{keywordflow}{if}\ len(value)\ >\ 60\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00825}00825\ \ \ \ \ \ \ \ \ \ \ \ \ const\_rows\ +=\ f\textcolor{stringliteral}{"{}<tr><td><code>\{name\}</code></td><td><code>\{val\}</code></td><td>\{camel\_to\_words(name).capitalize()\}</td></tr>"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00826}00826\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00827}00827\ \ \ \ \ html\ =\ f\textcolor{stringliteral}{"{}"{}"{}<!DOCTYPE\ html>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00828}00828\ \textcolor{stringliteral}{<html\ lang="{}en"{}><head>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00829}00829\ \textcolor{stringliteral}{<meta\ charset="{}utf-\/8"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00830}00830\ \textcolor{stringliteral}{<meta\ name="{}viewport"{}\ content="{}width=device-\/width,\ initial-\/scale=1.0"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00831}00831\ \textcolor{stringliteral}{<title>\{module.name\}\ —\ OmniBus\ API</title>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00832}00832\ \textcolor{stringliteral}{<style>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00833}00833\ \textcolor{stringliteral}{:root\ \{\{\ -\/-\/bg:\ \#0a0e17;\ -\/-\/surface:\ \#111827;\ -\/-\/border:\ \#1e293b;\ -\/-\/accent:\ \#22d3ee;\ -\/-\/green:\ \#34d399;\ -\/-\/purple:\ \#a78bfa;\ -\/-\/orange:\ \#fb923c;\ -\/-\/text:\ \#e2e8f0;\ -\/-\/muted:\ \#94a3b8;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00834}00834\ \textcolor{stringliteral}{*\ \{\{\ margin:\ 0;\ padding:\ 0;\ box-\/sizing:\ border-\/box;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00835}00835\ \textcolor{stringliteral}{body\ \{\{\ font-\/family:\ 'JetBrains\ Mono',\ 'Fira\ Code',\ monospace;\ background:\ var(-\/-\/bg);\ color:\ var(-\/-\/text);\ padding:\ 30px\ 20px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00836}00836\ \textcolor{stringliteral}{.container\ \{\{\ max-\/width:\ 900px;\ margin:\ 0\ auto;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00837}00837\ \textcolor{stringliteral}{h1\ \{\{\ color:\ var(-\/-\/accent);\ font-\/size:\ 1.5rem;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00838}00838\ \textcolor{stringliteral}{h2\ \{\{\ color:\ var(-\/-\/green);\ font-\/size:\ 1.1rem;\ margin:\ 30px\ 0\ 15px;\ padding-\/bottom:\ 8px;\ border-\/bottom:\ 1px\ solid\ var(-\/-\/border);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00839}00839\ \textcolor{stringliteral}{h3\ \{\{\ color:\ var(-\/-\/orange);\ font-\/size:\ 1rem;\ margin-\/bottom:\ 8px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00840}00840\ \textcolor{stringliteral}{.desc\ \{\{\ color:\ var(-\/-\/text);\ margin-\/bottom:\ 12px;\ line-\/height:\ 1.5;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00841}00841\ \textcolor{stringliteral}{.module-\/desc\ \{\{\ color:\ var(-\/-\/muted);\ margin:\ 8px\ 0\ 20px;\ line-\/height:\ 1.5;\ font-\/size:\ 0.9rem;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00842}00842\ \textcolor{stringliteral}{.stats\ \{\{\ font-\/size:\ 0.8rem;\ color:\ var(-\/-\/muted);\ margin-\/bottom:\ 20px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00843}00843\ \textcolor{stringliteral}{code\ \{\{\ background:\ \#1e293b;\ padding:\ 2px\ 6px;\ border-\/radius:\ 4px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00844}00844\ \textcolor{stringliteral}{pre\ \{\{\ background:\ \#0f172a;\ padding:\ 14px;\ border-\/radius:\ 8px;\ overflow-\/x:\ auto;\ margin:\ 10px\ 0;\ border:\ 1px\ solid\ var(-\/-\/border);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00845}00845\ \textcolor{stringliteral}{pre\ code\ \{\{\ background:\ none;\ padding:\ 0;\ color:\ var(-\/-\/accent);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00846}00846\ \textcolor{stringliteral}{table\ \{\{\ width:\ 100\%;\ border-\/collapse:\ collapse;\ margin:\ 10px\ 0;\ font-\/size:\ 0.85rem;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00847}00847\ \textcolor{stringliteral}{th\ \{\{\ background:\ \#0f172a;\ color:\ var(-\/-\/accent);\ padding:\ 8px\ 12px;\ text-\/align:\ left;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00848}00848\ \textcolor{stringliteral}{td\ \{\{\ padding:\ 6px\ 12px;\ border-\/bottom:\ 1px\ solid\ var(-\/-\/border);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00849}00849\ \textcolor{stringliteral}{.section\ \{\{\ background:\ var(-\/-\/surface);\ border:\ 1px\ solid\ var(-\/-\/border);\ border-\/radius:\ 10px;\ padding:\ 20px;\ margin:\ 12px\ 0;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00850}00850\ \textcolor{stringliteral}{.line\ \{\{\ color:\ \#4b5563;\ font-\/size:\ 0.75rem;\ margin-\/top:\ 10px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00851}00851\ \textcolor{stringliteral}{.returns\ \{\{\ color:\ var(-\/-\/purple);\ margin-\/top:\ 8px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00852}00852\ \textcolor{stringliteral}{a\ \{\{\ color:\ var(-\/-\/accent);\ text-\/decoration:\ none;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00853}00853\ \textcolor{stringliteral}{a:hover\ \{\{\ text-\/decoration:\ underline;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00854}00854\ \textcolor{stringliteral}{.back\ \{\{\ display:\ inline-\/block;\ margin-\/bottom:\ 20px;\ font-\/size:\ 0.9rem;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00855}00855\ \textcolor{stringliteral}{.footer\ \{\{\ text-\/align:\ center;\ margin-\/top:\ 40px;\ color:\ \#4b5563;\ font-\/size:\ 0.75rem;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00856}00856\ \textcolor{stringliteral}{</style>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00857}00857\ \textcolor{stringliteral}{</head><body>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00858}00858\ \textcolor{stringliteral}{<div\ class="{}container"{}>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00859}00859\ \textcolor{stringliteral}{<a\ href="{}index.html"{}\ class="{}back"{}>\&larr;\ Back\ to\ Index</a>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00860}00860\ \textcolor{stringliteral}{<h1>Module:\ <code>\{module.name\}</code></h1>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00861}00861\ \textcolor{stringliteral}{<p\ class="{}module-\/desc"{}>\{module.description\}</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00862}00862\ \textcolor{stringliteral}{<p\ class="{}stats"{}>Source:\ core/\{module.name\}.zig\ \&bull;\ \{module.line\_count\}\ lines\ \&bull;\ \{len(module.functions)\}\ functions\ \&bull;\ \{len(module.structs)\}\ structs\ \&bull;\ \{module.test\_count\}\ tests</p>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00863}00863\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00864}00864\ \textcolor{stringliteral}{\{"{}<h2>Structs\ ("{}\ +\ str(len(module.structs))\ +\ "{})</h2>"{}\ +\ struct\_sections\ if\ module.structs\ else\ "{}"{}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00865}00865\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00866}00866\ \textcolor{stringliteral}{\{"{}<h2>Constants\ ("{}\ +\ str(len(module.constants))\ +\ "{})</h2><div\ class='section'><table><tr><th>Name</th><th>Value</th><th>Description</th></tr>"{}\ +\ const\_rows\ +\ "{}</table></div>"{}\ if\ const\_rows\ else\ "{}"{}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00867}00867\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00868}00868\ \textcolor{stringliteral}{\{"{}<h2>Functions\ ("{}\ +\ str(len(module.functions))\ +\ "{})</h2>"{}\ +\ func\_sections\ if\ module.functions\ else\ "{}"{}\}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00869}00869\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00870}00870\ \textcolor{stringliteral}{<div\ class="{}footer"{}>Generated\ by\ OmniBus\ Doc\ Generator\ v2.0\ \&bull;\ \{datetime.now().strftime('\%Y-\/\%m-\/\%d\ \%H:\%M')\}</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00871}00871\ \textcolor{stringliteral}{</div>}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00872}00872\ \textcolor{stringliteral}{</body></html>"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00873}00873\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00874}00874\ \ \ \ \ \textcolor{keywordflow}{return}\ html}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00875}00875\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00876}00876\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00877}00877\ \textcolor{comment}{\#\ ──\ Main\ ──────────────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00878}00878\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00879}\doxymbox{\hyperlink{namespacedoc__generator_a51af30a60f9f02777c6396b8247e356f}{00879}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedoc__generator_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00880}00880\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}OmniBus\ API\ Documentation\ Generator\ v2.0"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00881}00881\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/module"{}},\ help=\textcolor{stringliteral}{"{}Generate\ docs\ for\ specific\ module"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00882}00882\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/format"{}},\ choices=[\textcolor{stringliteral}{"{}md"{}},\ \textcolor{stringliteral}{"{}html"{}},\ \textcolor{stringliteral}{"{}both"{}}],\ default=\textcolor{stringliteral}{"{}both"{}},\ help=\textcolor{stringliteral}{"{}Output\ format\ (default:\ both)"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00883}00883\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ type=Path,\ default=OUTPUT,\ help=\textcolor{stringliteral}{"{}Output\ directory"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00884}00884\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00885}00885\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00886}00886\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ \textcolor{stringliteral}{"{}="{}}\ *\ 60)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00887}00887\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ OmniBus\ API\ Documentation\ Generator\ v2.0"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00888}00888\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ Smart\ descriptions\ +\ categorized\ index"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00889}00889\ \ \ \ \ print(\textcolor{stringliteral}{"{}="{}}\ *\ 60)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00890}00890\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00891}00891\ \ \ \ \ args.output.mkdir(parents=\textcolor{keyword}{True},\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00892}00892\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00893}00893\ \ \ \ \ \textcolor{keywordflow}{if}\ args.module:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00894}00894\ \ \ \ \ \ \ \ \ filepath\ =\ CORE\ /\ f\textcolor{stringliteral}{"{}\{args.module\}.zig"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00895}00895\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ filepath.exists():}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00896}00896\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}ERROR:\ Module\ not\ found:\ \{filepath\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00897}00897\ \ \ \ \ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00898}00898\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00899}00899\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)nParsing:\ \{filepath.name\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00900}00900\ \ \ \ \ \ \ \ \ module\ =\ \doxymbox{\hyperlink{namespacedoc__generator_a6e198bbc904953f3f9d528638fb1be64}{parse\_module}}(filepath)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00901}00901\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00902}00902\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.format\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}md"{}},\ \textcolor{stringliteral}{"{}both"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00903}00903\ \ \ \ \ \ \ \ \ \ \ \ \ output\ =\ args.output\ /\ f\textcolor{stringliteral}{"{}\{module.name\}.md"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00904}00904\ \ \ \ \ \ \ \ \ \ \ \ \ output.write\_text(\doxymbox{\hyperlink{namespacedoc__generator_a84f3b7f785b459a723ee86aaaacbc7d1}{generate\_markdown}}(module),\ encoding=\textcolor{stringliteral}{'utf-\/8'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00905}00905\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ MD:\ \ \ \{output\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00906}00906\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.format\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}html"{}},\ \textcolor{stringliteral}{"{}both"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00907}00907\ \ \ \ \ \ \ \ \ \ \ \ \ output\ =\ args.output\ /\ f\textcolor{stringliteral}{"{}\{module.name\}.html"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00908}00908\ \ \ \ \ \ \ \ \ \ \ \ \ output.write\_text(\doxymbox{\hyperlink{namespacedoc__generator_a21b302799823a913d20ca0646b2b06c6}{generate\_html}}(module),\ encoding=\textcolor{stringliteral}{'utf-\/8'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00909}00909\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ HTML:\ \{output\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00910}00910\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00911}00911\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00912}00912\ \ \ \ \ \ \ \ \ zig\_files\ =\ sorted(CORE.glob(\textcolor{stringliteral}{"{}*.zig"{}}))}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00913}00913\ \ \ \ \ \ \ \ \ modules\ =\ []}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00914}00914\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00915}00915\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)nParsing\ \{len(zig\_files)\}\ modules...\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00916}00916\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00917}00917\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ filepath\ \textcolor{keywordflow}{in}\ enumerate(zig\_files):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00918}00918\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{i+1\}/\{len(zig\_files)\}]\ \{filepath.name:<40\}"{}},\ end=\textcolor{stringliteral}{'\(\backslash\)r'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00919}00919\ \ \ \ \ \ \ \ \ \ \ \ \ module\ =\ \doxymbox{\hyperlink{namespacedoc__generator_a6e198bbc904953f3f9d528638fb1be64}{parse\_module}}(filepath)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00920}00920\ \ \ \ \ \ \ \ \ \ \ \ \ modules.append(module)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00921}00921\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00922}00922\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.format\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}md"{}},\ \textcolor{stringliteral}{"{}both"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00923}00923\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ output\ =\ args.output\ /\ f\textcolor{stringliteral}{"{}\{module.name\}.md"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00924}00924\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ output.write\_text(\doxymbox{\hyperlink{namespacedoc__generator_a84f3b7f785b459a723ee86aaaacbc7d1}{generate\_markdown}}(module),\ encoding=\textcolor{stringliteral}{'utf-\/8'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00925}00925\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.format\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}html"{}},\ \textcolor{stringliteral}{"{}both"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00926}00926\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ output\ =\ args.output\ /\ f\textcolor{stringliteral}{"{}\{module.name\}.html"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00927}00927\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ output.write\_text(\doxymbox{\hyperlink{namespacedoc__generator_a21b302799823a913d20ca0646b2b06c6}{generate\_html}}(module),\ encoding=\textcolor{stringliteral}{'utf-\/8'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00928}00928\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00929}00929\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\ "{}}\ *\ 60,\ end=\textcolor{stringliteral}{'\(\backslash\)r'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00930}00930\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00931}00931\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Generate\ index}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00932}00932\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.format\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}html"{}},\ \textcolor{stringliteral}{"{}both"{}}):}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00933}00933\ \ \ \ \ \ \ \ \ \ \ \ \ index\_path\ =\ args.output\ /\ \textcolor{stringliteral}{"{}index.html"{}}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00934}00934\ \ \ \ \ \ \ \ \ \ \ \ \ index\_path.write\_text(\doxymbox{\hyperlink{namespacedoc__generator_a7be65388ac661c82dde9642fdcd6c990}{generate\_html\_index}}(modules),\ encoding=\textcolor{stringliteral}{'utf-\/8'})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00935}00935\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Index:\ \{index\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00936}00936\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00937}00937\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00938}00938\ \ \ \ \ \ \ \ \ total\_funcs\ =\ sum(len(m.functions)\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00939}00939\ \ \ \ \ \ \ \ \ total\_structs\ =\ sum(len(m.structs)\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00940}00940\ \ \ \ \ \ \ \ \ total\_lines\ =\ sum(m.line\_count\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00941}00941\ \ \ \ \ \ \ \ \ total\_tests\ =\ sum(m.test\_count\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00942}00942\ \ \ \ \ \ \ \ \ described\ =\ sum(1\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules\ \textcolor{keywordflow}{if}\ m.name\ \textcolor{keywordflow}{in}\ MODULE\_DESCRIPTIONS)}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00943}00943\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00944}00944\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00945}00945\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Generated\ \{len(modules)\}\ module\ docs\ (MD\ +\ HTML)"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00946}00946\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ functions:\ \ \{total\_funcs\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00947}00947\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ structs:\ \ \ \ \{total\_structs\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00948}00948\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ lines:\ \ \ \ \ \ \{total\_lines:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00949}00949\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ tests:\ \ \ \ \ \ \{total\_tests\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00950}00950\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Curated\ descriptions:\ \{described\}/\{len(modules)\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00951}00951\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Auto-\/generated\ descriptions:\ \{len(modules)\ -\/\ described\}/\{len(modules)\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00952}00952\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Output:\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00953}00953\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00954}00954\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00955}00955\ }
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00956}00956\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{doc__generator_8py_source_l00957}00957\ \ \ \ \ \doxymbox{\hyperlink{namespacedoc__generator_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

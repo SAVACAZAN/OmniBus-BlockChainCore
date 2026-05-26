@@ -11,10 +11,12 @@
  *   negative → CEX is more expensive → buy on DEX, sell on CEX
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
-
-const rpc = new OmniBusRpcClient();
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { rpc } from "../../api/rpc-client";
+import { getUnlocked } from "../../api/wallet-keystore";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOraclePriceEvent, WsOrderbookUpdateEvent } from "../../types";
+import { MICRO_PER_USD } from "../../utils/fmt";
 
 // omnibus-oracle is a separate process on port 28100.
 // On VPS, nginx proxies /oracle → http://127.0.0.1:28100
@@ -177,20 +179,27 @@ interface OmniDexPrice {
   midPrice: number;
 }
 
+const DEX_PAIRS = [
+  { id: 0,  label: "OMNI/USDC" },
+  { id: 2,  label: "LCX/USDC"  },
+  { id: 3,  label: "ETH/USDC"  },
+  { id: 5,  label: "OMNI/LCX"  },
+  { id: 6,  label: "OMNI/ETH"  },
+] as const;
+
+const DEX_PAIR_LABELS = DEX_PAIRS.map((p) => p.label);
+
 async function fetchOmniDexPrices(): Promise<OmniDexPrice[]> {
-  const pairs = [
-    { id: 0,  label: "OMNI/USDC" },
-    { id: 2,  label: "LCX/USDC"  },
-    { id: 3,  label: "ETH/USDC"  },
-    { id: 5,  label: "OMNI/LCX"  },
-    { id: 6,  label: "OMNI/ETH"  },
-  ];
+  const pairs = DEX_PAIRS;
   const out: OmniDexPrice[] = [];
   for (const p of pairs) {
     try {
-      const res = await rpc.request_raw("exchange_getOrderbook", [{ pairId: p.id, depth: 1 }]);
-      const bestBid = res?.bestBid ? res.bestBid / 1_000_000 : 0;
-      const bestAsk = res?.bestAsk ? res.bestAsk / 1_000_000 : 0;
+      // "exchange_orderbook" and "exchange_trades" are snake_case aliases for
+      // "exchange_getOrderbook" and "exchange_getTrades" (same handler on backend).
+      // We call the canonical camelCase form; aliases are also registered in rpc_server.zig.
+      const res = await rpc.exchangeGetOrderbook({ pairId: p.id, depth: 1 });
+      const bestBid = res?.bestBid ? res.bestBid / MICRO_PER_USD : 0;
+      const bestAsk = res?.bestAsk ? res.bestAsk / MICRO_PER_USD : 0;
       if (bestBid > 0 || bestAsk > 0) {
         out.push({
           pair: p.label,
@@ -229,9 +238,373 @@ function classifyArb(spreadPct: number): ArbOpportunity["urgency"] {
   return "low";
 }
 
+// ── Block Prices Panel ────────────────────────────────────────────────────────
+
+interface BlockPriceEntry {
+  exchange: string;
+  pair: string;
+  bidMicroUsd: number;
+  askMicroUsd: number;
+  timestampMs: number;
+  success: boolean;
+}
+
+interface BlockPrices {
+  height: number;
+  prices: BlockPriceEntry[];
+  pricesRoot: string;
+  pricesValidated: boolean;
+}
+
+function BlockPricesPanel() {
+  const [blocks, setBlocks]   = useState<BlockPrices[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [count, setCount]     = useState("20");
+  const [fromHeight, setFromHeight] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const c = Math.min(parseInt(count, 10) || 20, 100);
+      const from = fromHeight !== "" ? parseInt(fromHeight, 10) : null;
+      if (from !== null && !isNaN(from)) {
+        const r = await rpc.getPriceRange(from, c) as { blocks?: BlockPrices[] } | null;
+        if (r?.blocks) setBlocks(r.blocks.filter((b) => b.prices.length > 0));
+      } else {
+        const tipH = await rpc.getBlockCount();
+        const startH = Math.max(0, tipH - c);
+        const r = await rpc.getPriceRange(startH, c) as { blocks?: BlockPrices[] } | null;
+        if (r?.blocks) setBlocks(r.blocks.filter((b) => b.prices.length > 0).reverse());
+      }
+    } catch { /* no blocks */ } finally {
+      setLoading(false);
+    }
+  }, [count, fromHeight]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const pairSummary = useMemo(() => {
+    const m: Record<string, { lastBid: number; lastAsk: number; exchange: string; height: number }> = {};
+    for (const b of blocks) {
+      for (const e of b.prices) {
+        if (!e.success || e.bidMicroUsd === 0) continue;
+        const key = `${e.exchange}:${e.pair}`;
+        if (!m[key] || b.height > m[key].height) {
+          m[key] = { lastBid: e.bidMicroUsd, lastAsk: e.askMicroUsd, exchange: e.exchange, height: b.height };
+        }
+      }
+    }
+    return m;
+  }, [blocks]);
+
+  const pairSummaryEntries = useMemo(() => Object.entries(pairSummary), [pairSummary]);
+
+  return (
+    <div className="space-y-4">
+      {/* Controls */}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-mempool-border bg-mempool-bg-elev px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] text-mempool-text-dim">From height</label>
+          <input
+            type="number"
+            min="0"
+            value={fromHeight}
+            onChange={(e) => setFromHeight(e.target.value)}
+            placeholder="latest"
+            className="w-24 bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] text-mempool-text-dim">Count</label>
+          <select
+            value={count}
+            onChange={(e) => setCount(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs text-mempool-text focus:outline-none focus:border-mempool-blue"
+          >
+            {ORACLE_BLOCK_THRESHOLD_OPTIONS.map((v) => <option key={v} value={v}>{v} blocks</option>)}
+          </select>
+        </div>
+        <button
+          onClick={load}
+          disabled={loading}
+          className="px-3 py-1 rounded text-xs bg-mempool-blue/20 text-mempool-blue hover:bg-mempool-blue/30 disabled:opacity-40"
+        >
+          {loading ? "Loading…" : "↻ Refresh"}
+        </button>
+        <span className="text-[9px] text-mempool-text-dim ml-auto">
+          Oracle prices committed to blocks · max 100
+        </span>
+      </div>
+
+      {/* Latest prices summary */}
+      {pairSummaryEntries.length > 0 && (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+          <div className="px-3 py-2 border-b border-mempool-border">
+            <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold">
+              Latest On-Chain Oracle Prices (committed to blocks)
+            </span>
+          </div>
+          <table className="w-full text-[10px] font-mono">
+            <thead>
+              <tr className="text-[8px] uppercase tracking-wider text-mempool-text-dim border-b border-mempool-border/40">
+                <th className="text-left px-3 py-1.5">Exchange</th>
+                <th className="text-left px-3 py-1.5">Pair</th>
+                <th className="text-right px-3 py-1.5 text-green-400/70">Bid</th>
+                <th className="text-right px-3 py-1.5 text-orange-400/70">Ask</th>
+                <th className="text-right px-3 py-1.5">At block</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pairSummaryEntries.map(([key, v]) => {
+                const bid = v.lastBid / MICRO_PER_USD;
+                const ask = v.lastAsk / MICRO_PER_USD;
+                return (
+                  <tr key={key} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
+                    <td className="px-3 py-1.5 text-mempool-text">{v.exchange}</td>
+                    <td className="px-3 py-1.5 text-mempool-text-dim">{key.split(":")[1]}</td>
+                    <td className="px-3 py-1.5 text-right text-green-400">
+                      ${bid >= 1000 ? bid.toLocaleString("en-US", {maximumFractionDigits: 0}) : bid.toFixed(4)}
+                    </td>
+                    <td className="px-3 py-1.5 text-right text-orange-400">
+                      ${ask >= 1000 ? ask.toLocaleString("en-US", {maximumFractionDigits: 0}) : ask.toFixed(4)}
+                    </td>
+                    <td className="px-3 py-1.5 text-right text-mempool-text-dim">#{v.height}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Block-by-block history */}
+      {blocks.length === 0 && !loading && (
+        <div className="text-[11px] text-mempool-text-dim text-center py-6">
+          No oracle price data found in these blocks. The oracle process must be running to commit prices.
+        </div>
+      )}
+      {blocks.length > 0 && (
+        <div className="space-y-1.5 max-h-96 overflow-y-auto pr-1">
+          {blocks.map((b) => (
+            <div key={b.height} className="rounded border border-mempool-border/40 bg-mempool-bg-elev">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-mempool-border/20">
+                <span className="text-[10px] text-mempool-text font-mono">Block #{b.height}</span>
+                <div className="flex items-center gap-2">
+                  {b.pricesValidated && (
+                    <span className="text-[8px] text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">✓ validated</span>
+                  )}
+                  <span className="text-[8px] font-mono text-mempool-text-dim truncate max-w-[80px]">
+                    {b.pricesRoot.slice(0, 8)}…
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 px-3 py-1.5">
+                {b.prices.filter(e => e.success).map((e) => {
+                  const bid = e.bidMicroUsd / MICRO_PER_USD;
+                  return (
+                    <div key={`${e.exchange}${e.pair}`} className="flex items-center gap-1 text-[9px] font-mono">
+                      <span className="text-mempool-text-dim">{e.exchange}·{e.pair}</span>
+                      <span className="text-green-400">{bid >= 1000 ? bid.toLocaleString("en-US", {maximumFractionDigits: 0}) : bid.toFixed(4)}</span>
+                    </div>
+                  );
+                })}
+                {b.prices.every(e => !e.success) && (
+                  <span className="text-[9px] text-mempool-text-dim italic">no successful feeds this block</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Oracle Policy Panel ───────────────────────────────────────────────────────
+
+interface OraclePolicy {
+  warn_pct: number;
+  reject_pct: number;
+  fillgap_pct: number;
+  enabled: boolean;
+}
+
+function OraclePolicyPanel() {
+  const [policy, setPolicy]     = useState<OraclePolicy | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [msg, setMsg]           = useState<{ ok: boolean; text: string } | null>(null);
+
+  // Editable form state
+  const [warnPct, setWarnPct]       = useState("2.0");
+  const [rejectPct, setRejectPct]   = useState("5.0");
+  const [fillgapPct, setFillgapPct] = useState("10.0");
+  const [enabled, setEnabled]       = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    rpc.getOraclePolicy()
+      .then((r) => {
+        if (!cancelled && r && typeof r === "object") {
+          const p = r as OraclePolicy;
+          setPolicy(p);
+          setWarnPct(String(p.warn_pct));
+          setRejectPct(String(p.reject_pct));
+          setFillgapPct(String(p.fillgap_pct));
+          setEnabled(p.enabled);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    setMsg(null);
+    try {
+      const result = await rpc.request_raw("omnibus_setoraclepolicy", [{
+        warn_pct:    parseFloat(warnPct)    || 0,
+        reject_pct:  parseFloat(rejectPct)  || 0,
+        fillgap_pct: parseFloat(fillgapPct) || 0,
+        enabled,
+      }]);
+      if (result && typeof result === "object") {
+        setPolicy(result as OraclePolicy);
+        setMsg({ ok: true, text: "Policy updated successfully." });
+      }
+    } catch (e: unknown) {
+      setMsg({ ok: false, text: String(e) });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const u = getUnlocked();
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev px-4 py-3">
+        <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider mb-1">
+          Oracle Price Policy
+        </h2>
+        <p className="text-[10px] text-mempool-text-dim leading-relaxed">
+          Controls how the OmniBus chain reacts to external oracle price feeds.
+          <span className="text-yellow-400"> warn_pct</span> — log warning if price deviates more than N%.
+          <span className="text-orange-400"> reject_pct</span> — reject TX if price deviates more than N%.
+          <span className="text-purple-400"> fillgap_pct</span> — fill price gaps up to N% with last known price.
+        </p>
+      </div>
+
+      {/* Current policy */}
+      {loading ? (
+        <div className="text-xs text-mempool-text-dim animate-pulse text-center py-4">Loading policy…</div>
+      ) : policy ? (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+          <div className="px-3 py-2 border-b border-mempool-border">
+            <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold">Current Active Policy</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3">
+            {[
+              { label: "Warn %", value: policy.warn_pct.toFixed(4), color: "text-yellow-400" },
+              { label: "Reject %", value: policy.reject_pct.toFixed(4), color: "text-orange-400" },
+              { label: "FillGap %", value: policy.fillgap_pct.toFixed(4), color: "text-purple-400" },
+              { label: "Enabled", value: policy.enabled ? "Yes" : "No", color: policy.enabled ? "text-green-400" : "text-red-400" },
+            ].map((item) => (
+              <div key={item.label} className="text-center">
+                <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim mb-0.5">{item.label}</div>
+                <div className={`text-lg font-mono font-bold ${item.color}`}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="text-[11px] text-mempool-text-dim text-center py-3">
+          Oracle policy RPC not available on this node.
+        </div>
+      )}
+
+      {/* Edit form */}
+      {!u ? (
+        <div className="text-[11px] text-mempool-text-dim text-center py-2">
+          Connect a wallet to update the oracle policy (requires founder authority).
+        </div>
+      ) : (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+          <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold mb-2">
+            Update Policy
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Warn %", value: warnPct, set: setWarnPct, color: "text-yellow-400", placeholder: "2.0" },
+              { label: "Reject %", value: rejectPct, set: setRejectPct, color: "text-orange-400", placeholder: "5.0" },
+              { label: "FillGap %", value: fillgapPct, set: setFillgapPct, color: "text-purple-400", placeholder: "10.0" },
+            ].map(({ label, value, set, color, placeholder }) => (
+              <div key={label}>
+                <label className={`block text-[10px] mb-1 ${color}`}>{label}</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={value}
+                  onChange={(e) => set(e.target.value)}
+                  placeholder={placeholder}
+                  className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-3 pt-1">
+            <label className="flex items-center gap-2 text-xs text-mempool-text cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+                className="accent-mempool-blue"
+              />
+              Oracle enforcement enabled
+            </label>
+            <button
+              onClick={save}
+              disabled={saving}
+              className="ml-auto px-4 py-1.5 rounded text-xs bg-mempool-blue hover:bg-blue-600 text-white disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save Policy"}
+            </button>
+          </div>
+          {msg && (
+            <div className={`rounded px-3 py-2 text-[11px] ${msg.ok ? "bg-green-500/10 text-green-300 border border-green-500/30" : "bg-red-500/10 text-red-300 border border-red-500/30"}`}>
+              {msg.text}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type OracleTab = "prices" | "policy" | "blocks" | "cross" | "dex";
+
+const ORACLE_BLOCK_THRESHOLD_OPTIONS = ["10", "20", "50", "100"] as const;
+
+const ORACLE_TABS: { id: OracleTab; label: string }[] = [
+  { id: "prices", label: "📡 Prices & Arbitrage" },
+  { id: "blocks", label: "📦 Block Prices" },
+  { id: "policy", label: "⚙️ Policy" },
+  { id: "cross",  label: "🔗 Cross-Chain Heights" },
+  { id: "dex",    label: "🏛️ DEX Orderbook" },
+];
+
+const URGENCY_COLOR: Record<string, string> = {
+  high:   "text-red-400 bg-red-500/10 border-red-500/30",
+  medium: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
+  low:    "text-blue-400 bg-blue-500/10 border-blue-500/30",
+};
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OraclePricePanel() {
+  const [tab, setTab] = useState<OracleTab>("prices");
   const [cexPrices, setCexPrices]     = useState<Record<string, number>>({});
   const [priceRows, setPriceRows]     = useState<PriceRow[]>([]);
   const [omniDex, setOmniDex]         = useState<OmniDexPrice[]>([]);
@@ -288,14 +661,21 @@ export function OraclePricePanel() {
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(load, 30000); // refresh every 30s (CoinGecko rate limit)
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    // oracle_price fires when node fetches from Chainlink/Pyth — supplement CoinGecko poll.
+    const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => { void load(); });
+    timerRef.current = setInterval(() => { void load(); }, 30000); // CoinGecko rate limit fallback
+    return () => { if (timerRef.current) clearInterval(timerRef.current); unsub(); };
   }, [load]);
 
+  const cexPriceEntries = useMemo(
+    () => Object.entries(cexPrices).filter(([, v]) => v > 0),
+    [cexPrices],
+  );
+
   // Compute arbitrage opportunities
-  const arbOpps: ArbOpportunity[] = priceRows
+  const arbOpps = useMemo<ArbOpportunity[]>(() => priceRows
     .filter(r => Math.abs(r.spreadPct) >= 0.3 && r.dexUsd > 0 && r.cexUsd > 0)
     .map(r => ({
       pair: `${r.sym}/USD`,
@@ -305,16 +685,34 @@ export function OraclePricePanel() {
         ? `Sell ${r.sym} on ${r.dexLabel.split("(")[0].trim()} → Buy ${r.sym} on CEX`
         : `Buy ${r.sym} on ${r.dexLabel.split("(")[0].trim()} → Sell ${r.sym} on CEX`,
       urgency: classifyArb(r.spreadPct),
-    }));
-
-  const urgencyColor = {
-    high:   "text-red-400 bg-red-500/10 border-red-500/30",
-    medium: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-    low:    "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  };
+    })), [priceRows]);
 
   return (
     <div className="space-y-4">
+
+      {/* Tab bar */}
+      <div className="flex gap-1 border-b border-mempool-border pb-1 flex-wrap">
+        {ORACLE_TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-3 py-1.5 rounded-t text-xs font-semibold transition-colors ${
+              tab === t.id
+                ? "bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/30"
+                : "text-mempool-text-dim hover:text-mempool-text"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "policy" && <OraclePolicyPanel />}
+      {tab === "blocks" && <BlockPricesPanel />}
+      {tab === "cross" && <CrossChainHeightsPanel />}
+      {tab === "dex" && <DexOrderbookPanel />}
+
+      {tab === "prices" && (<>
 
       {/* Header */}
       <div className="flex items-center justify-between rounded-lg border border-mempool-border bg-mempool-bg-elev px-4 py-2.5">
@@ -331,6 +729,30 @@ export function OraclePricePanel() {
             <span className="text-[9px] text-mempool-text-dim font-mono">
               {updatedAt.toLocaleTimeString()}
             </span>
+          )}
+          {priceRows.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["asset","cex_usd","dex_usd","dex_pool","spread_pct"].join(","),
+                  ...priceRows.map((r) => [
+                    r.sym,
+                    r.cexUsd > 0 ? r.cexUsd.toFixed(6) : "",
+                    r.dexUsd > 0 ? r.dexUsd.toFixed(6) : "",
+                    `"${r.dexLabel}"`,
+                    r.dexUsd > 0 && r.cexUsd > 0 ? r.spreadPct.toFixed(4) : "",
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-oracle-prices.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
           )}
           <button
             onClick={load}
@@ -353,10 +775,10 @@ export function OraclePricePanel() {
       )}
 
       {/* CEX prices strip */}
-      {Object.keys(cexPrices).length > 0 && (
+      {cexPriceEntries.length > 0 && (
         <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-mempool-bg border border-mempool-border">
           <span className="text-[9px] text-mempool-text-dim self-center uppercase tracking-wider mr-1">CEX:</span>
-          {Object.entries(cexPrices).filter(([, v]) => v > 0).map(([sym, price]) => (
+          {cexPriceEntries.map(([sym, price]) => (
             <div key={sym} className="flex items-center gap-1 px-2 py-0.5 rounded bg-mempool-bg-elev border border-mempool-border/50">
               <span className="text-[10px] font-bold text-mempool-text">{sym}</span>
               <span className="text-[10px] font-mono text-green-400">
@@ -387,12 +809,12 @@ export function OraclePricePanel() {
               </tr>
             </thead>
             <tbody>
-              {priceRows.map((row, i) => {
+              {priceRows.map((row) => {
                 const spreadColor = Math.abs(row.spreadPct) < 0.3
                   ? "text-mempool-text-dim"
                   : row.spreadPct > 0 ? "text-orange-400" : "text-green-400";
                 return (
-                  <tr key={i} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
+                  <tr key={row.sym} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
                     <td className="px-3 py-1.5 font-bold text-mempool-text">{row.sym}</td>
                     <td className="px-3 py-1.5 text-right text-white">
                       {row.cexUsd > 0 ? `$${row.cexUsd >= 1000 ? row.cexUsd.toLocaleString("en-US", {maximumFractionDigits: 0}) : row.cexUsd >= 1 ? row.cexUsd.toFixed(4) : row.cexUsd.toFixed(6)}` : "—"}
@@ -426,12 +848,12 @@ export function OraclePricePanel() {
           <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold px-1">
             Arbitrage Opportunities
           </div>
-          {arbOpps.map((arb, i) => (
-            <div key={i} className={`rounded-lg border p-3 ${urgencyColor[arb.urgency]}`}>
+          {arbOpps.map((arb) => (
+            <div key={`${arb.pair}${arb.directionLabel}`} className={`rounded-lg border p-3 ${URGENCY_COLOR[arb.urgency]}`}>
               <div className="flex items-center justify-between mb-1">
                 <span className="font-bold text-[11px]">{arb.pair}</span>
                 <span className="font-mono text-[11px] font-bold">{arb.directionLabel}</span>
-                <span className={`text-[8px] uppercase font-bold px-1.5 py-0.5 rounded border ${urgencyColor[arb.urgency]}`}>
+                <span className={`text-[8px] uppercase font-bold px-1.5 py-0.5 rounded border ${URGENCY_COLOR[arb.urgency]}`}>
                   {arb.urgency}
                 </span>
               </div>
@@ -463,12 +885,12 @@ export function OraclePricePanel() {
               </tr>
             </thead>
             <tbody>
-              {omniDex.map((d, i) => {
+              {omniDex.map((d) => {
                 const spread = d.bestBid > 0 && d.bestAsk > 0
                   ? ((d.bestAsk - d.bestBid) / d.bestBid) * 100
                   : 0;
                 return (
-                  <tr key={i} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
+                  <tr key={d.pair} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
                     <td className="px-3 py-1.5 font-bold text-mempool-text">{d.pair}</td>
                     <td className="px-3 py-1.5 text-right text-green-400">{d.bestBid > 0 ? `$${d.bestBid.toFixed(4)}` : "—"}</td>
                     <td className="px-3 py-1.5 text-right text-orange-400">{d.bestAsk > 0 ? `$${d.bestAsk.toFixed(4)}` : "—"}</td>
@@ -484,13 +906,39 @@ export function OraclePricePanel() {
 
       {/* OmniBus Oracle — Zig process on port 28100 (Coinbase / Kraken / LCX WS feeds) */}
       <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
-        <div className="px-3 py-2 border-b border-mempool-border flex items-center justify-between">
+        <div className="px-3 py-2 border-b border-mempool-border flex items-center justify-between gap-2 flex-wrap">
           <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold">
             OmniBus Oracle (Zig · port 28100)
           </span>
-          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${zigOracle.length > 0 ? "text-green-400 bg-green-500/10" : "text-mempool-text-dim bg-mempool-bg"}`}>
-            {zigOracle.length > 0 ? `${zigOracle.length} feeds live` : "offline — start omnibus-oracle on VPS"}
-          </span>
+          <div className="flex items-center gap-2 ml-auto">
+            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${zigOracle.length > 0 ? "text-green-400 bg-green-500/10" : "text-mempool-text-dim bg-mempool-bg"}`}>
+              {zigOracle.length > 0 ? `${zigOracle.length} feeds live` : "offline — start omnibus-oracle on VPS"}
+            </span>
+            {zigOracle.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["exchange","pair","bid_usd","ask_usd","age_s"].join(","),
+                    ...zigOracle.map((e) => [
+                      e.exchange,
+                      e.pair,
+                      (e.bid / MICRO_PER_USD).toFixed(6),
+                      (e.ask / MICRO_PER_USD).toFixed(6),
+                      Math.floor((Date.now() - e.timestamp_ms) / 1000),
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = "omnibus-zig-oracle.csv";
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="px-2 py-0.5 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+              >
+                ⬇ CSV
+              </button>
+            )}
+          </div>
         </div>
         {zigOracle.length > 0 ? (
           <table className="w-full text-[10px] font-mono">
@@ -504,12 +952,12 @@ export function OraclePricePanel() {
               </tr>
             </thead>
             <tbody>
-              {zigOracle.map((e, i) => {
-                const bidUsd = e.bid / 1_000_000;
-                const askUsd = e.ask / 1_000_000;
+              {zigOracle.map((e) => {
+                const bidUsd = e.bid / MICRO_PER_USD;
+                const askUsd = e.ask / MICRO_PER_USD;
                 const ageSec = Math.floor((Date.now() - e.timestamp_ms) / 1000);
                 return (
-                  <tr key={i} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
+                  <tr key={`${e.exchange}${e.pair}`} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
                     <td className="px-3 py-1.5 font-semibold text-mempool-text">{e.exchange}</td>
                     <td className="px-3 py-1.5 text-mempool-text-dim">{e.pair}</td>
                     <td className="px-3 py-1.5 text-right text-green-400">
@@ -547,6 +995,318 @@ export function OraclePricePanel() {
         </div>
       )}
 
+      </>)}
+
+    </div>
+  );
+}
+
+// ── Cross-chain heights panel (oracle_btcHeight + oracle_ethHeight) ────────
+
+function CrossChainHeightsPanel() {
+  const [btcHeight, setBtcHeight] = useState<number | null>(null);
+  const [ethHeight, setEthHeight] = useState<number | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const [btc, eth] = await Promise.all([
+          rpc.getOracleBtcHeight(),
+          rpc.getOracleEthHeight(),
+        ]);
+        if (cancelled) return;
+        setBtcHeight(btc);
+        setEthHeight(eth);
+        setLastUpdate(Date.now());
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void refresh();
+    const id = setInterval(() => { void refresh(); }, 30_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[11px] text-mempool-text-dim">
+        Chain heights as observed by the OmniBus oracle node (polled every 30s). Used for
+        cross-chain settlement finality checks.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={`rounded-xl border p-4 space-y-2 ${btcHeight ? "border-orange-500/30 bg-orange-500/5" : "border-mempool-border bg-mempool-bg-elev"}`}>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">₿</span>
+            <h4 className="text-sm font-semibold text-orange-300">Bitcoin (oracle)</h4>
+          </div>
+          {loading ? (
+            <p className="text-[11px] text-mempool-text-dim animate-pulse">Fetching…</p>
+          ) : btcHeight !== null ? (
+            <div>
+              <div className="text-2xl font-mono font-bold text-orange-300">
+                #{btcHeight.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-mempool-text-dim mt-1">
+                oracle_btcHeight · updated {lastUpdate ? new Date(lastUpdate).toLocaleTimeString() : "—"}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[11px] text-mempool-text-dim">Not available (oracle may be offline).</p>
+          )}
+        </div>
+
+        <div className={`rounded-xl border p-4 space-y-2 ${ethHeight ? "border-blue-500/30 bg-blue-500/5" : "border-mempool-border bg-mempool-bg-elev"}`}>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">Ξ</span>
+            <h4 className="text-sm font-semibold text-blue-300">Ethereum (oracle)</h4>
+          </div>
+          {loading ? (
+            <p className="text-[11px] text-mempool-text-dim animate-pulse">Fetching…</p>
+          ) : ethHeight !== null ? (
+            <div>
+              <div className="text-2xl font-mono font-bold text-blue-300">
+                #{ethHeight.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-mempool-text-dim mt-1">
+                oracle_ethHeight · updated {lastUpdate ? new Date(lastUpdate).toLocaleTimeString() : "—"}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[11px] text-mempool-text-dim">Not available (oracle may be offline).</p>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 text-[11px] text-mempool-text-dim space-y-1">
+        <p className="font-semibold text-mempool-text text-xs mb-1">How this is used</p>
+        <p>BTC height: confirms Bitcoin HTLC finality (≥6 confirmations) before OMNI release.</p>
+        <p>ETH height: confirms EVM HTLC finality (≥12 confirmations) for Sepolia/Base settlements.</p>
+        <p>The oracle records each height as an on-chain oracle price entry via <code className="font-mono text-purple-400">oracle_recordHeader</code>.</p>
+      </div>
+    </div>
+  );
+}
+
+// ── DEX Orderbook panel (omnibus_getorderbook + omnibus_gettotalmined + omnibus_getblockprices) ─
+
+interface DexOrderbookResp {
+  bids: [number, number][];
+  asks: [number, number][];
+  note?: string;
+}
+
+interface TotalMinedResp {
+  totalMinedSAT: number;
+  totalMinedOMNI: string;
+  blockHeight: number;
+}
+
+interface BlockPricesEntry {
+  exchange: string;
+  pair: string;
+  bidMicroUsd: number;
+  askMicroUsd: number;
+  success: boolean;
+}
+
+interface BlockPricesResult {
+  height: number;
+  prices: BlockPricesEntry[];
+  prices_root: string;
+  valid: boolean;
+}
+
+function DexOrderbookPanel() {
+  const [orderbook, setOrderbook] = useState<DexOrderbookResp | null>(null);
+  const [totalMined, setTotalMined] = useState<TotalMinedResp | null>(null);
+  const [pair, setPair] = useState("OMNI/USDC");
+  const [blockHeight, setBlockHeight] = useState("");
+  const [blockPrices, setBlockPrices] = useState<BlockPricesResult | null>(null);
+  const [blockErr, setBlockErr] = useState("");
+  const [loadingBlock, setLoadingBlock] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      const [ob, tm] = await Promise.allSettled([
+        rpc.getDexOrderbook(pair) as Promise<DexOrderbookResp>,
+        rpc.getTotalMined() as Promise<TotalMinedResp>,
+      ]);
+      if (cancelled) return;
+      if (ob.status === "fulfilled") setOrderbook(ob.value);
+      if (tm.status === "fulfilled") setTotalMined(tm.value);
+    };
+    void refresh();
+    const unsub = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
+      if (ev.pair === pair) void refresh();
+    });
+    const id = setInterval(() => { void refresh(); }, 30_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
+  }, [pair]);
+
+  const lookupBlockPrices = async () => {
+    const h = parseInt(blockHeight, 10);
+    if (isNaN(h) || h < 0) { setBlockErr("Enter a valid block height"); return; }
+    setLoadingBlock(true);
+    setBlockErr("");
+    setBlockPrices(null);
+    try {
+      const r = await rpc.getBlockPrices(h) as BlockPricesResult | null;
+      if (r && typeof r === "object" && "prices" in r) setBlockPrices(r);
+      else setBlockErr("Block not found or no prices");
+    } catch (e) {
+      setBlockErr(String(e));
+    } finally {
+      setLoadingBlock(false);
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Total mined */}
+      {totalMined && (
+        <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-4">
+          <h3 className="text-xs font-semibold text-purple-300 mb-2 uppercase tracking-wider">
+            Total Mined (omnibus_gettotalmined)
+          </h3>
+          <div className="grid grid-cols-3 gap-3 text-xs">
+            {[
+              ["Block Height", String(totalMined.blockHeight)],
+              ["Total OMNI", totalMined.totalMinedOMNI],
+              ["Total SAT_PER_OMNI", totalMined.totalMinedSAT.toLocaleString()],
+            ].map(([k, v]) => (
+              <div key={k} className="bg-mempool-bg/50 rounded p-2">
+                <div className="text-[9px] uppercase text-mempool-text-dim">{k}</div>
+                <div className="font-mono text-purple-300 mt-0.5">{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Orderbook */}
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+            DEX Orderbook (omnibus_getorderbook)
+          </h3>
+          <select
+            value={pair}
+            onChange={(e) => setPair(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs text-mempool-text"
+          >
+            {DEX_PAIR_LABELS.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+        {orderbook?.note && (
+          <p className="text-[11px] text-mempool-text-dim italic">{orderbook.note}</p>
+        )}
+        <div className="grid grid-cols-2 gap-4 text-xs">
+          <div>
+            <div className="text-[9px] text-green-400 uppercase font-semibold mb-1">Bids</div>
+            {orderbook?.bids?.length ? (
+              <table className="w-full">
+                <thead className="text-[9px] text-mempool-text-dim">
+                  <tr><th className="text-left">Price</th><th className="text-right">Qty</th></tr>
+                </thead>
+                <tbody>
+                  {orderbook.bids.slice(0, 8).map(([p, q]) => (
+                    <tr key={p} className="font-mono text-green-400">
+                      <td>{p}</td><td className="text-right">{q}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-mempool-text-dim text-[11px]">No bids (P2P matching active)</p>
+            )}
+          </div>
+          <div>
+            <div className="text-[9px] text-red-400 uppercase font-semibold mb-1">Asks</div>
+            {orderbook?.asks?.length ? (
+              <table className="w-full">
+                <thead className="text-[9px] text-mempool-text-dim">
+                  <tr><th className="text-left">Price</th><th className="text-right">Qty</th></tr>
+                </thead>
+                <tbody>
+                  {orderbook.asks.slice(0, 8).map(([p, q]) => (
+                    <tr key={p} className="font-mono text-red-400">
+                      <td>{p}</td><td className="text-right">{q}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-mempool-text-dim text-[11px]">No asks (P2P matching active)</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Block prices lookup */}
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+        <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+          Block Oracle Prices (omnibus_getblockprices)
+        </h3>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min="0"
+            value={blockHeight}
+            onChange={(e) => setBlockHeight(e.target.value)}
+            placeholder="Block height"
+            className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text"
+          />
+          <button
+            onClick={lookupBlockPrices}
+            disabled={loadingBlock || !blockHeight}
+            className="px-4 py-1.5 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+          >
+            {loadingBlock ? "…" : "Lookup"}
+          </button>
+        </div>
+        {blockErr && <p className="text-xs text-red-400">{blockErr}</p>}
+        {blockPrices && (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[11px] text-mempool-text-dim">
+              <span>Block #{blockPrices.height}</span>
+              <span className="font-mono text-[9px]">{blockPrices.prices_root?.slice(0, 16)}…</span>
+              <span className={blockPrices.valid ? "text-green-400" : "text-red-400"}>
+                {blockPrices.valid ? "✓ valid" : "✗ invalid"}
+              </span>
+            </div>
+            {blockPrices.prices.length === 0 ? (
+              <p className="text-xs text-mempool-text-dim">No oracle prices in this block.</p>
+            ) : (
+              <table className="w-full text-xs">
+                <thead className="text-[9px] text-mempool-text-dim uppercase">
+                  <tr>
+                    <th className="text-left py-1">Exchange</th>
+                    <th className="text-left">Pair</th>
+                    <th className="text-right">Bid (µUSD)</th>
+                    <th className="text-right">Ask (µUSD)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-mempool-border/20">
+                  {blockPrices.prices.map((e) => (
+                    <tr key={`${e.exchange}${e.pair}`} className={e.success ? "" : "opacity-40"}>
+                      <td className="py-0.5 font-mono text-mempool-text-dim">{e.exchange}</td>
+                      <td className="font-mono text-mempool-blue">{e.pair}</td>
+                      <td className="text-right font-mono text-green-400">{e.bidMicroUsd}</td>
+                      <td className="text-right font-mono text-red-400">{e.askMicroUsd}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

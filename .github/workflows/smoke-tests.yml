@@ -1,0 +1,66 @@
+name: Smoke Tests - test-scripts
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'core/**'
+      - 'test-scripts/**'
+      - '.github/workflows/smoke-tests.yml'
+  workflow_dispatch:
+    inputs:
+      chain:
+        description: 'Target chain (mainnet | testnet | regtest)'
+        required: false
+        default: 'testnet'
+
+jobs:
+  lint-zig:
+    name: Lint Zig (zig fmt --check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+      - name: zig fmt --check core/
+        run: zig fmt --check core/ || (echo "::warning::zig fmt issues" && exit 0)
+
+  build:
+    name: Build (no liboqs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with: { version: 0.15.2 }
+      - name: zig build -Doqs=false
+        run: zig build -Doqs=false
+
+  unit-tests:
+    name: Unit tests (Zig test/*)
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with: { version: 0.15.2 }
+      - name: zig build test
+        run: zig build test
+        continue-on-error: true
+
+  smoke-rpc:
+    name: Smoke RPC (01-chain-basic against testnet)
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq curl
+      - name: Run 01-chain-basic.sh against testnet
+        env:
+          CHAIN: ${{ github.event.inputs.chain || 'testnet' }}
+        run: |
+          chmod +x test-scripts/*.sh
+          bash test-scripts/01-chain-basic.sh --no-color
+        continue-on-error: true

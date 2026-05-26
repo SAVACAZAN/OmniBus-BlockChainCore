@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { TransactionSquare } from "./TransactionSquare";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
+import { SAT_PER_OMNI, midTrunc, fmtUsd } from "../../utils/fmt";
 
 interface MempoolBlockProps {
   block?: BlockData;
@@ -15,19 +16,8 @@ interface MempoolBlockProps {
   onClick?: () => void;
 }
 
-const rpc = new OmniBusRpcClient();
 
-// Format USD with thousand-comma + dot decimals: 100,000.00 / 0.0316.
-// `decimals` is min decimals; thousands separator is locale-en-US to lock
-// the comma even when the user's browser is non-EN.
-function fmtUsd(micro: number, decimals: number): string {
-  if (!micro) return "—";
-  const usd = micro / 1_000_000;
-  return usd.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
+
 
 // Median across the 3 exchange slots for a given pair label.
 function median(prices: BlockPriceSnapshot[] | undefined, pair: string): number {
@@ -63,7 +53,7 @@ export function MempoolBlock({
     let cancelled = false;
     (async () => {
       try {
-        const result: any = await rpc.request_raw("getblock", [block.height]);
+        const result = await rpc.getBlock(block.height);
         if (!cancelled && Array.isArray(result?.prices)) {
           setPrices(result.prices);
         }
@@ -199,10 +189,10 @@ export function MempoolBlock({
         {!isPending && (
           <div className="mt-1.5 space-y-0.5">
             <p className="text-[11px] font-mono text-mempool-text-dim truncate" title={hash}>
-              {hash.slice(0, 14)}...
+              {midTrunc(hash, 14, 6)}
             </p>
             <p className="text-[11px] font-mono text-mempool-green">
-              +{(reward / 1e9).toFixed(8)} OMNI
+              +{(reward / SAT_PER_OMNI).toFixed(8)} OMNI
             </p>
             {timeStr && (
               <p className="text-[11px] text-mempool-text-dim">{timeStr}</p>

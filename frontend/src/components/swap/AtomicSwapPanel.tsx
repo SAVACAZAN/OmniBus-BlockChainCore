@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { buildBtcSpvProofObject, type BtcSpvProofObject } from "../../api/htlc-btc";
 import { buildEthSpvProofObject, type EthSpvProofObject } from "../../api/htlc-eth";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
-const rpc = new OmniBusRpcClient();
 
 type ChainCode = 1 | 2 | 3; // 1=btc, 2=eth, 3=base
 const CHAIN_LABEL: Record<ChainCode, string> = { 1: "BTC", 2: "ETH", 3: "BASE" };
@@ -70,18 +71,18 @@ export function AtomicSwapPanel() {
 
   const refreshBindings = async () => {
     try {
-      const r = await rpc.request_raw("swap_listOpen", [{ address: u?.address ?? "" }]);
+      const r = await rpc.swapListOpen(u?.address ?? "");
       if (Array.isArray(r)) setBindings(r as SwapBindingView[]);
-    } catch (e) {
+    } catch {
       // swap_listOpen may be unsupported on the connected node — silent.
-      console.debug("swap_listOpen unavailable:", e);
     }
   };
 
   useEffect(() => {
-    refreshBindings();
-    const id = setInterval(refreshBindings, 6000);
-    return () => clearInterval(id);
+    void refreshBindings();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refreshBindings(); });
+    const id = setInterval(() => { void refreshBindings(); }, 60_000);
+    return () => { clearInterval(id); unsub(); };
   }, [u?.address]);
 
   const chainCode = (q: string): ChainCode => (q === "BTC" ? 1 : q === "ETH" ? 2 : 3);
@@ -284,7 +285,34 @@ export function AtomicSwapPanel() {
       <section className="border border-mempool-border bg-mempool-bg-elev rounded p-3 sm:p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-mempool-text font-medium">3 — Open swaps</h2>
-          <button onClick={refreshBindings} className="text-xs text-mempool-blue hover:underline">refresh</button>
+          <div className="flex items-center gap-2">
+            {bindings.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["swap_id", "order_id", "state", "maker_chain", "taker_chain", "timeout_block"].join(","),
+                    ...bindings.map((b: any) => [
+                      `"${b.swap_id}"`,
+                      b.order_id,
+                      b.state,
+                      b.maker_chain,
+                      b.taker_chain,
+                      b.timeout_block,
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = "omnibus-swaps.csv";
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="text-xs text-mempool-text-dim hover:text-mempool-blue border border-mempool-border rounded px-2 py-0.5 font-mono"
+              >
+                ⬇ CSV
+              </button>
+            )}
+            <button onClick={refreshBindings} className="text-xs text-mempool-blue hover:underline">refresh</button>
+          </div>
         </div>
         <div className="overflow-x-auto -mx-3 sm:mx-0">
         <table className="w-full text-xs min-w-[560px]">
@@ -325,8 +353,169 @@ export function AtomicSwapPanel() {
         </div>
       </section>
 
+      {/* Section 4 — Swap management: status / lockMaker / lockTaker / timeout */}
+      <section className="border border-mempool-border bg-mempool-bg-elev rounded p-3 sm:p-4 space-y-3">
+        <h2 className="text-mempool-text font-medium">4 — Manage swap</h2>
+        <p className="text-xs text-mempool-text-dim">
+          Look up a swap by ID, confirm maker/taker HTLC lock, or mark as timed-out once the block threshold is past.
+        </p>
+        <SwapManagePanel busy={busy} setBusy={setBusy} onRefresh={refreshBindings} />
+      </section>
+
       {msg && <div className="text-mempool-green text-sm">{msg}</div>}
       {err && <div className="text-mempool-red text-sm">{err}</div>}
+    </div>
+  );
+}
+
+// ── SwapManagePanel ────────────────────────────────────────────────────────
+
+interface SwapStatusResult {
+  swap_id: string;
+  order_id: number;
+  state: string;
+  maker_chain: string;
+  taker_chain: string;
+  timeout_block: number;
+  created_block: number;
+}
+
+function SwapManagePanel({
+  busy,
+  setBusy,
+  onRefresh,
+}: {
+  busy: boolean;
+  setBusy: (v: boolean) => void;
+  onRefresh: () => void;
+}) {
+  const [swapId, setSwapId] = useState("");
+  const [htlcRef, setHtlcRef] = useState("");
+  const [statusResult, setStatusResult] = useState<SwapStatusResult | null>(null);
+  const [actionMsg, setActionMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const lookupStatus = async () => {
+    setActionMsg(null);
+    setStatusResult(null);
+    try {
+      const r = await rpc.swapStatus(swapId.trim());
+      if (r && typeof r === "object") setStatusResult(r as SwapStatusResult);
+    } catch (e) {
+      setActionMsg({ ok: false, text: String(e) });
+    }
+  };
+
+  const lockLeg = async (leg: "maker" | "taker") => {
+    if (!swapId || !htlcRef) {
+      setActionMsg({ ok: false, text: "Need swap_id and htlc_ref." });
+      return;
+    }
+    setBusy(true);
+    setActionMsg(null);
+    try {
+      const r = await rpc.request_raw(leg === "maker" ? "swap_lockMaker" : "swap_lockTaker", [{
+        swap_id: swapId.trim(),
+        htlc_ref: htlcRef.trim().replace(/^0x/, ""),
+      }]);
+      setActionMsg({ ok: true, text: `${leg} locked. state=${r && typeof r === "object" ? (r as {state?: string}).state ?? "?" : "?"}` });
+      onRefresh();
+    } catch (e) {
+      setActionMsg({ ok: false, text: String(e) });
+    } finally { setBusy(false); }
+  };
+
+  const timeout = async () => {
+    if (!swapId) { setActionMsg({ ok: false, text: "Need swap_id." }); return; }
+    setBusy(true);
+    setActionMsg(null);
+    try {
+      const r = await rpc.request_raw("swap_timeout", [{ swap_id: swapId.trim() }]);
+      setActionMsg({ ok: true, text: `Timed out at block ${r && typeof r === "object" ? (r as {current_block?: number}).current_block ?? "?" : "?"}` });
+      onRefresh();
+    } catch (e) {
+      setActionMsg({ ok: false, text: String(e) });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim">swap_id (64 hex)</span>
+          <input
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-mempool-text font-mono text-xs"
+            value={swapId}
+            onChange={(e) => setSwapId(e.target.value)}
+            placeholder="aabb1234…"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim">htlc_ref (hex, for lock actions)</span>
+          <input
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-mempool-text font-mono text-xs"
+            value={htlcRef}
+            onChange={(e) => setHtlcRef(e.target.value)}
+            placeholder="BTC txid+vout or EVM chain_id+contract+id"
+          />
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={lookupStatus}
+          disabled={!swapId}
+          className="text-xs bg-mempool-blue/10 border border-mempool-blue/40 text-mempool-blue rounded px-3 py-1.5 hover:bg-mempool-blue/20 disabled:opacity-40"
+        >
+          swap_status
+        </button>
+        <button
+          onClick={() => lockLeg("maker")}
+          disabled={busy || !swapId || !htlcRef}
+          className="text-xs bg-yellow-500/10 border border-yellow-500/40 text-yellow-300 rounded px-3 py-1.5 hover:bg-yellow-500/20 disabled:opacity-40"
+        >
+          Lock maker
+        </button>
+        <button
+          onClick={() => lockLeg("taker")}
+          disabled={busy || !swapId || !htlcRef}
+          className="text-xs bg-purple-500/10 border border-purple-500/40 text-purple-300 rounded px-3 py-1.5 hover:bg-purple-500/20 disabled:opacity-40"
+        >
+          Lock taker
+        </button>
+        <button
+          onClick={timeout}
+          disabled={busy || !swapId}
+          className="text-xs bg-red-500/10 border border-red-500/40 text-red-300 rounded px-3 py-1.5 hover:bg-red-500/20 disabled:opacity-40"
+        >
+          Mark timed-out
+        </button>
+      </div>
+
+      {statusResult && (
+        <div className="rounded border border-mempool-border bg-mempool-bg p-3 text-xs font-mono space-y-1">
+          <div className="flex flex-wrap gap-4">
+            {[
+              ["swap_id", statusResult.swap_id.slice(0, 24) + "…"],
+              ["order_id", String(statusResult.order_id)],
+              ["state", statusResult.state],
+              ["maker_chain", statusResult.maker_chain],
+              ["taker_chain", statusResult.taker_chain],
+              ["timeout_block", String(statusResult.timeout_block)],
+              ["created_block", String(statusResult.created_block)],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <span className="text-mempool-text-dim">{k}: </span>
+                <span className={`${k === "state" ? "text-mempool-blue font-bold" : "text-mempool-text"}`}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {actionMsg && (
+        <div className={`text-xs px-3 py-2 rounded border ${actionMsg.ok ? "text-green-300 border-green-500/30 bg-green-500/5" : "text-red-300 border-red-500/30 bg-red-500/5"}`}>
+          {actionMsg.text}
+        </div>
+      )}
     </div>
   );
 }

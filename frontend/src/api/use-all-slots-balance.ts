@@ -17,10 +17,9 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "./rpc-client";
+import { rpc } from "./rpc-client";
 import { useWallet } from "./use-wallet";
 
-const rpc = new OmniBusRpcClient();
 const POLL_MS = 12_000;
 
 export type SlotSnapshot = {
@@ -77,8 +76,8 @@ type WalletSummaryResp = {
 
 async function fetchSlotSummary(address: string): Promise<WalletSummaryResp> {
   try {
-    const r = (await rpc.request_raw("getwalletsummary", [{ address }])) as WalletSummaryResp;
-    return r ?? {};
+    const r = await rpc.getWalletSummary(address);
+    return (r ?? {}) as WalletSummaryResp;
   } catch {
     return {};
   }

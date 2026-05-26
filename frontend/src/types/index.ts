@@ -99,6 +99,15 @@ export interface WsPeerDisconnectEvent {
   timestamp: number;
 }
 
+export interface WsIbdProgressEvent {
+  event: "ibd_progress";
+  local_height: number;
+  peer_height: number;
+  behind: number;
+  progress: number;  // 0–100
+  active: boolean;
+}
+
 export type WsEvent =
   | WsNewBlockEvent
   | WsNewTxEvent
@@ -111,7 +120,8 @@ export type WsEvent =
   | WsNameRegisteredEvent
   | WsNameRenewedEvent
   | WsPeerConnectEvent
-  | WsPeerDisconnectEvent;
+  | WsPeerDisconnectEvent
+  | WsIbdProgressEvent;
 
 // ── RPC Response Shapes ─────────────────────────────────────────────────────
 
@@ -124,6 +134,10 @@ export interface BlockData {
   txCount: number;
   miner?: string;
   rewardSAT?: number;
+  // Backend may include tx list under any of these keys
+  transactions?: string[];
+  tx_ids?: string[];
+  txids?: string[];
   /// Optional oracle price snapshot captured at mining time. Up to 21 slots
   /// (7 IMPORTANT_PAIRS x 3 exchanges) — empty/zero entries are filtered
   /// server-side.
@@ -143,6 +157,7 @@ export interface BlockPriceSnapshot {
   askMicroUsd: number;
   timestampMs: number;
   success: boolean;
+  stale?: boolean;
 }
 
 export interface TransactionData {
@@ -226,6 +241,10 @@ export interface AddressHistoryEntry {
   blockHeight: number;
   status: "pending" | "confirmed";
   timestamp?: number;
+  scheme?: string;
+  nonce?: number;
+  kind?: string;
+  memo?: string;
 }
 
 export interface FeeEstimate {
@@ -267,6 +286,14 @@ export interface TradeRecord {
   timestamp: number;
 }
 
+export interface IbdProgress {
+  local_height: number;
+  peer_height: number;
+  behind: number;
+  progress: number;
+  active: boolean;
+}
+
 export interface BlockchainState {
   blockCount: number;
   difficulty: number;
@@ -286,6 +313,7 @@ export interface BlockchainState {
   oraclePrices: Record<string, OraclePrice>;       // keyed by pair "BTC/USD"
   orderbookSnapshots: Record<number, OrderbookSnapshot>; // keyed by pair_id
   recentTrades: TradeRecord[];                     // last 50 trades
+  ibdProgress: IbdProgress | null;                 // IBD sync progress (null = synced)
 }
 
 export interface PendingTx {
@@ -305,6 +333,9 @@ export type BlockchainAction =
   | { type: "WS_NEW_TRADE"; payload: WsNewTradeEvent }
   | { type: "WS_ORDERBOOK_UPDATE"; payload: WsOrderbookUpdateEvent }
   | { type: "WS_ORACLE_PRICE"; payload: WsOraclePriceEvent }
+  | { type: "WS_IBD_PROGRESS"; payload: WsIbdProgressEvent }
+  | { type: "WS_PEER_CONNECT"; payload: WsPeerConnectEvent }
+  | { type: "WS_PEER_DISCONNECT"; payload: WsPeerDisconnectEvent }
   | { type: "SET_WS_CONNECTED"; payload: boolean }
   | { type: "UPDATE_MEMPOOL_STATS"; payload: MempoolStats }
   | { type: "UPDATE_MINERS"; payload: MinerInfo[] }

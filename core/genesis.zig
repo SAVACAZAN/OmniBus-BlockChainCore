@@ -375,3 +375,51 @@ test "GenesisState — halving interval echivalent 4 ani" {
         seconds_4_years - cfg.halving_interval;
     try testing.expect(diff <= 86_400); // max 1 zi diferenta
 }
+
+test "canonical genesis hash matches Block.calculateHash" {
+    // Locks the genesis_hash constant against accidental drift: any change
+    // to the calculateHash formula, the genesis_timestamp, or the genesis
+    // block field defaults will break this test and surface the regression
+    // BEFORE deployment causes a network split.
+    //
+    // The expected value was computed by running SHA-256 over the canonical
+    // genesis serialization at chain bring-up time and is the same across
+    // all four networks (chains are separated by NetworkMagic, not by the
+    // genesis hash — see chain_config.zig note).
+    const expected = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982";
+
+    for ([_]ChainConfig{
+        ChainConfig.mainnet(),
+        ChainConfig.testnet(),
+        ChainConfig.devnet(),
+        ChainConfig.regtest(),
+    }) |cfg| {
+        try testing.expectEqualStrings(expected, cfg.genesis_hash);
+
+        // Recompute from a fresh genesis Block — same formula as
+        // Block.calculateHash but inlined so this test stays
+        // independent of any future refactor that moves the helper.
+        var buf: [512]u8 = undefined;
+        const str = try std.fmt.bufPrint(&buf, "{d}{d}{s}{d}", .{
+            @as(u32, 0),
+            cfg.genesis_timestamp,
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            @as(u64, 0),
+        });
+        var hasher = std.crypto.hash.sha2.Sha256.init(.{});
+        hasher.update(str);
+        const zeros: [32]u8 = @splat(0);
+        hasher.update(&zeros); // merkle_root (genesis has no TXs)
+        hasher.update(&zeros); // prices_root (genesis has no prices)
+        var digest: [32]u8 = undefined;
+        hasher.final(&digest);
+
+        var hex_buf: [64]u8 = undefined;
+        const alphabet = "0123456789abcdef";
+        for (digest, 0..) |b, i| {
+            hex_buf[i * 2] = alphabet[b >> 4];
+            hex_buf[i * 2 + 1] = alphabet[b & 0x0f];
+        }
+        try testing.expectEqualStrings(expected, &hex_buf);
+    }
+}

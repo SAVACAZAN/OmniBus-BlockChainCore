@@ -1,0 +1,23 @@
+\doxysection{fips Namespace Reference}
+\hypertarget{namespacefips}{}\label{namespacefips}\index{fips@{fips}}
+
+
+-\/140-\/compliance  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/140-\/compliance 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — FIPS 140-2 Statistical Randomness Tests.
+
+Generates 20000 bits (2500 bytes) of random data and runs:
+  - Monobit test: count of 1s should be 9725-10275 (out of 20000)
+  - Poker test: divide into 5000 4-bit groups, chi-squared
+  - Runs test: count sequences of consecutive same bits
+  - Long runs test: no run of 26+ same bits
+
+If node has no RPC for random, uses /dev/urandom as baseline.
+\end{DoxyVerb}
+ 

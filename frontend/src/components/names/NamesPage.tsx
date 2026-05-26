@@ -1,17 +1,28 @@
-import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { useEffect, useMemo, useState } from "react";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
+import { getUnlocked } from "../../api/wallet-keystore";
+import { signMessage } from "../../api/exchange-sign";
 import { useWallet } from "../../api/use-wallet";
 import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
-import { AddressLabel } from "../common/AddressLabel";
 import { TxHashLink } from "../common/TxHashLink";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNameRegisteredEvent, WsNameRenewedEvent, WsNewBlockEvent } from "../../types";
+import { SAT_PER_OMNI, satToOmni, MICRO_PER_USD } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // On-chain DNS / ENS pe blockchain-ul OmniBus (NU Liberty Chain).
 // Nume `<label>.omnibus`, label = 3-25 chars [a-z0-9_], must start with letter.
 // Vezi rpc_server.zig:handleRegisterName pentru reguli + memory feedback_total_mined_vs_balance.
 
 const VALID_RE = /^[a-z][a-z0-9_]{2,24}$/;
+
+const PQ_SLOT_LABEL: Record<"k" | "f" | "s" | "d", string> = {
+  k: "ML-DSA-87 (obk1_)",
+  f: "Falcon-512 (obf5_)",
+  s: "Dilithium-5 (obs3_)",
+  d: "SLH-DSA-256s (obd5_)",
+};
 
 // Canonical ens.omnibus treasury — slot index 3 in core/registrar_addresses.zig.
 // Older nodes (pre b1e6b54) used to derive this from the node mnemonic at
@@ -73,12 +84,101 @@ type ResolveResp = {
   found: boolean;
   registeredAtBlock?: number;
   expiresAtBlock?: number;
+  fullLabel?: string;
+  tld?: string;
+  category?: string;
+  addresses?: Record<string, string | null>;
+  preferred_slot?: number;
+  registered_years?: number;
 };
 
 // Multi-TLD lookup result: same shape as ResolveResp but tagged with which
 // TLD it came from, so we can render one card per TLD when the user
 // searches across all TLDs at once.
 type MultiResolveResp = ResolveResp & { _tld: Tld };
+
+function SearchAllResultsList({ results, search }: { results: MultiResolveResp[]; search: string }) {
+  const found = useMemo(() => results.filter((r) => r.found), [results]);
+  if (found.length === 0) {
+    return (
+      <div className="mt-3 p-3 rounded border border-amber-500/40 bg-amber-500/10">
+        <p className="text-sm text-mempool-text font-mono">
+          <span className="font-semibold text-mempool-text">
+            {(results[0] && results[0].name) || search}
+          </span>
+          {" — "}
+          <span className="text-amber-300">AVAILABLE everywhere</span>
+          <span className="ml-2 text-[11px] text-mempool-text-dim">
+            (0 of {results.length} TLDs taken — pick one in the Register form below)
+          </span>
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 space-y-2">
+      <p className="text-xs text-mempool-text-dim">
+        Found <span className="font-semibold text-mempool-text">{found.length}</span> of{" "}
+        {results.length} TLDs
+      </p>
+      {found.map((r) => {
+        const tld = r._tld;
+        const info = TLD_INFO[tld];
+        return (
+          <div key={tld} className="p-3 rounded border border-green-500/40 bg-green-500/10">
+            <p className="text-sm text-mempool-text font-mono">
+              <span className={`font-semibold ${info.color}`}>
+                {r.fullLabel || `${r.name}.${r.tld || tld}`}
+              </span>
+              {r.category && r.category !== "none" && (
+                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
+                  {r.category}
+                </span>
+              )}
+              {" — "}
+              <span className="text-green-300">TAKEN</span>
+            </p>
+            {r.address && (
+              <p className="text-xs text-mempool-text-dim mt-1 font-mono break-all">→ primary: {r.address}</p>
+            )}
+            {r.addresses && (
+              <div className="text-[10px] mt-2 space-y-0.5">
+                {(["k", "f", "s", "d"] as const).map((slot) => {
+                  const addrs = r.addresses!;
+                  if (!addrs[`${slot}_set`]) return null;
+                  const label = PQ_SLOT_LABEL[slot];
+                  return (
+                    <p key={slot} className="text-mempool-text-dim font-mono break-all">
+                      <span className="text-purple-400">↳ {label}:</span> {addrs[slot]}
+                    </p>
+                  );
+                })}
+              </div>
+            )}
+            {r.preferred_slot != null && r.preferred_slot > 0 && (
+              <p className="text-[11px] text-mempool-blue mt-1">
+                Preferred receiving scheme: slot {r.preferred_slot} (
+                {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][r.preferred_slot]}
+                )
+              </p>
+            )}
+            {r.registered_years != null && r.registered_years > 0 && (
+              <p className="text-xs text-mempool-text-dim mt-1">
+                Registered for {r.registered_years} {r.registered_years === 1 ? "year" : "years"}
+              </p>
+            )}
+            {r.registeredAtBlock != null && (
+              <p className="text-xs text-mempool-text-dim mt-1">
+                Block #{r.registeredAtBlock.toLocaleString()}
+                {r.expiresAtBlock && <span> · expires #{r.expiresAtBlock.toLocaleString()}</span>}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 type EnsFeeResp = {
   treasury: string;
@@ -196,12 +296,12 @@ export function NamesPage() {
   const [renewTarget, setRenewTarget] = useState<ListEntry | null>(null);
   // The user's expiring names — used to highlight rows that need attention.
   const expiringNames = useExpiringNames(wallet?.address);
-  const expiringByLabel = new Set(expiringNames.map((e) => e.fullLabel));
+  const expiringByLabel = useMemo(() => new Set(expiringNames.map((e) => e.fullLabel)), [expiringNames]);
 
   const refresh = async () => {
     try {
-      const r = (await rpc.request_raw("listnames", [{ limit: 200 }])) as ListResp;
-      const safe: ListResp = (r && Array.isArray((r as any).entries))
+      const r = (await rpc.listNames({ limit: 200 })) as ListResp;
+      const safe: ListResp = (r && Array.isArray(r.entries))
         ? r
         : { entries: [], total: 0 };
       setList(safe);
@@ -215,26 +315,36 @@ export function NamesPage() {
 
   useEffect(() => {
     let cancelled = false;
-    const tick = async () => { if (!cancelled) await refresh(); };
-    tick();
-    const id = setInterval(tick, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    void refresh();
+    // Refresh immediately on name events (new registrations + renewals).
+    const unsubReg = wsSubscribe<WsNameRegisteredEvent>("name_registered", () => {
+      if (!cancelled) void refresh();
+    });
+    const unsubRen = wsSubscribe<WsNameRenewedEvent>("name_renewed", () => {
+      if (!cancelled) void refresh();
+    });
+    // Slow fallback poll for newly expired names or missed events.
+    const id = setInterval(() => { if (!cancelled) void refresh(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsubReg(); unsubRen(); };
   }, []);
 
   // Track chain tip so the per-row "expires in N days" badge stays fresh.
-  // 30s is plenty — block time is 10s but UI rounds to days anyway.
   useEffect(() => {
     let cancelled = false;
-    const tick = async () => {
+    const fetchHeight = async () => {
       try {
-        const r: any = await rpc.request_raw("getblockchaininfo", []);
+        const r = await rpc.getBlockchainInfo() as { height?: number; blocks?: number; chain_height?: number } | null;
         const h = r?.height ?? r?.blocks ?? r?.chain_height;
         if (!cancelled && typeof h === "number") setCurrentBlock(h);
       } catch { /* keep stale */ }
     };
-    tick();
-    const id = setInterval(tick, 30_000);
-    return () => { cancelled = true; clearInterval(id); };
+    void fetchHeight();
+    // Live: new_block fires every ~10 s — no polling needed for block height.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
+      setCurrentBlock(ev.height);
+    });
+    const id = setInterval(() => { void fetchHeight(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   useEffect(() => {
@@ -244,8 +354,7 @@ export function NamesPage() {
         // Pass connected wallet address so the node returns the actual
         // Sybil-adjusted multiplier this user faces (3× at 10 names, etc.).
         // Empty/missing wallet → multiplier defaults to 1.00× server-side.
-        const params = wallet?.address ? [wallet.address] : [];
-        const r = (await rpc.request_raw("getensfee", params)) as EnsFeeResp;
+        const r = (await rpc.getEnsFee(wallet?.address)) as EnsFeeResp;
         if (!cancelled) setEnsFee(r);
       } catch {
         // silent fail — fee info is optional
@@ -253,7 +362,7 @@ export function NamesPage() {
     };
     const loadTlds = async () => {
       try {
-        const r = (await rpc.request_raw("ns_listTlds", [])) as TldFeeEntry[];
+        const r = await rpc.nsListTlds() as TldFeeEntry[];
         if (!cancelled && Array.isArray(r)) setTldList(r);
       } catch {
         // older node without ns_listTlds — fee map will fall back to ensFee
@@ -261,7 +370,7 @@ export function NamesPage() {
     };
     const loadYears = async () => {
       try {
-        const r = (await rpc.request_raw("ns_yearTiers", [])) as YearTier[];
+        const r = await rpc.nsYearTiers() as YearTier[];
         if (!cancelled && Array.isArray(r) && r.length > 0) setYearTiers(r);
       } catch {
         // older node — keep FALLBACK_YEAR_TIERS already in state
@@ -321,7 +430,7 @@ export function NamesPage() {
         // strip trailing dot if user typed "alice."
         if (clean.endsWith(".")) clean = clean.slice(0, -1);
         const calls = TLDS.map(async (t): Promise<MultiResolveResp> => {
-          const r = (await rpc.request_raw("resolvename", [clean, t])) as ResolveResp;
+          const r = (await rpc.resolveName(clean, t)) as ResolveResp;
           return { ...r, _tld: t };
         });
         const all = await Promise.all(calls);
@@ -332,7 +441,7 @@ export function NamesPage() {
           tld = explicitTld;
           clean = clean.slice(0, -("." + explicitTld).length);
         }
-        const r = (await rpc.request_raw("resolvename", [clean, tld])) as ResolveResp;
+        const r = (await rpc.resolveName(clean, tld)) as ResolveResp;
         setSearchResult(r);
       }
     } catch (e: any) {
@@ -377,7 +486,7 @@ export function NamesPage() {
       // Phase 2 — multi-year tier multiplier (1.000 .. 55.000)
       const tier = yearTiers.find(t => t.years === regYears) ?? yearTiers[0];
       const feeOmni = baseFeeOmni * tier.multiplier;
-      const feeSat = Math.floor(feeOmni * 1e9);
+      const feeSat = Math.floor(feeOmni * SAT_PER_OMNI);
       const memo = `ns_claim:${clean}.${regTld}`;
 
       setRegResult({ ok: true, message: `Step 1/2: sending ${feeOmni} OMNI fee TX to treasury…` });
@@ -424,8 +533,6 @@ export function NamesPage() {
       setRegistering(false);
     }
   };
-
-  const feeOmni = (sat: number) => sat / 1_000_000_000;
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
@@ -540,11 +647,11 @@ export function NamesPage() {
           <div className={`mt-3 p-3 rounded border ${searchResult.found ? "border-green-500/40 bg-green-500/10" : "border-amber-500/40 bg-amber-500/10"}`}>
             <p className="text-sm text-mempool-text font-mono">
               <span className={`font-semibold ${TLD_INFO[searchTld].color}`}>
-                {(searchResult as any).fullLabel || `${searchResult.name}.${(searchResult as any).tld || searchTld}`}
+                {searchResult.fullLabel || `${searchResult.name}.${searchResult.tld || searchTld}`}
               </span>
-              {(searchResult as any).category && (searchResult as any).category !== "none" && (
+              {searchResult.category && searchResult.category !== "none" && (
                 <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
-                  {(searchResult as any).category}
+                  {searchResult.category}
                 </span>
               )}
               {" — "}
@@ -559,13 +666,13 @@ export function NamesPage() {
                 → primary: {searchResult.address}
               </p>
             )}
-            {searchResult.found && (searchResult as any).addresses && (
+            {searchResult.found && searchResult.addresses && (
               <div className="text-[10px] mt-2 space-y-0.5">
                 {(["k", "f", "s", "d"] as const).map((slot) => {
-                  const addrs = (searchResult as any).addresses;
+                  const addrs = searchResult.addresses;
                   const isSet = addrs[`${slot}_set`];
                   if (!isSet) return null;
-                  const slotLabel = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
+                  const slotLabel = PQ_SLOT_LABEL[slot];
                   return (
                     <p key={slot} className="text-mempool-text-dim font-mono break-all">
                       <span className="text-purple-400">↳ {slotLabel}:</span> {addrs[slot]}
@@ -574,23 +681,23 @@ export function NamesPage() {
                 })}
               </div>
             )}
-            {searchResult.found && (searchResult as any).preferred_slot != null && (searchResult as any).preferred_slot > 0 && (
+            {searchResult.found && searchResult.preferred_slot != null && searchResult.preferred_slot > 0 && (
               <p className="text-[11px] text-mempool-blue mt-1">
-                Preferred receiving scheme: slot {(searchResult as any).preferred_slot} (
-                {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][(searchResult as any).preferred_slot]}
+                Preferred receiving scheme: slot {searchResult.preferred_slot} (
+                {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][searchResult.preferred_slot]}
                 )
               </p>
             )}
-            {searchResult.found && (searchResult as any).registered_years != null && (searchResult as any).registered_years > 0 && (
+            {searchResult.found && searchResult.registered_years != null && searchResult.registered_years > 0 && (
               <p className="text-xs text-mempool-text-dim mt-1">
-                Registered for {(searchResult as any).registered_years} {(searchResult as any).registered_years === 1 ? "year" : "years"}
+                Registered for {searchResult.registered_years} {searchResult.registered_years === 1 ? "year" : "years"}
               </p>
             )}
             {searchResult.found && searchResult.registeredAtBlock != null && (
               <p className="text-xs text-mempool-text-dim mt-1">
                 Block #{searchResult.registeredAtBlock.toLocaleString()}
-                {(searchResult as any).expiresAtBlock && (
-                  <span> · expires #{(searchResult as any).expiresAtBlock.toLocaleString()}</span>
+                {searchResult.expiresAtBlock && (
+                  <span> · expires #{searchResult.expiresAtBlock.toLocaleString()}</span>
                 )}
               </p>
             )}
@@ -601,97 +708,9 @@ export function NamesPage() {
             line shows "Found N of M TLDs" and an "available everywhere"
             hint when nothing matches. Each card renders the same metadata
             block as the single-result path above. */}
-        {searchAllResults && (() => {
-          const found = searchAllResults.filter((r) => r.found);
-          if (found.length === 0) {
-            return (
-              <div className="mt-3 p-3 rounded border border-amber-500/40 bg-amber-500/10">
-                <p className="text-sm text-mempool-text font-mono">
-                  <span className="font-semibold text-mempool-text">
-                    {(searchAllResults[0] && searchAllResults[0].name) || search}
-                  </span>
-                  {" — "}
-                  <span className="text-amber-300">AVAILABLE everywhere</span>
-                  <span className="ml-2 text-[11px] text-mempool-text-dim">
-                    (0 of {searchAllResults.length} TLDs taken — pick one in the Register form below)
-                  </span>
-                </p>
-              </div>
-            );
-          }
-          return (
-            <div className="mt-3 space-y-2">
-              <p className="text-xs text-mempool-text-dim">
-                Found <span className="font-semibold text-mempool-text">{found.length}</span> of{" "}
-                {searchAllResults.length} TLDs
-              </p>
-              {found.map((r) => {
-                const tld = r._tld;
-                const info = TLD_INFO[tld];
-                const anyR = r as any;
-                return (
-                  <div
-                    key={tld}
-                    className="p-3 rounded border border-green-500/40 bg-green-500/10"
-                  >
-                    <p className="text-sm text-mempool-text font-mono">
-                      <span className={`font-semibold ${info.color}`}>
-                        {anyR.fullLabel || `${r.name}.${anyR.tld || tld}`}
-                      </span>
-                      {anyR.category && anyR.category !== "none" && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-mempool-blue/30 text-mempool-blue uppercase tracking-wider">
-                          {anyR.category}
-                        </span>
-                      )}
-                      {" — "}
-                      <span className="text-green-300">TAKEN</span>
-                    </p>
-                    {r.address && (
-                      <p className="text-xs text-mempool-text-dim mt-1 font-mono break-all">
-                        → primary: {r.address}
-                      </p>
-                    )}
-                    {anyR.addresses && (
-                      <div className="text-[10px] mt-2 space-y-0.5">
-                        {(["k", "f", "s", "d"] as const).map((slot) => {
-                          const addrs = anyR.addresses;
-                          const isSet = addrs[`${slot}_set`];
-                          if (!isSet) return null;
-                          const slotLabel = { k: "ML-DSA-87 (obk1_)", f: "Falcon-512 (obf5_)", s: "Dilithium-5 (obs3_)", d: "SLH-DSA-256s (obd5_)" }[slot];
-                          return (
-                            <p key={slot} className="text-mempool-text-dim font-mono break-all">
-                              <span className="text-purple-400">↳ {slotLabel}:</span> {addrs[slot]}
-                            </p>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {anyR.preferred_slot != null && anyR.preferred_slot > 0 && (
-                      <p className="text-[11px] text-mempool-blue mt-1">
-                        Preferred receiving scheme: slot {anyR.preferred_slot} (
-                        {["primary", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][anyR.preferred_slot]}
-                        )
-                      </p>
-                    )}
-                    {anyR.registered_years != null && anyR.registered_years > 0 && (
-                      <p className="text-xs text-mempool-text-dim mt-1">
-                        Registered for {anyR.registered_years} {anyR.registered_years === 1 ? "year" : "years"}
-                      </p>
-                    )}
-                    {r.registeredAtBlock != null && (
-                      <p className="text-xs text-mempool-text-dim mt-1">
-                        Block #{r.registeredAtBlock.toLocaleString()}
-                        {anyR.expiresAtBlock && (
-                          <span> · expires #{anyR.expiresAtBlock.toLocaleString()}</span>
-                        )}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
+        {searchAllResults && (
+          <SearchAllResultsList results={searchAllResults} search={search} />
+        )}
       </div>
 
       {/* NS Health Dashboard — Phase 2 totals */}
@@ -894,6 +913,34 @@ export function NamesPage() {
           <span className="ml-auto text-xs text-mempool-text-dim">
             {list ? `${list.entries.length} of ${list.total}` : "loading…"}
           </span>
+          {list && list.entries.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["name", "tld", "full_name", "address", "registered_at_block", "expires_at_block"].join(","),
+                  ...list.entries.map((e) => {
+                    const tld = e.tld || "omnibus";
+                    return [
+                      `"${e.name}"`,
+                      tld,
+                      `"${e.name}.${tld}"`,
+                      `"${e.address}"`,
+                      e.registeredAtBlock,
+                      Number.isFinite(e.expiresAtBlock) ? e.expiresAtBlock : "",
+                    ].join(",");
+                  }),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-names.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="text-[10px] px-2 py-1 bg-mempool-bg border border-mempool-border rounded text-mempool-text-dim hover:text-mempool-text transition-colors font-mono flex-shrink-0"
+            >
+              ⬇ CSV
+            </button>
+          )}
         </div>
         {list && list.entries.length === 0 ? (
           <div className="p-8 text-center text-mempool-text-dim text-sm">
@@ -935,11 +982,11 @@ export function NamesPage() {
                   </td>
                   <td className="px-3 py-2 text-xs">
                     <button
-                      onClick={() => navigator.clipboard.writeText(e.address)}
+                      onClick={() => { window.location.hash = `#/address/${e.address}`; }}
                       className="font-mono text-mempool-text hover:text-mempool-blue hover:underline"
-                      title={`Click to copy ${e.address}`}
+                      title={e.address}
                     >
-                      {e.address.slice(0, 14)}…{e.address.slice(-8)}
+                      <AddressLabel address={e.address} showEmoji truncate={{ left: 10, right: 8 }} />
                     </button>
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-mono text-mempool-text-dim">
@@ -974,6 +1021,13 @@ export function NamesPage() {
       </div>
 
       <TreasuryStatusCard />
+
+      {/* Name management tools: reverse lookup + transfer + update address */}
+      <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
+        <ReverseResolvePanel />
+        <TransferNamePanel />
+        <UpdateNamePanel />
+      </div>
 
       <div className="mt-6 text-xs text-mempool-text-dim space-y-1">
         <p>
@@ -1044,8 +1098,8 @@ function TreasuryStatusCard() {
     const tick = async () => {
       try {
         const [s, c] = await Promise.all([
-          rpc.request_raw("treasury_getStatus", []) as Promise<TreasuryStatus>,
-          rpc.request_raw("treasury_getConfig", []) as Promise<TreasuryConfig>,
+          rpc.treasuryGetStatus() as Promise<TreasuryStatus>,
+          rpc.treasuryGetConfig() as Promise<TreasuryConfig>,
         ]);
         if (!cancelled) {
           setStatus(s);
@@ -1059,9 +1113,11 @@ function TreasuryStatusCard() {
         }
       }
     };
-    tick();
-    const id = setInterval(tick, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    void tick();
+    // Treasury state updates per block — use WS for immediate refresh.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void tick(); });
+    const id = setInterval(() => { void tick(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 
   if (unavailable) {
@@ -1074,12 +1130,12 @@ function TreasuryStatusCard() {
   }
   if (!status || !cfg) return null;
 
-  const balanceOmni = (status.balance_sat / 1_000_000_000).toFixed(4);
+  const balanceOmni = satToOmni(status.balance_sat, 4);
   const midUsd = status.last_grid_mid_micro_usd > 0
-    ? (status.last_grid_mid_micro_usd / 1_000_000).toFixed(4)
+    ? (status.last_grid_mid_micro_usd / MICRO_PER_USD).toFixed(4)
     : "—";
   const sigmaUsd = status.vol_sigma > 0
-    ? (status.vol_sigma / 1_000_000).toFixed(4)
+    ? (status.vol_sigma / MICRO_PER_USD).toFixed(4)
     : "—";
 
   return (
@@ -1163,7 +1219,7 @@ function RenewModal({ entry, ensFee, tldList, yearTiers, onClose, onRenewed }: R
     }
     setBusy(true);
     try {
-      const feeSat = Math.floor(feeOmni * 1e9);
+      const feeSat = Math.floor(feeOmni * SAT_PER_OMNI);
       // Same two-step as register: fee TX first (so renewal also leaves an
       // on-chain trace), then renewname with the resulting txid + years.
       setResult({ ok: true, message: `Step 1/2: sending ${feeOmni.toFixed(3)} OMNI renewal fee…` });
@@ -1319,7 +1375,7 @@ function BrowseByCategory() {
     setLoading(true);
     setErr(null);
     try {
-      const r = (await rpc.request_raw("getnamesbycategory", [cat, 100])) as {
+      const r = (await rpc.getNamesByCategory(cat, 100)) as {
         category: string; total: number; entries: CatEntry[];
       };
       setEntries(r.entries ?? []);
@@ -1335,17 +1391,17 @@ function BrowseByCategory() {
     }
   };
 
-  // Counts per year tier within the currently-loaded category.
-  // Treats undefined registered_years as 1 (legacy default for older nodes).
-  const yearCounts: Record<number, number> = entries.reduce((acc, e) => {
-    const y = e.registered_years ?? 1;
-    acc[y] = (acc[y] ?? 0) + 1;
-    return acc;
-  }, {} as Record<number, number>);
+  const yearCounts = useMemo<Record<number, number>>(() =>
+    entries.reduce((acc, e) => {
+      const y = e.registered_years ?? 1;
+      acc[y] = (acc[y] ?? 0) + 1;
+      return acc;
+    }, {} as Record<number, number>),
+  [entries]);
 
-  const visibleEntries: CatEntry[] = filterYear == null
-    ? entries
-    : entries.filter((e) => (e.registered_years ?? 1) === filterYear);
+  const visibleEntries = useMemo<CatEntry[]>(() =>
+    filterYear == null ? entries : entries.filter((e) => (e.registered_years ?? 1) === filterYear),
+  [entries, filterYear]);
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
@@ -1446,9 +1502,12 @@ function BrowseByCategory() {
                     <span className={`font-semibold ${cat?.color}`}>
                       {e.name}.{e.tld}
                     </span>
-                    <span className="text-[10px] text-mempool-text-dim font-mono ml-auto">
-                      {e.address.slice(0, 14)}…{e.address.slice(-6)}
-                    </span>
+                    <button
+                      onClick={() => { window.location.hash = `#/address/${e.address}`; }}
+                      className="text-[10px] text-mempool-text-dim font-mono ml-auto hover:text-mempool-blue hover:underline"
+                    >
+                      <AddressLabel address={e.address} showEmoji truncate={{ left: 10, right: 6 }} />
+                    </button>
                     <span className="text-[9px] text-mempool-text-dim">
                       block #{e.registeredAtBlock.toLocaleString()}
                     </span>
@@ -1475,71 +1534,112 @@ function BrowseByCategory() {
 
 // ── NsHealthDashboard ─────────────────────────────────────────────────────
 //
-// Phase 2 NS — quick at-a-glance stats: total active names, breakdown
-// per category. Data comes from listnames (already cached in use-names).
-// Sits at the top of the page so users immediately see the registry's
-// "shape" before drilling into Browse / Lookup / Register.
+// Uses ns_stats RPC for rich registry stats; falls back to listnames counting
+// on older nodes. Also shows expiring-soon names (ns_expiringSoon) for the
+// connected wallet, and a prune-expired admin button (ns_pruneExpired).
 
-interface CountsByCat {
-  total: number;
-  perCat: Record<string, number>;
-  perTld: Record<string, number>;
+interface NsStats {
+  total_active: number;
+  total_expired: number;
+  by_category: Record<string, number>;
+  by_tld: Record<string, number>;
+  by_years: Record<string, number>;
+  pq_slots_set: number;
+  preferred_slot_set: number;
+}
+
+interface ExpiringEntry {
+  name: string;
+  tld: string;
+  fullLabel: string;
+  expiresAtBlock: number;
+  blocks_remaining: number;
+  estimated_days_remaining: number;
+  registered_years: number;
+  in_grace: boolean;
 }
 
 function NsHealthDashboard() {
-  const [stats, setStats] = useState<CountsByCat>({ total: 0, perCat: {}, perTld: {} });
+  const [stats, setStats] = useState<NsStats | null>(null);
+  const [expiring, setExpiring] = useState<ExpiringEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pruneResult, setPruneResult] = useState<{ removed: number; entry_count: number } | null>(null);
+  const [pruning, setPruning] = useState(false);
+  const u = getUnlocked();
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const r = (await rpc.request_raw("listnames", [{ limit: 1000 }])) as {
-          entries?: { tld: string; category?: string }[];
-          total?: number;
-        };
-        if (cancelled) return;
-        const entries = r?.entries ?? [];
-        const perCat: Record<string, number> = {};
-        const perTld: Record<string, number> = {};
-        for (const e of entries) {
-          const cat = e.category ?? "none";
-          perCat[cat] = (perCat[cat] ?? 0) + 1;
-          perTld[e.tld] = (perTld[e.tld] ?? 0) + 1;
-        }
-        setStats({ total: r?.total ?? entries.length, perCat, perTld });
-      } catch {
-        // ignore — health dashboard is best-effort
-      } finally {
+        const r = await rpc.nsStats();
+        if (!cancelled && r && typeof r === "object") setStats(r as NsStats);
+      } catch { /* ns_stats not available */ } finally {
         if (!cancelled) setLoading(false);
       }
     };
-    load();
-    const id = setInterval(load, 30_000); // 30s refresh
-    return () => { cancelled = true; clearInterval(id); };
+    void load();
+    const unsubReg = wsSubscribe<WsNameRegisteredEvent>("name_registered", () => { void load(); });
+    const unsubRen = wsSubscribe<WsNameRenewedEvent>("name_renewed", () => { void load(); });
+    const id = setInterval(() => { void load(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsubReg(); unsubRen(); };
   }, []);
 
-  if (loading && stats.total === 0) {
-    return null; // hide entirely on first paint to avoid empty-state flash
-  }
+  useEffect(() => {
+    if (!u) { setExpiring([]); return; }
+    let cancelled = false;
+    rpc.nsExpiringSoon(u.address)
+      .then((r) => {
+        if (!cancelled && r && typeof r === "object") {
+          setExpiring((r as { entries?: ExpiringEntry[] }).entries ?? []);
+        }
+      }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [u?.address]);
+
+  const pruneExpired = async () => {
+    setPruning(true);
+    try {
+      const r = await rpc.request_raw("ns_pruneExpired", []);
+      if (r && typeof r === "object") {
+        setPruneResult(r as { removed: number; entry_count: number });
+        const s = await rpc.nsStats();
+        if (s && typeof s === "object") setStats(s as NsStats);
+      }
+    } catch { /* no-op */ } finally { setPruning(false); }
+  };
+
+  if (loading && !stats) return null;
+  if (!stats) return null;
+
+  const tldEntries = useMemo(
+    () => Object.entries(stats.by_tld).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a),
+    [stats],
+  );
 
   return (
-    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
-      <div className="flex items-baseline justify-between mb-3">
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6 space-y-3">
+      <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
-          NS health
+          NS Health
           <span className="ml-2 text-[10px] text-mempool-text-dim normal-case">
             registry totals · auto-refresh 30s
           </span>
         </h2>
-        <span className="text-xs text-mempool-text-dim">
-          Total: <span className="text-mempool-text font-semibold">{stats.total}</span>
-        </span>
+        <div className="flex items-center gap-3 text-[10px]">
+          <span className="text-mempool-text-dim">
+            Active: <span className="text-green-400 font-semibold">{stats.total_active}</span>
+          </span>
+          {stats.total_expired > 0 && (
+            <span className="text-mempool-text-dim">
+              Expired: <span className="text-red-400 font-semibold">{stats.total_expired}</span>
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-1">
         {CAT_PILLS.map((c) => {
-          const n = stats.perCat[c.id] ?? 0;
+          const n = stats.by_category[c.id] ?? 0;
           return (
             <div
               key={c.id}
@@ -1554,14 +1654,302 @@ function NsHealthDashboard() {
         })}
       </div>
 
-      {Object.keys(stats.perTld).length > 0 && (
-        <p className="text-[10px] text-mempool-text-dim mt-3">
-          Per-TLD: {Object.entries(stats.perTld)
-            .sort(([, a], [, b]) => b - a)
-            .map(([t, n]) => `.${t}=${n}`)
-            .join(" · ")}
-        </p>
+      <div className="flex flex-wrap gap-1 text-[9px]">
+        {tldEntries.map(([t, n]) => (
+            <span key={t} className="px-1.5 py-0.5 rounded bg-mempool-bg border border-mempool-border text-mempool-text-dim">
+              .{t} <span className="text-mempool-text font-semibold">{n}</span>
+            </span>
+          ))}
+        {stats.pq_slots_set > 0 && (
+          <span className="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/30 text-purple-300">
+            PQ slots: {stats.pq_slots_set}
+          </span>
+        )}
+      </div>
+
+      {expiring.length > 0 && (
+        <div className="rounded border border-yellow-500/30 bg-yellow-500/5 p-3">
+          <div className="text-[10px] uppercase tracking-wider text-yellow-400 font-semibold mb-2">
+            ⚠️ Your names expiring soon ({expiring.length})
+          </div>
+          <div className="space-y-1">
+            {expiring.map((e) => (
+              <div key={e.fullLabel} className="flex items-center justify-between text-[10px] font-mono">
+                <span className="text-mempool-text">{e.fullLabel}</span>
+                <div className="flex items-center gap-2">
+                  <span className={e.in_grace ? "text-red-400" : "text-yellow-300"}>
+                    {e.in_grace ? "⛔ grace" : `~${e.estimated_days_remaining}d`}
+                  </span>
+                  <span className="text-mempool-text-dim">blk {e.expiresAtBlock}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
+
+      {stats.total_expired > 0 && (
+        <div className="flex items-center gap-3 pt-1 border-t border-mempool-border/40">
+          <span className="text-[10px] text-red-400">
+            {stats.total_expired} expired name{stats.total_expired === 1 ? "" : "s"} ready to prune
+          </span>
+          <button
+            onClick={pruneExpired}
+            disabled={pruning}
+            className="ml-auto px-3 py-1 rounded text-[10px] bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50"
+          >
+            {pruning ? "Pruning…" : "Prune Expired"}
+          </button>
+          {pruneResult && (
+            <span className="text-[10px] text-green-400">
+              Removed {pruneResult.removed} · {pruneResult.entry_count} remain
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// signMessage imported from ../../api/exchange-sign
+const signPayload = signMessage;
+
+// ─────────────────────────────────────────────────────────────────────────
+// ReverseResolvePanel — address → name lookup (reverseresolvename RPC)
+// ─────────────────────────────────────────────────────────────────────────
+
+export function ReverseResolvePanel() {
+  const [addr, setAddr] = useState("");
+  const [result, setResult] = useState<{ address: string; name: string; found: boolean } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    const a = addr.trim();
+    if (!a) return;
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const r = (await rpc.reverseResolveName(a)) as {
+        address: string; name: string; found: boolean;
+      };
+      setResult(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-mempool-text">Reverse Resolve</h3>
+      <p className="text-[11px] text-mempool-text-dim">
+        Look up the registered name for an OmniBus address.
+      </p>
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">Address</label>
+          <input
+            value={addr}
+            onChange={(e) => setAddr(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="ob1q…"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <button
+          onClick={onLookup}
+          disabled={loading || !addr.trim()}
+          className="px-3 py-1.5 text-xs bg-mempool-blue/20 hover:bg-mempool-blue/30 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && (
+        result.found ? (
+          <div className="rounded border border-green-500/30 bg-green-500/5 px-3 py-2 text-xs space-y-0.5">
+            <div className="text-green-400 font-semibold">{result.name}</div>
+            <div className="text-mempool-text-dim font-mono">{result.address}</div>
+          </div>
+        ) : (
+          <p className="text-xs text-mempool-text-dim">No registered name for this address.</p>
+        )
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// TransferNamePanel — transfer name ownership (transfername RPC)
+// ─────────────────────────────────────────────────────────────────────────
+
+export function TransferNamePanel() {
+  const wallet = useWallet();
+  const [name, setName] = useState("");
+  const [tld, setTld] = useState("omnibus");
+  const [newOwner, setNewOwner] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onTransfer = async () => {
+    if (!wallet || !name || !newOwner) return;
+    const u = getUnlocked();
+    if (!u?.privateKey) { setErr("Wallet locked — unlock from mnemonic first."); return; }
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const nonce = await rpc.getNonce(wallet.address);
+      const msg = `transfername:${name}.${tld}:${newOwner}:${nonce}`;
+      const { signature, publicKey } = signPayload(u.privateKey, msg);
+      const r = (await rpc.request_raw("transfername", [{
+        name, tld, new_owner: newOwner, nonce, signature, publicKey,
+      }])) as { status?: string } | string;
+      setResult(typeof r === "string" ? r : ((r as { status?: string }).status ?? "ok"));
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!wallet) return null;
+
+  return (
+    <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-orange-200">Transfer Name Ownership</h3>
+      <p className="text-[11px] text-mempool-text-dim">
+        Permanently transfers the name to a new owner. Requires your wallet to be unlocked.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">Name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value.toLowerCase())}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="alice"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">TLD</label>
+          <select
+            value={tld}
+            onChange={(e) => setTld(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs text-mempool-text"
+          >
+            {TLDS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">New owner address</label>
+          <input
+            value={newOwner}
+            onChange={(e) => setNewOwner(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="ob1q…"
+          />
+        </div>
+      </div>
+      <button
+        onClick={onTransfer}
+        disabled={loading || !name || !newOwner}
+        className="w-full py-1.5 text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 border border-orange-500/30 rounded disabled:opacity-50"
+      >
+        {loading ? "Transferring…" : "Transfer name"}
+      </button>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && <p className="text-xs text-green-400">Success: {result}</p>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// UpdateNamePanel — update the address a name resolves to (updatename RPC)
+// ─────────────────────────────────────────────────────────────────────────
+
+export function UpdateNamePanel() {
+  const wallet = useWallet();
+  const [name, setName] = useState("");
+  const [tld, setTld] = useState("omnibus");
+  const [newAddress, setNewAddress] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onUpdate = async () => {
+    if (!wallet || !name || !newAddress) return;
+    const u = getUnlocked();
+    if (!u?.privateKey) { setErr("Wallet locked — unlock from mnemonic first."); return; }
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const nonce = await rpc.getNonce(wallet.address);
+      const msg = `updatename:${name}.${tld}:${newAddress}:${nonce}`;
+      const { signature, publicKey } = signPayload(u.privateKey, msg);
+      const r = (await rpc.request_raw("updatename", [{
+        name, tld, new_address: newAddress, nonce, signature, publicKey,
+      }])) as { status?: string } | string;
+      setResult(typeof r === "string" ? r : ((r as { status?: string }).status ?? "ok"));
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!wallet) return null;
+
+  return (
+    <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4 space-y-3">
+      <h3 className="text-sm font-semibold text-blue-200">Update Name Address</h3>
+      <p className="text-[11px] text-mempool-text-dim">
+        Points your name to a new OmniBus address. Requires the current owner&apos;s wallet to be unlocked.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">Name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value.toLowerCase())}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="alice"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">TLD</label>
+          <select
+            value={tld}
+            onChange={(e) => setTld(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs text-mempool-text"
+          >
+            {TLDS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-[10px] text-mempool-text-dim uppercase block mb-0.5">New address</label>
+          <input
+            value={newAddress}
+            onChange={(e) => setNewAddress(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="ob1q…"
+          />
+        </div>
+      </div>
+      <button
+        onClick={onUpdate}
+        disabled={loading || !name || !newAddress}
+        className="w-full py-1.5 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-500/30 rounded disabled:opacity-50"
+      >
+        {loading ? "Updating…" : "Update name address"}
+      </button>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && <p className="text-xs text-green-400">Success: {result}</p>}
     </div>
   );
 }

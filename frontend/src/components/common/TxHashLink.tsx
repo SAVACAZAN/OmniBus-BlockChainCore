@@ -7,6 +7,12 @@
  * inputs/outputs, op_return memo, etc.
  */
 
+import { midTrunc } from "../../utils/fmt";
+
+declare global {
+  interface Window { __openTx?: (txid: string) => void; }
+}
+
 type Props = {
   txid: string;
   truncate?: { left: number; right: number };
@@ -20,18 +26,15 @@ export function TxHashLink({
 }: Props) {
   if (!txid) return null;
 
-  const display =
-    txid.length > truncate.left + truncate.right + 1
-      ? `${txid.slice(0, truncate.left)}…${txid.slice(-truncate.right)}`
-      : txid;
+  const display = midTrunc(txid, truncate.left, truncate.right);
 
   return (
     <button
       type="button"
       onClick={(e) => {
         e.stopPropagation();
-        if (typeof window !== "undefined" && (window as any).__openTx) {
-          (window as any).__openTx(txid);
+        if (typeof window !== "undefined" && window.__openTx) {
+          window.__openTx(txid);
         }
       }}
       title={`${txid} — click to open transaction details`}

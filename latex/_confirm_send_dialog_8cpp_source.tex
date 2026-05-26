@@ -1,0 +1,82 @@
+\doxysection{Confirm\+Send\+Dialog.\+cpp}
+\hypertarget{_confirm_send_dialog_8cpp_source}{}\label{_confirm_send_dialog_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/ConfirmSendDialog.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/ConfirmSendDialog.cpp}}
+\doxymbox{\hyperlink{_confirm_send_dialog_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_confirm_send_dialog_8h}{dialogs/ConfirmSendDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QVBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QHBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <QFrame>}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00010}00010\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00012}\doxymbox{\hyperlink{classomni_1_1_confirm_send_dialog_a01c13563198b7c0f2e50ec91ac933bb7}{00012}}\ \doxymbox{\hyperlink{classomni_1_1_confirm_send_dialog_a01c13563198b7c0f2e50ec91ac933bb7}{ConfirmSendDialog::ConfirmSendDialog}}(\textcolor{keyword}{const}\ QString\&\ to,\ qint64\ amountSat,\ qint64\ feeSat,\ QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00013}00013\ \ \ \ \ :\ QDialog(parent)}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00014}00014\ \{}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00015}00015\ \ \ \ \ setWindowTitle(\textcolor{stringliteral}{"{}Confirm\ Transaction"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00016}00016\ \ \ \ \ setMinimumWidth(450);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00017}00017\ \ \ \ \ setModal(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00019}00019\ \ \ \ \ \textcolor{keyword}{auto}*\ layout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00020}00020\ \ \ \ \ layout-\/>setSpacing(16);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00021}00021\ \ \ \ \ layout-\/>setContentsMargins(24,\ 24,\ 24,\ 24);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00023}00023\ \ \ \ \ \textcolor{keyword}{auto}*\ title\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Confirm\ Send"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00024}00024\ \ \ \ \ title-\/>setObjectName(\textcolor{stringliteral}{"{}sectionTitle"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00025}00025\ \ \ \ \ title-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00026}00026\ \ \ \ \ layout-\/>addWidget(title);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00028}00028\ \ \ \ \ \textcolor{keyword}{auto}*\ card\ =\ \textcolor{keyword}{new}\ QFrame;}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00029}00029\ \ \ \ \ card-\/>setObjectName(\textcolor{stringliteral}{"{}card"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00030}00030\ \ \ \ \ \textcolor{keyword}{auto}*\ cardLayout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(card);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00031}00031\ \ \ \ \ cardLayout-\/>setSpacing(8);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00033}00033\ \ \ \ \ \textcolor{keyword}{auto}\ addRow\ =\ [\&](\textcolor{keyword}{const}\ QString\&\ label,\ \textcolor{keyword}{const}\ QString\&\ value,\ \textcolor{keyword}{const}\ QString\&\ color\ =\ \textcolor{stringliteral}{"{}\#e0e0f0"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}*\ row\ =\ \textcolor{keyword}{new}\ QHBoxLayout;}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}*\ lbl\ =\ \textcolor{keyword}{new}\ QLabel(label);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00036}00036\ \ \ \ \ \ \ \ \ lbl-\/>setObjectName(\textcolor{stringliteral}{"{}dimLabel"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}*\ val\ =\ \textcolor{keyword}{new}\ QLabel(value);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00038}00038\ \ \ \ \ \ \ \ \ val-\/>setStyleSheet(QString(\textcolor{stringliteral}{"{}color:\ \%1;\ font-\/weight:\ bold;"{}}).arg(color));}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00039}00039\ \ \ \ \ \ \ \ \ val-\/>setWordWrap(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00040}00040\ \ \ \ \ \ \ \ \ val-\/>setTextInteractionFlags(Qt::TextSelectableByMouse);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00041}00041\ \ \ \ \ \ \ \ \ row-\/>addWidget(lbl);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00042}00042\ \ \ \ \ \ \ \ \ row-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00043}00043\ \ \ \ \ \ \ \ \ row-\/>addWidget(val);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00044}00044\ \ \ \ \ \ \ \ \ cardLayout-\/>addLayout(row);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00045}00045\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00047}00047\ \ \ \ \ addRow(\textcolor{stringliteral}{"{}To:"{}},\ to,\ \textcolor{stringliteral}{"{}\#7b61ff"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00048}00048\ \ \ \ \ addRow(\textcolor{stringliteral}{"{}Amount:"{}},\ \doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(amountSat)\ +\ \textcolor{stringliteral}{"{}\ OMNI"{}},\ \textcolor{stringliteral}{"{}\#00b3a4"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00049}00049\ \ \ \ \ addRow(\textcolor{stringliteral}{"{}Fee:"{}},\ \doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(feeSat)\ +\ \textcolor{stringliteral}{"{}\ OMNI"{}},\ \textcolor{stringliteral}{"{}\#ff9500"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00050}00050\ \ \ \ \ addRow(\textcolor{stringliteral}{"{}Total:"{}},\ \doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(amountSat\ +\ feeSat)\ +\ \textcolor{stringliteral}{"{}\ OMNI"{}},\ \textcolor{stringliteral}{"{}\#e0e0f0"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00052}00052\ \ \ \ \ layout-\/>addWidget(card);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00054}00054\ \ \ \ \ \textcolor{comment}{//\ Warning}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00055}00055\ \ \ \ \ \textcolor{keyword}{auto}*\ warn\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}This\ transaction\ cannot\ be\ reversed."{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00056}00056\ \ \ \ \ warn-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#ff9500;\ font-\/size:\ 12px;"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00057}00057\ \ \ \ \ warn-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00058}00058\ \ \ \ \ layout-\/>addWidget(warn);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00060}00060\ \ \ \ \ \textcolor{comment}{//\ Buttons}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00061}00061\ \ \ \ \ \textcolor{keyword}{auto}*\ btnLayout\ =\ \textcolor{keyword}{new}\ QHBoxLayout;}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00062}00062\ \ \ \ \ \textcolor{keyword}{auto}*\ cancelBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Cancel"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00063}00063\ \ \ \ \ cancelBtn-\/>setObjectName(\textcolor{stringliteral}{"{}secondaryButton"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00064}00064\ \ \ \ \ \textcolor{keyword}{auto}*\ confirmBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Confirm\ \&\ Send"{}});}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00065}00065\ \ \ \ \ confirmBtn-\/>setMinimumWidth(140);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00067}00067\ \ \ \ \ btnLayout-\/>addWidget(cancelBtn);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00068}00068\ \ \ \ \ btnLayout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00069}00069\ \ \ \ \ btnLayout-\/>addWidget(confirmBtn);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00070}00070\ \ \ \ \ layout-\/>addLayout(btnLayout);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00072}00072\ \ \ \ \ connect(cancelBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ \&QDialog::reject);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00073}00073\ \ \ \ \ connect(confirmBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ \&QDialog::accept);}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00074}00074\ \}}
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{_confirm_send_dialog_8cpp_source_l00076}00076\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

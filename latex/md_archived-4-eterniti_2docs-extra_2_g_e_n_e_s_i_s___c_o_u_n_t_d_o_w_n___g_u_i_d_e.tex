@@ -1,0 +1,615 @@
+\chapter{Genesis Countdown Guide }
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e}{}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e}\index{Genesis Countdown Guide@{Genesis Countdown Guide}}
+\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md380}%
+\Hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md380}%
+
+
+{\bfseries{Date:\+}} March 18, 2026 {\bfseries{Feature:\+}} Light Miners + Genesis Countdown UI {\bfseries{Status:\+}} ✅ COMPLETE
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md382}{}\doxysection{\texorpdfstring{🚀 What is Genesis Countdown?}{🚀 What is Genesis Countdown?}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md382}
+Genesis Countdown is the {\bfseries{initialization sequence}} for Omni\+Bus blockchain. It displays:\+
+\begin{DoxyItemize}
+\item Real-\/time blockchain status
+\item Connected miners
+\item When genesis mining will start
+\item Live miner statistics
+\item Ability to launch multiple light miners simultaneously
+\end{DoxyItemize}
+
+{\bfseries{Target:\+}} Launch with minimum 3 light miners connected, then begin mining genesis blocks.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md384}{}\doxysection{\texorpdfstring{🖥️ Components}{🖥️ Components}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md384}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md385}{}\doxysubsection{\texorpdfstring{1. {\bfseries{Light Miner}} ({\ttfamily light\+\_\+miner.\+zig})}{1. {\bfseries{Light Miner}} ({\ttfamily light\+\_\+miner.\+zig})}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md385}
+Individual lightweight miner instance that can:\+
+\begin{DoxyItemize}
+\item Run independently on same machine
+\item Connect to seed node
+\item Submit mining shares
+\item Report status and statistics
+\end{DoxyItemize}
+
+{\bfseries{Features:\+}}
+\begin{DoxyItemize}
+\item Unique ID per instance (0-\/9)
+\item Hashrate:\+ 1000 H/\+s per miner
+\item Share submission tracking
+\item Block mining tracking
+\item Automatic status updates
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md386}{}\doxysubsection{\texorpdfstring{2. {\bfseries{Miner Pool}} ({\ttfamily light\+\_\+miner.\+zig})}{2. {\bfseries{Miner Pool}} ({\ttfamily light\+\_\+miner.\+zig})}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md386}
+Manages multiple light miners:\+
+\begin{DoxyItemize}
+\item Register miners
+\item Track connection status
+\item Count connected miners
+\item Detect genesis readiness (≥3 miners)
+\item Start genesis mining
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md387}{}\doxysubsection{\texorpdfstring{3. {\bfseries{Genesis Countdown UI}} ({\ttfamily Genesis\+Countdown.\+tsx})}{3. {\bfseries{Genesis Countdown UI}} ({\ttfamily Genesis\+Countdown.\+tsx})}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md387}
+React page showing:\+
+\begin{DoxyItemize}
+\item Blockchain status (initializing → ready → mining)
+\item Miner count (0/\+10 → 3/\+10 → 10/\+10)
+\item Live miner statistics
+\item Start genesis button
+\item Launch miners button
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md388}{}\doxysubsection{\texorpdfstring{4. {\bfseries{Light Miner Launchers}}}{4. {\bfseries{Light Miner Launchers}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md388}
+
+\begin{DoxyItemize}
+\item {\ttfamily launch-\/light-\/miners.\+bat} (Windows)
+\item {\ttfamily launch-\/light-\/miners.\+sh} (Linux/\+mac\+OS)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md390}{}\doxysection{\texorpdfstring{📋 Architecture}{📋 Architecture}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md390}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{User\ Browser\ (React)}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{\ \ Genesis\ Countdown\ UI}
+\DoxyCodeLine{\ \ \ \ ↓\ (Polls\ every\ 2-\/3\ seconds)}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{\ \ RPC\ Server\ (port\ 8332)}
+\DoxyCodeLine{\ \ \ \ ├─\ getGenesisStatus()}
+\DoxyCodeLine{\ \ \ \ ├─\ getMiners()}
+\DoxyCodeLine{\ \ \ \ └─\ startGenesis()}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Blockchain\ Core}
+\DoxyCodeLine{\ \ \ \ ├─\ MinerPool\ (tracks\ miners)}
+\DoxyCodeLine{\ \ \ \ ├─\ Light\ Miners\ (10\ instances)}
+\DoxyCodeLine{\ \ \ \ └─\ Genesis\ Logic}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md392}{}\doxysection{\texorpdfstring{🎯 Quick Start}{🎯 Quick Start}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md392}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md393}{}\doxysubsection{\texorpdfstring{{\bfseries{Step 1:\+ Build the Blockchain}}}{{\bfseries{Step 1:\+ Build the Blockchain}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md393}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ /home/kiss/OmniBus-\/BlockChainCore}
+\DoxyCodeLine{zig\ build-\/exe\ -\/O\ ReleaseFast\ core/main.zig\ -\/-\/name\ omnibus-\/node}
+
+\end{DoxyCode}
+
+
+Expected output:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{✅\ omnibus-\/node\ 2.4M\ created}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md394}{}\doxysubsection{\texorpdfstring{{\bfseries{Step 2:\+ Start Seed Node}} (Terminal 1)}{{\bfseries{Step 2:\+ Start Seed Node}} (Terminal 1)}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md394}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{./omnibus-\/node\ -\/-\/mode\ seed\ -\/-\/node-\/id\ seed-\/1\ -\/-\/primary\ -\/-\/port\ 9000}
+
+\end{DoxyCode}
+
+
+Expected output:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[BOOTSTRAP]\ Seed\ node\ 'seed-\/1'\ initialized\ (primary)}
+\DoxyCodeLine{[BOOTSTRAP]\ Waiting\ for\ miners\ on\ 127.0.0.1:9000}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md395}{}\doxysubsection{\texorpdfstring{{\bfseries{Step 3:\+ Start RPC Server}} (Terminal 2)}{{\bfseries{Step 3:\+ Start RPC Server}} (Terminal 2)}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md395}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{./omnibus-\/node\ -\/-\/mode\ rpc}
+
+\end{DoxyCode}
+
+
+Expected output:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[RPC]\ Server\ listening\ on\ http://localhost:8332}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md396}{}\doxysubsection{\texorpdfstring{{\bfseries{Step 4:\+ Start Frontend}} (Terminal 3)}{{\bfseries{Step 4:\+ Start Frontend}} (Terminal 3)}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md396}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ install\ \&\&\ npm\ start}
+
+\end{DoxyCode}
+
+
+Expected output:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{➜\ Browser\ ready\ at\ http://localhost:3000}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md397}{}\doxysubsection{\texorpdfstring{{\bfseries{Step 5:\+ Launch Light Miners}} (Terminal 4 or Windows Explorer)}{{\bfseries{Step 5:\+ Launch Light Miners}} (Terminal 4 or Windows Explorer)}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md397}
+{\bfseries{Windows:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{launch-\/light-\/miners.bat}
+
+\end{DoxyCode}
+
+
+{\bfseries{Linux/\+mac\+OS:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{chmod\ +x\ launch-\/light-\/miners.sh}
+\DoxyCodeLine{./launch-\/light-\/miners.sh}
+
+\end{DoxyCode}
+
+
+Expected output:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Starting\ light-\/miner-\/1...}
+\DoxyCodeLine{Starting\ light-\/miner-\/2...}
+\DoxyCodeLine{Starting\ light-\/miner-\/3...}
+\DoxyCodeLine{...}
+\DoxyCodeLine{All\ 10\ miners\ launched!}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md398}{}\doxysubsection{\texorpdfstring{{\bfseries{Step 6:\+ Open Genesis Countdown in Browser}}}{{\bfseries{Step 6:\+ Open Genesis Countdown in Browser}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md398}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{http://localhost:3000/genesis-\/countdown}
+
+\end{DoxyCode}
+
+
+Watch as miners connect and genesis becomes ready!
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md400}{}\doxysection{\texorpdfstring{📊 UI Flow}{📊 UI Flow}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md400}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md401}{}\doxysubsection{\texorpdfstring{{\bfseries{Phase 1:\+ Initializing}} (0 miners)}{{\bfseries{Phase 1:\+ Initializing}} (0 miners)}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md401}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Status:\ initializing}
+\DoxyCodeLine{Miners:\ 0/10}
+\DoxyCodeLine{Genesis\ Ready:\ ⏳\ Waiting}
+\DoxyCodeLine{Action:\ Launch\ miners}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md402}{}\doxysubsection{\texorpdfstring{{\bfseries{Phase 2:\+ Waiting for Miners}} (1-\/2 miners)}{{\bfseries{Phase 2:\+ Waiting for Miners}} (1-\/2 miners)}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md402}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Status:\ waiting}
+\DoxyCodeLine{Miners:\ 2/10}
+\DoxyCodeLine{Genesis\ Ready:\ ⏳\ Waiting\ (need\ 3)}
+\DoxyCodeLine{Action:\ Wait\ or\ launch\ more\ miners}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md403}{}\doxysubsection{\texorpdfstring{{\bfseries{Phase 3:\+ Genesis Ready}} (3+ miners)}{{\bfseries{Phase 3:\+ Genesis Ready}} (3+ miners)}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md403}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Status:\ ready}
+\DoxyCodeLine{Miners:\ 5/10}
+\DoxyCodeLine{Genesis\ Ready:\ ✓\ Ready}
+\DoxyCodeLine{Action:\ Click\ "{}Start\ Genesis"{}\ button}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md404}{}\doxysubsection{\texorpdfstring{{\bfseries{Phase 4:\+ Genesis Mining}} (all miners)}{{\bfseries{Phase 4:\+ Genesis Mining}} (all miners)}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md404}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Status:\ mining}
+\DoxyCodeLine{Miners:\ 10/10}
+\DoxyCodeLine{Genesis\ Ready:\ 🎉\ Genesis\ Mining\ Started!}
+\DoxyCodeLine{Action:\ Watch\ blocks\ appear\ in\ explorer}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md406}{}\doxysection{\texorpdfstring{🔍 Genesis Status Indicators}{🔍 Genesis Status Indicators}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md406}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md407}{}\doxysubsection{\texorpdfstring{{\bfseries{Blockchain Status}}}{{\bfseries{Blockchain Status}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md407}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Meaning  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Miners Needed  \\
+{\ttfamily initializing}  &System starting  &0  \\
+{\ttfamily waiting}  &Waiting for miners  &\texorpdfstring{$<$}{<}3  \\
+{\ttfamily ready}  &Ready to start  &≥3  \\
+{\ttfamily mining}  &Genesis in progress  &≥3  \\
+{\ttfamily error}  &Network error  &Any  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md408}{}\doxysubsection{\texorpdfstring{{\bfseries{Miner Status}}}{{\bfseries{Miner Status}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md408}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Color  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Meaning  \\
+{\ttfamily online}  &🟢 Green  &Connected \& mining  \\
+{\ttfamily connecting}  &🟡 Yellow  &Connecting to seed  \\
+{\ttfamily offline}  &🔴 Red  &Not connected  \\
+{\ttfamily block\+\_\+found}  &✨ Cyan  &Found a block!  \\
+{\ttfamily error}  &🔴 Red  &Connection error  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md410}{}\doxysection{\texorpdfstring{📈 Miner Metrics}{📈 Miner Metrics}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md410}
+Each miner shows:\+
+\begin{DoxyItemize}
+\item {\bfseries{Blocks Mined}} – Number of blocks found by this miner
+\item {\bfseries{Hashrate}} – 1000 H/\+s per light miner
+\item {\bfseries{Shares}} – accepted/\+submitted ratio
+\item {\bfseries{Uptime}} – Seconds connected
+\item {\bfseries{Progress Bar}} – Share acceptance ratio
+\end{DoxyItemize}
+
+{\bfseries{Example:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{light-\/miner-\/1}
+\DoxyCodeLine{Status:\ mining\ ⚡}
+\DoxyCodeLine{Blocks:\ 5}
+\DoxyCodeLine{Hashrate:\ 1000\ H/s}
+\DoxyCodeLine{Shares:\ 47/50}
+\DoxyCodeLine{Uptime:\ 125s}
+\DoxyCodeLine{Progress:\ 94\%\ ████████░}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md412}{}\doxysection{\texorpdfstring{🛠️ Files Added/\+\+Modified}{🛠️ Files Added/\+\+Modified}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md412}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md413}{}\doxysubsection{\texorpdfstring{{\bfseries{New Files}}}{{\bfseries{New Files}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md413}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{core/}
+\DoxyCodeLine{├─\ light\_miner.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (270+\ lines)\ ✅}
+\DoxyCodeLine{├─\ rpc\_server.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (UPDATED\ -\/\ new\ RPC\ methods)}
+\DoxyCodeLine{}
+\DoxyCodeLine{frontend/src/pages/}
+\DoxyCodeLine{├─\ GenesisCountdown.tsx\ \ \ \ \ \ \ \ \ \ \ (350+\ lines)\ ✅}
+\DoxyCodeLine{}
+\DoxyCodeLine{scripts/}
+\DoxyCodeLine{├─\ launch-\/light-\/miners.bat\ \ \ \ \ \ \ \ (Windows\ launcher)\ ✅}
+\DoxyCodeLine{├─\ launch-\/light-\/miners.sh\ \ \ \ \ \ \ \ \ (Linux/macOS\ launcher)\ ✅}
+\DoxyCodeLine{}
+\DoxyCodeLine{docs/}
+\DoxyCodeLine{└─\ GENESIS\_COUNTDOWN\_GUIDE.md\ \ \ \ \ (This\ file)\ ✅}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md414}{}\doxysubsection{\texorpdfstring{{\bfseries{Modified Files}}}{{\bfseries{Modified Files}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md414}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{core/}
+\DoxyCodeLine{├─\ rpc\_server.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (Added:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ getGenesisStatus()}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ getMiners()}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ startGenesis())}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md416}{}\doxysection{\texorpdfstring{🔧 Configuration}{🔧 Configuration}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md416}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md417}{}\doxysubsection{\texorpdfstring{{\bfseries{Light Miner Settings}}}{{\bfseries{Light Miner Settings}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md417}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ light\_miner.zig}
+\DoxyCodeLine{const\ MINER\_ID\ =\ 0..9;\ \ \ \ \ \ \ \ \ \ \ //\ 10\ instances}
+\DoxyCodeLine{const\ HASHRATE\ =\ 1000;\ \ \ \ \ \ \ \ \ \ \ \ //\ H/s\ per\ miner}
+\DoxyCodeLine{const\ MIN\_FOR\_GENESIS\ =\ 3;\ \ \ \ \ \ \ \ //\ Minimum\ miners\ needed}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md418}{}\doxysubsection{\texorpdfstring{{\bfseries{Genesis Countdown Settings}}}{{\bfseries{Genesis Countdown Settings}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md418}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ In\ GenesisCountdown.tsx}
+\DoxyCodeLine{const\ POLL\_INTERVAL\ =\ 2000;\ \ \ \ \ \ \ //\ ms\ -\/\ update\ frequency}
+\DoxyCodeLine{const\ MIN\_MINERS\ =\ 3;\ \ \ \ \ \ \ \ \ \ \ \ \ //\ genesis\ threshold}
+\DoxyCodeLine{const\ UPDATE\_DELAY\ =\ 3000;\ \ \ \ \ \ \ \ //\ ms\ -\/\ miner\ update}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md419}{}\doxysubsection{\texorpdfstring{{\bfseries{Seed Node Settings}}}{{\bfseries{Seed Node Settings}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md419}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ In\ launch\ scripts}
+\DoxyCodeLine{SEED\_HOST="{}127.0.0.1"{}}
+\DoxyCodeLine{SEED\_PORT="{}9000"{}}
+\DoxyCodeLine{HASHRATE="{}1000"{}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md421}{}\doxysection{\texorpdfstring{📊 Example Output}{📊 Example Output}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md421}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md422}{}\doxysubsection{\texorpdfstring{{\bfseries{Console (Seed Node)}}}{{\bfseries{Console (Seed Node)}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md422}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[BOOTSTRAP]\ Seed\ node\ 'seed-\/1'\ initialized\ (primary)}
+\DoxyCodeLine{[BOOTSTRAP]\ Waiting\ for\ miners\ on\ 127.0.0.1:9000}
+\DoxyCodeLine{[NETWORK]\ Miner\ connected:\ miner-\/1\ (hashrate:\ 1000\ H/s)}
+\DoxyCodeLine{[NETWORK]\ Miner\ connected:\ miner-\/2\ (hashrate:\ 1000\ H/s)}
+\DoxyCodeLine{[NETWORK]\ Miner\ connected:\ miner-\/3\ (hashrate:\ 1000\ H/s)}
+\DoxyCodeLine{[GENESIS]\ Ready\ to\ start!\ 3\ miners\ connected}
+\DoxyCodeLine{[GENESIS]\ Starting\ genesis\ mining...}
+\DoxyCodeLine{[BLOCKCHAIN]\ Block\ 0\ mined\ by\ miner-\/1\ (hash:\ 00001a2b...)}
+\DoxyCodeLine{[BLOCKCHAIN]\ Block\ 1\ mined\ by\ miner-\/2\ (hash:\ 00001c3d...)}
+\DoxyCodeLine{[BLOCKCHAIN]\ Block\ 2\ mined\ by\ miner-\/3\ (hash:\ 00001e4f...)}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md423}{}\doxysubsection{\texorpdfstring{{\bfseries{Browser (Genesis Countdown)}}}{{\bfseries{Browser (Genesis Countdown)}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md423}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Network\ Status:\ mining}
+\DoxyCodeLine{Block\ Height:\ 3}
+\DoxyCodeLine{Difficulty:\ 4}
+\DoxyCodeLine{}
+\DoxyCodeLine{Miners\ Connected:\ 3/10}
+\DoxyCodeLine{Total\ Hashrate:\ 3,000\ H/s}
+\DoxyCodeLine{}
+\DoxyCodeLine{Genesis\ Ready:\ ✓\ Ready}
+\DoxyCodeLine{Genesis\ Mining:\ 🎉\ Started!}
+\DoxyCodeLine{}
+\DoxyCodeLine{[light-\/miner-\/1]\ ⚡\ mining\ |\ Blocks:\ 1\ |\ Hashrate:\ 1000\ H/s}
+\DoxyCodeLine{[light-\/miner-\/2]\ ⚡\ mining\ |\ Blocks:\ 1\ |\ Hashrate:\ 1000\ H/s}
+\DoxyCodeLine{[light-\/miner-\/3]\ ⚡\ mining\ |\ Blocks:\ 1\ |\ Hashrate:\ 1000\ H/s}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md425}{}\doxysection{\texorpdfstring{🚨 Troubleshooting}{🚨 Troubleshooting}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md425}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md426}{}\doxysubsection{\texorpdfstring{{\bfseries{Problem:\+ Miners won\textquotesingle{}t connect}}}{{\bfseries{Problem:\+ Miners won\textquotesingle{}t connect}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md426}
+{\bfseries{Solution:\+}}
+\begin{DoxyEnumerate}
+\item Verify seed node is running:\+ {\ttfamily ./\+omnibus-\/node -\/-\/mode seed -\/-\/node-\/id seed-\/1 -\/-\/port 9000}
+\item Check firewall isn\textquotesingle{}t blocking port 9000
+\item Verify miners use correct seed address:\+ {\ttfamily -\/-\/seed-\/host 127.\+0.\+0.\+1 -\/-\/seed-\/port 9000}
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md427}{}\doxysubsection{\texorpdfstring{{\bfseries{Problem:\+ Genesis won\textquotesingle{}t start even with 3 miners}}}{{\bfseries{Problem:\+ Genesis won\textquotesingle{}t start even with 3 miners}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md427}
+{\bfseries{Solution:\+}}
+\begin{DoxyEnumerate}
+\item Click "{}\+Start Genesis"{} button in UI
+\item Check browser console (F12) for errors
+\item Verify RPC server is running on port 8332
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md428}{}\doxysubsection{\texorpdfstring{{\bfseries{Problem:\+ Miners keep disconnecting}}}{{\bfseries{Problem:\+ Miners keep disconnecting}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md428}
+{\bfseries{Solution:\+}}
+\begin{DoxyEnumerate}
+\item Reduce number of miners (try 5 instead of 10)
+\item Increase seed node timeout
+\item Check system CPU/\+\+RAM usage (may be overloaded)
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md429}{}\doxysubsection{\texorpdfstring{{\bfseries{Problem:\+ Genesis Countdown page won\textquotesingle{}t load}}}{{\bfseries{Problem:\+ Genesis Countdown page won\textquotesingle{}t load}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md429}
+{\bfseries{Solution:\+}}
+\begin{DoxyEnumerate}
+\item Verify frontend is running:\+ {\ttfamily npm start} in {\ttfamily frontend/\+} directory
+\item Check \href{http://localhost:3000}{\texttt{http:\+/\+/\+localhost:\+3000}} works first
+\item Check browser console for CORS/\+connection errors
+\item Ensure RPC server is accessible at \href{http://localhost:8332}{\texttt{http:\+/\+/\+localhost:\+8332}}
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md430}{}\doxysubsection{\texorpdfstring{{\bfseries{Problem:\+ Can\textquotesingle{}t compile light\+\_\+miner.\+zig}}}{{\bfseries{Problem:\+ Can\textquotesingle{}t compile light\+\_\+miner.\+zig}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md430}
+{\bfseries{Solution:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Ensure\ Zig\ 0.15.2+}
+\DoxyCodeLine{zig\ version}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Clean\ build}
+\DoxyCodeLine{rm\ -\/rf\ .zig-\/cache}
+\DoxyCodeLine{zig\ build-\/exe\ -\/O\ ReleaseFast\ core/main.zig\ -\/-\/name\ omnibus-\/node}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md432}{}\doxysection{\texorpdfstring{📖 API Reference}{📖 API Reference}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md432}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md433}{}\doxysubsection{\texorpdfstring{{\bfseries{RPC Methods}}}{{\bfseries{RPC Methods}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md433}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md434}{}\doxysubsubsection{\texorpdfstring{{\ttfamily get\+Genesis\+Status}}{{\ttfamily get\+Genesis\+Status}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md434}
+Returns current genesis state.
+
+{\bfseries{Request:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}method"{}:\ "{}getGenesisStatus"{},}
+\DoxyCodeLine{\ \ "{}params"{}:\ [],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}status"{}:\ "{}mining"{},}
+\DoxyCodeLine{\ \ \ \ "{}blockCount"{}:\ 3,}
+\DoxyCodeLine{\ \ \ \ "{}currentDifficulty"{}:\ 4,}
+\DoxyCodeLine{\ \ \ \ "{}timestamp"{}:\ 1710768000,}
+\DoxyCodeLine{\ \ \ \ "{}connectedMiners"{}:\ 3,}
+\DoxyCodeLine{\ \ \ \ "{}totalMiners"{}:\ 10,}
+\DoxyCodeLine{\ \ \ \ "{}totalHashrate"{}:\ 3000,}
+\DoxyCodeLine{\ \ \ \ "{}genesisReady"{}:\ true,}
+\DoxyCodeLine{\ \ \ \ "{}genesisStarted"{}:\ true,}
+\DoxyCodeLine{\ \ \ \ "{}minersRequired"{}:\ 3}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md435}{}\doxysubsubsection{\texorpdfstring{{\ttfamily get\+Miners}}{{\ttfamily get\+Miners}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md435}
+Returns list of connected miners.
+
+{\bfseries{Request:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}method"{}:\ "{}getMiners"{},}
+\DoxyCodeLine{\ \ "{}params"{}:\ [],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}id"{}:\ 0,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}name"{}:\ "{}light-\/miner-\/1"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}status"{}:\ "{}mining"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}isConnected"{}:\ true,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}blocksMined"{}:\ 1,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}sharesSubmitted"{}:\ 47,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}sharesAccepted"{}:\ 47,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}hashrate"{}:\ 1000,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}uptime"{}:\ 125}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ ],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md436}{}\doxysubsubsection{\texorpdfstring{{\ttfamily start\+Genesis}}{{\ttfamily start\+Genesis}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md436}
+Begins genesis mining.
+
+{\bfseries{Request:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}method"{}:\ "{}startGenesis"{},}
+\DoxyCodeLine{\ \ "{}params"{}:\ [],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ true,}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md438}{}\doxysection{\texorpdfstring{🎯 Use Cases}{🎯 Use Cases}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md438}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md439}{}\doxysubsection{\texorpdfstring{{\bfseries{Testing Blockchain}}}{{\bfseries{Testing Blockchain}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md439}
+
+\begin{DoxyEnumerate}
+\item Launch seed node
+\item Launch 3 light miners
+\item Watch genesis start
+\item Monitor blocks being mined
+\item Use explorer to view blocks
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md440}{}\doxysubsection{\texorpdfstring{{\bfseries{Demo/\+\+Presentation}}}{{\bfseries{Demo/\+\+Presentation}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md440}
+
+\begin{DoxyEnumerate}
+\item Show Genesis Countdown page
+\item Launch miners on demand
+\item Show real-\/time miner statistics
+\item Show blocks appearing in explorer
+\item Impressive! 🎉
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md441}{}\doxysubsection{\texorpdfstring{{\bfseries{Development}}}{{\bfseries{Development}}}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md441}
+
+\begin{DoxyEnumerate}
+\item Test miner connection logic
+\item Test block validation
+\item Test state transitions
+\item Monitor network behavior
+\item Debug issues with real miners
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md443}{}\doxysection{\texorpdfstring{📚 Related Documentation}{📚 Related Documentation}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md443}
+
+\begin{DoxyItemize}
+\item {\bfseries{\doxylink{_p_h_a_s_e__8___s_u_m_m_a_r_y_8md}{PHASE\+\_\+8\+\_\+\+SUMMARY.md}}} – Storage optimization (Seg\+Wit, State Trie, Light Client)
+\item {\bfseries{\doxylink{_p_h_a_s_e__6__7___s_u_m_m_a_r_y_8md}{PHASE\+\_\+6\+\_\+7\+\_\+\+SUMMARY.md}}} – Sub-\/blocks, Binary encoding, Pruning
+\item {\bfseries{\doxysectlink{md__r_e_a_d_m_e}{README.md}{0}}} – Project overview
+\item {\bfseries{\doxysectlink{md__c_l_a_u_d_e}{CLAUDE.md}{0}}} – Development guidelines
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md445}{}\doxysection{\texorpdfstring{🚀 Next Steps}{🚀 Next Steps}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md445}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Phase 9:\+}} Multi-\/shard mining (parallel sub-\/blocks across shards)
+\item {\bfseries{Phase 10:\+}} Mobile light miners (i\+OS/\+\+Android app)
+\item {\bfseries{Phase 11:\+}} Automated miner scaling (auto-\/spawn based on difficulty)
+\item {\bfseries{Phase 12:\+}} Network performance dashboard
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md447}{}\doxysection{\texorpdfstring{✅ Checklist:\+ Genesis Countdown Ready}{✅ Checklist:\+ Genesis Countdown Ready}}\label{md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e_autotoc_md447}
+
+\begin{DoxyItemize}
+\item[\DoxyChecked] Light Miner backend ({\ttfamily light\+\_\+miner.\+zig})
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Miner Pool manager
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Genesis Countdown UI ({\ttfamily Genesis\+Countdown.\+tsx})
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] RPC API methods (get\+Genesis\+Status, get\+Miners, start\+Genesis)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Windows launcher ({\ttfamily launch-\/light-\/miners.\+bat})
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Linux/\+mac\+OS launcher ({\ttfamily launch-\/light-\/miners.\+sh})
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Documentation (this guide)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Build succeeds:\+ {\ttfamily omnibus-\/node 2.\+4M}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Status:\+}} 🚀 {\bfseries{Ready for Genesis Launch}}
+
+{\bfseries{Commands to Launch Genesis:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Terminal\ 1:\ Seed\ Node}
+\DoxyCodeLine{./omnibus-\/node\ -\/-\/mode\ seed\ -\/-\/node-\/id\ seed-\/1\ -\/-\/primary\ -\/-\/port\ 9000}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Terminal\ 2:\ RPC\ Server}
+\DoxyCodeLine{./omnibus-\/node\ -\/-\/mode\ rpc}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Terminal\ 3:\ Frontend}
+\DoxyCodeLine{cd\ frontend\ \&\&\ npm\ start}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Terminal\ 4:\ Light\ Miners\ (Windows)}
+\DoxyCodeLine{launch-\/light-\/miners.bat}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ OR\ Terminal\ 4:\ Light\ Miners\ (Linux/macOS)}
+\DoxyCodeLine{./launch-\/light-\/miners.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Then\ open\ browser:}
+\DoxyCodeLine{\#\ http://localhost:3000/genesis-\/countdown}
+
+\end{DoxyCode}
+
+
+{\bfseries{Watch genesis begin with minimum 3 miners connected!}} 🎉
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Last Updated:\+}} March 18, 2026 {\bfseries{Feature Status:\+}} ✅ Complete \& Ready {\bfseries{Next Phase:\+}} Distributed Genesis (Phase 9) 

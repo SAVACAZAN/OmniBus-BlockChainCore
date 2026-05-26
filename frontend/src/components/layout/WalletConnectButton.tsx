@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { useNameForAddress, useEntryForAddress, useExpiringNames, TLD_THEME } from "../../api/use-names";
 
@@ -103,7 +104,7 @@ export function WalletConnectButton() {
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           <span className={`text-xs ${theme?.color ?? "text-mempool-blue"} ${primaryName ? "font-semibold" : "font-mono"}`}>
             {theme?.emoji && <span className="mr-1">{theme.emoji}</span>}
-            {primaryName ?? `${wallet.address.slice(0, 8)}…${wallet.address.slice(-6)}`}
+            {primaryName ?? `${midTrunc(wallet.address, 8, 6)}`}
           </span>
           {cat && (
             <span className="text-[9px] uppercase tracking-wider px-1 rounded bg-mempool-blue/30 text-mempool-blue font-bold">
@@ -129,27 +130,74 @@ export function WalletConnectButton() {
               <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
                 Connected wallet
               </div>
+              {primaryName && (
+                <div className={`text-sm font-semibold ${theme?.color ?? "text-mempool-blue"} flex items-center gap-1`}>
+                  {theme?.emoji && <span>{theme.emoji}</span>}
+                  <span>{primaryName}</span>
+                  {cat && (
+                    <span className="text-[9px] uppercase tracking-wider px-1 rounded bg-mempool-blue/30 text-mempool-blue font-bold">
+                      {cat}
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="font-mono text-xs text-mempool-text break-all bg-mempool-bg rounded p-2">
                 {wallet.address}
               </div>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(wallet.address);
-                }}
-                className="w-full text-left text-xs text-mempool-text-dim hover:text-mempool-text px-2 py-1"
-              >
-                Copy address
-              </button>
-              <button
-                onClick={() => {
-                  lockWallet();
-                  setShowDropdown(false);
-                }}
-                className="w-full flex items-center gap-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded px-2 py-1.5"
-              >
-                <IconLogOut className="w-3.5 h-3.5" />
-                Disconnect
-              </button>
+              <div className="grid grid-cols-2 gap-1">
+                <button
+                  onClick={() => { navigator.clipboard.writeText(wallet.address); setShowDropdown(false); }}
+                  className="text-xs text-mempool-text-dim hover:text-mempool-blue hover:bg-mempool-blue/10 rounded px-2 py-1.5 flex items-center gap-1.5"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                  Copy address
+                </button>
+                <button
+                  onClick={() => {
+                    window.location.hash = `#/address/${wallet.address}`;
+                    setShowDropdown(false);
+                  }}
+                  className="text-xs text-mempool-text-dim hover:text-mempool-blue hover:bg-mempool-blue/10 rounded px-2 py-1.5 flex items-center gap-1.5"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                  </svg>
+                  Explorer
+                </button>
+                <button
+                  onClick={() => { window.location.hash = "#wallet"; setShowDropdown(false); }}
+                  className="text-xs text-mempool-text-dim hover:text-mempool-blue hover:bg-mempool-blue/10 rounded px-2 py-1.5 flex items-center gap-1.5"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+                  </svg>
+                  Wallet
+                </button>
+                <button
+                  onClick={() => { window.location.hash = "#names"; setShowDropdown(false); }}
+                  className="text-xs text-mempool-text-dim hover:text-mempool-blue hover:bg-mempool-blue/10 rounded px-2 py-1.5 flex items-center gap-1.5"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 12h18M3 6h18M3 18h18" />
+                  </svg>
+                  Names
+                </button>
+              </div>
+              <div className="border-t border-mempool-border pt-1">
+                <button
+                  onClick={() => {
+                    lockWallet();
+                    setShowDropdown(false);
+                  }}
+                  className="w-full flex items-center gap-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded px-2 py-1.5"
+                >
+                  <IconLogOut className="w-3.5 h-3.5" />
+                  Disconnect
+                </button>
+              </div>
             </div>
           </>
         )}
@@ -269,7 +317,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
             <div className="text-[10px] text-mempool-text-dim">
               Saved wallet:{" "}
               <span className="font-mono text-mempool-blue">
-                {meta?.address.slice(0, 12)}…{meta?.address.slice(-8)}
+                {midTrunc(meta?.address ?? "", 12, 8)}
               </span>
             </div>
             <input

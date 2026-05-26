@@ -1,0 +1,135 @@
+\doxysection{test\+\_\+rest\+\_\+hmac Namespace Reference}
+\hypertarget{namespacetest__rest__hmac}{}\label{namespacetest__rest__hmac}\index{test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacetest__rest__hmac_aecb9d1e1c96328ca24aa0673567888c1}{kraken\+\_\+sign}} (str uri\+\_\+path, dict post\+\_\+data, str secret\+\_\+b64)
+\item 
+\doxymbox{\hyperlink{namespacetest__rest__hmac_a03385f61a5d473360c981fc69d866a55}{test\+\_\+public}} (str base)
+\item 
+\doxymbox{\hyperlink{namespacetest__rest__hmac_a8e30d2b4bad2fada0efdddf83eb93b1e}{test\+\_\+openapi}} (str base)
+\item 
+\doxymbox{\hyperlink{namespacetest__rest__hmac_aff138f9ec0001f4ff02a94a80dcc4d4a}{test\+\_\+private\+\_\+balance}} (str base)
+\item 
+\doxymbox{\hyperlink{namespacetest__rest__hmac_a06259ef206eb13425de0486074e078e1}{test\+\_\+private\+\_\+add\+\_\+order}} (str base)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacetest__rest__hmac_a900bb4c80653b779858000a412a13435}{API\+\_\+\+KEY\+\_\+\+ID}} = os.\+environ.\+get("{}OB\+\_\+\+API\+\_\+\+KEY"{}, "{}obx\+\_\+1234567890abcdef12345678"{})
+\item 
+\doxymbox{\hyperlink{namespacetest__rest__hmac_a27a33f19d28b5df91ff0e238c0be9742}{API\+\_\+\+SECRET\+\_\+\+B64}} = os.\+environ.\+get("{}OB\+\_\+\+API\+\_\+\+SECRET"{}, "{}obs\+\_\+"{} + "{}a"{} \texorpdfstring{$\ast$}{*} 64)
+\item 
+int \doxymbox{\hyperlink{namespacetest__rest__hmac_a0188b947773456b2185de43e7d3d6385}{base}} = sys.\+argv\+[1]\+ if len(sys.\+argv) $>$ 1 else "{}http:\+/\+/\+localhost:\+8080/\+exchange/\+0"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Test script for OmniBus Exchange REST API Phase 1 (HMAC-SHA512 auth).
+
+Usage:
+    python3 test_rest_hmac.py http://localhost:8080/exchange/0
+
+Requires:
+    pip install requests
+\end{DoxyVerb}
+ 
+
+\label{namespacetest__rest__hmac_doc-func-members}
+\Hypertarget{namespacetest__rest__hmac_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetest__rest__hmac_aecb9d1e1c96328ca24aa0673567888c1}\index{test\_rest\_hmac@{test\_rest\_hmac}!kraken\_sign@{kraken\_sign}}
+\index{kraken\_sign@{kraken\_sign}!test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection{\texorpdfstring{kraken\_sign()}{kraken\_sign()}}
+{\footnotesize\ttfamily \label{namespacetest__rest__hmac_aecb9d1e1c96328ca24aa0673567888c1} 
+ str kraken\+\_\+sign (\begin{DoxyParamCaption}\item[{str}]{uri\+\_\+path}{, }\item[{dict}]{post\+\_\+data}{, }\item[{str}]{secret\+\_\+b64}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Kraken-style HMAC-SHA512 signature.
+message = URI-PATH || SHA256(post_data_encoded)
+signature = base64( HMAC-SHA512(message, secret_raw) )
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{test__rest__hmac_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{test__rest__hmac_8py_source}{test\+\_\+rest\+\_\+hmac.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacetest__rest__hmac_a8e30d2b4bad2fada0efdddf83eb93b1e}\index{test\_rest\_hmac@{test\_rest\_hmac}!test\_openapi@{test\_openapi}}
+\index{test\_openapi@{test\_openapi}!test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection{\texorpdfstring{test\_openapi()}{test\_openapi()}}
+{\footnotesize\ttfamily \label{namespacetest__rest__hmac_a8e30d2b4bad2fada0efdddf83eb93b1e} 
+test\+\_\+openapi (\begin{DoxyParamCaption}\item[{str}]{base}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__rest__hmac_8py_source_l00064}{64}} of file \doxymbox{\hyperlink{test__rest__hmac_8py_source}{test\+\_\+rest\+\_\+hmac.\+py}}.
+
+\Hypertarget{namespacetest__rest__hmac_a06259ef206eb13425de0486074e078e1}\index{test\_rest\_hmac@{test\_rest\_hmac}!test\_private\_add\_order@{test\_private\_add\_order}}
+\index{test\_private\_add\_order@{test\_private\_add\_order}!test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection{\texorpdfstring{test\_private\_add\_order()}{test\_private\_add\_order()}}
+{\footnotesize\ttfamily \label{namespacetest__rest__hmac_a06259ef206eb13425de0486074e078e1} 
+test\+\_\+private\+\_\+add\+\_\+order (\begin{DoxyParamCaption}\item[{str}]{base}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__rest__hmac_8py_source_l00102}{102}} of file \doxymbox{\hyperlink{test__rest__hmac_8py_source}{test\+\_\+rest\+\_\+hmac.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+\Hypertarget{namespacetest__rest__hmac_aff138f9ec0001f4ff02a94a80dcc4d4a}\index{test\_rest\_hmac@{test\_rest\_hmac}!test\_private\_balance@{test\_private\_balance}}
+\index{test\_private\_balance@{test\_private\_balance}!test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection{\texorpdfstring{test\_private\_balance()}{test\_private\_balance()}}
+{\footnotesize\ttfamily \label{namespacetest__rest__hmac_aff138f9ec0001f4ff02a94a80dcc4d4a} 
+test\+\_\+private\+\_\+balance (\begin{DoxyParamCaption}\item[{str}]{base}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__rest__hmac_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{test__rest__hmac_8py_source}{test\+\_\+rest\+\_\+hmac.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{namespacetest__rest__hmac_a03385f61a5d473360c981fc69d866a55}\index{test\_rest\_hmac@{test\_rest\_hmac}!test\_public@{test\_public}}
+\index{test\_public@{test\_public}!test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection{\texorpdfstring{test\_public()}{test\_public()}}
+{\footnotesize\ttfamily \label{namespacetest__rest__hmac_a03385f61a5d473360c981fc69d866a55} 
+test\+\_\+public (\begin{DoxyParamCaption}\item[{str}]{base}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__rest__hmac_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{test__rest__hmac_8py_source}{test\+\_\+rest\+\_\+hmac.\+py}}.
+
+
+
+\label{namespacetest__rest__hmac_doc-var-members}
+\Hypertarget{namespacetest__rest__hmac_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetest__rest__hmac_a900bb4c80653b779858000a412a13435}\index{test\_rest\_hmac@{test\_rest\_hmac}!API\_KEY\_ID@{API\_KEY\_ID}}
+\index{API\_KEY\_ID@{API\_KEY\_ID}!test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection{\texorpdfstring{API\_KEY\_ID}{API\_KEY\_ID}}
+{\footnotesize\ttfamily \label{namespacetest__rest__hmac_a900bb4c80653b779858000a412a13435} 
+test\+\_\+rest\+\_\+hmac.\+API\+\_\+\+KEY\+\_\+\+ID = os.\+environ.\+get("{}OB\+\_\+\+API\+\_\+\+KEY"{}, "{}obx\+\_\+1234567890abcdef12345678"{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__rest__hmac_8py_source_l00019}{19}} of file \doxymbox{\hyperlink{test__rest__hmac_8py_source}{test\+\_\+rest\+\_\+hmac.\+py}}.
+
+\Hypertarget{namespacetest__rest__hmac_a27a33f19d28b5df91ff0e238c0be9742}\index{test\_rest\_hmac@{test\_rest\_hmac}!API\_SECRET\_B64@{API\_SECRET\_B64}}
+\index{API\_SECRET\_B64@{API\_SECRET\_B64}!test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection{\texorpdfstring{API\_SECRET\_B64}{API\_SECRET\_B64}}
+{\footnotesize\ttfamily \label{namespacetest__rest__hmac_a27a33f19d28b5df91ff0e238c0be9742} 
+test\+\_\+rest\+\_\+hmac.\+API\+\_\+\+SECRET\+\_\+\+B64 = os.\+environ.\+get("{}OB\+\_\+\+API\+\_\+\+SECRET"{}, "{}obs\+\_\+"{} + "{}a"{} \texorpdfstring{$\ast$}{*} 64)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__rest__hmac_8py_source_l00020}{20}} of file \doxymbox{\hyperlink{test__rest__hmac_8py_source}{test\+\_\+rest\+\_\+hmac.\+py}}.
+
+\Hypertarget{namespacetest__rest__hmac_a0188b947773456b2185de43e7d3d6385}\index{test\_rest\_hmac@{test\_rest\_hmac}!base@{base}}
+\index{base@{base}!test\_rest\_hmac@{test\_rest\_hmac}}
+\doxysubsubsection{\texorpdfstring{base}{base}}
+{\footnotesize\ttfamily \label{namespacetest__rest__hmac_a0188b947773456b2185de43e7d3d6385} 
+int test\+\_\+rest\+\_\+hmac.\+base = sys.\+argv\+[1]\+ if len(sys.\+argv) $>$ 1 else "{}http:\+/\+/\+localhost:\+8080/\+exchange/\+0"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__rest__hmac_8py_source_l00131}{131}} of file \doxymbox{\hyperlink{test__rest__hmac_8py_source}{test\+\_\+rest\+\_\+hmac.\+py}}.
+

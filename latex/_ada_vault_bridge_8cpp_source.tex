@@ -1,0 +1,205 @@
+\doxysection{Ada\+Vault\+Bridge.\+cpp}
+\hypertarget{_ada_vault_bridge_8cpp_source}{}\label{_ada_vault_bridge_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/qt-\/gui/src/core/AdaVaultBridge.cpp@{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/qt-\/gui/src/core/AdaVaultBridge.cpp}}
+\doxymbox{\hyperlink{_ada_vault_bridge_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00001}00001\ \textcolor{comment}{//\ ============================================================}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00002}00002\ \textcolor{comment}{//\ \ AdaVaultBridge.cpp\ \ -\/-\/\ \ Runtime\ loading\ of\ Ada\ SPARK\ vault}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00003}00003\ \textcolor{comment}{//\ ============================================================}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_ada_vault_bridge_8h}{AdaVaultBridge.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QCoreApplication>}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QDir>}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00010}\doxymbox{\hyperlink{namespaceomni}{00010}}\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00012}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ab9f9dab93a477a4f37280d4536e32eb5}{00012}}\ AdaVaultBridge\&\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ab9f9dab93a477a4f37280d4536e32eb5}{AdaVaultBridge::instance}}()\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00013}00013\ \ \ \ \ \textcolor{keyword}{static}\ AdaVaultBridge\ s;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00014}00014\ \ \ \ \ \textcolor{keywordflow}{return}\ s;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00015}00015\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00017}00017\ AdaVaultBridge::AdaVaultBridge()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00018}00018\ AdaVaultBridge::\string~AdaVaultBridge()\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00019}00019\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_loaded\ \&\&\ m\_lock)\ m\_lock();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00020}00020\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00022}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a2e3d68ab98e198d56c3910f4f4a73356}{00022}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a2e3d68ab98e198d56c3910f4f4a73356}{AdaVaultBridge::loadLibrary}}(\textcolor{keyword}{const}\ QString\&\ path)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00023}00023\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_loaded)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00025}00025\ \ \ \ \ \textcolor{comment}{//\ Try:\ same\ dir\ as\ exe,\ then\ system\ path}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00026}00026\ \ \ \ \ QStringList\ searchPaths\ =\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00027}00027\ \ \ \ \ \ \ \ \ QCoreApplication::applicationDirPath()\ +\ \textcolor{stringliteral}{"{}/"{}}\ +\ path,}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00028}00028\ \ \ \ \ \ \ \ \ path}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00029}00029\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00031}00031\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ p\ :\ searchPaths)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00032}00032\ \ \ \ \ \ \ \ \ m\_lib.setFileName(p);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_lib.load())\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00034}00034\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_lib.isLoaded())\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00038}00038\ \ \ \ \ \textcolor{comment}{//\ Resolve\ all\ symbols}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00039}00039\ \ \ \ \ m\_libInit\ \ =\ (\doxymbox{\hyperlink{namespaceomni_a9319bc6390336cf90c08fad5032b6a59}{FnVoid}})\ \ \ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_lib\_init"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00040}00040\ \ \ \ \ m\_init\ \ \ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_a6d486a0e0fa2ed72c0b4c08cb28e04c6}{FnInt}})\ \ \ \ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_init"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00041}00041\ \ \ \ \ m\_lock\ \ \ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_a6d486a0e0fa2ed72c0b4c08cb28e04c6}{FnInt}})\ \ \ \ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_lock"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00042}00042\ \ \ \ \ m\_save\ \ \ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_a6d486a0e0fa2ed72c0b4c08cb28e04c6}{FnInt}})\ \ \ \ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_save"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00043}00043\ \ \ \ \ m\_isLoaded\ =\ (\doxymbox{\hyperlink{namespaceomni_a6d486a0e0fa2ed72c0b4c08cb28e04c6}{FnInt}})\ \ \ \ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_is\_loaded"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00044}00044\ \ \ \ \ m\_addKey\ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_a71aa0409eee01dd5986a33db68e5037b}{FnAddKey}})\ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_add\_key"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00045}00045\ \ \ \ \ m\_delKey\ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_abd6efc763e5af36e9f4bfd00bed9c78c}{FnDelKey}})\ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_delete\_key"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00046}00046\ \ \ \ \ m\_updKey\ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_a5238e650874a7f28bc19d7a8cb6ad2b3}{FnUpdKey}})\ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_update\_key"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00047}00047\ \ \ \ \ m\_setStat\ \ =\ (\doxymbox{\hyperlink{namespaceomni_affbf676b18188bbf18b0873c70052414}{FnSetStat}})\ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_set\_status"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00048}00048\ \ \ \ \ m\_keyCount\ =\ (\doxymbox{\hyperlink{namespaceomni_aa9a162f2e6964b67f1e64b27022e4281}{FnIntI}})\ \ \ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_key\_count"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00049}00049\ \ \ \ \ m\_hasKeys\ \ =\ (\doxymbox{\hyperlink{namespaceomni_aa9a162f2e6964b67f1e64b27022e4281}{FnIntI}})\ \ \ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_has\_keys"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00050}00050\ \ \ \ \ m\_getKey\ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_a93170c36ff3b1ef478e19068e7cadafd}{FnGetKey}})\ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_get\_key"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00051}00051\ \ \ \ \ m\_getSec\ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_adfb428a64f3436232a3de030c59f3a1e}{FnGetSec}})\ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_get\_secret"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00052}00052\ \ \ \ \ m\_wipe\ \ \ \ \ =\ (\doxymbox{\hyperlink{namespaceomni_a21d55fa3d21d1c025ec479a096f7b0fc}{FnWipe}})\ \ \ \ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_wipe"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00053}00053\ \ \ \ \ m\_getPath\ \ =\ (\doxymbox{\hyperlink{namespaceomni_a772fa21b6e54e93578b0689f50bd8e93}{FnGetPath}})\ m\_lib.resolve(\textcolor{stringliteral}{"{}vault\_get\_path"{}});}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_init\ ||\ !m\_lock\ ||\ !m\_save\ ||\ !m\_isLoaded\ ||}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00056}00056\ \ \ \ \ \ \ \ \ !m\_addKey\ ||\ !m\_getKey)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00057}00057\ \ \ \ \ \ \ \ \ m\_lib.unload();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00059}00059\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00061}00061\ \ \ \ \ \textcolor{comment}{//\ Initialize\ Ada\ runtime}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_libInit)\ m\_libInit();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00064}00064\ \ \ \ \ m\_loaded\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00066}00066\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00068}00068\ \textcolor{comment}{//\ ───\ Lifecycle\ ──────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00070}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_afe825a324c00952db2b5d8643dfe846a}{00070}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_afe825a324c00952db2b5d8643dfe846a}{AdaVaultBridge::init}}()\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_init)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_init()\ ==\ 0;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00073}00073\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00075}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a6f9471342eaf2a2a4127ee7c47493c00}{00075}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a6f9471342eaf2a2a4127ee7c47493c00}{AdaVaultBridge::save}}()\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_save)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_save()\ ==\ 0;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00078}00078\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00080}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a8796a446b7c0706f41bae842f302c15f}{00080}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a8796a446b7c0706f41bae842f302c15f}{AdaVaultBridge::lock}}()\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_loaded\ \&\&\ m\_lock)\ m\_lock();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00082}00082\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00084}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a45909f88a739a09c0ff6f6dec4a2fd0d}{00084}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a45909f88a739a09c0ff6f6dec4a2fd0d}{AdaVaultBridge::isVaultLoaded}}()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_isLoaded)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00086}00086\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_isLoaded()\ ==\ 1;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00087}00087\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00089}00089\ \textcolor{comment}{//\ ───\ Key\ management\ ─────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00091}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a4f2c757dd0d0046678b04df07b00c1ff}{00091}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a4f2c757dd0d0046678b04df07b00c1ff}{AdaVaultBridge::addKey}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keyword}{const}\ QString\&\ name,}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QString\&\ apiKey,\ \textcolor{keyword}{const}\ QString\&\ secret,}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ status)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00094}00094\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_addKey)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00095}00095\ \ \ \ \ \textcolor{keyword}{auto}\ n\ =\ name.toUtf8();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00096}00096\ \ \ \ \ \textcolor{keyword}{auto}\ k\ =\ apiKey.toUtf8();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00097}00097\ \ \ \ \ \textcolor{keyword}{auto}\ s\ =\ secret.toUtf8();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00098}00098\ \ \ \ \ \textcolor{keywordtype}{int}\ rc\ =\ m\_addKey(ex,\ n.constData(),\ k.constData(),\ s.constData(),\ status);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00100}00100\ \ \ \ \ \textcolor{comment}{//\ Secure\ wipe\ local\ copies}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00101}00101\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_wipe)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00102}00102\ \ \ \ \ \ \ \ \ m\_wipe(\textcolor{keyword}{const\_cast<}\textcolor{keywordtype}{char}*\textcolor{keyword}{>}(s.constData()),\ s.size());}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00103}00103\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{return}\ rc\ ==\ 0;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00105}00105\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00107}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ab3fc66562e0f1fa63ee64148141e84bc}{00107}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ab3fc66562e0f1fa63ee64148141e84bc}{AdaVaultBridge::deleteKey}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keywordtype}{int}\ slot)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_delKey)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_delKey(ex,\ slot)\ ==\ 0;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00110}00110\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00112}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a04968b2afbf16958585115d9171a694a}{00112}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a04968b2afbf16958585115d9171a694a}{AdaVaultBridge::updateKey}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keywordtype}{int}\ slot,}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QString\&\ name,\ \textcolor{keyword}{const}\ QString\&\ apiKey,}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QString\&\ secret,\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ status)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_updKey)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00116}00116\ \ \ \ \ \textcolor{keyword}{auto}\ n\ =\ name.toUtf8();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00117}00117\ \ \ \ \ \textcolor{keyword}{auto}\ k\ =\ apiKey.toUtf8();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00118}00118\ \ \ \ \ \textcolor{keyword}{auto}\ s\ =\ secret.toUtf8();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00119}00119\ \ \ \ \ \textcolor{keywordtype}{int}\ rc\ =\ m\_updKey(ex,\ slot,\ n.constData(),\ k.constData(),}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ s.constData(),\ status);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00121}00121\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_wipe)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00122}00122\ \ \ \ \ \ \ \ \ m\_wipe(\textcolor{keyword}{const\_cast<}\textcolor{keywordtype}{char}*\textcolor{keyword}{>}(s.constData()),\ s.size());}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00123}00123\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00124}00124\ \ \ \ \ \textcolor{keywordflow}{return}\ rc\ ==\ 0;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00125}00125\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00127}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a697e5f89d7f2aa1f62b01f6a51317783}{00127}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a697e5f89d7f2aa1f62b01f6a51317783}{AdaVaultBridge::setStatus}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keywordtype}{int}\ slot,}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ status)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00129}00129\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_setStat)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00130}00130\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_setStat(ex,\ slot,\ status)\ ==\ 0;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00131}00131\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00133}00133\ \textcolor{comment}{//\ ───\ Queries\ ────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00135}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a93ce122b32c5d8f0bceec06daabc3a97}{00135}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a93ce122b32c5d8f0bceec06daabc3a97}{AdaVaultBridge::keyCount}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00136}00136\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_keyCount)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00137}00137\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_keyCount(ex);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00138}00138\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00140}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a4bc44778fc7ee5e2bd95fb3103a3f687}{00140}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a4bc44778fc7ee5e2bd95fb3103a3f687}{AdaVaultBridge::hasKeys}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_hasKeys)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00142}00142\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_hasKeys(ex)\ ==\ 1;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00143}00143\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00145}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a02a9210fef502cea34af143dc26942bd}{00145}}\ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{VaultKeyEntry}}\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a02a9210fef502cea34af143dc26942bd}{AdaVaultBridge::getKey}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex,\ \textcolor{keywordtype}{int}\ slot)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00146}00146\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{VaultKeyEntry}}\ e;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00147}00147\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_getKey)\ \textcolor{keywordflow}{return}\ e;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00149}00149\ \ \ \ \ \textcolor{keywordtype}{char}\ nameBuf[256]\ =\ \{\};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00150}00150\ \ \ \ \ \textcolor{keywordtype}{char}\ keyBuf[256]\ \ =\ \{\};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00151}00151\ \ \ \ \ \textcolor{keywordtype}{int}\ \ statusOut\ =\ 0,\ inUseOut\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00153}00153\ \ \ \ \ \textcolor{keywordtype}{int}\ rc\ =\ m\_getKey(ex,\ slot,\ nameBuf,\ 256,\ keyBuf,\ 256,}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&statusOut,\ \&inUseOut);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00155}00155\ \ \ \ \ \textcolor{keywordflow}{if}\ (rc\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00156}00156\ \ \ \ \ \ \ \ \ e.\doxymbox{\hyperlink{structomni_1_1_vault_key_entry_ada235ce0924d4ea158493486edc119df}{inUse}}\ \ =\ (inUseOut\ !=\ 0);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00157}00157\ \ \ \ \ \ \ \ \ e.\doxymbox{\hyperlink{structomni_1_1_vault_key_entry_ad7064b85b856cdfd877f8537a167f2de}{status}}\ =\ \textcolor{keyword}{static\_cast<}\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\textcolor{keyword}{>}(statusOut);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00158}00158\ \ \ \ \ \ \ \ \ e.\doxymbox{\hyperlink{structomni_1_1_vault_key_entry_acd17424bed3c717a0df0ff7de84cb0ef}{name}}\ \ \ =\ QString::fromUtf8(nameBuf);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00159}00159\ \ \ \ \ \ \ \ \ e.\doxymbox{\hyperlink{structomni_1_1_vault_key_entry_a85cee91e92ae485d318c0fc43d6966aa}{apiKey}}\ =\ QString::fromUtf8(keyBuf);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00160}00160\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00161}00161\ \ \ \ \ \textcolor{keywordflow}{return}\ e;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00162}00162\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00164}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a3b4974f42f2452c0e9e10c033f301608}{00164}}\ QVector<VaultKeyEntry>\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a3b4974f42f2452c0e9e10c033f301608}{AdaVaultBridge::listKeys}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00165}00165\ \ \ \ \ QVector<VaultKeyEntry>\ result;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00166}00166\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ \doxymbox{\hyperlink{namespaceomni_ae83fed5868379190383b0dfab1d3829c}{VAULT\_MAX\_KEYS}};\ ++i)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00167}00167\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ e\ =\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a02a9210fef502cea34af143dc26942bd}{getKey}}(ex,\ i);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (e.inUse)\ result.push\_back(e);}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00169}00169\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00170}00170\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00171}00171\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00173}00173\ \textcolor{comment}{//\ ───\ Info\ ───────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00175}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a0b2cf1c915b7d79351a9460091b66024}{00175}}\ QString\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a0b2cf1c915b7d79351a9460091b66024}{AdaVaultBridge::vaultFilePath}}()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00176}00176\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_loaded\ ||\ !m\_getPath)\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}N/A"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00177}00177\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ p\ =\ m\_getPath();}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00178}00178\ \ \ \ \ \textcolor{keywordflow}{return}\ p\ ?\ QString::fromUtf8(p)\ :\ \textcolor{stringliteral}{"{}N/A"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00179}00179\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00181}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ad7d79c93c4a86c4d65600cdb45c8441c}{00181}}\ QString\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_ad7d79c93c4a86c4d65600cdb45c8441c}{AdaVaultBridge::exchangeName}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ ex)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00182}00182\ \ \ \ \ \textcolor{keywordflow}{switch}\ (ex)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00183}00183\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a331a6fe17b554349b9f5f7d008615dfd}{VAULT\_LCX}}:\ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}LCX"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00184}00184\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a3f5911fce70910db7893ab6400ab0aa2}{VAULT\_KRAKEN}}:\ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Kraken"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00185}00185\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a682a84c8a4b8b5fcc2e32a7bd2d03fc9}{VAULT\_COINBASE}}:\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Coinbase"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Unknown"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00187}00187\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00188}00188\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00190}\doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a74400182b891c57f7ab06b734951c773}{00190}}\ QString\ \doxymbox{\hyperlink{classomni_1_1_ada_vault_bridge_a74400182b891c57f7ab06b734951c773}{AdaVaultBridge::statusName}}(\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{VaultKeyStatus}}\ st)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00191}00191\ \ \ \ \ \textcolor{keywordflow}{switch}\ (st)\ \{}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{KEY\_STATUS\_FREE}}:\ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Free"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00193}00193\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fab9f163851a60ec20d410a259f83ad018}{KEY\_STATUS\_PAID}}:\ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Paid"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00194}00194\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0c17a6316b813e95935f454e95af985f}{KEY\_STATUS\_NOTPAID}}:\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Not\ Paid"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Unknown"{}};}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00196}00196\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00197}00197\ \}}
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{_ada_vault_bridge_8cpp_source_l00199}00199\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

@@ -1,0 +1,228 @@
+\chapter{Omni\+Bus AI Agent — User Journey }
+\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y}{}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y}\index{OmniBus AI Agent — User Journey@{OmniBus AI Agent — User Journey}}
+\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4292}%
+\Hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4292}%
+
+
+Acest document descrie {\itshape călătoria completă} a unui user nou care își configurează propriul AI agent pe Omni\+Bus blockchain — de la 0 OMNI până la arbitraj autonom.
+
+\begin{quote}
+Omni\+Bus este un blockchain {\bfseries{pentru AI, făcut de AI}} — cei care tranzacționează sunt agenți autonomi. Userul nu tranzacționează direct:\+ el pornește un nod și un agent, iar agentul evoluează automat prin tier-\/uri pe măsură ce capital crește. \end{quote}
+\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4293}{}\doxysection{\texorpdfstring{Tier-\/urile capabilităților}{Tier-\/urile capabilităților}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4293}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Capital minim  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Capabilități  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rol economic  \\
+{\bfseries{T1 Mining}}  &0 OMNI  &mining PoW + Po\+UW reports  &acumulare inițială  \\
+{\bfseries{T2 Staking}}  &100 OMNI  &+ stake validator, primește fees  &securitate rețea  \\
+{\bfseries{T3 Liquidity}}  &1.\+000 OMNI  &+ provide liquidity pe order book  &adâncime piață  \\
+{\bfseries{T4 Arbitrage}}  &10.\+000 OMNI  &+ arbitraj cross-\/exchange autonom  &aliniere prețuri  \\
+\end{DoxyTable}
+
+
+Hysteresis:\+ agentul {\bfseries{nu coboară}} un tier până când capitalul nu scade sub 90\% din pragul de intrare al tier-\/ului curent (evită oscilații pe fluctuații mici).\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4294}{}\doxysection{\texorpdfstring{Pasul 1 — Pregătire (o singură dată)}{Pasul 1 — Pregătire (o singură dată)}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4294}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Generează\ un\ mnemonic\ 24-\/word\ pentru\ wallet-\/ul\ tău\ (rămâne\ offline\ ideal)}
+\DoxyCodeLine{omnibus-\/node\ -\/-\/generate-\/wallet}
+\DoxyCodeLine{\#\ Output:\ \{"{}address"{}:"{}ob1q..."{},"{}mnemonic"{}:"{}word1\ word2\ ...\ word24"{}\}}
+
+\end{DoxyCode}
+
+
+Salvează mnemonic-\/ul în Super\+Vault sau pe hârtie. Nodul îl citește automat din Named Pipe ({\ttfamily OMNIBUS\+\_\+\+VAULT\+\_\+\+PIPE}) sau env var {\ttfamily OMNIBUS\+\_\+\+MNEMONIC}.\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4295}{}\doxysection{\texorpdfstring{Pasul 2 — Scrie config-\/ul agentului}{Pasul 2 — Scrie config-\/ul agentului}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4295}
+Creează {\ttfamily agent.\+json} (vezi {\ttfamily examples/\+agent.\+json} pentru template complet):\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}agents"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}name"{}:\ "{}alpha"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}wallet\_index"{}:\ 1,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}strategy"{}:\ "{}balanced"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}auto\_tier"{}:\ true,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}auto\_claim\_faucet"{}:\ true,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}tick\_ms"{}:\ 5000,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}pairs"{}:\ ["{}BTC/USD"{},\ "{}ETH/USD"{}],}
+\DoxyCodeLine{\ \ \ \ \ \ "{}risk"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}max\_trade\_pct"{}:\ 5,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}max\_daily\_loss\_pct"{}:\ 10}
+\DoxyCodeLine{\ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}rules"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{\ "{}metric"{}:\ "{}btc\_drop\_1h\_pct"{},\ "{}op"{}:\ "{}gte"{},\ "{}threshold"{}:\ 5.0,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ "{}action"{}:\ "{}buy"{},\ "{}amount\_pct"{}:\ 10\ \}}
+\DoxyCodeLine{\ \ \ \ \ \ ]}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ ]}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4296}{}\doxysubsection{\texorpdfstring{Câmpuri explicate}{Câmpuri explicate}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4296}
+
+\begin{DoxyItemize}
+\item {\bfseries{wallet\+\_\+index}}:\+ BIP-\/44 derivation index. {\ttfamily 0} = wallet-\/ul nodului. Fiecare agent ar trebui să aibă index unic (1, 2, 3, ...).
+\item {\bfseries{strategy}}:\+ {\ttfamily conservative} /\+ {\ttfamily balanced} /\+ {\ttfamily aggressive} /\+ {\ttfamily arbitrage\+\_\+only} /\+ {\ttfamily market\+\_\+maker}. Determină comportamentul default per tier.
+\item {\bfseries{auto\+\_\+tier}}:\+ {\ttfamily true} = agentul urcă singur tier-\/uri când capitalul crește. {\ttfamily false} = rămâne la tier-\/ul curent (sau la {\ttfamily tier\+\_\+cap} dacă e setat).
+\item {\bfseries{auto\+\_\+claim\+\_\+faucet}}:\+ {\ttfamily true} = la prima rulare cu balance 0, agentul cere faucet (0.\+1 OMNI) automat.
+\item {\bfseries{rules}}:\+ liste de reguli deterministe — prima care se potrivește {\bfseries{trage}}. Suprascriu strategia preset.
+\end{DoxyItemize}\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4297}{}\doxysubsection{\texorpdfstring{Reguli deterministe}{Reguli deterministe}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4297}
+Format:\+ {\ttfamily if \texorpdfstring{$<$}{<}metric\texorpdfstring{$>$}{>} \texorpdfstring{$<$}{<}op\texorpdfstring{$>$}{>} \texorpdfstring{$<$}{<}threshold\texorpdfstring{$>$}{>} then \texorpdfstring{$<$}{<}action\texorpdfstring{$>$}{>} \texorpdfstring{$<$}{<}amount\+\_\+pct\%\texorpdfstring{$>$}{>}}
+
+{\bfseries{Metrici disponibile:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily btc\+\_\+drop\+\_\+1h\+\_\+pct} — cât de mult a scăzut BTC în ultima oră (procent pozitiv).
+\item {\ttfamily btc\+\_\+change\+\_\+24h\+\_\+pct} — variație BTC/\+\+USD în 24h (poate fi negativă).
+\item {\ttfamily capital\+\_\+omni} — capital total al agentului (OMNI).
+\item {\ttfamily pnl\+\_\+session\+\_\+omni} — P\&L sesiune curentă (OMNI, poate fi negativ).
+\item {\ttfamily spread\+\_\+bps} — spread mediu pe perechea principală (basis points).
+\end{DoxyItemize}
+
+{\bfseries{Operatori:\+}} {\ttfamily gt} {\ttfamily gte} {\ttfamily lt} {\ttfamily lte} {\ttfamily eq} (sau echivalente:\+ {\ttfamily \texorpdfstring{$>$}{>}}, {\ttfamily \texorpdfstring{$>$}{>}=}, etc.)
+
+{\bfseries{Acțiuni:\+}} {\ttfamily buy}, {\ttfamily sell}, {\ttfamily stake}, {\ttfamily provide\+\_\+liquidity}, {\ttfamily halt}.\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4298}{}\doxysection{\texorpdfstring{Pasul 3 — Pornire nod cu agent}{Pasul 3 — Pornire nod cu agent}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4298}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{omnibus-\/node\ -\/-\/mode\ miner\ -\/-\/node-\/id\ node-\/1\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/-\/chain\ testnet\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/-\/agent-\/config\ agent.json}
+
+\end{DoxyCode}
+
+
+La start vei vedea:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[AGENT]\ 1\ agent(i)\ incarcati\ din\ agent.json.}
+\DoxyCodeLine{[MINER]\ Reward\ address:\ ob1q...}
+\DoxyCodeLine{[MINING]\ Block\ 1\ mined\ |\ reward\ 50\ OMNI}
+\DoxyCodeLine{[AGENT]\ alpha\ tier=t1\_mining\ kind=claim\_faucet\ amount=100000000\ reason=bootstrap\_faucet}
+
+\end{DoxyCode}
+
+
+Pe primul tick, agentul fără capital cere faucet automat. După câteva blocks minate (50 OMNI/\+block, 1s/\+block), va trece pragul T2 și vei vedea:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[AGENT]\ alpha\ tier\ transition\ t1\_mining\ -\/>\ t2\_staking\ @\ block\ 5\ cap=100000000000\ SAT}
+\DoxyCodeLine{[AGENT]\ alpha\ tier=t2\_staking\ kind=stake\ amount=199500000000\ reason=preset\_stake\_idle}
+
+\end{DoxyCode}
+\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4299}{}\doxysection{\texorpdfstring{Pasul 4 — Monitorizare}{Pasul 4 — Monitorizare}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4299}
+Agentul scrie pe stderr la fiecare tick non-\/trivial. Pentru status structurat, RPC {\ttfamily agent\+\_\+status} (în lucru — vezi follow-\/up below) va expune:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}name"{}:\ "{}alpha"{},}
+\DoxyCodeLine{\ \ "{}tier"{}:\ "{}t2\_staking"{},}
+\DoxyCodeLine{\ \ "{}balance\_sat"{}:\ 50000000000,}
+\DoxyCodeLine{\ \ "{}staked\_sat"{}:\ 200000000000,}
+\DoxyCodeLine{\ \ "{}lp\_locked\_sat"{}:\ 0,}
+\DoxyCodeLine{\ \ "{}pnl\_session\_sat"{}:\ 0,}
+\DoxyCodeLine{\ \ "{}halted"{}:\ false,}
+\DoxyCodeLine{\ \ "{}stats"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}ticks"{}:\ 1234,}
+\DoxyCodeLine{\ \ \ \ "{}decisions\_emitted"{}:\ 980,}
+\DoxyCodeLine{\ \ \ \ "{}txs\_submitted"{}:\ 78,}
+\DoxyCodeLine{\ \ \ \ "{}tier\_transitions"{}:\ 1,}
+\DoxyCodeLine{\ \ \ \ "{}total\_mined\_sat"{}:\ 250000000000}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4300}{}\doxysection{\texorpdfstring{Pasul 5 — Kill switch \& restart}{Pasul 5 — Kill switch \& restart}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4300}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Halt\ manual\ (oprește\ decizii\ noi,\ păstrează\ state)}
+\DoxyCodeLine{omnibus-\/cli\ agent\ halt\ -\/-\/wallet-\/index\ 1}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Resume}
+\DoxyCodeLine{omnibus-\/cli\ agent\ resume\ -\/-\/wallet-\/index\ 1}
+
+\end{DoxyCode}
+
+
+Sau prin regulă auto-\/halt în config:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{\ "{}metric"{}:\ "{}pnl\_session\_omni"{},\ "{}op"{}:\ "{}lte"{},\ "{}threshold"{}:\ -\/50.0,}
+\DoxyCodeLine{\ \ "{}action"{}:\ "{}halt"{},\ "{}amount\_pct"{}:\ 100\ \}}
+
+\end{DoxyCode}
+
+
+(traducere:\+ dacă pierd peste 50 OMNI într-\/o sesiune, oprește-\/te singur)
+
+În plus, {\bfseries{risk.\+max\+\_\+daily\+\_\+loss\+\_\+pct}} declanșează auto-\/halt când agentul pierde peste pragul setat (default 10\%).\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4301}{}\doxysection{\texorpdfstring{Întrebări frecvente}{Întrebări frecvente}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4301}
+{\bfseries{Pot avea mai mulți agenți pe același nod?}} Da, până la 16. Fiecare cu propriul {\ttfamily wallet\+\_\+index}. Vezi {\ttfamily examples/\+agent.\+json} cu 2 agenți.
+
+{\bfseries{Ce face agentul dacă nu am {\ttfamily pairs} declarate?}} Pentru tier T1/\+\+T2 nu contează (mining + staking nu cer pereche). Pentru T3+ trebuie cel puțin o pereche, altfel agentul rămâne în mining pasiv.
+
+{\bfseries{Pot scrie reguli care contrazic strategia preset?}} Da. Regulile au prioritate. Strategia preset rulează doar dacă {\bfseries{nicio regulă}} nu se potrivește în tick-\/ul curent.
+
+{\bfseries{Risk limits sunt opționale?}} Nu — au defaults siguri (5\% max trade, 10\% daily loss limit). Le poți override, dar nu poți scoate complet.
+
+{\bfseries{Unde se păstrează state-\/ul agentului?}} State-\/ul (tier curent, P\&L sesiune, stats) trăiește în memorie. La restart, agentul recalculează tier-\/ul din capital (ledger e sursa de adevăr). Decizii vechi nu sunt re-\/executate.\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4302}{}\doxysection{\texorpdfstring{Status implementare (actualizat 2026-\/04-\/27)}{Status implementare (actualizat 2026-\/04-\/27)}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4302}
+\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4303}{}\doxysubsection{\texorpdfstring{Done end-\/to-\/end}{Done end-\/to-\/end}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4303}
+
+\begin{DoxyItemize}
+\item[\DoxyChecked] {\ttfamily agent\+\_\+tier.\+zig} — tier-\/uri T1→\+T4 cu hysteresis (6 teste OK)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] {\ttfamily agent\+\_\+config.\+zig} — JSON parser + 5 strategii preset (13 teste OK)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] {\ttfamily agent\+\_\+executor.\+zig} — loop decizional + Venue enum (22 teste OK)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] {\ttfamily agent\+\_\+manager.\+zig} — manager + queue + receipts (112 teste OK)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] {\ttfamily agent\+\_\+wallet.\+zig} — derivare BIP-\/44 m/\+44\textquotesingle{}/\+777\textquotesingle{}/\+0\textquotesingle{}/\+0/\+N per agent (77 teste OK)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] {\ttfamily -\/-\/agent-\/config} CLI flag în {\ttfamily cli.\+zig}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Wiring în {\ttfamily main.\+zig} mining loop (tick pe fiecare bloc)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] {\bfseries{Wallet per-\/agent}}:\+ fiecare agent are adresă bech32 proprie (ob1q...) derivată din {\ttfamily wallet\+\_\+index}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] {\bfseries{TX submission automat}} pentru venue=omnibus\+\_\+native ({\ttfamily submit\+Native\+Tx})
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] RPC:\+ {\ttfamily agent\+\_\+list}, {\ttfamily agent\+\_\+status}, {\ttfamily agent\+\_\+pending\+\_\+decisions}, {\ttfamily agent\+\_\+report\+\_\+execution}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyChecked] Python client extern {\ttfamily 2\+\_\+\+SDK/\+omnibus-\/sdk/\+omnibus\+\_\+sdk/\+onchain\+\_\+agent/\+} (LCX/\+\+Kraken/\+\+Coinbase via Connect SDK Unified\+Wrapper)
+\end{DoxyItemize}\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4304}{}\doxysubsection{\texorpdfstring{Wallet derivation per-\/agent}{Wallet derivation per-\/agent}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4304}
+Fiecare agent are adresă proprie derivată automat la {\ttfamily -\/-\/agent-\/config}:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[AGENT]\ Loaded\ alpha\ |\ wallet\_index=1\ |\ addr=ob1q5h7...\ |\ tier=t1\_mining}
+\DoxyCodeLine{[AGENT]\ Loaded\ beta\ \ |\ wallet\_index=2\ |\ addr=ob1qkz3...\ |\ tier=t1\_mining}
+\DoxyCodeLine{[AGENT-\/NATIVE]\ alpha\ tier=t1\_mining\ kind=mine\ amount=0\ reason=preset\_mine}
+\DoxyCodeLine{[AGENT-\/TX]\ alpha\ signed\ tx\_id=5000001\ amount=10000\ nonce=1}
+
+\end{DoxyCode}
+ {\bfseries{Important:\+}} {\ttfamily wallet\+\_\+index=0} e wallet-\/ul nodului. Agenții folosesc 1, 2, 3, ...\hypertarget{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4305}{}\doxysubsection{\texorpdfstring{Deferred (nice-\/to-\/have, nu blochează MVP)}{Deferred (nice-\/to-\/have, nu blochează MVP)}}\label{md_docs_2_u_s_e_r___j_o_u_r_n_e_y_autotoc_md4305}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Stake/\+unstake real prin staking\+\_\+engine API (acum:\+ log-\/only)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Frontend tab "{}\+Agents"{} în Block\+Chain\+Core (RPC există)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Frontend tab "{}\+AI Agents"{} în aweb3 (modul nou separat)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] LP/\+withdraw\+\_\+liquidity wired la matching engine
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Tests E2E:\+ nod + Python client + LCX testnet 
+\end{DoxyItemize}

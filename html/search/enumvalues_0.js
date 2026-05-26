@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['coladdress_0',['ColAddress',['../classomni_1_1_miner_table_model.html#a73566ec716f73054bad69f64bed0d3c6aa09d6ea09ec854c4a1f47011e7311544',1,'omni::MinerTableModel']]],
+  ['colalive_1',['ColAlive',['../classomni_1_1_peer_table_model.html#af6ba0339f928ca6814ba0fa040af5a17a92094904634f3480cc7b8a4ac396e0c5',1,'omni::PeerTableModel']]],
+  ['colamount_2',['ColAmount',['../classomni_1_1_mempool_table_model.html#aa695b385b6fefe57d5ba877b9a0647ada3f7248292f5f5a2d069653c664de5629',1,'omni::MempoolTableModel::ColAmount'],['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dca717654a2b1fb860a6ceffc4f0ae73dd5',1,'omni::TransactionTableModel::ColAmount']]],
+  ['colbalance_3',['ColBalance',['../classomni_1_1_miner_table_model.html#a73566ec716f73054bad69f64bed0d3c6a1a80ff86426dc08b31d5571745f635fd',1,'omni::MinerTableModel']]],
+  ['colblocksmined_4',['ColBlocksMined',['../classomni_1_1_miner_table_model.html#a73566ec716f73054bad69f64bed0d3c6a8b2c7bfc29fc9a9e619642edd8e21490',1,'omni::MinerTableModel']]],
+  ['colconfirmations_5',['ColConfirmations',['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dcaba5d2997e47d1b608e8ce11ba96deab5',1,'omni::TransactionTableModel']]],
+  ['colcount_6',['ColCount',['../classomni_1_1_block_table_model.html#aaea318a568ffbf91fc88ecd51d156190a536aa671ecce8afc2530b9d20af1e179',1,'omni::BlockTableModel::ColCount'],['../classomni_1_1_mempool_table_model.html#aa695b385b6fefe57d5ba877b9a0647ada5097d856450e575100e56dd9fe397945',1,'omni::MempoolTableModel::ColCount'],['../classomni_1_1_miner_table_model.html#a73566ec716f73054bad69f64bed0d3c6a47c62ccd80d6a0639ca7d79f402ed23b',1,'omni::MinerTableModel::ColCount'],['../classomni_1_1_peer_table_model.html#af6ba0339f928ca6814ba0fa040af5a17abf3bd2d7aa9bf0a82df40f32d1ae92b9',1,'omni::PeerTableModel::ColCount'],['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dca007006756123aa74681fd443f50080bc',1,'omni::TransactionTableModel::ColCount']]],
+  ['coldirection_7',['ColDirection',['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dcafd90a00bb7e59b49a05722cea09a0c5c',1,'omni::TransactionTableModel']]],
+  ['colfee_8',['ColFee',['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dca2e0ac75beca48344a30d68616ed2916f',1,'omni::TransactionTableModel']]],
+  ['colfrom_9',['ColFrom',['../classomni_1_1_mempool_table_model.html#aa695b385b6fefe57d5ba877b9a0647ada8679ac9bb256e3e66022dd4be8ef221b',1,'omni::MempoolTableModel::ColFrom'],['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dca70dda46252738d13da2802999a3d9d3a',1,'omni::TransactionTableModel::ColFrom']]],
+  ['colhash_10',['ColHash',['../classomni_1_1_block_table_model.html#aaea318a568ffbf91fc88ecd51d156190a5d3203e308dbaec507c921e2eae6cb35',1,'omni::BlockTableModel']]],
+  ['colheight_11',['ColHeight',['../classomni_1_1_block_table_model.html#aaea318a568ffbf91fc88ecd51d156190af01ac7005a3f2b975edee0134fd28a62',1,'omni::BlockTableModel']]],
+  ['colhost_12',['ColHost',['../classomni_1_1_peer_table_model.html#af6ba0339f928ca6814ba0fa040af5a17a1e81bee68dc8ccfee6dac696d5c3c96b',1,'omni::PeerTableModel']]],
+  ['colid_13',['ColId',['../classomni_1_1_peer_table_model.html#af6ba0339f928ca6814ba0fa040af5a17a09da19135d97632d88421c9c63d747e6',1,'omni::PeerTableModel']]],
+  ['colminer_14',['ColMiner',['../classomni_1_1_block_table_model.html#aaea318a568ffbf91fc88ecd51d156190ac82eb40a576bcaeaa5d642c38a6a00ed',1,'omni::BlockTableModel']]],
+  ['colport_15',['ColPort',['../classomni_1_1_peer_table_model.html#af6ba0339f928ca6814ba0fa040af5a17a0c7d8675518a45abe358cbf5e55db49f',1,'omni::PeerTableModel']]],
+  ['colreward_16',['ColReward',['../classomni_1_1_block_table_model.html#aaea318a568ffbf91fc88ecd51d156190a4a304aff3d36344592b23762378641fe',1,'omni::BlockTableModel']]],
+  ['colstatus_17',['ColStatus',['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dcab0068dc0e3e75fe748bea20b1e8173b7',1,'omni::TransactionTableModel']]],
+  ['coltimestamp_18',['ColTimestamp',['../classomni_1_1_block_table_model.html#aaea318a568ffbf91fc88ecd51d156190a4f71d3f94c8ab7a80ca98a58ed28ac90',1,'omni::BlockTableModel']]],
+  ['colto_19',['ColTo',['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dcaff02d67769be78f155aae811e58dc8c5',1,'omni::TransactionTableModel']]],
+  ['coltotalreward_20',['ColTotalReward',['../classomni_1_1_miner_table_model.html#a73566ec716f73054bad69f64bed0d3c6a67b6b36f7ab93c0475482d3ec785f930',1,'omni::MinerTableModel']]],
+  ['coltxcount_21',['ColTxCount',['../classomni_1_1_block_table_model.html#aaea318a568ffbf91fc88ecd51d156190ac95b9bcbe2305feb4767005cadd4fda3',1,'omni::BlockTableModel']]],
+  ['coltxid_22',['ColTxId',['../classomni_1_1_mempool_table_model.html#aa695b385b6fefe57d5ba877b9a0647adaec6bad707777458574fd9b00d0c2f7d9',1,'omni::MempoolTableModel::ColTxId'],['../classomni_1_1_transaction_table_model.html#a87553515e9307fbbb1c8079eed38f7dcaa2dc2149eb48b0d1f3094381cbac4ec5',1,'omni::TransactionTableModel::ColTxId']]],
+  ['connectnode_23',['ConnectNode',['../classomni_1_1_welcome_dialog.html#a6157a644252fb2e3d810d4cd4d5ee765aaa9bcb66fc7947a6651fa0eadb92c659',1,'omni::WelcomeDialog']]],
+  ['createwallet_24',['CreateWallet',['../classomni_1_1_welcome_dialog.html#a6157a644252fb2e3d810d4cd4d5ee765a64f1694cc00dee55b83afc5ba69b2b41',1,'omni::WelcomeDialog']]]
+];

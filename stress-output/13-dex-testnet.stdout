@@ -1,0 +1,21 @@
+======================================================================
+OmniBus DEX Multi-Pair Stress Test
+======================================================================
+RPC:    https://omnibusblockchain.cc:8443/api-testnet
+Chain:  testnet
+Mode:   READ-ONLY (dry-run)
+Levels: 5 buy + 5 sell per pair
+Pairs:  OMNI/USDC, LCX/USDC, ETH/USDC, OMNI/LCX, OMNI/ETH
+
+Chain tip: 24660
+
+pair 0 OMNI/USDC  … mid=1 placed=10 ok=10 cancel=0 filled=0 fail=0
+pair 2 LCX/USDC   … mid=1 placed=10 ok=10 cancel=0 filled=0 fail=0
+pair 3 ETH/USDC   … mid=1 placed=10 ok=10 cancel=0 filled=0 fail=0
+pair 5 OMNI/LCX   … mid=1 placed=10 ok=10 cancel=0 filled=0 fail=0
+pair 6 OMNI/ETH   … mid=1 placed=10 ok=10 cancel=0 filled=0 fail=0
+
+======================================================================
+Totals: placed=50 accepted=50 cancelled=0 filled=0 failed=0
+======================================================================
+Report: dex-stress-report.md

@@ -1,20 +1,18 @@
 import { useState, useEffect } from "react";
 import { parseEther, keccak256, toUtf8Bytes } from "ethers";
-import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
+import { rpc, ExchangeBalance } from "../../api/rpc-client";
 import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet, deriveSlotKey } from "../../api/wallet-keystore";
 import { useActiveSlot, setActiveSlot } from "../../api/use-active-slot";
 import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
 import { useTraderMode } from "./TraderModeToggle";
+import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { TradePairBalances } from "./TradePairBalances";
 import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
-import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance, dexContractFor } from "../../api/omnibus-dex";
+import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance } from "../../api/omnibus-dex";
 import { USDC_CONTRACT } from "../../api/multichain-balances";
 
-const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
-const MICRO_PER_USD = 1_000_000;
 
 // All taker chains where quote asset can come from
 // quote = USDC → EVM chains; quote = ETH → Sepolia/Base; quote = LCX → Liberty
@@ -213,7 +211,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
           // 6-decimals smallest unit.
           const usdcAddr = USDC_CONTRACT.SEPOLIA as `0x${string}`;
           // amount in USDC-smallest-units (6 dec). Round to avoid float drift.
-          const usdcAmount = BigInt(Math.round(priceUsd * amountOmni * 1_000_000));
+          const usdcAmount = BigInt(Math.round(priceUsd * amountOmni * MICRO_PER_USD));
           setMsg("Approving USDC allowance on Sepolia…");
           await ensureAllowance({
             chainId: 11155111,
@@ -271,12 +269,12 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
         // Pass preferred taker chain so backend can route HTLC
         taker_chain: side === "buy" ? selectedChainKey : undefined,
         ...extraPayload,
-      } as any);
+      });
       // Include the slot index + truncated OMNI address so the user can
       // tell exactly which derived child key signed this order — matters
       // when they have 19 slots with different balances and want to audit
       // the trade in their wallet history.
-      const traderShort = `${traderAddr.slice(0, 8)}…${traderAddr.slice(-4)}`;
+      const traderShort = `${midTrunc(traderAddr, 8, 4)}`;
       if (!res) {
         setErr("Order submitted but no response — check the orderbook for your order");
       } else {
@@ -296,12 +294,8 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
     }
   };
 
-  const notional = (() => {
-    const p = Number(priceStr);
-    const a = Number(amountStr);
-    if (!Number.isFinite(p) || !Number.isFinite(a) || p <= 0 || a <= 0) return 0;
-    return p * a;
-  })();
+  const _p = Number(priceStr), _a = Number(amountStr);
+  const notional = (Number.isFinite(_p) && Number.isFinite(_a) && _p > 0 && _a > 0) ? _p * _a : 0;
 
   const selectedChain = takerChains.find(c => c.key === selectedChainKey);
 
@@ -335,7 +329,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
             >
               {(u.allAddresses ?? []).map((a) => {
                 const row = allSlots.slots.find((s) => s.index === a.index);
-                const bal = row ? (row.wallet_sat / 1e9).toFixed(2) : "—";
+                const bal = row ? (row.wallet_sat / SAT_PER_OMNI).toFixed(2) : "—";
                 return (
                   <option key={a.index} value={a.index}>
                     #{a.index} · {bal} OMNI
@@ -417,7 +411,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
       <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">
         Price ({quote})
       </label>
-      <input type="number" step="any" value={priceStr}
+      <input type="number" step="any" min="0" value={priceStr}
         onChange={(e) => setPriceStr(e.target.value)}
         placeholder="0.10"
         className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue" />
@@ -426,7 +420,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
       <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">
         Amount ({base})
       </label>
-      <input type="number" step="any" value={amountStr}
+      <input type="number" step="any" min="0" value={amountStr}
         onChange={(e) => setAmountStr(e.target.value)}
         placeholder="1.0"
         className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-mempool-text font-mono text-sm mb-3 focus:outline-none focus:border-mempool-blue" />

@@ -1,0 +1,1047 @@
+\chapter{API Reference Complet -\/ Omni\+Bus Block\+Chain Core }
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e}{}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e}\index{API Reference Complet -\/ OmniBus BlockChain Core@{API Reference Complet -\/ OmniBus BlockChain Core}}
+\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11056}%
+\Hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11056}%
+
+
+{\bfseries{Data:\+}} 2026-\/03-\/30 ~\newline
+ {\bfseries{RPC Version:\+}} JSON-\/\+RPC 2.\+0 ~\newline
+ {\bfseries{HTTP Port:\+}} 8332 ~\newline
+ {\bfseries{Web\+Socket Port:\+}} 8334
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11058}{}\doxysection{\texorpdfstring{Cuprins}{Cuprins}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11058}
+
+\begin{DoxyEnumerate}
+\item Conexiune și ProtocolConexiune și Protocol
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Metode BlockchainMetode Blockchain
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Metode WalletMetode Wallet
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Metode TranzacțiiMetode Tranzacții
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Metode Mining PoolMetode Mining Pool
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Metode NetworkMetode Network
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Metode ShardingMetode Sharding
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Web\+Socket EventsWeb\+Socket Events
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Error CodesError Codes
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Exemple CompleteExemple Complete
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11060}{}\doxysection{\texorpdfstring{1. Conexiune și Protocol}{1. Conexiune și Protocol}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11060}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11061}{}\doxysubsection{\texorpdfstring{Endpoint HTTP}{Endpoint HTTP}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11061}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{POST\ http://127.0.0.1:8332}
+\DoxyCodeLine{Content-\/Type:\ application/json}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11062}{}\doxysubsection{\texorpdfstring{Format Request}{Format Request}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11062}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}method"{}:\ "{}methodName"{},}
+\DoxyCodeLine{\ \ "{}params"{}:\ [param1,\ param2],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11063}{}\doxysubsection{\texorpdfstring{Format Response}{Format Response}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11063}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{\ ...\ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11064}{}\doxysubsection{\texorpdfstring{Format Error}{Format Error}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11064}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}error"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}code"{}:\ -\/32600,}
+\DoxyCodeLine{\ \ \ \ "{}message"{}:\ "{}Invalid\ Request"{}}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ null}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11066}{}\doxysection{\texorpdfstring{2. Metode Blockchain}{2. Metode Blockchain}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11066}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11067}{}\doxysubsection{\texorpdfstring{getblockcount}{getblockcount}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11067}
+Returnează numărul de blocuri din chain (inclusiv genesis).
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily number}
+
+{\bfseries{Exemple:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getblockcount"{},"{}params"{}:[],"{}id"{}:1\}'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ 150,}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11069}{}\doxysubsection{\texorpdfstring{getblock}{getblock}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11069}
+Returnează un bloc după index.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+index  &number  &Block height (0 = genesis)  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily Block object}
+
+{\bfseries{Exemple:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{}
+\DoxyCodeLine{\ \ \ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ \ \ "{}method"{}:\ "{}getblock"{},}
+\DoxyCodeLine{\ \ \ \ "{}params"{}:\ [10],}
+\DoxyCodeLine{\ \ \ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\ \ \}'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}index"{}:\ 10,}
+\DoxyCodeLine{\ \ \ \ "{}timestamp"{}:\ 1711800000,}
+\DoxyCodeLine{\ \ \ \ "{}previousHash"{}:\ "{}0000abc123..."{},}
+\DoxyCodeLine{\ \ \ \ "{}hash"{}:\ "{}0000def456..."{},}
+\DoxyCodeLine{\ \ \ \ "{}nonce"{}:\ 12345,}
+\DoxyCodeLine{\ \ \ \ "{}difficulty"{}:\ 4,}
+\DoxyCodeLine{\ \ \ \ "{}merkleRoot"{}:\ "{}abc123..."{},}
+\DoxyCodeLine{\ \ \ \ "{}transactions"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}hash"{}:\ "{}tx123..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}from"{}:\ "{}ob\_omni\_abc..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}to"{}:\ "{}ob\_omni\_def..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}amount"{}:\ 1000000000,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}fee"{}:\ 1000000,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ "{}timestamp"{}:\ 1711800000}
+\DoxyCodeLine{\ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ ],}
+\DoxyCodeLine{\ \ \ \ "{}transactionCount"{}:\ 1}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11071}{}\doxysubsection{\texorpdfstring{getlatestblock}{getlatestblock}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11071}
+Returnează cel mai recent bloc minat.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Block object}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11073}{}\doxysubsection{\texorpdfstring{getblockhash}{getblockhash}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11073}
+Returnează hash-\/ul unui bloc după index.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+index  &number  &Block height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily string} (hex hash)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11075}{}\doxysubsection{\texorpdfstring{getbestblockhash}{getbestblockhash}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11075}
+Returnează hash-\/ul celui mai recent bloc din chain.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily string} (hex hash)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11077}{}\doxysubsection{\texorpdfstring{getdifficulty}{getdifficulty}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11077}
+Returnează dificultatea curentă.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily number}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11079}{}\doxysection{\texorpdfstring{3. Metode Wallet}{3. Metode Wallet}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11079}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11080}{}\doxysubsection{\texorpdfstring{getbalance}{getbalance}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11080}
+Returnează balanța wallet-\/ului curent.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Balance object}
+
+{\bfseries{Exemple:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getbalance"{},"{}params"{}:[],"{}id"{}:1\}'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}address"{}:\ "{}ob\_omni\_1a2b3c4d5e6f"{},}
+\DoxyCodeLine{\ \ \ \ "{}balance"{}:\ 500000000000,}
+\DoxyCodeLine{\ \ \ \ "{}balanceOMNI"{}:\ 500.0,}
+\DoxyCodeLine{\ \ \ \ "{}nodeHeight"{}:\ 150,}
+\DoxyCodeLine{\ \ \ \ "{}addresses"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}domain"{}:\ "{}omni"{},\ "{}address"{}:\ "{}ob\_omni\_1a2b3c..."{},\ "{}type"{}:\ "{}ML-\/DSA-\/87+KEM"{}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}domain"{}:\ "{}love"{},\ "{}address"{}:\ "{}ob\_k1\_2b3c4d..."{},\ "{}type"{}:\ "{}ML-\/DSA-\/87"{}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}domain"{}:\ "{}food"{},\ "{}address"{}:\ "{}ob\_f5\_3c4d5e..."{},\ "{}type"{}:\ "{}Falcon-\/512"{}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}domain"{}:\ "{}rent"{},\ "{}address"{}:\ "{}ob\_d5\_4d5e6f..."{},\ "{}type"{}:\ "{}ML-\/DSA-\/87"{}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}domain"{}:\ "{}vacation"{},\ "{}address"{}:\ "{}ob\_s3\_5e6f7g..."{},\ "{}type"{}:\ "{}SLH-\/DSA"{}\}}
+\DoxyCodeLine{\ \ \ \ ]}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11082}{}\doxysubsection{\texorpdfstring{getaddresses}{getaddresses}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11082}
+Returnează toate cele 5 adrese PQ.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Array\texorpdfstring{$<$}{<}Address\texorpdfstring{$>$}{>}}
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \{"{}prefix"{}:\ "{}ob\_omni\_"{},\ "{}coinType"{}:\ 777,\ "{}algorithm"{}:\ "{}ML-\/DSA-\/87+KEM"{}\},}
+\DoxyCodeLine{\ \ \ \ \{"{}prefix"{}:\ "{}ob\_k1\_"{},\ "{}coinType"{}:\ 778,\ "{}algorithm"{}:\ "{}ML-\/DSA-\/87"{}\},}
+\DoxyCodeLine{\ \ \ \ \{"{}prefix"{}:\ "{}ob\_f5\_"{},\ "{}coinType"{}:\ 779,\ "{}algorithm"{}:\ "{}Falcon-\/512"{}\},}
+\DoxyCodeLine{\ \ \ \ \{"{}prefix"{}:\ "{}ob\_d5\_"{},\ "{}coinType"{}:\ 780,\ "{}algorithm"{}:\ "{}ML-\/DSA-\/87"{}\},}
+\DoxyCodeLine{\ \ \ \ \{"{}prefix"{}:\ "{}ob\_s3\_"{},\ "{}coinType"{}:\ 781,\ "{}algorithm"{}:\ "{}SLH-\/DSA-\/256s"{}\}}
+\DoxyCodeLine{\ \ ],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11084}{}\doxysection{\texorpdfstring{4. Metode Tranzacții}{4. Metode Tranzacții}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11084}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11085}{}\doxysubsection{\texorpdfstring{sendtransaction}{sendtransaction}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11085}
+Trimite o tranzacție nouă.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+to  &string  &Adresa destinatar  \\
+amount  &number  &Sumă în SAT (1 OMNI = 1e9 SAT)  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily Transaction\+Result}
+
+{\bfseries{Exemple:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{}
+\DoxyCodeLine{\ \ \ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ \ \ "{}method"{}:\ "{}sendtransaction"{},}
+\DoxyCodeLine{\ \ \ \ "{}params"{}:\ ["{}ob\_omni\_receiver123"{},\ 1000000000],}
+\DoxyCodeLine{\ \ \ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\ \ \}'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}txid"{}:\ "{}abc123def456..."{},}
+\DoxyCodeLine{\ \ \ \ "{}from"{}:\ "{}ob\_omni\_sender789"{},}
+\DoxyCodeLine{\ \ \ \ "{}to"{}:\ "{}ob\_omni\_receiver123"{},}
+\DoxyCodeLine{\ \ \ \ "{}amount"{}:\ 1000000000,}
+\DoxyCodeLine{\ \ \ \ "{}amountOMNI"{}:\ 1.0,}
+\DoxyCodeLine{\ \ \ \ "{}fee"{}:\ 1000000,}
+\DoxyCodeLine{\ \ \ \ "{}status"{}:\ "{}pending"{},}
+\DoxyCodeLine{\ \ \ \ "{}timestamp"{}:\ 1711800123}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11087}{}\doxysubsection{\texorpdfstring{gettransactions}{gettransactions}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11087}
+Returnează tranzacțiile pentru o adresă (sau toate).
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Opțional  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+address  &string  &Da  &Adresa pentru filtrare  \\
+limit  &number  &Da  &Max rezultate (default:\+ 100)  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily Array\texorpdfstring{$<$}{<}Transaction\texorpdfstring{$>$}{>}}
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}txid"{}:\ "{}abc123..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}from"{}:\ "{}ob\_omni\_abc..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}to"{}:\ "{}ob\_omni\_def..."{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}amount"{}:\ 1000000000,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}fee"{}:\ 1000000,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}status"{}:\ "{}confirmed"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}direction"{}:\ "{}incoming"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}blockHeight"{}:\ 145,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}timestamp"{}:\ 1711800000}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ ],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11089}{}\doxysubsection{\texorpdfstring{getmempoolsize}{getmempoolsize}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11089}
+Returnează numărul de tranzacții în așteptare.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily number}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11091}{}\doxysubsection{\texorpdfstring{getmempool}{getmempool}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11091}
+Returnează lista tranzacțiilor din mempool.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Array\texorpdfstring{$<$}{<}Transaction\texorpdfstring{$>$}{>}}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11093}{}\doxysubsection{\texorpdfstring{gettransaction}{gettransaction}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11093}
+Returnează o tranzacție după TXID.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+txid  &string  &Transaction hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily Transaction}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11095}{}\doxysubsection{\texorpdfstring{createrawtransaction}{createrawtransaction}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11095}
+Creează o tranzacție raw (nesemnată).
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+inputs  &Array  &Inputs (UTXO sau account)  \\
+outputs  &Array  &Outputs (address, amount)  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily string} (hex transaction)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11097}{}\doxysubsection{\texorpdfstring{signrawtransaction}{signrawtransaction}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11097}
+Semnează o tranzacție raw.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+hex  &string  &Raw transaction hex  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily Signed\+Transaction}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11099}{}\doxysection{\texorpdfstring{5. Metode Mining Pool}{5. Metode Mining Pool}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11099}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11100}{}\doxysubsection{\texorpdfstring{registerminer}{registerminer}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11100}
+Înregistrează un miner nou în pool.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+miner\+Data  &object  &\{id, name, address, hashrate\}  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily Registration\+Result}
+
+{\bfseries{Exemple:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{}
+\DoxyCodeLine{\ \ \ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ \ \ "{}method"{}:\ "{}registerminer"{},}
+\DoxyCodeLine{\ \ \ \ "{}params"{}:\ [\{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}id"{}:\ "{}miner-\/001"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}name"{}:\ "{}Miner\ Alpha"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}address"{}:\ "{}ob\_omni\_miner001"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}hashrate"{}:\ 1000}
+\DoxyCodeLine{\ \ \ \ \}],}
+\DoxyCodeLine{\ \ \ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\ \ \}'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}success"{}:\ true,}
+\DoxyCodeLine{\ \ \ \ "{}minerCount"{}:\ 11,}
+\DoxyCodeLine{\ \ \ \ "{}message"{}:\ "{}Miner\ registered\ successfully"{}}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11102}{}\doxysubsection{\texorpdfstring{minerkeepalive}{minerkeepalive}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11102}
+Keepalive pentru un miner activ.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+address  &string  &Miner address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily boolean}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11104}{}\doxysubsection{\texorpdfstring{getminers}{getminers}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11104}
+Returnează lista minerilor activi.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Array\texorpdfstring{$<$}{<}Miner\texorpdfstring{$>$}{>}}
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}id"{}:\ "{}miner-\/001"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}name"{}:\ "{}Miner\ Alpha"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}address"{}:\ "{}ob\_omni\_miner001"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}hashrate"{}:\ 1000,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}lastKeepalive"{}:\ 1711800123,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}status"{}:\ "{}active"{}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ ],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11106}{}\doxysubsection{\texorpdfstring{getminerstatus}{getminerstatus}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11106}
+Returnează statusul complet al pool-\/ului.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Pool\+Status}
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}totalMiners"{}:\ 110,}
+\DoxyCodeLine{\ \ \ \ "{}activeMiningMiners"{}:\ 108,}
+\DoxyCodeLine{\ \ \ \ "{}inactiveMiners"{}:\ 2,}
+\DoxyCodeLine{\ \ \ \ "{}totalHashrate"{}:\ 110000,}
+\DoxyCodeLine{\ \ \ \ "{}blocksMined"{}:\ 500,}
+\DoxyCodeLine{\ \ \ \ "{}currentBlock"{}:\ 501,}
+\DoxyCodeLine{\ \ \ \ "{}rewardPerBlock"{}:\ 50,}
+\DoxyCodeLine{\ \ \ \ "{}rewardPerMiner"{}:\ 0.46296296}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11108}{}\doxysubsection{\texorpdfstring{getminerbalances}{getminerbalances}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11108}
+Returnează balanțele tuturor minerilor.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Array\texorpdfstring{$<$}{<}Miner\+Balance\texorpdfstring{$>$}{>}}
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ "{}address"{}:\ "{}ob\_omni\_miner001"{},}
+\DoxyCodeLine{\ \ \ \ \ \ "{}balanceSat"{}:\ 25000000000,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}balanceOmni"{}:\ 25.0,}
+\DoxyCodeLine{\ \ \ \ \ \ "{}blocksContributed"{}:\ 50}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ ],}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11110}{}\doxysubsection{\texorpdfstring{getpoolstats}{getpoolstats}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11110}
+Returnează statistici complete pool.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Pool\+Stats}
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}registeredMiners"{}:\ 110,}
+\DoxyCodeLine{\ \ \ \ "{}activeMiners"{}:\ 108,}
+\DoxyCodeLine{\ \ \ \ "{}totalBlocks"{}:\ 500,}
+\DoxyCodeLine{\ \ \ \ "{}totalTransactions"{}:\ 5500,}
+\DoxyCodeLine{\ \ \ \ "{}currentReward"{}:\ 50,}
+\DoxyCodeLine{\ \ \ \ "{}averageHashrate"{}:\ 1000,}
+\DoxyCodeLine{\ \ \ \ "{}uptime"{}:\ 86400}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11112}{}\doxysection{\texorpdfstring{6. Metode Network}{6. Metode Network}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11112}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11113}{}\doxysubsection{\texorpdfstring{getstatus}{getstatus}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11113}
+Returnează statusul complet al nodului.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Node\+Status}
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}status"{}:\ "{}ready"{},}
+\DoxyCodeLine{\ \ \ \ "{}blockCount"{}:\ 150,}
+\DoxyCodeLine{\ \ \ \ "{}mempoolSize"{}:\ 23,}
+\DoxyCodeLine{\ \ \ \ "{}address"{}:\ "{}ob\_omni\_abc123"{},}
+\DoxyCodeLine{\ \ \ \ "{}balance"{}:\ 500000000000,}
+\DoxyCodeLine{\ \ \ \ "{}balanceOMNI"{}:\ 500,}
+\DoxyCodeLine{\ \ \ \ "{}version"{}:\ "{}1.0.0-\/dev"{},}
+\DoxyCodeLine{\ \ \ \ "{}platform"{}:\ "{}windows"{},}
+\DoxyCodeLine{\ \ \ \ "{}uptime"{}:\ 3600}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11115}{}\doxysubsection{\texorpdfstring{getpeerinfo}{getpeerinfo}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11115}
+Returnează informații despre peers conectați.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Array\texorpdfstring{$<$}{<}Peer\texorpdfstring{$>$}{>}}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11117}{}\doxysubsection{\texorpdfstring{getconnectioncount}{getconnectioncount}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11117}
+Returnează numărul de conexiuni active.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily number}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11119}{}\doxysection{\texorpdfstring{7. Metode Sharding}{7. Metode Sharding}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11119}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11120}{}\doxysubsection{\texorpdfstring{getshardinginfo}{getshardinginfo}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11120}
+Returnează informații despre sharding.
+
+{\bfseries{Parametri:\+}} Niciunul
+
+{\bfseries{Return:\+}} {\ttfamily Sharding\+Info}
+
+{\bfseries{Response:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}jsonrpc"{}:\ "{}2.0"{},}
+\DoxyCodeLine{\ \ "{}result"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}shardCount"{}:\ 7,}
+\DoxyCodeLine{\ \ \ \ "{}validatorsPerShard"{}:\ 100,}
+\DoxyCodeLine{\ \ \ \ "{}blockTimeMs"{}:\ 1000,}
+\DoxyCodeLine{\ \ \ \ "{}subBlockTimeMs"{}:\ 100,}
+\DoxyCodeLine{\ \ \ \ "{}currentEpoch"{}:\ 10,}
+\DoxyCodeLine{\ \ \ \ "{}shards"{}:\ [}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}id"{}:\ 0,\ "{}name"{}:\ "{}OMNI"{},\ "{}status"{}:\ "{}active"{},\ "{}txCount"{}:\ 1500\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}id"{}:\ 1,\ "{}name"{}:\ "{}LOVE"{},\ "{}status"{}:\ "{}active"{},\ "{}txCount"{}:\ 1200\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}id"{}:\ 2,\ "{}name"{}:\ "{}FOOD"{},\ "{}status"{}:\ "{}active"{},\ "{}txCount"{}:\ 900\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}id"{}:\ 3,\ "{}name"{}:\ "{}RENT"{},\ "{}status"{}:\ "{}active"{},\ "{}txCount"{}:\ 800\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}id"{}:\ 4,\ "{}name"{}:\ "{}VACATION"{},\ "{}status"{}:\ "{}active"{},\ "{}txCount"{}:\ 600\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}id"{}:\ 5,\ "{}name"{}:\ "{}Shard-\/5"{},\ "{}status"{}:\ "{}active"{},\ "{}txCount"{}:\ 400\},}
+\DoxyCodeLine{\ \ \ \ \ \ \{"{}id"{}:\ 6,\ "{}name"{}:\ "{}Shard-\/6"{},\ "{}status"{}:\ "{}active"{},\ "{}txCount"{}:\ 300\}}
+\DoxyCodeLine{\ \ \ \ ]}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}id"{}:\ 1}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11122}{}\doxysubsection{\texorpdfstring{getmetachainheaders}{getmetachainheaders}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11122}
+Returnează metachain headers.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Opțional  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+count  &number  &Da  &Număr de headers (default:\+ 10)  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily Array\texorpdfstring{$<$}{<}Meta\+Header\texorpdfstring{$>$}{>}}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11124}{}\doxysubsection{\texorpdfstring{getshardforaddress}{getshardforaddress}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11124}
+Returnează shard-\/ul pentru o adresă.
+
+{\bfseries{Parametri:\+}} 
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tip  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+address  &string  &Adresa OMNI  \\
+\end{DoxyTable}
+
+
+{\bfseries{Return:\+}} {\ttfamily number} (shard ID 0-\/6)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11126}{}\doxysection{\texorpdfstring{8. Web\+Socket Events}{8. Web\+Socket Events}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11126}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11127}{}\doxysubsection{\texorpdfstring{Conectare}{Conectare}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11127}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ ws\ =\ new\ WebSocket('ws://127.0.0.1:8334');}
+\DoxyCodeLine{}
+\DoxyCodeLine{ws.onopen\ =\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ console.log('Connected\ to\ OmniBus\ WebSocket');}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{ws.onmessage\ =\ (event)\ =>\ \{}
+\DoxyCodeLine{\ \ const\ data\ =\ JSON.parse(event.data);}
+\DoxyCodeLine{\ \ console.log('Received:',\ data);}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11128}{}\doxysubsection{\texorpdfstring{Events}{Events}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11128}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11129}{}\doxysubsubsection{\texorpdfstring{newblock}{newblock}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11129}
+Emis când un nou bloc este minat.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}type"{}:\ "{}newblock"{},}
+\DoxyCodeLine{\ \ "{}data"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}index"{}:\ 151,}
+\DoxyCodeLine{\ \ \ \ "{}hash"{}:\ "{}0000abc123..."{},}
+\DoxyCodeLine{\ \ \ \ "{}timestamp"{}:\ 1711800123,}
+\DoxyCodeLine{\ \ \ \ "{}transactionCount"{}:\ 10,}
+\DoxyCodeLine{\ \ \ \ "{}miner"{}:\ "{}ob\_omni\_miner001"{}}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11130}{}\doxysubsubsection{\texorpdfstring{newtransaction}{newtransaction}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11130}
+Emis când o tranzacție nouă este adăugată în mempool.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}type"{}:\ "{}newtransaction"{},}
+\DoxyCodeLine{\ \ "{}data"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}txid"{}:\ "{}tx123..."{},}
+\DoxyCodeLine{\ \ \ \ "{}from"{}:\ "{}ob\_omni\_abc..."{},}
+\DoxyCodeLine{\ \ \ \ "{}to"{}:\ "{}ob\_omni\_def..."{},}
+\DoxyCodeLine{\ \ \ \ "{}amount"{}:\ 1000000000,}
+\DoxyCodeLine{\ \ \ \ "{}fee"{}:\ 1000000}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11131}{}\doxysubsubsection{\texorpdfstring{mempoolupdate}{mempoolupdate}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11131}
+Emis când mempool-\/ul se schimbă.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}type"{}:\ "{}mempoolupdate"{},}
+\DoxyCodeLine{\ \ "{}data"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}size"{}:\ 25,}
+\DoxyCodeLine{\ \ \ \ "{}totalBytes"{}:\ 4096}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11132}{}\doxysubsubsection{\texorpdfstring{poolupdate}{poolupdate}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11132}
+Emis când statusul pool-\/ului se schimbă.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}type"{}:\ "{}poolupdate"{},}
+\DoxyCodeLine{\ \ "{}data"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}activeMiners"{}:\ 110,}
+\DoxyCodeLine{\ \ \ \ "{}blocksMined"{}:\ 501,}
+\DoxyCodeLine{\ \ \ \ "{}totalHashrate"{}:\ 110000}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11134}{}\doxysection{\texorpdfstring{9. Error Codes}{9. Error Codes}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11134}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Code  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Message  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+-\/32700  &Parse error  &JSON invalid  \\
+-\/32600  &Invalid Request  &Request format invalid  \\
+-\/32601  &Method not found  &Metoda nu există  \\
+-\/32602  &Invalid params  &Parametri invalizi  \\
+-\/32603  &Internal error  &Eroare internă server  \\
+-\/32000  &Server error  &Eroare generică server  \\
+-\/32001  &Invalid address  &Format adresă invalid  \\
+-\/32002  &Insufficient funds  &Fonduri insuficiente  \\
+-\/32003  &Invalid amount  &Sumă invalidă  \\
+-\/32004  &Transaction rejected  &TX respinsă  \\
+-\/32005  &Mempool full  &Mempool plin  \\
+-\/32006  &Invalid signature  &Semnătură invalidă  \\
+-\/32007  &Block not found  &Bloc inexistent  \\
+-\/32008  &Transaction not found  &TX inexistentă  \\
+-\/32009  &Miner already registered  &Miner deja înregistrat  \\
+-\/32010  &Invalid hashrate  &Hashrate invalid  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11136}{}\doxysection{\texorpdfstring{10. Exemple Complete}{10. Exemple Complete}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11136}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11137}{}\doxysubsection{\texorpdfstring{Exemplu 1:\+ Verificare Balanță și Trimitere}{Exemplu 1:\+ Verificare Balanță și Trimitere}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11137}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/bin/bash}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 1.\ Verifică\ balanța}
+\DoxyCodeLine{BALANCE=\$(curl\ -\/s\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getbalance"{},"{}params"{}:[],"{}id"{}:1\}'\ \(\backslash\)}
+\DoxyCodeLine{\ \ |\ jq\ -\/r\ '.result.balanceOMNI')}
+\DoxyCodeLine{}
+\DoxyCodeLine{echo\ "{}Balance:\ \$BALANCE\ OMNI"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Trimite\ 10\ OMNI}
+\DoxyCodeLine{if\ ((\ \$(echo\ "{}\$BALANCE\ >\ 10"{}\ |\ bc\ -\/l)\ ));\ then}
+\DoxyCodeLine{\ \ RESULT=\$(curl\ -\/s\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ -\/d\ "{}\{}
+\DoxyCodeLine{\ \ \ \ \ \ \(\backslash\)"{}jsonrpc\(\backslash\)"{}:\ \(\backslash\)"{}2.0\(\backslash\)"{},}
+\DoxyCodeLine{\ \ \ \ \ \ \(\backslash\)"{}method\(\backslash\)"{}:\ \(\backslash\)"{}sendtransaction\(\backslash\)"{},}
+\DoxyCodeLine{\ \ \ \ \ \ \(\backslash\)"{}params\(\backslash\)"{}:\ [\(\backslash\)"{}ob\_omni\_receiver123\(\backslash\)"{},\ 10000000000],}
+\DoxyCodeLine{\ \ \ \ \ \ \(\backslash\)"{}id\(\backslash\)"{}:\ 1}
+\DoxyCodeLine{\ \ \ \ \}"{})}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ echo\ "{}Transaction:\ \$(echo\ \$RESULT\ |\ jq\ -\/r\ '.result.txid')"{}}
+\DoxyCodeLine{fi}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11139}{}\doxysubsection{\texorpdfstring{Exemplu 2:\+ Monitorizare Blocuri în Timp Real}{Exemplu 2:\+ Monitorizare Blocuri în Timp Real}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11139}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ WebSocket\ =\ require('ws');}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ ws\ =\ new\ WebSocket('ws://127.0.0.1:8334');}
+\DoxyCodeLine{}
+\DoxyCodeLine{ws.on('message',\ (data)\ =>\ \{}
+\DoxyCodeLine{\ \ const\ event\ =\ JSON.parse(data);}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ switch(event.type)\ \{}
+\DoxyCodeLine{\ \ \ \ case\ 'newblock':}
+\DoxyCodeLine{\ \ \ \ \ \ console.log(`New\ block\ \#\$\{event.data.index\}\ mined\ by\ \$\{event.data.miner\}`);}
+\DoxyCodeLine{\ \ \ \ \ \ break;}
+\DoxyCodeLine{\ \ \ \ case\ 'newtransaction':}
+\DoxyCodeLine{\ \ \ \ \ \ console.log(`New\ TX:\ \$\{event.data.amount\ /\ 1e9\}\ OMNI\ to\ \$\{event.data.to\}`);}
+\DoxyCodeLine{\ \ \ \ \ \ break;}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11141}{}\doxysubsection{\texorpdfstring{Exemplu 3:\+ Înregistrare Miner și Monitorizare}{Exemplu 3:\+ Înregistrare Miner și Monitorizare}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11141}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\textcolor{keyword}{import}\ time}
+\DoxyCodeLine{}
+\DoxyCodeLine{RPC\_URL\ =\ \textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }register\_miner(miner\_id,\ name,\ address,\ hashrate):}
+\DoxyCodeLine{\ \ \ \ response\ =\ requests.post(RPC\_URL,\ json=\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}registerminer"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ [\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ miner\_id,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ name,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}address"{}}:\ address,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hashrate"{}}:\ hashrate}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ 1}
+\DoxyCodeLine{\ \ \ \ \})}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ response.json()}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }keepalive(address):}
+\DoxyCodeLine{\ \ \ \ response\ =\ requests.post(RPC\_URL,\ json=\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}minerkeepalive"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ [address],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ 1}
+\DoxyCodeLine{\ \ \ \ \})}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ response.json()}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }get\_pool\_stats():}
+\DoxyCodeLine{\ \ \ \ response\ =\ requests.post(RPC\_URL,\ json=\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}getpoolstats"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ [],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ 1}
+\DoxyCodeLine{\ \ \ \ \})}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ response.json()}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Înregistrează\ miner}}
+\DoxyCodeLine{result\ =\ register\_miner(\textcolor{stringliteral}{"{}miner-\/py-\/001"{}},\ \textcolor{stringliteral}{"{}Python\ Miner"{}},\ \textcolor{stringliteral}{"{}ob\_omni\_py001"{}},\ 5000)}
+\DoxyCodeLine{print(f\textcolor{stringliteral}{"{}Registered:\ \{result\}"{}})}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{\#\ Keepalive\ loop}}
+\DoxyCodeLine{\textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ keepalive(\textcolor{stringliteral}{"{}ob\_omni\_py001"{}})}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ stats\ =\ get\_pool\_stats()}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}Active\ miners:\ \{stats['result']['activeMiners']\},\ "{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Blocks:\ \{stats['result']['totalBlocks']\}"{}})}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ time.sleep(5)}
+\DoxyCodeLine{\textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\ \ \ \ print(\textcolor{stringliteral}{"{}Stopped"{}})}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11143}{}\doxysubsection{\texorpdfstring{Exemplu 4:\+ Explorer Simplu}{Exemplu 4:\+ Explorer Simplu}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11143}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ React\ Component}
+\DoxyCodeLine{import\ \{\ useState,\ useEffect\ \}\ from\ 'react';}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ BlockExplorer()\ \{}
+\DoxyCodeLine{\ \ const\ [blocks,\ setBlocks]\ =\ useState([]);}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ useEffect(()\ =>\ \{}
+\DoxyCodeLine{\ \ \ \ const\ fetchBlocks\ =\ async\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ const\ response\ =\ await\ fetch('http://127.0.0.1:8332',\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ method:\ 'POST',}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ headers:\ \{\ 'Content-\/Type':\ 'application/json'\ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ body:\ JSON.stringify(\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ jsonrpc:\ '2.0',}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ method:\ 'getblockcount',}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ params:\ [],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ id:\ 1}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\ \ \ \ \ \ \});}
+\DoxyCodeLine{\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \ \ const\ \{\ result:\ count\ \}\ =\ await\ response.json();}
+\DoxyCodeLine{\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \ \ //\ Fetch\ last\ 10\ blocks}
+\DoxyCodeLine{\ \ \ \ \ \ const\ blockPromises\ =\ [];}
+\DoxyCodeLine{\ \ \ \ \ \ for\ (let\ i\ =\ Math.max(0,\ count\ -\/\ 10);\ i\ <\ count;\ i++)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ blockPromises.push(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ fetch('http://127.0.0.1:8332',\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ method:\ 'POST',}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ headers:\ \{\ 'Content-\/Type':\ 'application/json'\ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ body:\ JSON.stringify(\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ jsonrpc:\ '2.0',}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ method:\ 'getblock',}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ params:\ [i],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ id:\ 1}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \}).then(r\ =>\ r.json())}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \ \ const\ blocksData\ =\ await\ Promise.all(blockPromises);}
+\DoxyCodeLine{\ \ \ \ \ \ setBlocks(blocksData.map(b\ =>\ b.result).reverse());}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ fetchBlocks();}
+\DoxyCodeLine{\ \ \ \ const\ interval\ =\ setInterval(fetchBlocks,\ 5000);}
+\DoxyCodeLine{\ \ \ \ return\ ()\ =>\ clearInterval(interval);}
+\DoxyCodeLine{\ \ \},\ []);}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ return\ (}
+\DoxyCodeLine{\ \ \ \ <div>}
+\DoxyCodeLine{\ \ \ \ \ \ <h2>Block\ Explorer</h2>}
+\DoxyCodeLine{\ \ \ \ \ \ \{blocks.map(block\ =>\ (}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ <div\ key=\{block.index\}\ className="{}block-\/card"{}>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ <h3>Block\ \#\{block.index\}</h3>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ <p>Hash:\ \{block.hash.substring(0,\ 20)\}...</p>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ <p>Transactions:\ \{block.transactionCount\}</p>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ <p>Time:\ \{new\ Date(block.timestamp\ *\ 1000).toLocaleString()\}</p>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ </div>}
+\DoxyCodeLine{\ \ \ \ \ \ ))\}}
+\DoxyCodeLine{\ \ \ \ </div>}
+\DoxyCodeLine{\ \ );}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ BlockExplorer;}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11145}{}\doxysection{\texorpdfstring{Paper Trading Mode}{Paper Trading Mode}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11145}
+Omni\+Bus DEX supports two parallel trading modes:\+ {\bfseries{real}} (production money) and {\bfseries{paper}} (demo/\+simulation). Both use the same matching engine, orderbook format, and REST endpoint shapes. The only differences are the URL prefix, the settlement asset, and trade-\/log isolation.\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11146}{}\doxysubsection{\texorpdfstring{Real vs Paper comparison}{Real vs Paper comparison}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11146}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Aspect  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Real Trading  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Paper Trading  \\
+Route prefix  &{\ttfamily /\+exchange/\+0/\+\texorpdfstring{$\ast$}{*}}  &{\ttfamily /\+paper/\+0/\+\texorpdfstring{$\ast$}{*}}  \\
+Settlement asset  &{\ttfamily OMNI}  &{\ttfamily OMNI\+\_\+\+DEMO}  \\
+Fills isolated from other mode  &N/\+A (production)  &Yes — paper fills never appear in real feed and vice-\/versa  \\
+Persistence  &On-\/chain balances + trade\+\_\+log (256-\/entry ring buffer)  &In-\/memory {\ttfamily exchange\+\_\+paper} engine + {\ttfamily trade\+\_\+log\+\_\+paper} (256-\/entry ring buffer)  \\
+Fees  &0.\+10\% taker /\+ 0.\+05\% maker + 1000 SAT network fee per fill  &Same fee schedule, deducted from {\ttfamily OMNI\+\_\+\+DEMO} balance  \\
+Who pays  &Real wallet  &No real wallet required — demo grants are issued by agents or faucet  \\
+Engine selector  &{\ttfamily ctx.\+exchange} (main matching engine)  &{\ttfamily ctx.\+exchange\+\_\+paper} (parallel matching engine)  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11147}{}\doxysubsection{\texorpdfstring{Paper-\/specific behaviour}{Paper-\/specific behaviour}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11147}
+
+\begin{DoxyItemize}
+\item {\bfseries{{\ttfamily mode:\+"{}paper"{}} field:\+}} Every paper response includes {\ttfamily "{}mode"{}:\+"{}paper"{}} inside the {\ttfamily result} object. Real responses omit this field entirely.
+\item {\bfseries{{\ttfamily OMNI\+\_\+\+DEMO} asset:\+}} The paper asset code is returned by {\ttfamily Assets} and used as the settlement token in {\ttfamily System\+Status}.
+\item {\bfseries{Isolated trade log:\+}} Paper fills are pushed to {\ttfamily trade\+\_\+log\+\_\+paper} (head {\ttfamily trade\+\_\+head\+\_\+paper}, count {\ttfamily trade\+\_\+count\+\_\+paper}). Real fills go to {\ttfamily trade\+\_\+log}. The two logs are never mixed.
+\item {\bfseries{Disabled-\/engine error:\+}} When {\ttfamily exchange\+\_\+paper} is null on the server (paper mode not configured), all {\ttfamily /\+paper/\+0/\+\texorpdfstring{$\ast$}{*}} routes return:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{"{}error"{}:["{}PaperTraderDisabled"{}],"{}result"{}:\{\}\}}
+
+\end{DoxyCode}
+
+\item {\bfseries{Self-\/trade allowed:\+}} Wash trades are permitted in both modes. They pay the full maker+taker fee on both sides.
+\end{DoxyItemize}\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11148}{}\doxysubsection{\texorpdfstring{Paper endpoints}{Paper endpoints}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11148}
+Every endpoint documented under {\ttfamily /\+exchange/\+0/\+\texorpdfstring{$\ast$}{*}} has an exact analogue under {\ttfamily /\+paper/\+0/\+\texorpdfstring{$\ast$}{*}}:\+
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Public:\+}} {\ttfamily GET /\+paper/\+0/\+public/\+\{Time,System\+Status,Assets,Asset\+Pairs,Ticker,Depth,Trades,OHLC,Spread\}}
+\item {\bfseries{Private:\+}} {\ttfamily POST /\+paper/\+0/\+private/\+\{Balance,Trade\+Balance,Open\+Orders,Closed\+Orders,Query\+Orders,Trades\+History,Query\+Trades,Open\+Positions,Ledgers,Query\+Ledgers,Trade\+Volume,Add\+Order,Cancel\+Order,Cancel\+All,Cancel\+All\+Orders\+After,Edit\+Order,Deposit\+Methods,Deposit\+Addresses,Status\+Of\+Deposits,Withdraw\+Methods,Withdraw\+Addresses,Withdraw,Status\+Of\+Withdrawals,Withdraw\+Cancel,Wallet\+Transfer,Stake,Unstake,Get\+Staking\+Assets,Get\+Pending\+Staking,List\+Staking\+Transactions,Earn/\+\+Allocate,Earn/\+\+Deallocate,Earn/\+\+Strategies,Earn/\+\+Allocations,Add\+Export,Export\+Status,Retrieve\+Export,Delete\+Export,Get\+Web\+Sockets\+Token\}}
+\end{DoxyItemize}
+
+Request shapes and parameter names are identical. Switching from paper to real requires changing exactly one URL prefix.\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11149}{}\doxysubsection{\texorpdfstring{Paper balance tracking}{Paper balance tracking}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11149}
+Paper balances are tracked inside the {\ttfamily exchange\+\_\+paper} engine\textquotesingle{}s internal ledger, not on the blockchain. The {\ttfamily owner} parameter (trader address) is still required for private endpoints because the engine uses the same address format as real trading. Demo balances can be seeded via:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily exchange\+\_\+deposit\+Demo} JSON-\/\+RPC (grants demo funds)
+\item Agent-\/native bootstrap faucet ({\ttfamily claim\+\_\+faucet} with paper mode)
+\end{DoxyItemize}\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11150}{}\doxysubsection{\texorpdfstring{Withdraw behaviour in paper mode}{Withdraw behaviour in paper mode}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11150}
+{\ttfamily Withdraw} in paper mode does not create an on-\/chain transaction. It deducts the amount from the paper internal ledger and returns a synthetic {\ttfamily refid}. The funds never leave the demo system.\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11151}{}\doxysubsection{\texorpdfstring{Escrow address in demo mode}{Escrow address in demo mode}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11151}
+{\ttfamily exchange\+\_\+get\+Escrow\+Address} returns the same escrow address for both modes (the bridge/\+registrar slot). In paper mode, deposits to this address are not processed on-\/chain; they are credited to the paper internal ledger by the demo grant mechanism.
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11153}{}\doxysection{\texorpdfstring{Referințe}{Referințe}}\label{md_wiki-kimi-omnibus_202-_a_p_i-_r_e_f_e_r_e_n_c_e_autotoc_md11153}
+
+\begin{DoxyItemize}
+\item {\bfseries{JSON-\/\+RPC 2.\+0 Spec:\+}} \href{https://www.jsonrpc.org/specification}{\texttt{https:\+/\+/\+www.\+jsonrpc.\+org/\+specification}}
+\item {\bfseries{Omni\+Bus Wiki:\+}} \doxylink{wiki-omnibus_2_i_n_d_e_x_8md}{wiki-\/omnibus/\+\+INDEX.\+md}
+\item {\bfseries{Git\+Hub:\+}} \href{https://github.com/SAVACAZAN/OmniBus-BlockChainCore}{\texttt{https:\+/\+/\+github.\+com/\+\+SAVACAZAN/\+\+Omni\+Bus-\/\+Block\+Chain\+Core}}
+\item {\bfseries{Open\+API 3.\+1 DEX Spec:\+}} {\ttfamily docs/\+api/\+omnibus-\/dex-\/openapi.\+yaml} 
+\end{DoxyItemize}

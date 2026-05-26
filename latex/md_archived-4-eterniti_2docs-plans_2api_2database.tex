@@ -1,0 +1,804 @@
+\chapter{Module:\+ {\ttfamily database} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database}{}\label{md_archived-4-eterniti_2docs-plans_2api_2database}\index{Module: $<$tt$>$database$<$/tt$>$@{Module: $<$tt$>$database$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1417}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1417}%
+
+
+\begin{quote}
+Persistent storage — binary serialization of blockchain state to omnibus-\/chain.\+dat, atomic write (tmp → rename), append-\/only block storage. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+database.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 1172 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 28 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 11
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1419}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1419}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1420}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1420}
+
+\begin{DoxyItemize}
+\item \`{}\+Database\`{}{\ttfamily Database}
+\end{DoxyItemize}— Database:\+ Unified storage layer Combines block, transaction, address, and checkp...
+\begin{DoxyItemize}
+\item \`{}\+Database\+Stats\`{}{\ttfamily Database\+Stats}
+\end{DoxyItemize}— Data structure for database stats. Fields include:\+ total\+\_\+blocks, total\+\_\+transacti...
+\begin{DoxyItemize}
+\item \`{}\+Persistent\+Blockchain\`{}{\ttfamily Persistent\+Blockchain}
+\end{DoxyItemize}— Persistent Blockchain:\+ Database + Blockchain combined\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1421}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1421}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}store\+Block()\`{}{\ttfamily store\+Block()}
+\end{DoxyItemize}— Performs the store block operation on the database module.
+\begin{DoxyItemize}
+\item \`{}get\+Block()\`{}{\ttfamily get\+Block()}
+\end{DoxyItemize}— Returns the block for the given height.
+\begin{DoxyItemize}
+\item \`{}get\+Block\+Count()\`{}{\ttfamily get\+Block\+Count()}
+\end{DoxyItemize}— Returns the current block count.
+\begin{DoxyItemize}
+\item \`{}index\+Transaction()\`{}{\ttfamily index\+Transaction()}
+\end{DoxyItemize}— Performs the index transaction operation on the database module.
+\begin{DoxyItemize}
+\item \`{}find\+Transaction()\`{}{\ttfamily find\+Transaction()}
+\end{DoxyItemize}— Searches for transaction matching the given criteria.
+\begin{DoxyItemize}
+\item \`{}get\+Transaction\+Count()\`{}{\ttfamily get\+Transaction\+Count()}
+\end{DoxyItemize}— Returns the current transaction count.
+\begin{DoxyItemize}
+\item \`{}update\+Balance()\`{}{\ttfamily update\+Balance()}
+\end{DoxyItemize}— Updates the balance with new values.
+\begin{DoxyItemize}
+\item \`{}get\+Balance()\`{}{\ttfamily get\+Balance()}
+\end{DoxyItemize}— Returns the balance for the given address.
+\begin{DoxyItemize}
+\item \`{}get\+Address\+Count()\`{}{\ttfamily get\+Address\+Count()}
+\end{DoxyItemize}— Returns the current address count.
+\begin{DoxyItemize}
+\item \`{}save\+Checkpoint()\`{}{\ttfamily save\+Checkpoint()}
+\end{DoxyItemize}— Saves checkpoint to persistent storage.
+\begin{DoxyItemize}
+\item \`{}load\+Checkpoint()\`{}{\ttfamily load\+Checkpoint()}
+\end{DoxyItemize}— Loads checkpoint from persistent storage.
+\begin{DoxyItemize}
+\item \`{}load\+Latest\+Checkpoint()\`{}{\ttfamily load\+Latest\+Checkpoint()}
+\end{DoxyItemize}— Loads latest checkpoint from persistent storage.
+\begin{DoxyItemize}
+\item \`{}set\+Metadata()\`{}{\ttfamily set\+Metadata()}
+\end{DoxyItemize}— Sets the metadata to the specified value.
+\begin{DoxyItemize}
+\item \`{}get\+Metadata()\`{}{\ttfamily get\+Metadata()}
+\end{DoxyItemize}— Returns the metadata for the given key.
+\begin{DoxyItemize}
+\item \`{}get\+Stats()\`{}{\ttfamily get\+Stats()}
+\end{DoxyItemize}— Returns the current stats.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}load\+From\+Disk()\`{}{\ttfamily load\+From\+Disk()}
+\end{DoxyItemize}— Incarca database din fisier (format binar simplu, fara dependente exte...
+\begin{DoxyItemize}
+\item \`{}save\+To\+Disk()\`{}{\ttfamily save\+To\+Disk()}
+\end{DoxyItemize}— Salveaza database pe disc (format binar simplu, atomic via tmp+rename)
+\begin{DoxyItemize}
+\item \`{}save\+Blockchain()\`{}{\ttfamily save\+Blockchain()}
+\end{DoxyItemize}— Salveaza blockchain-\/ul activ (bc) pe disc Format v2:\+ \+[magic:\+4]\+\+[version...
+\begin{DoxyItemize}
+\item \`{}restore\+Into()\`{}{\ttfamily restore\+Into()}
+\end{DoxyItemize}— Reincarca blockchain-\/ul din disc in bc (apelat dupa build\+Blockchain/\+ge...
+\begin{DoxyItemize}
+\item \`{}append\+Block()\`{}{\ttfamily append\+Block()}
+\end{DoxyItemize}— Append un singur bloc nou la sfarsitul fisierului — for v1 compat. For...
+\begin{DoxyItemize}
+\item \`{}compact()\`{}{\ttfamily compact()}
+\end{DoxyItemize}— Compact — sterge blocuri vechi pastrand ultimele N
+\begin{DoxyItemize}
+\item \`{}checkpoint()\`{}{\ttfamily checkpoint()}
+\end{DoxyItemize}— Checkpoint entire blockchain state
+\begin{DoxyItemize}
+\item \`{}recover\+From\+Checkpoint()\`{}{\ttfamily recover\+From\+Checkpoint()}
+\end{DoxyItemize}— Recover from checkpoint
+\begin{DoxyItemize}
+\item \`{}get\+Stats()\`{}{\ttfamily get\+Stats()}
+\end{DoxyItemize}— Get database statistics
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1423}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1423}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1424}{}\doxysubsection{\texorpdfstring{{\ttfamily Database}}{{\ttfamily Database}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1424}
+Database:\+ Unified storage layer Combines block, transaction, address, and checkpoint storage
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily blocks}  &{\ttfamily Block\+Store}  &Blocks  \\
+{\ttfamily transactions}  &{\ttfamily Transaction\+Index}  &Transactions  \\
+{\ttfamily addresses}  &{\ttfamily Address\+Index}  &Addresses  \\
+{\ttfamily checkpoints}  &{\ttfamily State\+Checkpoint}  &Checkpoints  \\
+{\ttfamily metadata}  &{\ttfamily Key\+Value\+Store}  &Metadata  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 20}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1426}{}\doxysubsection{\texorpdfstring{{\ttfamily Database\+Stats}}{{\ttfamily Database\+Stats}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1426}
+Data structure for database stats. Fields include:\+ total\+\_\+blocks, total\+\_\+transactions, total\+\_\+addresses, total\+\_\+checkpoints.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily total\+\_\+blocks}  &{\ttfamily u64}  &Total\+\_\+blocks  \\
+{\ttfamily total\+\_\+transactions}  &{\ttfamily u64}  &Total\+\_\+transactions  \\
+{\ttfamily total\+\_\+addresses}  &{\ttfamily usize}  &Total\+\_\+addresses  \\
+{\ttfamily total\+\_\+checkpoints}  &{\ttfamily u32}  &Total\+\_\+checkpoints  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 119}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1428}{}\doxysubsection{\texorpdfstring{{\ttfamily Persistent\+Blockchain}}{{\ttfamily Persistent\+Blockchain}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1428}
+Persistent Blockchain:\+ Database + Blockchain combined
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily db}  &{\ttfamily Database}  &Db  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 151}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1430}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1430}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1431}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1431}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ Database\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Database}
+
+{\itshape Defined at line 28}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1433}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1433}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *Database)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Database}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 39}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1435}{}\doxysubsection{\texorpdfstring{{\ttfamily store\+Block()}}{{\ttfamily store\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1435}
+Performs the store block operation on the database module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ storeBlock(self:\ *Database,\ height:\ u64,\ block\_data:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Database}  &The instance  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+{\ttfamily block\+\_\+data}  &{\ttfamily \+[]\+const u8}  &Block\+\_\+data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 48}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1437}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block()}}{{\ttfamily get\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1437}
+Returns the block for the given height.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlock(self:\ *const\ Database,\ height:\ u64)\ ?[]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+u8}
+
+{\itshape Defined at line 52}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1439}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block\+Count()}}{{\ttfamily get\+Block\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1439}
+Returns the current block count.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlockCount(self:\ *const\ Database)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 56}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1441}{}\doxysubsection{\texorpdfstring{{\ttfamily index\+Transaction()}}{{\ttfamily index\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1441}
+Performs the index transaction operation on the database module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ indexTransaction(self:\ *Database,\ tx\_hash:\ []const\ u8,\ block\_height:\ u64,\ tx\_index:\ u32)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Database}  &The instance  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily tx\+\_\+index}  &{\ttfamily u32}  &Tx\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 61}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1443}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Transaction()}}{{\ttfamily find\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1443}
+Searches for transaction matching the given criteria.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findTransaction(self:\ *const\ Database,\ tx\_hash:\ []const\ u8)\ ?storage\_mod.TxLocation\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?storage\+\_\+mod.\+Tx\+Location}
+
+{\itshape Defined at line 65}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1445}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Transaction\+Count()}}{{\ttfamily get\+Transaction\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1445}
+Returns the current transaction count.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getTransactionCount(self:\ *const\ Database)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 69}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1447}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Balance()}}{{\ttfamily update\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1447}
+Updates the balance with new values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateBalance(self:\ *Database,\ address:\ []const\ u8,\ balance:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Database}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily balance}  &{\ttfamily u64}  &Balance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 74}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1449}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance()}}{{\ttfamily get\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1449}
+Returns the balance for the given address.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalance(self:\ *const\ Database,\ address:\ []const\ u8)\ ?u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?u64}
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1451}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address\+Count()}}{{\ttfamily get\+Address\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1451}
+Returns the current address count.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddressCount(self:\ *const\ Database)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 82}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1453}{}\doxysubsection{\texorpdfstring{{\ttfamily save\+Checkpoint()}}{{\ttfamily save\+Checkpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1453}
+Saves checkpoint to persistent storage.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ saveCheckpoint(self:\ *Database,\ state\_data:\ []const\ u8)\ !u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Database}  &The instance  \\
+{\ttfamily state\+\_\+data}  &{\ttfamily \+[]\+const u8}  &State\+\_\+data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u32}
+
+{\itshape Defined at line 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1455}{}\doxysubsection{\texorpdfstring{{\ttfamily load\+Checkpoint()}}{{\ttfamily load\+Checkpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1455}
+Loads checkpoint from persistent storage.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ loadCheckpoint(self:\ *const\ Database,\ checkpoint\_num:\ u32)\ ?[]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+{\ttfamily checkpoint\+\_\+num}  &{\ttfamily u32}  &Checkpoint\+\_\+num  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+u8}
+
+{\itshape Defined at line 91}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1457}{}\doxysubsection{\texorpdfstring{{\ttfamily load\+Latest\+Checkpoint()}}{{\ttfamily load\+Latest\+Checkpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1457}
+Loads latest checkpoint from persistent storage.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ loadLatestCheckpoint(self:\ *const\ Database)\ ?[]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+u8}
+
+{\itshape Defined at line 95}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1459}{}\doxysubsection{\texorpdfstring{{\ttfamily set\+Metadata()}}{{\ttfamily set\+Metadata()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1459}
+Sets the metadata to the specified value.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ setMetadata(self:\ *Database,\ key:\ []const\ u8,\ value:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Database}  &The instance  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[]\+const u8}  &Key  \\
+{\ttfamily value}  &{\ttfamily \+[]\+const u8}  &Value  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 100}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1461}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Metadata()}}{{\ttfamily get\+Metadata()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1461}
+Returns the metadata for the given key.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMetadata(self:\ *const\ Database,\ key:\ []const\ u8)\ ?[]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+{\ttfamily \doxylink{namespacekey}{key}}  &{\ttfamily \+[]\+const u8}  &Key  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+u8}
+
+{\itshape Defined at line 104}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1463}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Stats()}}{{\ttfamily get\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1463}
+Returns the current stats.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getStats(self:\ *const\ Database)\ DatabaseStats\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Database}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Database\+Stats}
+
+{\itshape Defined at line 109}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1465}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1465}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ PersistentBlockchain\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Persistent\+Blockchain}
+
+{\itshape Defined at line 155}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1467}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1467}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *PersistentBlockchain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Persistent\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 162}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1469}{}\doxysubsection{\texorpdfstring{{\ttfamily load\+From\+Disk()}}{{\ttfamily load\+From\+Disk()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1469}
+Incarca database din fisier (format binar simplu, fara dependente externe) Format fisier:\+ \+[magic:\+4]\+\+[version:\+1]\+\+[block\+\_\+count:\+4]\+ per bloc:\+ \+[height:\+8]\+\+[data\+\_\+len:\+4]\+\+[data...]\+ \+[addr\+\_\+count:\+4]\+ per adresa:\+ \+[addr\+\_\+len:\+1]\+\+[addr...]\+\+[balance:\+8]\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ loadFromDisk(allocator:\ std.mem.Allocator,\ path:\ []const\ u8)\ !PersistentBlockchain\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily path}  &{\ttfamily \+[]\+const u8}  &Path  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Persistent\+Blockchain}
+
+{\itshape Defined at line 171}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1471}{}\doxysubsection{\texorpdfstring{{\ttfamily save\+To\+Disk()}}{{\ttfamily save\+To\+Disk()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1471}
+Salveaza database pe disc (format binar simplu, atomic via tmp+rename)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ saveToDisk(self:\ *PersistentBlockchain,\ path:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Persistent\+Blockchain}  &The instance  \\
+{\ttfamily path}  &{\ttfamily \+[]\+const u8}  &Path  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 242}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1473}{}\doxysubsection{\texorpdfstring{{\ttfamily save\+Blockchain()}}{{\ttfamily save\+Blockchain()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1473}
+Salveaza blockchain-\/ul activ (bc) pe disc Format v2:\+ \+[magic:\+4]\+\+[version:\+4]\+ \+[block\+\_\+count:\+4]\+ per bloc:\+ \+[height:\+8]\+\+[data\+\_\+len:\+4]\+\+[data...]\+ \+[crc32:\+4]\+ \+[addr\+\_\+count:\+4]\+ per adresa:\+ \+[addr\+\_\+len:\+1]\+\+[addr...]\+\+[balance:\+8]\+ \+[crc32:\+4]\+ \+[nonce\+\_\+count:\+4]\+ per nonce:\+ \+[addr\+\_\+len:\+1]\+\+[addr...]\+\+[nonce:\+8]\+ \+[crc32:\+4]\+ \+[tx\+\_\+count:\+4]\+ per tx:\+ \+[hash\+\_\+len:\+1]\+\+[hash...]\+\+[height:\+8]\+ \+[crc32:\+4]\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ saveBlockchain(self:\ *PersistentBlockchain,\ bc:\ *const\ blockchain\_mod.Blockchain,\ path:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Persistent\+Blockchain}  &The instance  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}const blockchain\+\_\+mod.\+Blockchain}  &Bc  \\
+{\ttfamily path}  &{\ttfamily \+[]\+const u8}  &Path  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 316}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1475}{}\doxysubsection{\texorpdfstring{{\ttfamily restore\+Into()}}{{\ttfamily restore\+Into()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1475}
+Reincarca blockchain-\/ul din disc in bc (apelat dupa build\+Blockchain/\+genesis) Supports both v1 and v2 file formats. V2 adds CRC32 checksums per section. Creates .bak backup before loading. Falls back to .bak if .dat is corrupt.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ restoreInto(self:\ *PersistentBlockchain,\ bc:\ *blockchain\_mod.Blockchain,\ path:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Persistent\+Blockchain}  &The instance  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}blockchain\+\_\+mod.Blockchain}  &Bc  \\
+{\ttfamily path}  &{\ttfamily \+[]\+const u8}  &Path  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 486}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1477}{}\doxysubsection{\texorpdfstring{{\ttfamily append\+Block()}}{{\ttfamily append\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1477}
+Append un singur bloc nou la sfarsitul fisierului — for v1 compat. For v2, falls back to full save\+Blockchain since sections have CRC32 trailers.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ appendBlock(self:\ *PersistentBlockchain,\ bc:\ *const\ blockchain\_mod.Blockchain,\ path:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Persistent\+Blockchain}  &The instance  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}const blockchain\+\_\+mod.\+Blockchain}  &Bc  \\
+{\ttfamily path}  &{\ttfamily \+[]\+const u8}  &Path  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 808}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1479}{}\doxysubsection{\texorpdfstring{{\ttfamily compact()}}{{\ttfamily compact()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1479}
+Compact — sterge blocuri vechi pastrand ultimele N
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ compact(self:\ *PersistentBlockchain)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Persistent\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 978}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1481}{}\doxysubsection{\texorpdfstring{{\ttfamily checkpoint()}}{{\ttfamily checkpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1481}
+Checkpoint entire blockchain state
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkpoint(self:\ *PersistentBlockchain)\ !u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Persistent\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u32}
+
+{\itshape Defined at line 983}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1483}{}\doxysubsection{\texorpdfstring{{\ttfamily recover\+From\+Checkpoint()}}{{\ttfamily recover\+From\+Checkpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1483}
+Recover from checkpoint
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recoverFromCheckpoint(self:\ *PersistentBlockchain,\ checkpoint\_num:\ u32)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Persistent\+Blockchain}  &The instance  \\
+{\ttfamily checkpoint\+\_\+num}  &{\ttfamily u32}  &Checkpoint\+\_\+num  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 997}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1485}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Stats()}}{{\ttfamily get\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2database_autotoc_md1485}
+Get database statistics
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getStats(self:\ *const\ PersistentBlockchain)\ DatabaseStats\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Persistent\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Database\+Stats}
+
+{\itshape Defined at line 1003}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

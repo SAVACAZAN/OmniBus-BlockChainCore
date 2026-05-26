@@ -1,0 +1,148 @@
+\doxysection{zig-\/error-\/decoder Namespace Reference}
+\hypertarget{namespacezig-error-decoder}{}\label{namespacezig-error-decoder}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d}{cprint}} (str color, str msg)
+\item 
+List\+[Dict\+[str, str]\+]\+ \doxymbox{\hyperlink{namespacezig-error-decoder_a4e3566092be6c16209ffd2dcca5b9c47}{decode\+\_\+errors}} (str text)
+\item 
+int \doxymbox{\hyperlink{namespacezig-error-decoder_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacezig-error-decoder_a44446ad948a43a154bd7083385df31dd}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacezig-error-decoder_abc9b27c86e47196c945714d36ed9509a}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacezig-error-decoder_a732bb8dfd55178a6fac220e50a7710b2}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacezig-error-decoder_a2fbe21102279aaf4a7c9c4c12b4d28b5}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+list \doxymbox{\hyperlink{namespacezig-error-decoder_ad45473e679745a674061a104c94149d8}{ERROR\+\_\+\+PATTERNS}}
+\end{DoxyCompactItemize}
+
+
+\label{namespacezig-error-decoder_doc-func-members}
+\Hypertarget{namespacezig-error-decoder_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}!cprint@{cprint}}
+\index{cprint@{cprint}!zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection{\texorpdfstring{cprint()}{cprint()}}
+{\footnotesize\ttfamily \label{namespacezig-error-decoder_acd59877dca2a9957888013a6f06aab6d} 
+ None cprint (\begin{DoxyParamCaption}\item[{str}]{color}{, }\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{zig-error-decoder_8py_source_l00020}{20}} of file \doxymbox{\hyperlink{zig-error-decoder_8py_source}{zig-\/error-\/decoder.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacezig-error-decoder_a4e3566092be6c16209ffd2dcca5b9c47}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}!decode\_errors@{decode\_errors}}
+\index{decode\_errors@{decode\_errors}!zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection{\texorpdfstring{decode\_errors()}{decode\_errors()}}
+{\footnotesize\ttfamily \label{namespacezig-error-decoder_a4e3566092be6c16209ffd2dcca5b9c47} 
+ List\+[Dict\+[str, str]\+]\+ decode\+\_\+errors (\begin{DoxyParamCaption}\item[{str}]{text}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{zig-error-decoder_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{zig-error-decoder_8py_source}{zig-\/error-\/decoder.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacezig-error-decoder_a7431cb90017e54fe695b23d4190db046}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}!main@{main}}
+\index{main@{main}!zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacezig-error-decoder_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{zig-error-decoder_8py_source_l00063}{63}} of file \doxymbox{\hyperlink{zig-error-decoder_8py_source}{zig-\/error-\/decoder.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+
+
+\label{namespacezig-error-decoder_doc-var-members}
+\Hypertarget{namespacezig-error-decoder_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacezig-error-decoder_ad45473e679745a674061a104c94149d8}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}!ERROR\_PATTERNS@{ERROR\_PATTERNS}}
+\index{ERROR\_PATTERNS@{ERROR\_PATTERNS}!zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection{\texorpdfstring{ERROR\_PATTERNS}{ERROR\_PATTERNS}}
+{\footnotesize\ttfamily \label{namespacezig-error-decoder_ad45473e679745a674061a104c94149d8} 
+list \doxymbox{\hyperlink{namespacezig}{zig}}-\/error-\/decoder.\+ERROR\+\_\+\+PATTERNS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ use\ of\ undeclared\ identifier\ '(\(\backslash\)w+)'"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Add\ missing\ import\ or\ variable\ declaration\ for\ '\{match\}'."{}},}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ expected\ type\ '(.+?)',\ found\ '(.+?)'"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Type\ mismatch:\ cast\ from\ '\{group2\}'\ to\ '\{group1\}'\ using\ @intCast,\ @truncate,\ or\ @as."{}},}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ no\ field\ named\ '(\(\backslash\)w+)'\ in\ struct\ '(.+?)'"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Field\ '\{match\}'\ missing\ in\ struct\ '\{group2\}'.\ Check\ field\ name\ or\ update\ struct\ definition."{}},}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ unreachable\ code"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Remove\ or\ guard\ code\ after\ a\ return,\ break,\ or\ unreachable\ statement."{}},}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}regex"{}}:\ re.compile(\textcolor{stringliteral}{r"{}error:\ cannot\ assign\ to\ constant"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suggestion"{}}:\ \textcolor{stringliteral}{"{}Change\ 'const'\ to\ 'var'\ for\ the\ binding\ you\ need\ to\ mutate."{}},}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{zig-error-decoder_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{zig-error-decoder_8py_source}{zig-\/error-\/decoder.\+py}}.
+
+\Hypertarget{namespacezig-error-decoder_a44446ad948a43a154bd7083385df31dd}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacezig-error-decoder_a44446ad948a43a154bd7083385df31dd} 
+str \doxymbox{\hyperlink{namespacezig}{zig}}-\/error-\/decoder.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{zig-error-decoder_8py_source_l00014}{14}} of file \doxymbox{\hyperlink{zig-error-decoder_8py_source}{zig-\/error-\/decoder.\+py}}.
+
+\Hypertarget{namespacezig-error-decoder_abc9b27c86e47196c945714d36ed9509a}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}!RED@{RED}}
+\index{RED@{RED}!zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacezig-error-decoder_abc9b27c86e47196c945714d36ed9509a} 
+str \doxymbox{\hyperlink{namespacezig}{zig}}-\/error-\/decoder.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{zig-error-decoder_8py_source_l00015}{15}} of file \doxymbox{\hyperlink{zig-error-decoder_8py_source}{zig-\/error-\/decoder.\+py}}.
+
+\Hypertarget{namespacezig-error-decoder_a2fbe21102279aaf4a7c9c4c12b4d28b5}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}!RESET@{RESET}}
+\index{RESET@{RESET}!zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacezig-error-decoder_a2fbe21102279aaf4a7c9c4c12b4d28b5} 
+str \doxymbox{\hyperlink{namespacezig}{zig}}-\/error-\/decoder.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{zig-error-decoder_8py_source_l00017}{17}} of file \doxymbox{\hyperlink{zig-error-decoder_8py_source}{zig-\/error-\/decoder.\+py}}.
+
+\Hypertarget{namespacezig-error-decoder_a732bb8dfd55178a6fac220e50a7710b2}\index{zig-\/error-\/decoder@{zig-\/error-\/decoder}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!zig-\/error-\/decoder@{zig-\/error-\/decoder}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacezig-error-decoder_a732bb8dfd55178a6fac220e50a7710b2} 
+str \doxymbox{\hyperlink{namespacezig}{zig}}-\/error-\/decoder.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{zig-error-decoder_8py_source_l00016}{16}} of file \doxymbox{\hyperlink{zig-error-decoder_8py_source}{zig-\/error-\/decoder.\+py}}.
+

@@ -1,0 +1,721 @@
+\doxysection{generate\+\_\+multiwallet Namespace Reference}
+\hypertarget{namespacegenerate__multiwallet}{}\label{namespacegenerate__multiwallet}\index{generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a573c5180f78317b57ba96e0047db748c}{\+\_\+bech32\+\_\+polymod}} (values)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_aea9b69761a954d20c2b19e52109ecb9c}{\+\_\+bech32\+\_\+hrp\+\_\+expand}} (hrp)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_aa3e4e5034648673341bd248bf5c22a5f}{\+\_\+bech32\+\_\+create\+\_\+checksum}} (hrp, data, spec)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_afecdcbbbaed13384f356d1c8a285b534}{\+\_\+convertbits}} (data, frombits, tobits, pad=True)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a9cc432056d6c4d479cafaa5e3be6a9d2}{bech32\+\_\+encode}} (hrp, witver, witprog)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a5131aff6356a52dd3837c3c38b38dc73}{\+\_\+b58encode}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__multiwallet_acb100d43e1ce1f93d11efb2bb2ddecb3}{\+\_\+checksum}} (bytes d)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__multiwallet_ad76d5a49ab295544aaaf16a4826a4f94}{\+\_\+hash160}} (bytes d)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a9b4b03d290c4b6c37173ba69b50d0adb}{\+\_\+wif\+\_\+encode}} (bytes privkey, int version=0x80, bool compressed=True)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__multiwallet_a5e3b26742b9f7a597c26ca57549bf36b}{\+\_\+mnemonic\+\_\+to\+\_\+seed}} (str mnemonic, str passphrase="{}"{})
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a61b8fdb9aed25cbbd18f2c46b10ee288}{\+\_\+generate\+\_\+mnemonic\+\_\+12}} ()
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a1cc33c49a8dd8dff42c2b57163521bcc}{\+\_\+seed\+\_\+to\+\_\+keypair}} (bytes seed, int coin\+\_\+type, int purpose=44, int index=0)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a8dc092e45ba686693ebd54b2510a86e9}{\+\_\+serialize\+\_\+xkey}} (bytes version\+\_\+bytes, int depth, bytes fingerprint, int child\+\_\+index, bytes chain\+\_\+code, bytes key\+\_\+data)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__multiwallet_a5efe9601cfd07c54a7e4d2ef6a56196d}{\+\_\+master\+\_\+fingerprint}} (bytes seed)
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__multiwallet_add70a5ded55df3c3a02019fdcea9b844}{\+\_\+derive\+\_\+omni\+\_\+addresses}} (bytes seed)
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__multiwallet_a44b906fd362cd95b8bd33a9d01f74c6d}{\+\_\+derive\+\_\+btc\+\_\+addresses}} (bytes seed)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a56046bca00e1251ebee451f02f88915d}{\+\_\+btc\+\_\+addr\+\_\+legacy}} (priv, pub, path, chain, index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_adf2d9b626e9657c6007e983d6a276602}{\+\_\+btc\+\_\+addr\+\_\+segwit\+\_\+p2sh}} (priv, pub, path, chain, index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a5a9c089a1be2176ba67b4a3e8038e2d8}{\+\_\+btc\+\_\+addr\+\_\+native\+\_\+segwit}} (priv, pub, path, chain, index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_ac4c412a32e9bf675336a05ec8ab5c0b6}{\+\_\+btc\+\_\+addr\+\_\+taproot}} (priv, pub, path, chain, index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_afc311463bc0c4eb08adee8d837e0ad2c}{\+\_\+derive\+\_\+account\+\_\+xkeys}} (seed, purpose, coin\+\_\+type=0, account=0)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_af679bec7918559a5b6c514738f132d3c}{\+\_\+derive\+\_\+btc\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a74b484a6ddacaeb6804711fffc2b4878}{\+\_\+derive\+\_\+omni\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a9b3a12a7151474840f0172252c42e26b}{\+\_\+derive\+\_\+single\+\_\+eth}} (bytes seed, int index=0)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a965eabe6725d6d9968080d5aa81a1a23}{\+\_\+derive\+\_\+single\+\_\+egld}} (bytes seed, int index=0)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a42f0155330622af7fbc9b85327758923}{\+\_\+derive\+\_\+single\+\_\+sol}} (bytes seed, int index=0)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a21931ac565bef5e5504af3d038dee992}{\+\_\+derive\+\_\+eth\+\_\+address}} (seed)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a5782da25aa991db35ccf46a57d2e5835}{\+\_\+derive\+\_\+egld\+\_\+address}} (seed)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_adcbf4c082c96348df526bb533015621d}{\+\_\+derive\+\_\+sol\+\_\+address}} (seed)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a1259b3436cac4ac341dfe128bb0ea43f}{\+\_\+derive\+\_\+eth\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_ae9d580923c82b507f7eb2ea94ec81a5e}{\+\_\+derive\+\_\+egld\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a5e51f7e257c3865a8ea57acffd970b1b}{\+\_\+derive\+\_\+sol\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_ad57a4683f8a0437b9ca9c9846fb69256}{\+\_\+derive\+\_\+secp\+\_\+chain}} (seed, coin\+\_\+type, purpose, index, version\+\_\+byte, hrp=None, addr\+\_\+format="{}base58"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a2acea5f5bbfd4c6808a2063867808964}{\+\_\+derive\+\_\+ed25519\+\_\+chain}} (seed, coin\+\_\+type, index, hrp=None, addr\+\_\+format="{}base58"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a0e68fa3f15fa715dd7fb39afde3e6f29}{\+\_\+make\+\_\+secp\+\_\+accounts}} (seed, coin\+\_\+type, version\+\_\+byte, name, address\+\_\+indices, purpose=44, hrp=None, addr\+\_\+format="{}base58"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_aba0ae521caab4c20cc4862c055b2e3f9}{\+\_\+make\+\_\+ed25519\+\_\+accounts}} (seed, coin\+\_\+type, name, address\+\_\+indices, hrp=None, addr\+\_\+format="{}base58"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a60016de67f604a245bf43a05f56042c2}{\+\_\+derive\+\_\+ltc\+\_\+accounts}} (seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a3b8eaed0dd525e735fc618ee154e2aba}{generate\+\_\+multiwallet}} (str mnemonic=None, str passphrase="{}"{}, list address\+\_\+indices=None)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a609a45ebd3363b286a8dd1b4bd0953a7}{CHARSET}} = "{}qpzry9x8gf2tvdw0s3jn54khce6mua7l"{}
+\item 
+int \doxymbox{\hyperlink{namespacegenerate__multiwallet_aff0657a5c9b2a2cdfa588c7f4b8d2bf0}{BECH32\+\_\+\+CONST}} = 1
+\item 
+int \doxymbox{\hyperlink{namespacegenerate__multiwallet_a936688b6cc06072d0a733119e1217f53}{BECH32\+M\+\_\+\+CONST}} = 0x2bc830a3
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__multiwallet_a8ee191e7924ca2c4868e7e0b2c30f058}{GEN}} = \+[0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]\+
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a3832beee66470c5eb5f75e0dddbc2855}{\+\_\+\+B58}} = "{}123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"{}
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_aef4c4aaf21a5baf4939a4d46d5a52a7b}{\+\_\+\+XKEY\+\_\+\+VERSIONS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}generate_multiwallet.py — OmniBus Multi-Chain Wallet Generator
+Derives addresses from a SINGLE mnemonic anchor across:
+  - OMNI (5 PQ domains, Bech32 ob1q...)
+  - BTC  (Legacy P2PKH 1..., SegWit P2SH 3..., Native SegWit bc1q..., Taproot bc1p...)
+  - ETH  (Keccak256, 0x...)
+  - EGLD (Bech32 erd1...)
+  - SOL  (Ed25519 Base58)
+
+Usage:
+    pip install bip_utils mnemonic
+    python generate_multiwallet.py
+    python generate_multiwallet.py --mnemonic "abandon abandon ... about"
+    python generate_multiwallet.py --output wallet.json
+
+Output:
+    MULTIWALLET_FULL_<date>.json  — ALL chains, full metadata (SECRET!)
+    MULTIWALLET_PUBLIC_<date>.json — Public keys + addresses only
+\end{DoxyVerb}
+ 
+
+\label{namespacegenerate__multiwallet_doc-func-members}
+\Hypertarget{namespacegenerate__multiwallet_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacegenerate__multiwallet_a5131aff6356a52dd3837c3c38b38dc73}\index{generate\_multiwallet@{generate\_multiwallet}!\_b58encode@{\_b58encode}}
+\index{\_b58encode@{\_b58encode}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_b58encode()}{\_b58encode()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a5131aff6356a52dd3837c3c38b38dc73} 
+ str \+\_\+b58encode (\begin{DoxyParamCaption}\item[{bytes}]{data}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00080}{80}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacegenerate__multiwallet_aa3e4e5034648673341bd248bf5c22a5f}\index{generate\_multiwallet@{generate\_multiwallet}!\_bech32\_create\_checksum@{\_bech32\_create\_checksum}}
+\index{\_bech32\_create\_checksum@{\_bech32\_create\_checksum}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_bech32\_create\_checksum()}{\_bech32\_create\_checksum()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_aa3e4e5034648673341bd248bf5c22a5f} 
+\+\_\+bech32\+\_\+create\+\_\+checksum (\begin{DoxyParamCaption}\item[{}]{hrp}{, }\item[{}]{data}{, }\item[{}]{spec}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacegenerate__multiwallet_aea9b69761a954d20c2b19e52109ecb9c}\index{generate\_multiwallet@{generate\_multiwallet}!\_bech32\_hrp\_expand@{\_bech32\_hrp\_expand}}
+\index{\_bech32\_hrp\_expand@{\_bech32\_hrp\_expand}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_bech32\_hrp\_expand()}{\_bech32\_hrp\_expand()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_aea9b69761a954d20c2b19e52109ecb9c} 
+\+\_\+bech32\+\_\+hrp\+\_\+expand (\begin{DoxyParamCaption}\item[{}]{hrp}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacegenerate__multiwallet_a573c5180f78317b57ba96e0047db748c}\index{generate\_multiwallet@{generate\_multiwallet}!\_bech32\_polymod@{\_bech32\_polymod}}
+\index{\_bech32\_polymod@{\_bech32\_polymod}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_bech32\_polymod()}{\_bech32\_polymod()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a573c5180f78317b57ba96e0047db748c} 
+\+\_\+bech32\+\_\+polymod (\begin{DoxyParamCaption}\item[{}]{values}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacegenerate__multiwallet_a56046bca00e1251ebee451f02f88915d}\index{generate\_multiwallet@{generate\_multiwallet}!\_btc\_addr\_legacy@{\_btc\_addr\_legacy}}
+\index{\_btc\_addr\_legacy@{\_btc\_addr\_legacy}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_btc\_addr\_legacy()}{\_btc\_addr\_legacy()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a56046bca00e1251ebee451f02f88915d} 
+\+\_\+btc\+\_\+addr\+\_\+legacy (\begin{DoxyParamCaption}\item[{}]{priv}{, }\item[{}]{pub}{, }\item[{}]{path}{, }\item[{}]{chain}{, }\item[{}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00219}{219}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+\Hypertarget{namespacegenerate__multiwallet_a5a9c089a1be2176ba67b4a3e8038e2d8}\index{generate\_multiwallet@{generate\_multiwallet}!\_btc\_addr\_native\_segwit@{\_btc\_addr\_native\_segwit}}
+\index{\_btc\_addr\_native\_segwit@{\_btc\_addr\_native\_segwit}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_btc\_addr\_native\_segwit()}{\_btc\_addr\_native\_segwit()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a5a9c089a1be2176ba67b4a3e8038e2d8} 
+\+\_\+btc\+\_\+addr\+\_\+native\+\_\+segwit (\begin{DoxyParamCaption}\item[{}]{priv}{, }\item[{}]{pub}{, }\item[{}]{path}{, }\item[{}]{chain}{, }\item[{}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00249}{249}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+\Hypertarget{namespacegenerate__multiwallet_adf2d9b626e9657c6007e983d6a276602}\index{generate\_multiwallet@{generate\_multiwallet}!\_btc\_addr\_segwit\_p2sh@{\_btc\_addr\_segwit\_p2sh}}
+\index{\_btc\_addr\_segwit\_p2sh@{\_btc\_addr\_segwit\_p2sh}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_btc\_addr\_segwit\_p2sh()}{\_btc\_addr\_segwit\_p2sh()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_adf2d9b626e9657c6007e983d6a276602} 
+\+\_\+btc\+\_\+addr\+\_\+segwit\+\_\+p2sh (\begin{DoxyParamCaption}\item[{}]{priv}{, }\item[{}]{pub}{, }\item[{}]{path}{, }\item[{}]{chain}{, }\item[{}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00233}{233}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+\Hypertarget{namespacegenerate__multiwallet_ac4c412a32e9bf675336a05ec8ab5c0b6}\index{generate\_multiwallet@{generate\_multiwallet}!\_btc\_addr\_taproot@{\_btc\_addr\_taproot}}
+\index{\_btc\_addr\_taproot@{\_btc\_addr\_taproot}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_btc\_addr\_taproot()}{\_btc\_addr\_taproot()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_ac4c412a32e9bf675336a05ec8ab5c0b6} 
+\+\_\+btc\+\_\+addr\+\_\+taproot (\begin{DoxyParamCaption}\item[{}]{priv}{, }\item[{}]{pub}{, }\item[{}]{path}{, }\item[{}]{chain}{, }\item[{}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00263}{263}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+\Hypertarget{namespacegenerate__multiwallet_acb100d43e1ce1f93d11efb2bb2ddecb3}\index{generate\_multiwallet@{generate\_multiwallet}!\_checksum@{\_checksum}}
+\index{\_checksum@{\_checksum}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_checksum()}{\_checksum()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_acb100d43e1ce1f93d11efb2bb2ddecb3} 
+ bytes \+\_\+checksum (\begin{DoxyParamCaption}\item[{bytes}]{d}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00089}{89}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacegenerate__multiwallet_afecdcbbbaed13384f356d1c8a285b534}\index{generate\_multiwallet@{generate\_multiwallet}!\_convertbits@{\_convertbits}}
+\index{\_convertbits@{\_convertbits}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_convertbits()}{\_convertbits()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_afecdcbbbaed13384f356d1c8a285b534} 
+\+\_\+convertbits (\begin{DoxyParamCaption}\item[{}]{data}{, }\item[{}]{frombits}{, }\item[{}]{tobits}{, }\item[{}]{pad}{ = {\ttfamily True}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacegenerate__multiwallet_afc311463bc0c4eb08adee8d837e0ad2c}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_account\_xkeys@{\_derive\_account\_xkeys}}
+\index{\_derive\_account\_xkeys@{\_derive\_account\_xkeys}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_account\_xkeys()}{\_derive\_account\_xkeys()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_afc311463bc0c4eb08adee8d837e0ad2c} 
+\+\_\+derive\+\_\+account\+\_\+xkeys (\begin{DoxyParamCaption}\item[{}]{seed}{, }\item[{}]{purpose}{, }\item[{}]{coin\+\_\+type}{ = {\ttfamily 0}, }\item[{}]{account}{ = {\ttfamily 0}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Derive xpub/xprv at account level m/purpose'/coin_type'/account'\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00288}{288}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 11
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacegenerate__multiwallet_af679bec7918559a5b6c514738f132d3c}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_btc\_accounts@{\_derive\_btc\_accounts}}
+\index{\_derive\_btc\_accounts@{\_derive\_btc\_accounts}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_btc\_accounts()}{\_derive\_btc\_accounts()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_af679bec7918559a5b6c514738f132d3c} 
+ dict \+\_\+derive\+\_\+btc\+\_\+accounts (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{}]{address\+\_\+indices}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Bitcoin full account structure — 4 purposes × N addresses, with xpub/xprv per account.
+Identical to BTC Core wallet metadata format.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00318}{318}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14
+\Hypertarget{namespacegenerate__multiwallet_a44b906fd362cd95b8bd33a9d01f74c6d}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_btc\_addresses@{\_derive\_btc\_addresses}}
+\index{\_derive\_btc\_addresses@{\_derive\_btc\_addresses}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_btc\_addresses()}{\_derive\_btc\_addresses()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a44b906fd362cd95b8bd33a9d01f74c6d} 
+ list \+\_\+derive\+\_\+btc\+\_\+addresses (\begin{DoxyParamCaption}\item[{bytes}]{seed}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Bitcoin 4 address types from same seed (flat list for backward compat).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00205}{205}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 15
+\Hypertarget{namespacegenerate__multiwallet_a2acea5f5bbfd4c6808a2063867808964}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_ed25519\_chain@{\_derive\_ed25519\_chain}}
+\index{\_derive\_ed25519\_chain@{\_derive\_ed25519\_chain}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_ed25519\_chain()}{\_derive\_ed25519\_chain()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a2acea5f5bbfd4c6808a2063867808964} 
+\+\_\+derive\+\_\+ed25519\+\_\+chain (\begin{DoxyParamCaption}\item[{}]{seed}{, }\item[{}]{coin\+\_\+type}{, }\item[{}]{index}{, }\item[{}]{hrp}{ = {\ttfamily None}, }\item[{}]{addr\+\_\+format}{ = {\ttfamily "{}base58"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Generic Ed25519 chain address derivation.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00588}{588}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 16
+Here is the caller graph for this function:\+
+% FIG 17
+\Hypertarget{namespacegenerate__multiwallet_ae9d580923c82b507f7eb2ea94ec81a5e}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_egld\_accounts@{\_derive\_egld\_accounts}}
+\index{\_derive\_egld\_accounts@{\_derive\_egld\_accounts}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_egld\_accounts()}{\_derive\_egld\_accounts()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_ae9d580923c82b507f7eb2ea94ec81a5e} 
+ dict \+\_\+derive\+\_\+egld\+\_\+accounts (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{}]{address\+\_\+indices}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}EGLD account — purpose 44 × N addresses.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00535}{535}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 18
+Here is the caller graph for this function:\+
+% FIG 19
+\Hypertarget{namespacegenerate__multiwallet_a5782da25aa991db35ccf46a57d2e5835}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_egld\_address@{\_derive\_egld\_address}}
+\index{\_derive\_egld\_address@{\_derive\_egld\_address}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_egld\_address()}{\_derive\_egld\_address()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a5782da25aa991db35ccf46a57d2e5835} 
+\+\_\+derive\+\_\+egld\+\_\+address (\begin{DoxyParamCaption}\item[{}]{seed}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00518}{518}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+\Hypertarget{namespacegenerate__multiwallet_a1259b3436cac4ac341dfe128bb0ea43f}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_eth\_accounts@{\_derive\_eth\_accounts}}
+\index{\_derive\_eth\_accounts@{\_derive\_eth\_accounts}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_eth\_accounts()}{\_derive\_eth\_accounts()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a1259b3436cac4ac341dfe128bb0ea43f} 
+ dict \+\_\+derive\+\_\+eth\+\_\+accounts (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{}]{address\+\_\+indices}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}ETH account — purpose 44 × N addresses.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00522}{522}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 20
+Here is the caller graph for this function:\+
+% FIG 21
+\Hypertarget{namespacegenerate__multiwallet_a21931ac565bef5e5504af3d038dee992}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_eth\_address@{\_derive\_eth\_address}}
+\index{\_derive\_eth\_address@{\_derive\_eth\_address}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_eth\_address()}{\_derive\_eth\_address()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a21931ac565bef5e5504af3d038dee992} 
+\+\_\+derive\+\_\+eth\+\_\+address (\begin{DoxyParamCaption}\item[{}]{seed}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00517}{517}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+\Hypertarget{namespacegenerate__multiwallet_a60016de67f604a245bf43a05f56042c2}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_ltc\_accounts@{\_derive\_ltc\_accounts}}
+\index{\_derive\_ltc\_accounts@{\_derive\_ltc\_accounts}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_ltc\_accounts()}{\_derive\_ltc\_accounts()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a60016de67f604a245bf43a05f56042c2} 
+\+\_\+derive\+\_\+ltc\+\_\+accounts (\begin{DoxyParamCaption}\item[{}]{seed}{, }\item[{}]{address\+\_\+indices}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00663}{663}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 22
+Here is the caller graph for this function:\+
+% FIG 23
+\Hypertarget{namespacegenerate__multiwallet_a74b484a6ddacaeb6804711fffc2b4878}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_omni\_accounts@{\_derive\_omni\_accounts}}
+\index{\_derive\_omni\_accounts@{\_derive\_omni\_accounts}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_omni\_accounts()}{\_derive\_omni\_accounts()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a74b484a6ddacaeb6804711fffc2b4878} 
+ dict \+\_\+derive\+\_\+omni\+\_\+accounts (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{}]{address\+\_\+indices}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}OmniBus account structure — 5 PQ domains × N addresses, with xpub/xprv per domain.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00353}{353}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 24
+Here is the caller graph for this function:\+
+% FIG 25
+\Hypertarget{namespacegenerate__multiwallet_add70a5ded55df3c3a02019fdcea9b844}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_omni\_addresses@{\_derive\_omni\_addresses}}
+\index{\_derive\_omni\_addresses@{\_derive\_omni\_addresses}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_omni\_addresses()}{\_derive\_omni\_addresses()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_add70a5ded55df3c3a02019fdcea9b844} 
+ list \+\_\+derive\+\_\+omni\+\_\+addresses (\begin{DoxyParamCaption}\item[{bytes}]{seed}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}OmniBus 5 PQ domains — Bech32 ob1q...\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00172}{172}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 26
+\Hypertarget{namespacegenerate__multiwallet_ad57a4683f8a0437b9ca9c9846fb69256}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_secp\_chain@{\_derive\_secp\_chain}}
+\index{\_derive\_secp\_chain@{\_derive\_secp\_chain}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_secp\_chain()}{\_derive\_secp\_chain()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_ad57a4683f8a0437b9ca9c9846fb69256} 
+\+\_\+derive\+\_\+secp\+\_\+chain (\begin{DoxyParamCaption}\item[{}]{seed}{, }\item[{}]{coin\+\_\+type}{, }\item[{}]{purpose}{, }\item[{}]{index}{, }\item[{}]{version\+\_\+byte}{, }\item[{}]{hrp}{ = {\ttfamily None}, }\item[{}]{addr\+\_\+format}{ = {\ttfamily "{}base58"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Generic secp256k1 chain address derivation.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00560}{560}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 27
+Here is the caller graph for this function:\+
+% FIG 28
+\Hypertarget{namespacegenerate__multiwallet_a965eabe6725d6d9968080d5aa81a1a23}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_single\_egld@{\_derive\_single\_egld}}
+\index{\_derive\_single\_egld@{\_derive\_single\_egld}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_single\_egld()}{\_derive\_single\_egld()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a965eabe6725d6d9968080d5aa81a1a23} 
+ dict \+\_\+derive\+\_\+single\+\_\+egld (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{int }]{index}{ = {\ttfamily 0}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Derive single EGLD address at index.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00445}{445}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 29
+Here is the caller graph for this function:\+
+% FIG 30
+\Hypertarget{namespacegenerate__multiwallet_a9b3a12a7151474840f0172252c42e26b}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_single\_eth@{\_derive\_single\_eth}}
+\index{\_derive\_single\_eth@{\_derive\_single\_eth}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_single\_eth()}{\_derive\_single\_eth()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a9b3a12a7151474840f0172252c42e26b} 
+ dict \+\_\+derive\+\_\+single\+\_\+eth (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{int }]{index}{ = {\ttfamily 0}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Derive single ETH address at index.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00399}{399}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 31
+Here is the caller graph for this function:\+
+% FIG 32
+\Hypertarget{namespacegenerate__multiwallet_a42f0155330622af7fbc9b85327758923}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_single\_sol@{\_derive\_single\_sol}}
+\index{\_derive\_single\_sol@{\_derive\_single\_sol}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_single\_sol()}{\_derive\_single\_sol()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a42f0155330622af7fbc9b85327758923} 
+ dict \+\_\+derive\+\_\+single\+\_\+sol (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{int }]{index}{ = {\ttfamily 0}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Derive single SOL address at index.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00482}{482}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 33
+Here is the caller graph for this function:\+
+% FIG 34
+\Hypertarget{namespacegenerate__multiwallet_a5e51f7e257c3865a8ea57acffd970b1b}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_sol\_accounts@{\_derive\_sol\_accounts}}
+\index{\_derive\_sol\_accounts@{\_derive\_sol\_accounts}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_sol\_accounts()}{\_derive\_sol\_accounts()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a5e51f7e257c3865a8ea57acffd970b1b} 
+ dict \+\_\+derive\+\_\+sol\+\_\+accounts (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{}]{address\+\_\+indices}{ = {\ttfamily None}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}SOL account — purpose 44 × N addresses.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00547}{547}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 35
+Here is the caller graph for this function:\+
+% FIG 36
+\Hypertarget{namespacegenerate__multiwallet_adcbf4c082c96348df526bb533015621d}\index{generate\_multiwallet@{generate\_multiwallet}!\_derive\_sol\_address@{\_derive\_sol\_address}}
+\index{\_derive\_sol\_address@{\_derive\_sol\_address}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_derive\_sol\_address()}{\_derive\_sol\_address()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_adcbf4c082c96348df526bb533015621d} 
+\+\_\+derive\+\_\+sol\+\_\+address (\begin{DoxyParamCaption}\item[{}]{seed}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00519}{519}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+\Hypertarget{namespacegenerate__multiwallet_a61b8fdb9aed25cbbd18f2c46b10ee288}\index{generate\_multiwallet@{generate\_multiwallet}!\_generate\_mnemonic\_12@{\_generate\_mnemonic\_12}}
+\index{\_generate\_mnemonic\_12@{\_generate\_mnemonic\_12}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_generate\_mnemonic\_12()}{\_generate\_mnemonic\_12()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a61b8fdb9aed25cbbd18f2c46b10ee288} 
+ str \+\_\+generate\+\_\+mnemonic\+\_\+12 (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00111}{111}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 37
+\Hypertarget{namespacegenerate__multiwallet_ad76d5a49ab295544aaaf16a4826a4f94}\index{generate\_multiwallet@{generate\_multiwallet}!\_hash160@{\_hash160}}
+\index{\_hash160@{\_hash160}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_hash160()}{\_hash160()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_ad76d5a49ab295544aaaf16a4826a4f94} 
+ bytes \+\_\+hash160 (\begin{DoxyParamCaption}\item[{bytes}]{d}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00092}{92}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 38
+\Hypertarget{namespacegenerate__multiwallet_aba0ae521caab4c20cc4862c055b2e3f9}\index{generate\_multiwallet@{generate\_multiwallet}!\_make\_ed25519\_accounts@{\_make\_ed25519\_accounts}}
+\index{\_make\_ed25519\_accounts@{\_make\_ed25519\_accounts}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_make\_ed25519\_accounts()}{\_make\_ed25519\_accounts()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_aba0ae521caab4c20cc4862c055b2e3f9} 
+\+\_\+make\+\_\+ed25519\+\_\+accounts (\begin{DoxyParamCaption}\item[{}]{seed}{, }\item[{}]{coin\+\_\+type}{, }\item[{}]{name}{, }\item[{}]{address\+\_\+indices}{, }\item[{}]{hrp}{ = {\ttfamily None}, }\item[{}]{addr\+\_\+format}{ = {\ttfamily "{}base58"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00650}{650}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 39
+Here is the caller graph for this function:\+
+% FIG 40
+\Hypertarget{namespacegenerate__multiwallet_a0e68fa3f15fa715dd7fb39afde3e6f29}\index{generate\_multiwallet@{generate\_multiwallet}!\_make\_secp\_accounts@{\_make\_secp\_accounts}}
+\index{\_make\_secp\_accounts@{\_make\_secp\_accounts}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_make\_secp\_accounts()}{\_make\_secp\_accounts()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a0e68fa3f15fa715dd7fb39afde3e6f29} 
+\+\_\+make\+\_\+secp\+\_\+accounts (\begin{DoxyParamCaption}\item[{}]{seed}{, }\item[{}]{coin\+\_\+type}{, }\item[{}]{version\+\_\+byte}{, }\item[{}]{name}{, }\item[{}]{address\+\_\+indices}{, }\item[{}]{purpose}{ = {\ttfamily 44}, }\item[{}]{hrp}{ = {\ttfamily None}, }\item[{}]{addr\+\_\+format}{ = {\ttfamily "{}base58"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00638}{638}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 41
+Here is the caller graph for this function:\+
+% FIG 42
+\Hypertarget{namespacegenerate__multiwallet_a5efe9601cfd07c54a7e4d2ef6a56196d}\index{generate\_multiwallet@{generate\_multiwallet}!\_master\_fingerprint@{\_master\_fingerprint}}
+\index{\_master\_fingerprint@{\_master\_fingerprint}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_master\_fingerprint()}{\_master\_fingerprint()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a5efe9601cfd07c54a7e4d2ef6a56196d} 
+ bytes \+\_\+master\+\_\+fingerprint (\begin{DoxyParamCaption}\item[{bytes}]{seed}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}First 4 bytes of Hash160(master_public_key)\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00159}{159}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 43
+Here is the caller graph for this function:\+
+% FIG 44
+\Hypertarget{namespacegenerate__multiwallet_a5e3b26742b9f7a597c26ca57549bf36b}\index{generate\_multiwallet@{generate\_multiwallet}!\_mnemonic\_to\_seed@{\_mnemonic\_to\_seed}}
+\index{\_mnemonic\_to\_seed@{\_mnemonic\_to\_seed}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_mnemonic\_to\_seed()}{\_mnemonic\_to\_seed()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a5e3b26742b9f7a597c26ca57549bf36b} 
+ bytes \+\_\+mnemonic\+\_\+to\+\_\+seed (\begin{DoxyParamCaption}\item[{str}]{mnemonic}{, }\item[{str }]{passphrase}{ = {\ttfamily "{}"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00103}{103}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 45
+\Hypertarget{namespacegenerate__multiwallet_a1cc33c49a8dd8dff42c2b57163521bcc}\index{generate\_multiwallet@{generate\_multiwallet}!\_seed\_to\_keypair@{\_seed\_to\_keypair}}
+\index{\_seed\_to\_keypair@{\_seed\_to\_keypair}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_seed\_to\_keypair()}{\_seed\_to\_keypair()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a1cc33c49a8dd8dff42c2b57163521bcc} 
+\+\_\+seed\+\_\+to\+\_\+keypair (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{int}]{coin\+\_\+type}{, }\item[{int }]{purpose}{ = {\ttfamily 44}, }\item[{int }]{index}{ = {\ttfamily 0}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}BIP-32 secp256k1 derivation via bip_utils.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00124}{124}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 46
+\Hypertarget{namespacegenerate__multiwallet_a8dc092e45ba686693ebd54b2510a86e9}\index{generate\_multiwallet@{generate\_multiwallet}!\_serialize\_xkey@{\_serialize\_xkey}}
+\index{\_serialize\_xkey@{\_serialize\_xkey}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_serialize\_xkey()}{\_serialize\_xkey()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a8dc092e45ba686693ebd54b2510a86e9} 
+ str \+\_\+serialize\+\_\+xkey (\begin{DoxyParamCaption}\item[{bytes}]{version\+\_\+bytes}{, }\item[{int}]{depth}{, }\item[{bytes}]{fingerprint}{, }\item[{int}]{child\+\_\+index}{, }\item[{bytes}]{chain\+\_\+code}{, }\item[{bytes}]{key\+\_\+data}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Serialize BIP-32 extended key → Base58Check\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00152}{152}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 47
+Here is the caller graph for this function:\+
+% FIG 48
+\Hypertarget{namespacegenerate__multiwallet_a9b4b03d290c4b6c37173ba69b50d0adb}\index{generate\_multiwallet@{generate\_multiwallet}!\_wif\_encode@{\_wif\_encode}}
+\index{\_wif\_encode@{\_wif\_encode}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_wif\_encode()}{\_wif\_encode()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a9b4b03d290c4b6c37173ba69b50d0adb} 
+ str \+\_\+wif\+\_\+encode (\begin{DoxyParamCaption}\item[{bytes}]{privkey}{, }\item[{int }]{version}{ = {\ttfamily 0x80}, }\item[{bool }]{compressed}{ = {\ttfamily True}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00095}{95}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 49
+Here is the caller graph for this function:\+
+% FIG 50
+\Hypertarget{namespacegenerate__multiwallet_a9cc432056d6c4d479cafaa5e3be6a9d2}\index{generate\_multiwallet@{generate\_multiwallet}!bech32\_encode@{bech32\_encode}}
+\index{bech32\_encode@{bech32\_encode}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{bech32\_encode()}{bech32\_encode()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a9cc432056d6c4d479cafaa5e3be6a9d2} 
+bech32\+\_\+encode (\begin{DoxyParamCaption}\item[{}]{hrp}{, }\item[{}]{witver}{, }\item[{}]{witprog}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Encode witness address. witver=0 -> Bech32, witver>=1 -> Bech32m\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 51
+Here is the caller graph for this function:\+
+% FIG 52
+\Hypertarget{namespacegenerate__multiwallet_a3b8eaed0dd525e735fc618ee154e2aba}\index{generate\_multiwallet@{generate\_multiwallet}!generate\_multiwallet@{generate\_multiwallet}}
+\index{generate\_multiwallet@{generate\_multiwallet}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{generate\_multiwallet()}{generate\_multiwallet()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a3b8eaed0dd525e735fc618ee154e2aba} 
+ dict generate\+\_\+multiwallet (\begin{DoxyParamCaption}\item[{str }]{mnemonic}{ = {\ttfamily None}, }\item[{str }]{passphrase}{ = {\ttfamily "{}"{}}, }\item[{list }]{address\+\_\+indices}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate full multi-chain wallet from single mnemonic anchor.
+BTC-identical account structure with xpub/xprv per purpose + multiple addresses.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00684}{684}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 53
+\Hypertarget{namespacegenerate__multiwallet_a51af30a60f9f02777c6396b8247e356f}\index{generate\_multiwallet@{generate\_multiwallet}!main@{main}}
+\index{main@{main}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00866}{866}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 54
+Here is the caller graph for this function:\+
+% FIG 55
+
+
+\label{namespacegenerate__multiwallet_doc-var-members}
+\Hypertarget{namespacegenerate__multiwallet_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacegenerate__multiwallet_a3832beee66470c5eb5f75e0dddbc2855}\index{generate\_multiwallet@{generate\_multiwallet}!\_B58@{\_B58}}
+\index{\_B58@{\_B58}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_B58}{\_B58}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a3832beee66470c5eb5f75e0dddbc2855} 
+str generate\+\_\+multiwallet.\+\_\+\+B58 = "{}123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"{}\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+\Hypertarget{namespacegenerate__multiwallet_aef4c4aaf21a5baf4939a4d46d5a52a7b}\index{generate\_multiwallet@{generate\_multiwallet}!\_XKEY\_VERSIONS@{\_XKEY\_VERSIONS}}
+\index{\_XKEY\_VERSIONS@{\_XKEY\_VERSIONS}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{\_XKEY\_VERSIONS}{\_XKEY\_VERSIONS}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_aef4c4aaf21a5baf4939a4d46d5a52a7b} 
+dict generate\+\_\+multiwallet.\+\_\+\+XKEY\+\_\+\+VERSIONS\hspace{0.3cm}{\ttfamily [protected]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ 44:\ \{\textcolor{stringliteral}{"{}pub"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x04\(\backslash\)x88\(\backslash\)xB2\(\backslash\)x1E"{}},\ \textcolor{stringliteral}{"{}prv"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x04\(\backslash\)x88\(\backslash\)xAD\(\backslash\)xE4"{}}\},\ \ \textcolor{comment}{\#\ xpub\ /\ xprv}}
+\DoxyCodeLine{\ \ \ \ 49:\ \{\textcolor{stringliteral}{"{}pub"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x04\(\backslash\)x9D\(\backslash\)x7C\(\backslash\)xB2"{}},\ \textcolor{stringliteral}{"{}prv"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x04\(\backslash\)x9D\(\backslash\)x78\(\backslash\)x78"{}}\},\ \ \textcolor{comment}{\#\ ypub\ /\ yprv}}
+\DoxyCodeLine{\ \ \ \ 84:\ \{\textcolor{stringliteral}{"{}pub"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x04\(\backslash\)xB2\(\backslash\)x47\(\backslash\)x46"{}},\ \textcolor{stringliteral}{"{}prv"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x04\(\backslash\)xB2\(\backslash\)x43\(\backslash\)x0C"{}}\},\ \ \textcolor{comment}{\#\ zpub\ /\ zprv}}
+\DoxyCodeLine{\ \ \ \ 86:\ \{\textcolor{stringliteral}{"{}pub"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x04\(\backslash\)x88\(\backslash\)xB2\(\backslash\)x1E"{}},\ \textcolor{stringliteral}{"{}prv"{}}:\ b\textcolor{stringliteral}{"{}\(\backslash\)x04\(\backslash\)x88\(\backslash\)xAD\(\backslash\)xE4"{}}\},\ \ \textcolor{comment}{\#\ xpub\ /\ xprv\ (Taproot\ uses\ same)}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00280}{280}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+\Hypertarget{namespacegenerate__multiwallet_aff0657a5c9b2a2cdfa588c7f4b8d2bf0}\index{generate\_multiwallet@{generate\_multiwallet}!BECH32\_CONST@{BECH32\_CONST}}
+\index{BECH32\_CONST@{BECH32\_CONST}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{BECH32\_CONST}{BECH32\_CONST}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_aff0657a5c9b2a2cdfa588c7f4b8d2bf0} 
+int generate\+\_\+multiwallet.\+BECH32\+\_\+\+CONST = 1}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+\Hypertarget{namespacegenerate__multiwallet_a936688b6cc06072d0a733119e1217f53}\index{generate\_multiwallet@{generate\_multiwallet}!BECH32M\_CONST@{BECH32M\_CONST}}
+\index{BECH32M\_CONST@{BECH32M\_CONST}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{BECH32M\_CONST}{BECH32M\_CONST}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a936688b6cc06072d0a733119e1217f53} 
+int generate\+\_\+multiwallet.\+BECH32\+M\+\_\+\+CONST = 0x2bc830a3}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+\Hypertarget{namespacegenerate__multiwallet_a609a45ebd3363b286a8dd1b4bd0953a7}\index{generate\_multiwallet@{generate\_multiwallet}!CHARSET@{CHARSET}}
+\index{CHARSET@{CHARSET}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{CHARSET}{CHARSET}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a609a45ebd3363b286a8dd1b4bd0953a7} 
+str generate\+\_\+multiwallet.\+CHARSET = "{}qpzry9x8gf2tvdw0s3jn54khce6mua7l"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+
+\Hypertarget{namespacegenerate__multiwallet_a8ee191e7924ca2c4868e7e0b2c30f058}\index{generate\_multiwallet@{generate\_multiwallet}!GEN@{GEN}}
+\index{GEN@{GEN}!generate\_multiwallet@{generate\_multiwallet}}
+\doxysubsubsection{\texorpdfstring{GEN}{GEN}}
+{\footnotesize\ttfamily \label{namespacegenerate__multiwallet_a8ee191e7924ca2c4868e7e0b2c30f058} 
+list generate\+\_\+multiwallet.\+GEN = \+[0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__multiwallet_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{generate__multiwallet_8py_source}{generate\+\_\+multiwallet.\+py}}.
+

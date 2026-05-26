@@ -1,0 +1,223 @@
+\doxysection{omni::\+Block\+Table\+Model Class Reference}
+\hypertarget{classomni_1_1_block_table_model}{}\label{classomni_1_1_block_table_model}\index{omni::BlockTableModel@{omni::BlockTableModel}}
+
+
+{\ttfamily \+\#include $<$Block\+Table\+Model.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Block\+Table\+Model:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Block\+Table\+Model:\+
+% FIG 1
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190}{Column}} \{ \newline
+\doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190af01ac7005a3f2b975edee0134fd28a62}{Col\+Height}}
+, \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a5d3203e308dbaec507c921e2eae6cb35}{Col\+Hash}}
+, \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac82eb40a576bcaeaa5d642c38a6a00ed}{Col\+Miner}}
+, \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac95b9bcbe2305feb4767005cadd4fda3}{Col\+Tx\+Count}}
+, \newline
+\doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4a304aff3d36344592b23762378641fe}{Col\+Reward}}
+, \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4f71d3f94c8ab7a80ca98a58ed28ac90}{Col\+Timestamp}}
+, \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a536aa671ecce8afc2530b9d20af1e179}{Col\+Count}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classomni_1_1_block_table_model_afafcdb1448e2c8fc7f76fb1cd41d66c4}{Block\+Table\+Model}} (QObject \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaa4af847e280ddcdeaf5cae7eb4f65a1}{row\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_block_table_model_a89489ef9acdc047a0346780694510d86}{column\+Count}} (const QModel\+Index \&parent=\{\}) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_block_table_model_aedeafe8a4d857985af55669690bbbe5d}{data}} (const QModel\+Index \&index, int role=Qt::\+\+Display\+Role) const override
+\item 
+QVariant \doxymbox{\hyperlink{classomni_1_1_block_table_model_a1ce9fcd64a1977499e769902d965a6b4}{header\+Data}} (int section, Qt::\+\+Orientation orientation, int role=Qt::\+\+Display\+Role) const override
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_block_table_model_a65d085a6cef973413aa950bb97d79786}{set\+Blocks}} (const QList$<$ \doxymbox{\hyperlink{structomni_1_1_block_data}{Block\+Data}} $>$ \&blocks)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_block_table_model_a76173a7023cc5a998c8399b012a1e2cf}{prepend\+Block}} (const \doxymbox{\hyperlink{structomni_1_1_block_data}{Block\+Data}} \&block)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_block_table_model_a04a447207489b64c9aeb5563f4f9672c}{clear}} ()
+\item 
+const \doxymbox{\hyperlink{structomni_1_1_block_data}{Block\+Data}} \& \doxymbox{\hyperlink{classomni_1_1_block_table_model_a6d3171de3bd58b48b134bfdbada24d38}{block\+At}} (int row) const
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8h_source_l00009}{9}} of file \doxymbox{\hyperlink{_block_table_model_8h_source}{Block\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_block_table_model_doc-enum-members}
+\Hypertarget{classomni_1_1_block_table_model_doc-enum-members}
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190}\index{omni::BlockTableModel@{omni::BlockTableModel}!Column@{Column}}
+\index{Column@{Column}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{Column}{Column}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190} 
+enum \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190}{omni::\+\+Block\+Table\+Model::\+\+Column}}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColHeight@{ColHeight}!omni::BlockTableModel@{omni::BlockTableModel}}
+\index{omni::BlockTableModel@{omni::BlockTableModel}!ColHeight@{ColHeight}}
+}\Hypertarget{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190af01ac7005a3f2b975edee0134fd28a62}\label{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190af01ac7005a3f2b975edee0134fd28a62} 
+Col\+Height&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColHash@{ColHash}!omni::BlockTableModel@{omni::BlockTableModel}}
+\index{omni::BlockTableModel@{omni::BlockTableModel}!ColHash@{ColHash}}
+}\Hypertarget{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a5d3203e308dbaec507c921e2eae6cb35}\label{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a5d3203e308dbaec507c921e2eae6cb35} 
+Col\+Hash&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColMiner@{ColMiner}!omni::BlockTableModel@{omni::BlockTableModel}}
+\index{omni::BlockTableModel@{omni::BlockTableModel}!ColMiner@{ColMiner}}
+}\Hypertarget{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac82eb40a576bcaeaa5d642c38a6a00ed}\label{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac82eb40a576bcaeaa5d642c38a6a00ed} 
+Col\+Miner&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColTxCount@{ColTxCount}!omni::BlockTableModel@{omni::BlockTableModel}}
+\index{omni::BlockTableModel@{omni::BlockTableModel}!ColTxCount@{ColTxCount}}
+}\Hypertarget{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac95b9bcbe2305feb4767005cadd4fda3}\label{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac95b9bcbe2305feb4767005cadd4fda3} 
+Col\+Tx\+Count&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColReward@{ColReward}!omni::BlockTableModel@{omni::BlockTableModel}}
+\index{omni::BlockTableModel@{omni::BlockTableModel}!ColReward@{ColReward}}
+}\Hypertarget{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4a304aff3d36344592b23762378641fe}\label{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4a304aff3d36344592b23762378641fe} 
+Col\+Reward&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColTimestamp@{ColTimestamp}!omni::BlockTableModel@{omni::BlockTableModel}}
+\index{omni::BlockTableModel@{omni::BlockTableModel}!ColTimestamp@{ColTimestamp}}
+}\Hypertarget{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4f71d3f94c8ab7a80ca98a58ed28ac90}\label{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4f71d3f94c8ab7a80ca98a58ed28ac90} 
+Col\+Timestamp&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColCount@{ColCount}!omni::BlockTableModel@{omni::BlockTableModel}}
+\index{omni::BlockTableModel@{omni::BlockTableModel}!ColCount@{ColCount}}
+}\Hypertarget{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a536aa671ecce8afc2530b9d20af1e179}\label{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a536aa671ecce8afc2530b9d20af1e179} 
+Col\+Count&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8h_source_l00012}{12}} of file \doxymbox{\hyperlink{_block_table_model_8h_source}{Block\+Table\+Model.\+h}}.
+
+
+
+\label{classomni_1_1_block_table_model_doc-constructors}
+\Hypertarget{classomni_1_1_block_table_model_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classomni_1_1_block_table_model_afafcdb1448e2c8fc7f76fb1cd41d66c4}\index{omni::BlockTableModel@{omni::BlockTableModel}!BlockTableModel@{BlockTableModel}}
+\index{BlockTableModel@{BlockTableModel}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{BlockTableModel()}{BlockTableModel()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_afafcdb1448e2c8fc7f76fb1cd41d66c4} 
+omni::\+\+Block\+Table\+Model::\+\+Block\+Table\+Model (\begin{DoxyParamCaption}\item[{QObject \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8cpp_source_l00008}{8}} of file \doxymbox{\hyperlink{_block_table_model_8cpp_source}{Block\+Table\+Model.\+cpp}}.
+
+
+
+\label{classomni_1_1_block_table_model_doc-func-members}
+\Hypertarget{classomni_1_1_block_table_model_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_block_table_model_a6d3171de3bd58b48b134bfdbada24d38}\index{omni::BlockTableModel@{omni::BlockTableModel}!blockAt@{blockAt}}
+\index{blockAt@{blockAt}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{blockAt()}{blockAt()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_a6d3171de3bd58b48b134bfdbada24d38} 
+const \doxymbox{\hyperlink{structomni_1_1_block_data}{Block\+Data}} \& omni::\+\+Block\+Table\+Model::\+block\+At (\begin{DoxyParamCaption}\item[{int}]{row}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8h_source_l00025}{25}} of file \doxymbox{\hyperlink{_block_table_model_8h_source}{Block\+Table\+Model.\+h}}.
+
+\Hypertarget{classomni_1_1_block_table_model_a04a447207489b64c9aeb5563f4f9672c}\index{omni::BlockTableModel@{omni::BlockTableModel}!clear@{clear}}
+\index{clear@{clear}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_a04a447207489b64c9aeb5563f4f9672c} 
+void omni::\+\+Block\+Table\+Model::\+clear (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8cpp_source_l00091}{91}} of file \doxymbox{\hyperlink{_block_table_model_8cpp_source}{Block\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_block_table_model_a89489ef9acdc047a0346780694510d86}\index{omni::BlockTableModel@{omni::BlockTableModel}!columnCount@{columnCount}}
+\index{columnCount@{columnCount}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{columnCount()}{columnCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_a89489ef9acdc047a0346780694510d86} 
+int omni::\+\+Block\+Table\+Model::\+column\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8cpp_source_l00017}{17}} of file \doxymbox{\hyperlink{_block_table_model_8cpp_source}{Block\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_block_table_model_aedeafe8a4d857985af55669690bbbe5d}\index{omni::BlockTableModel@{omni::BlockTableModel}!data@{data}}
+\index{data@{data}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{data()}{data()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_aedeafe8a4d857985af55669690bbbe5d} 
+QVariant omni::\+\+Block\+Table\+Model::\+data (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{index}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8cpp_source_l00021}{21}} of file \doxymbox{\hyperlink{_block_table_model_8cpp_source}{Block\+Table\+Model.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classomni_1_1_block_table_model_a1ce9fcd64a1977499e769902d965a6b4}\index{omni::BlockTableModel@{omni::BlockTableModel}!headerData@{headerData}}
+\index{headerData@{headerData}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{headerData()}{headerData()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_a1ce9fcd64a1977499e769902d965a6b4} 
+QVariant omni::\+\+Block\+Table\+Model::\+header\+Data (\begin{DoxyParamCaption}\item[{int}]{section}{, }\item[{Qt::\+\+Orientation}]{orientation}{, }\item[{int}]{role}{ = {\ttfamily Qt:\+:\+DisplayRole}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8cpp_source_l00064}{64}} of file \doxymbox{\hyperlink{_block_table_model_8cpp_source}{Block\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_block_table_model_a76173a7023cc5a998c8399b012a1e2cf}\index{omni::BlockTableModel@{omni::BlockTableModel}!prependBlock@{prependBlock}}
+\index{prependBlock@{prependBlock}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{prependBlock()}{prependBlock()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_a76173a7023cc5a998c8399b012a1e2cf} 
+void omni::\+\+Block\+Table\+Model::\+prepend\+Block (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1_block_data}{Block\+Data}} \&}]{block}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8cpp_source_l00085}{85}} of file \doxymbox{\hyperlink{_block_table_model_8cpp_source}{Block\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_block_table_model_aaa4af847e280ddcdeaf5cae7eb4f65a1}\index{omni::BlockTableModel@{omni::BlockTableModel}!rowCount@{rowCount}}
+\index{rowCount@{rowCount}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{rowCount()}{rowCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_aaa4af847e280ddcdeaf5cae7eb4f65a1} 
+int omni::\+\+Block\+Table\+Model::\+row\+Count (\begin{DoxyParamCaption}\item[{const QModel\+Index \&}]{parent}{ = {\ttfamily \{\}}}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8cpp_source_l00013}{13}} of file \doxymbox{\hyperlink{_block_table_model_8cpp_source}{Block\+Table\+Model.\+cpp}}.
+
+\Hypertarget{classomni_1_1_block_table_model_a65d085a6cef973413aa950bb97d79786}\index{omni::BlockTableModel@{omni::BlockTableModel}!setBlocks@{setBlocks}}
+\index{setBlocks@{setBlocks}!omni::BlockTableModel@{omni::BlockTableModel}}
+\doxysubsubsection{\texorpdfstring{setBlocks()}{setBlocks()}}
+{\footnotesize\ttfamily \label{classomni_1_1_block_table_model_a65d085a6cef973413aa950bb97d79786} 
+void omni::\+\+Block\+Table\+Model::\+set\+Blocks (\begin{DoxyParamCaption}\item[{const QList$<$ \doxymbox{\hyperlink{structomni_1_1_block_data}{Block\+Data}} $>$ \&}]{blocks}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_block_table_model_8cpp_source_l00079}{79}} of file \doxymbox{\hyperlink{_block_table_model_8cpp_source}{Block\+Table\+Model.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_block_table_model_8h}{Block\+Table\+Model.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+models/\+\doxymbox{\hyperlink{_block_table_model_8cpp}{Block\+Table\+Model.\+cpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,184 @@
+\doxysection{replay-\/protection-\/tester.Omnibus\+RPC Class Reference}
+\hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c}{}\label{classreplay-protection-tester_1_1_omnibus_r_p_c}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a66b159efbe741641376e867cf6e3ed97}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str host, int port, int timeout=10)
+\item 
+dict \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}{call}} (self, str method, list\texorpdfstring{$\vert$}{|}dict\texorpdfstring{$\vert$}{|}None params=None)
+\item 
+bool \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a1fcd724246a5d2e81581217adc2be1a9}{is\+\_\+alive}} (self)
+\item 
+int\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a4c969fa378796591dea9ab68c019d9b0}{get\+\_\+block\+\_\+count}} (self)
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_aef1cbef7f30c89754f918155da77fb1c}{get\+\_\+block\+\_\+hash}} (self, int height)
+\item 
+dict\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a0775d2ed05f011bdf85337bd07f1c410}{get\+\_\+mempool\+\_\+info}} (self)
+\item 
+dict \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_aaaa361c22e251cf0630a195ce5fb6520}{send\+\_\+raw\+\_\+transaction}} (self, str tx\+\_\+hex)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_af91400f423e7fb875e6b6a2a78b4f532}{host}} = host
+\item 
+\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a8ef206bb9038a0ad4d7dc3078b12aac2}{port}} = port
+\item 
+\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_ad4c711ab65739f3ee971c563415ba251}{timeout}} = timeout
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a1bbb5fb3d61f9445883cc663652e39cd}{\+\_\+id}} = 0
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}JSON-RPC 2.0 client for OmniBus BlockChainCore node.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+
+
+\label{classreplay-protection-tester_1_1_omnibus_r_p_c_doc-constructors}
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_a66b159efbe741641376e867cf6e3ed97}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_a66b159efbe741641376e867cf6e3ed97} 
+\doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{int }]{timeout}{ = {\ttfamily 10}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+
+
+\label{classreplay-protection-tester_1_1_omnibus_r_p_c_doc-func-members}
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!call@{call}}
+\index{call@{call}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{call()}{call()}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596} 
+ dict \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+call (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{method}{, }\item[{list \texorpdfstring{$\vert$}{|} dict \texorpdfstring{$\vert$}{|} None }]{params}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Send JSON-RPC request and return parsed response.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00057}{57}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_a4c969fa378796591dea9ab68c019d9b0}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!get\_block\_count@{get\_block\_count}}
+\index{get\_block\_count@{get\_block\_count}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{get\_block\_count()}{get\_block\_count()}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_a4c969fa378796591dea9ab68c019d9b0} 
+ int \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+get\+\_\+block\+\_\+count (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00085}{85}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_aef1cbef7f30c89754f918155da77fb1c}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!get\_block\_hash@{get\_block\_hash}}
+\index{get\_block\_hash@{get\_block\_hash}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{get\_block\_hash()}{get\_block\_hash()}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_aef1cbef7f30c89754f918155da77fb1c} 
+ str \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+get\+\_\+block\+\_\+hash (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int}]{height}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00091}{91}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_a0775d2ed05f011bdf85337bd07f1c410}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!get\_mempool\_info@{get\_mempool\_info}}
+\index{get\_mempool\_info@{get\_mempool\_info}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{get\_mempool\_info()}{get\_mempool\_info()}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_a0775d2ed05f011bdf85337bd07f1c410} 
+ dict \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+get\+\_\+mempool\+\_\+info (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00097}{97}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_a1fcd724246a5d2e81581217adc2be1a9}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!is\_alive@{is\_alive}}
+\index{is\_alive@{is\_alive}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{is\_alive()}{is\_alive()}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_a1fcd724246a5d2e81581217adc2be1a9} 
+ bool \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+is\+\_\+alive (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00081}{81}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_aaaa361c22e251cf0630a195ce5fb6520}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!send\_raw\_transaction@{send\_raw\_transaction}}
+\index{send\_raw\_transaction@{send\_raw\_transaction}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{send\_raw\_transaction()}{send\_raw\_transaction()}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_aaaa361c22e251cf0630a195ce5fb6520} 
+ dict \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+send\+\_\+raw\+\_\+transaction (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{tx\+\_\+hex}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00103}{103}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+
+
+\label{classreplay-protection-tester_1_1_omnibus_r_p_c_doc-variable-members}
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_a1bbb5fb3d61f9445883cc663652e39cd}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!\_id@{\_id}}
+\index{\_id@{\_id}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{\_id}{\_id}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_a1bbb5fb3d61f9445883cc663652e39cd} 
+int \doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+\_\+id = 0\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_af91400f423e7fb875e6b6a2a78b4f532}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!host@{host}}
+\index{host@{host}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{host}{host}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_af91400f423e7fb875e6b6a2a78b4f532} 
+\doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+host = host}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00052}{52}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_a8ef206bb9038a0ad4d7dc3078b12aac2}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!port@{port}}
+\index{port@{port}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{port}{port}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_a8ef206bb9038a0ad4d7dc3078b12aac2} 
+\doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+port = port}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+\Hypertarget{classreplay-protection-tester_1_1_omnibus_r_p_c_ad4c711ab65739f3ee971c563415ba251}\index{replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}!timeout@{timeout}}
+\index{timeout@{timeout}!replay-\/protection-\/tester.OmnibusRPC@{replay-\/protection-\/tester.OmnibusRPC}}
+\doxysubsubsection{\texorpdfstring{timeout}{timeout}}
+{\footnotesize\ttfamily \label{classreplay-protection-tester_1_1_omnibus_r_p_c_ad4c711ab65739f3ee971c563415ba251} 
+\doxymbox{\hyperlink{namespacereplay}{replay}}-\/protection-\/tester.\+Omnibus\+RPC.\+timeout = timeout}
+
+
+
+Definition at line \doxymbox{\hyperlink{replay-protection-tester_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{replay-protection-tester_8py_source}{replay-\/protection-\/tester.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+tools/\+\+EXPLOITS/\+\doxymbox{\hyperlink{replay-protection-tester_8py}{replay-\/protection-\/tester.\+py}}\end{DoxyCompactItemize}

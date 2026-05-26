@@ -1,0 +1,218 @@
+\doxysection{generate\+\_\+comparison Namespace Reference}
+\hypertarget{namespacegenerate__comparison}{}\label{namespacegenerate__comparison}\index{generate\_comparison@{generate\_comparison}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a6d8e8df3d7de59182ccb9815915824b7}{scan\+\_\+zig\+\_\+files}} ()
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a80e552081697e3d87780ad3fb67d6aba}{file\+\_\+has\+\_\+keyword}} (filename, keyword)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a6c10d0727bbd43d5aeccd18dd0170f7a}{check\+\_\+file\+\_\+exists}} (filename)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_ae45bfc7b0fb0598d0eea8d654d347048}{check\+\_\+any\+\_\+file}} (\texorpdfstring{$\ast$}{*}filenames)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a626e11d5708e204c36bbe0c4cd68da68}{evaluate\+\_\+item}} (item)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_abd82fd245450c4861fab3a84e46b8619}{generate\+\_\+category\+\_\+report}} (cat)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a454507cb01d5e04aa37da0d3b49a60d6}{generate\+\_\+summary}} (stats\+\_\+list)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a527e6057d59692117f4c5ca1ee405f76}{CORE\+\_\+\+DIR}} = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}core"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a99a288fad186cb9089293b0b12e0fc04}{SCRIPTS\+\_\+\+DIR}} = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}scripts"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a4faa4d0f27533692b2566d74eb70e3de}{FRONTEND\+\_\+\+DIR}} = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}frontend"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__comparison_a4f3bcf85416ce62abb97b2efd75a6429}{OUT\+\_\+\+DIR}} = os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+)
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__comparison_ac9927b149ddd9ddb8871cb2d34fedb45}{CATEGORIES}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}generate_comparison.py — OmniBus vs Bitcoin Full Component Comparison
+Scaneaza core/*.zig si genereaza rapoarte per categorie + summary.
+
+Output:
+  OMNIBUS_vs_BITCOIN_FULL_COMPARISON-1-Software.md
+  OMNIBUS_vs_BITCOIN_FULL_COMPARISON-2-Blockchain.md
+  ...
+  OMNIBUS_vs_BITCOIN_FULL_COMPARISON-SUMMARY.md
+
+Usage:
+    python generate_comparison.py
+\end{DoxyVerb}
+ 
+
+\label{namespacegenerate__comparison_doc-func-members}
+\Hypertarget{namespacegenerate__comparison_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacegenerate__comparison_ae45bfc7b0fb0598d0eea8d654d347048}\index{generate\_comparison@{generate\_comparison}!check\_any\_file@{check\_any\_file}}
+\index{check\_any\_file@{check\_any\_file}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{check\_any\_file()}{check\_any\_file()}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_ae45bfc7b0fb0598d0eea8d654d347048} 
+check\+\_\+any\+\_\+file (\begin{DoxyParamCaption}\item[{\texorpdfstring{$\ast$}{*}}]{filenames}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if any of the files exist.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00052}{52}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+\Hypertarget{namespacegenerate__comparison_a6c10d0727bbd43d5aeccd18dd0170f7a}\index{generate\_comparison@{generate\_comparison}!check\_file\_exists@{check\_file\_exists}}
+\index{check\_file\_exists@{check\_file\_exists}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{check\_file\_exists()}{check\_file\_exists()}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a6c10d0727bbd43d5aeccd18dd0170f7a} 
+check\+\_\+file\+\_\+exists (\begin{DoxyParamCaption}\item[{}]{filename}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if file exists in core/.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacegenerate__comparison_a626e11d5708e204c36bbe0c4cd68da68}\index{generate\_comparison@{generate\_comparison}!evaluate\_item@{evaluate\_item}}
+\index{evaluate\_item@{evaluate\_item}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{evaluate\_item()}{evaluate\_item()}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a626e11d5708e204c36bbe0c4cd68da68} 
+evaluate\+\_\+item (\begin{DoxyParamCaption}\item[{}]{item}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Evaluate if OmniBus has this component.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00297}{297}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacegenerate__comparison_a80e552081697e3d87780ad3fb67d6aba}\index{generate\_comparison@{generate\_comparison}!file\_has\_keyword@{file\_has\_keyword}}
+\index{file\_has\_keyword@{file\_has\_keyword}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{file\_has\_keyword()}{file\_has\_keyword()}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a80e552081697e3d87780ad3fb67d6aba} 
+file\+\_\+has\+\_\+keyword (\begin{DoxyParamCaption}\item[{}]{filename}{, }\item[{}]{keyword}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if a .zig file contains a keyword.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+\Hypertarget{namespacegenerate__comparison_abd82fd245450c4861fab3a84e46b8619}\index{generate\_comparison@{generate\_comparison}!generate\_category\_report@{generate\_category\_report}}
+\index{generate\_category\_report@{generate\_category\_report}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{generate\_category\_report()}{generate\_category\_report()}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_abd82fd245450c4861fab3a84e46b8619} 
+generate\+\_\+category\+\_\+report (\begin{DoxyParamCaption}\item[{}]{cat}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate markdown report for one category.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00328}{328}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacegenerate__comparison_a454507cb01d5e04aa37da0d3b49a60d6}\index{generate\_comparison@{generate\_comparison}!generate\_summary@{generate\_summary}}
+\index{generate\_summary@{generate\_summary}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{generate\_summary()}{generate\_summary()}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a454507cb01d5e04aa37da0d3b49a60d6} 
+generate\+\_\+summary (\begin{DoxyParamCaption}\item[{}]{stats\+\_\+list}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate the summary report.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00409}{409}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacegenerate__comparison_a51af30a60f9f02777c6396b8247e356f}\index{generate\_comparison@{generate\_comparison}!main@{main}}
+\index{main@{main}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00477}{477}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacegenerate__comparison_a6d8e8df3d7de59182ccb9815915824b7}\index{generate\_comparison@{generate\_comparison}!scan\_zig\_files@{scan\_zig\_files}}
+\index{scan\_zig\_files@{scan\_zig\_files}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{scan\_zig\_files()}{scan\_zig\_files()}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a6d8e8df3d7de59182ccb9815915824b7} 
+scan\+\_\+zig\+\_\+files (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scan all .zig files in core/ and return set of filenames.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+
+
+\label{namespacegenerate__comparison_doc-var-members}
+\Hypertarget{namespacegenerate__comparison_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacegenerate__comparison_ac9927b149ddd9ddb8871cb2d34fedb45}\index{generate\_comparison@{generate\_comparison}!CATEGORIES@{CATEGORIES}}
+\index{CATEGORIES@{CATEGORIES}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{CATEGORIES}{CATEGORIES}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_ac9927b149ddd9ddb8871cb2d34fedb45} 
+list generate\+\_\+comparison.\+CATEGORIES}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00060}{60}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+\Hypertarget{namespacegenerate__comparison_a527e6057d59692117f4c5ca1ee405f76}\index{generate\_comparison@{generate\_comparison}!CORE\_DIR@{CORE\_DIR}}
+\index{CORE\_DIR@{CORE\_DIR}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{CORE\_DIR}{CORE\_DIR}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a527e6057d59692117f4c5ca1ee405f76} 
+generate\+\_\+comparison.\+CORE\+\_\+\+DIR = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}core"{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00020}{20}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+\Hypertarget{namespacegenerate__comparison_a4faa4d0f27533692b2566d74eb70e3de}\index{generate\_comparison@{generate\_comparison}!FRONTEND\_DIR@{FRONTEND\_DIR}}
+\index{FRONTEND\_DIR@{FRONTEND\_DIR}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{FRONTEND\_DIR}{FRONTEND\_DIR}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a4faa4d0f27533692b2566d74eb70e3de} 
+generate\+\_\+comparison.\+FRONTEND\+\_\+\+DIR = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}frontend"{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+\Hypertarget{namespacegenerate__comparison_a4f3bcf85416ce62abb97b2efd75a6429}\index{generate\_comparison@{generate\_comparison}!OUT\_DIR@{OUT\_DIR}}
+\index{OUT\_DIR@{OUT\_DIR}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{OUT\_DIR}{OUT\_DIR}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a4f3bcf85416ce62abb97b2efd75a6429} 
+generate\+\_\+comparison.\+OUT\+\_\+\+DIR = os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+)}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+
+\Hypertarget{namespacegenerate__comparison_a99a288fad186cb9089293b0b12e0fc04}\index{generate\_comparison@{generate\_comparison}!SCRIPTS\_DIR@{SCRIPTS\_DIR}}
+\index{SCRIPTS\_DIR@{SCRIPTS\_DIR}!generate\_comparison@{generate\_comparison}}
+\doxysubsubsection{\texorpdfstring{SCRIPTS\_DIR}{SCRIPTS\_DIR}}
+{\footnotesize\ttfamily \label{namespacegenerate__comparison_a99a288fad186cb9089293b0b12e0fc04} 
+generate\+\_\+comparison.\+SCRIPTS\+\_\+\+DIR = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}scripts"{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__comparison_8py_source_l00021}{21}} of file \doxymbox{\hyperlink{generate__comparison_8py_source}{generate\+\_\+comparison.\+py}}.
+

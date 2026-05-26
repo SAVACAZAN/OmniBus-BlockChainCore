@@ -55,7 +55,7 @@ pub const BlockchainV2 = struct {
             .transactions = array_list.Managed(Transaction).init(allocator),
             .previous_hash = "0",
             .nonce = 0,
-            .hash = "genesis_hash_omnibus_v2",
+            .hash = "82ec46e83af37b1ea0e6b3fe66a8f04795a8e8aae7db414d451eff1154245982",
         };
 
         try chain.append(genesis);

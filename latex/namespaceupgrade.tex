@@ -1,0 +1,30 @@
+\doxysection{upgrade Namespace Reference}
+\hypertarget{namespaceupgrade}{}\label{namespaceupgrade}\index{upgrade@{upgrade}}
+
+
+-\/manager  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/manager 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Upgrade Manager
+=========================================
+Handles safe node upgrades with automatic backup and rollback:
+
+  1. Backup chain data (omnibus-chain.dat) + config
+  2. Stop running node (if PID known)
+  3. Rebuild from source (zig build)
+  4. Verify new binary exists and is executable
+  5. Restart node
+
+If the build fails, automatic rollback restores the previous binary.
+
+Usage:
+    python upgrade-manager.py
+    python upgrade-manager.py --backup-first
+    python upgrade-manager.py --no-restart --backup-dir /tmp/omnibus-backup
+\end{DoxyVerb}
+ 

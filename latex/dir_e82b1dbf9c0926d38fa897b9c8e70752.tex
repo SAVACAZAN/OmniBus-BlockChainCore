@@ -1,0 +1,100 @@
+\doxysection{examples/\+client\+\_\+python Directory Reference}
+\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752}{}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752}\index{examples/client\_python Directory Reference@{examples/client\_python Directory Reference}}
+Directory dependency graph for client\+\_\+python:\+
+% FIG 0
+\doxysubsubsection*{Files}
+\begin{DoxyCompactItemize}
+\item 
+file \doxymbox{\hyperlink{franchise__client_8py}{franchise\+\_\+client.\+py}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4306}{}\doxysubsection{\texorpdfstring{Omni\+Bus Python Franchise Client}{Omni\+Bus Python Franchise Client}}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4306}
+This folder shows how a third-\/party application talks to Omni\+Bus.
+
+The chain is {\bfseries{infrastructure}}:\+ it accepts connections from any client that speaks JSON-\/\+RPC 2.\+0 over HTTP. There is no special SDK and no shared library — write your client in whatever language you prefer.\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4307}{}\doxysubsection{\texorpdfstring{Quick start}{Quick start}}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4307}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pip\ install\ requests}
+\DoxyCodeLine{python3\ franchise\_client.py}
+
+\end{DoxyCode}
+
+
+This connects to the public testnet endpoint at {\ttfamily \href{https://omnibusblockchain.cc:8443/api-testnet/}{\texttt{https:\+/\+/\+omnibusblockchain.\+cc:\+8443/\+api-\/testnet/\+}}}, prints the chain height, generates a demo mnemonic, calls the faucet, watches the balance for 30 seconds, and exits.\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4308}{}\doxysubsection{\texorpdfstring{What the chain exposes}{What the chain exposes}}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4308}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Surface  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Address  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+JSON-\/\+RPC 2.\+0  &{\ttfamily /\+api-\/testnet/\+} (public)  &Bitcoin-\/\+Core-\/style methods + Omni\+Bus extensions  \\
+REST exchange  &{\ttfamily /\+exchange/\+0/\+\{public,private\}/\+\texorpdfstring{$\ast$}{*}}  &Kraken-\/compatible REST surface  \\
+Web\+Socket  &{\ttfamily /\+ws-\/testnet}  &Live block + tx broadcasts  \\
+HTTPS  &{\ttfamily :\+8443}  &nginx terminates TLS, proxies to backend  \\
+\end{DoxyTable}
+\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4309}{}\doxysubsection{\texorpdfstring{What the chain does NOT do}{What the chain does NOT do}}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4309}
+
+\begin{DoxyItemize}
+\item No agents in the chain process. AI strategies run in {\bfseries{your}} client.
+\item No price oracle in the chain process. Feed your own prices via {\ttfamily submitprice} if you want; otherwise the chain stays neutral.
+\item No matching engine in your wallet. Server enforces signatures, nonces, balances, fees on the chain side. You can\textquotesingle{}t cheat by writing a custom client.
+\end{DoxyItemize}\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4310}{}\doxysubsection{\texorpdfstring{The franchise model}{The franchise model}}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4310}
+Like Bitcoin Core:\+ anyone runs a node, anyone connects with whatever client they prefer. The on-\/chain rules are the same for everyone — that\textquotesingle{}s the only thing the chain enforces.
+
+To plug in your own client:\+
+
+
+\begin{DoxyEnumerate}
+\item Open a TCP/\+\+HTTPS connection to the public RPC endpoint.
+\item POST a JSON-\/\+RPC 2.\+0 envelope:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{"{}jsonrpc"{}:\ "{}2.0"{},\ "{}id"{}:\ 1,\ "{}method"{}:\ "{}getblockcount"{},\ "{}params"{}:\ []\}}
+
+\end{DoxyCode}
+
+\item Read the JSON response.
+\item Repeat.
+\end{DoxyEnumerate}
+
+That\textquotesingle{}s it. Whether you call from Python, Rust, a browser {\ttfamily fetch()}, or a shell {\ttfamily curl} loop, the chain treats you the same.\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4311}{}\doxysubsection{\texorpdfstring{Endpoint cheat-\/sheet}{Endpoint cheat-\/sheet}}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4311}
+Read-\/only:\+
+\begin{DoxyItemize}
+\item {\ttfamily getblockcount} — chain tip height
+\item {\ttfamily getblock(hash\+\_\+or\+\_\+height)} — full block
+\item {\ttfamily getaddressbalance(\{\doxylink{namespaceaddress}{address}\})} — balance in sat
+\item {\ttfamily gettransaction(txid)} — TX detail
+\item {\ttfamily getmempoolsize} — pending TX count
+\end{DoxyItemize}
+
+Write (all signed by the caller):\+
+\begin{DoxyItemize}
+\item {\ttfamily sendrawtransaction(\{tx\+\_\+hex\})} — submit a signed TX
+\item {\ttfamily claimfaucet(\{\doxylink{namespaceaddress}{address}\})} — testnet faucet (1 OMNI, rate-\/limited per IP/\+addr)
+\end{DoxyItemize}
+
+Exchange REST (Kraken-\/style):\+
+\begin{DoxyItemize}
+\item {\ttfamily GET /\+exchange/\+0/\+public/\+\+Depth?pair=OMNI/\+\+USDC} — orderbook
+\item {\ttfamily POST /\+exchange/\+0/\+private/\+\+Add\+Order} — place signed order
+\item {\ttfamily POST /\+exchange/\+0/\+private/\+\+Cancel\+Order} — cancel by id
+\item {\ttfamily POST /\+exchange/\+0/\+private/\+\+Balance} — your balances
+\end{DoxyItemize}\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4312}{}\doxysubsection{\texorpdfstring{Building your own franchisee}{Building your own franchisee}}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4312}
+The full happy path for a trading bot is:\+
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Connect}} — open RPC + WS connections.
+\item {\bfseries{Authenticate}} — derive keypair from mnemonic (BIP-\/32/\+39).
+\item {\bfseries{Fund}} — claim faucet on testnet, or receive on mainnet.
+\item {\bfseries{Mine (optional)}} — run a miner if you want OMNI directly.
+\item {\bfseries{Place orders}} — sign EXCHANGE\+\_\+\+PLACE\+\_\+\+V1 payload, POST Add\+Order.
+\item {\bfseries{Listen}} — subscribe to WS for fill events.
+\item {\bfseries{Withdraw /\+ send}} — sign a normal TX, POST sendrawtransaction.
+\end{DoxyEnumerate}
+
+The chain doesn\textquotesingle{}t care which steps you skip or how you implement them. Strategy, scheduling, retries, error handling, UI — all yours.\hypertarget{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4313}{}\doxysubsection{\texorpdfstring{See also}{See also}}\label{dir_e82b1dbf9c0926d38fa897b9c8e70752_autotoc_md4313}
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{franchise__client_8py}{franchise\+\_\+client.\+py}} — minimal demo of steps 1-\/3 in this list
+\item {\ttfamily examples/\+agent.\+json} — sample multi-\/agent config (for nodes that {\itshape do} opt into running agents in-\/process via {\ttfamily -\/-\/agent-\/config})
+\item {\ttfamily swagger.\+json} (in {\ttfamily frontend/\+public/\+}) — Open\+API spec for the REST surface, including all 42 exchange endpoints 
+\end{DoxyItemize}

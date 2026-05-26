@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import {
   Shield,
   ShieldCheck,
@@ -10,11 +12,16 @@ import {
   Copy,
   Check,
   X,
+  Clock,
+  Calendar,
+  Layers,
+  Gavel,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { AddressLabel } from "../common/AddressLabel";
+import { midTrunc, fmtAge } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // ---------------------------------------------------------------------------
 // Types
@@ -43,12 +50,6 @@ interface GetValidatorsResp {
   slashed_count: number;
 }
 
-interface SlotLeaderResp {
-  address: string;
-  slot_height: number;
-  blocks_remaining_in_slot: number;
-}
-
 interface SlashEvent {
   timestamp: number;
   address: string;
@@ -57,14 +58,71 @@ interface SlashEvent {
   slash_amount_omni: number;
 }
 
+const SLASH_FILTERS = ["all", "double_sign", "extended_downtime", "invalid_block"] as const;
+
 interface StakeResp {
   address: string;
   stake_omni: number;
   locked: boolean;
 }
 
+// Consensus & Slots types
+interface SlotLeaderResp2 {
+  slot: number;
+  leader: string | null;
+  weight: number;
+}
+
+interface ClockStatusResp {
+  now_ms: number;
+  rdtsc: number;
+  spectrum: string;
+}
+
+interface SlotCalendarEntry {
+  slot_id: number;
+  leader: string;
+  expected_arrival_ms: number;
+  state: "future" | "in_flight" | "finalized" | "missed";
+}
+
+interface SlotCalendarResp {
+  head_slot: number;
+  slot_interval_ms: number;
+  entries: SlotCalendarEntry[];
+}
+
+interface FuturePoolResp {
+  current_height: number;
+  locked_count: number;
+  earliest_target: number;
+  latest_target: number;
+}
+
+interface SlashEvidenceResp {
+  valid: boolean;
+  slashed_amount: number;
+  reporter_reward: number;
+  new_stake: number;
+  reason: string;
+}
+
+interface SlashHistoryEntry {
+  block_height: number;
+  reason: string;
+  slashed_amount: number;
+  reporter: string;
+}
+
 type SortBy = "tier" | "uptime" | "stake";
-type SubTab = "list" | "become" | "slashing";
+type SubTab = "list" | "become" | "slashing" | "consensus";
+
+const VALIDATOR_TABS: { k: SubTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { k: "list",      label: "Validator List",    icon: ShieldCheck    },
+  { k: "become",    label: "Become Validator",  icon: Award          },
+  { k: "slashing",  label: "Slashing Log",      icon: AlertOctagon   },
+  { k: "consensus", label: "Consensus & Slots", icon: Calendar       },
+];
 
 // ---------------------------------------------------------------------------
 // Visual helpers
@@ -110,13 +168,8 @@ function tierFromStake(stake: number): Tier {
   return "Bronze";
 }
 
-function truncAddr(a: string): string {
-  if (!a) return "—";
-  if (a.length <= 14) return a;
-  return `${a.slice(0, 8)}…${a.slice(-6)}`;
-}
 
-function fmtOmni(n: number): string {
+function fmtNum(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
@@ -142,13 +195,7 @@ export function ValidatorsPage() {
         </header>
 
         <nav className="mb-4 sm:mb-6 flex gap-1 border-b border-gray-700/60 overflow-x-auto scrollbar-none">
-          {(
-            [
-              { k: "list", label: "Validator List", icon: ShieldCheck },
-              { k: "become", label: "Become Validator", icon: Award },
-              { k: "slashing", label: "Slashing Log", icon: AlertOctagon },
-            ] as const
-          ).map(({ k, label, icon: Icon }) => (
+          {VALIDATOR_TABS.map(({ k, label, icon: Icon }) => (
             <button
               key={k}
               onClick={() => setTab(k)}
@@ -167,6 +214,7 @@ export function ValidatorsPage() {
         {tab === "list" && <ValidatorListTab />}
         {tab === "become" && <BecomeValidatorTab wallet={wallet} />}
         {tab === "slashing" && <SlashingLogTab />}
+        {tab === "consensus" && <ConsensusTab />}
       </div>
     </div>
   );
@@ -184,15 +232,18 @@ function ValidatorListTab() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [addrSearch, setAddrSearch] = useState("");
+  const filteredValidators = useMemo(() => {
+    const q = addrSearch.trim().toLowerCase();
+    return (data?.validators ?? []).filter((v) => !q || v.address.toLowerCase().includes(q));
+  }, [data?.validators, addrSearch]);
 
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
       try {
         setLoading(true);
-        const r = (await rpc.request_raw("getvalidatorsv2", [
-          { sort_by: sortBy, limit: 100 },
-        ])) as GetValidatorsResp;
+        const r = (await rpc.getValidatorsV2({ sort_by: sortBy, limit: 100 })) as GetValidatorsResp | null;
         if (cancelled) return;
         const safe: GetValidatorsResp = {
           validators: Array.isArray(r?.validators) ? r.validators : [],
@@ -209,11 +260,13 @@ function ValidatorListTab() {
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
-    const id = setInterval(refresh, 10_000);
+    void refresh();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [sortBy]);
 
@@ -241,10 +294,24 @@ function ValidatorListTab() {
         />
         <StatCard
           label="Slot Leader"
-          value={truncAddr(data?.current_slot_leader ?? "")}
+          value={
+            data?.current_slot_leader
+              ? <AddressLabel address={data.current_slot_leader} showEmoji truncate={{ left: 8, right: 5 }} />
+              : "—"
+          }
           icon={Crown}
           accent="text-yellow-300"
           mono
+        />
+      </div>
+
+      <div className="mb-2">
+        <input
+          type="text"
+          placeholder="Filter by address…"
+          value={addrSearch}
+          onChange={(e) => setAddrSearch(e.target.value)}
+          className="w-full sm:w-72 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
         />
       </div>
 
@@ -265,7 +332,38 @@ function ValidatorListTab() {
             </button>
           ))}
         </div>
-        {loading && <span className="text-xs text-gray-500">refreshing…</span>}
+        <div className="flex items-center gap-2">
+          {loading && <span className="text-xs text-gray-500">refreshing…</span>}
+          {data && data.validators.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["rank", "address", "tier", "stake_omni", "uptime_pct", "blocks_signed", "blocks_missed", "slash_count", "slashed", "joined_at_block"].join(","),
+                  ...data.validators.map((v, i) => [
+                    i + 1,
+                    `"${v.address}"`,
+                    v.tier,
+                    v.stake_omni.toFixed(2),
+                    v.uptime_pct.toFixed(2),
+                    v.blocks_signed,
+                    v.blocks_missed,
+                    v.slash_count,
+                    v.slashed ? "true" : "false",
+                    v.joined_at_block,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-validators.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="text-[10px] px-2 py-1 bg-gray-800/60 border border-gray-700/40 rounded text-gray-400 hover:text-gray-200 transition-colors font-mono"
+            >
+              ⬇ CSV
+            </button>
+          )}
+        </div>
       </div>
 
       {err && (
@@ -288,7 +386,7 @@ function ValidatorListTab() {
             </tr>
           </thead>
           <tbody>
-            {(data?.validators ?? []).map((v, i) => {
+            {filteredValidators.map((v, i) => {
               const isLeader =
                 data?.current_slot_leader && v.address === data.current_slot_leader;
               return (
@@ -300,9 +398,13 @@ function ValidatorListTab() {
                 >
                   <td className="px-3 py-2 text-gray-500">{i + 1}</td>
                   <td className="px-3 py-2 font-mono text-xs">
-                    <span className={v.slashed ? "line-through text-red-300/70" : ""}>
-                      {truncAddr(v.address)}
-                    </span>
+                    <button
+                      onClick={() => { window.location.hash = `#/address/${v.address}`; }}
+                      className={v.slashed ? "line-through text-red-300/70 hover:text-mempool-blue" : "hover:text-mempool-blue transition-colors"}
+                      title={v.address}
+                    >
+                      <AddressLabel address={v.address} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </button>
                     <button
                       onClick={() => onCopy(v.address)}
                       className="ml-2 inline-flex text-gray-500 hover:text-gray-200 align-middle"
@@ -330,7 +432,7 @@ function ValidatorListTab() {
                       {v.tier}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-right font-mono">{fmtOmni(v.stake_omni)}</td>
+                  <td className="px-3 py-2 text-right font-mono">{fmtNum(v.stake_omni)}</td>
                   <td className="px-3 py-2 text-right font-mono">
                     {v.uptime_pct.toFixed(2)}%
                   </td>
@@ -364,9 +466,147 @@ function ValidatorListTab() {
                 </td>
               </tr>
             )}
+            {!loading && (data?.validators?.length ?? 0) > 0 && addrSearch.trim() &&
+              filteredValidators.length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center py-8 text-gray-500">
+                  No validators match "{addrSearch.trim()}"
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      <StakingInfoLookup />
+      <ValidatorsSimplePanel />
+    </div>
+  );
+}
+
+// ── Simple validator list (getvalidators — no sort params) ────────────────────
+
+interface SimpleValidator { address: string; weight: number; since_height: number; }
+interface SimpleValidatorsResp { count: number; validators: SimpleValidator[]; }
+
+function ValidatorsSimplePanel() {
+  const [data, setData] = useState<SimpleValidatorsResp | null>(null);
+
+  useEffect(() => {
+    rpc.getValidators()
+      .then((r) => {
+        if (r && Array.isArray(r.validators)) setData(r as SimpleValidatorsResp);
+      });
+  }, []);
+
+  if (!data || data.validators.length === 0) return null;
+
+  return (
+    <div className="mt-4 rounded-xl border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-mempool-border">
+        <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+          Validator Registry (getvalidators) — {data.count} entries
+        </h3>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-mempool-bg text-mempool-text-dim text-[9px] uppercase">
+            <tr>
+              <th className="px-3 py-2 text-left">Address</th>
+              <th className="px-3 py-2 text-right">Weight</th>
+              <th className="px-3 py-2 text-right">Since block</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-mempool-border/30">
+            {data.validators.slice(0, 20).map((v) => (
+              <tr key={v.address} className="hover:bg-mempool-bg-light/20">
+                <td className="px-3 py-1.5 font-mono text-mempool-blue text-[10px]">
+                  <button onClick={() => { window.location.hash = `#/address/${v.address}`; }} className="hover:underline">
+                    <AddressLabel address={v.address} showEmoji truncate={{ left: 10, right: 6 }} />
+                  </button>
+                </td>
+                <td className="px-3 py-1.5 text-right font-mono text-mempool-text">{v.weight}</td>
+                <td className="px-3 py-1.5 text-right font-mono text-mempool-text-dim">{v.since_height}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function StakingInfoLookup() {
+  const [address, setAddress] = useState("");
+  const [info, setInfo] = useState<{
+    address: string; status: string; total_stake: number; self_stake: number;
+    delegated_stake: number; slash_count: number; slash_history_count: number;
+    total_rewards: number; uptime_pct: number; blocks_produced: number; commission_pct: number;
+  } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    if (!address) return;
+    setLoading(true);
+    setErr(null);
+    setInfo(null);
+    try {
+      const r = (await rpc.getStakingInfo(address)) as typeof info;
+      setInfo(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-gray-700/40 bg-mempool-bg-elev p-4 space-y-3">
+      <h4 className="font-semibold text-gray-200 flex items-center gap-2 text-sm">
+        <Activity className="w-4 h-4 text-blue-400" /> Validator Staking Info
+      </h4>
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-xs text-gray-400 block mb-0.5">Validator address</label>
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-xs text-gray-100"
+            placeholder="ob1…"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <button
+          onClick={onLookup}
+          disabled={loading || !address}
+          className="px-3 py-1.5 rounded text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {info && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-xs">
+          {[
+            ["Status", info.status],
+            ["Total stake", fmtNum(info.total_stake) + " OMNI"],
+            ["Self stake", fmtNum(info.self_stake) + " OMNI"],
+            ["Delegated", fmtNum(info.delegated_stake) + " OMNI"],
+            ["Uptime", info.uptime_pct.toFixed(2) + "%"],
+            ["Blocks produced", String(info.blocks_produced)],
+            ["Total rewards", fmtNum(info.total_rewards) + " OMNI"],
+            ["Commission", info.commission_pct + "%"],
+            ["Slash count", String(info.slash_count)],
+            ["Slash history", String(info.slash_history_count)],
+          ].map(([k, v]) => (
+            <div key={k} className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400 text-[9px] uppercase">{k}</div>
+              <div className="font-mono text-gray-200">{v}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -392,9 +632,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
     let cancelled = false;
     (async () => {
       try {
-        const r = (await rpc.request_raw("getstake", [
-          { address: wallet.address },
-        ])) as StakeResp;
+        const r = (await rpc.getStake(wallet.address)) as unknown as StakeResp;
         if (!cancelled) setStake(r?.stake_omni ?? 0);
       } catch (e: any) {
         if (!cancelled) setStakeErr(e?.message ?? String(e));
@@ -424,7 +662,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
       }
     };
     send();
-    const id = setInterval(send, 30_000);
+    const id = setInterval(() => { void send(); }, 30_000);
     return () => clearInterval(id);
   }, [isValidator, wallet]);
 
@@ -471,7 +709,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
         <ul className="space-y-2 text-sm">
           <ReqRow
             ok={stakedOk}
-            label={`≥100 OMNI staked (you have ${stake !== null ? fmtOmni(stake) : "—"})`}
+            label={`≥100 OMNI staked (you have ${stake !== null ? fmtNum(stake) : "—"})`}
           />
           <ReqRow ok={true} label="Node responds to RPC: yes" />
           <ReqRow ok={true} label="Heartbeat capability (browser auto-pings every 30s)" />
@@ -487,7 +725,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
         </h3>
         <p className="text-sm text-gray-400 mb-2">
           Based on your current stake of{" "}
-          <span className="font-mono text-gray-200">{fmtOmni(stake ?? 0)} OMNI</span>, you would
+          <span className="font-mono text-gray-200">{fmtNum(stake ?? 0)} OMNI</span>, you would
           qualify as:
         </p>
         <div
@@ -513,7 +751,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
                   <td className="py-1 text-gray-300">
                     {t.note
                       ? t.note
-                      : `${fmtOmni(t.min)} – ${t.max ? fmtOmni(t.max) : "∞"} OMNI`}
+                      : `${fmtNum(t.min)} – ${t.max ? fmtNum(t.max) : "∞"} OMNI`}
                   </td>
                   <td className="py-1 text-gray-300">{TIER_MULT[t.tier]}×</td>
                 </tr>
@@ -537,7 +775,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
         </button>
         {result && (
           <span className="text-sm text-gray-300">
-            {result.status} {result.txid && `· tx ${truncAddr(result.txid)}`}
+            {result.status} {result.txid && `· tx ${midTrunc(result.txid)}`}
           </span>
         )}
       </div>
@@ -600,8 +838,248 @@ function ReqRow({ ok, label }: { ok: boolean; label: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 3: Slashing log
+// Tab 3: Slashing log (includes submit evidence + history lookup)
 // ---------------------------------------------------------------------------
+
+function SlashEvidencePanel() {
+  const [validatorAddr, setValidatorAddr] = useState("");
+  const [reason, setReason] = useState<"double_sign" | "invalid_block" | "downtime">("downtime");
+  const [hash1, setHash1] = useState("");
+  const [hash2, setHash2] = useState("");
+  const [blockHeight, setBlockHeight] = useState("");
+  const [reporterAddr, setReporterAddr] = useState("");
+  const [sig1, setSig1] = useState("");
+  const [sig2, setSig2] = useState("");
+  const [result, setResult] = useState<SlashEvidenceResp | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const needsHashes = reason === "double_sign" || reason === "invalid_block";
+
+  const onSubmit = async () => {
+    if (!validatorAddr || !blockHeight || !reporterAddr) return;
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const params: (string | null | number)[] = [
+        validatorAddr,
+        reason,
+        needsHashes ? (hash1 || null) : null,
+        needsHashes ? (hash2 || null) : null,
+        parseInt(blockHeight, 10),
+        reporterAddr,
+        needsHashes ? (sig1 || null) : null,
+        needsHashes ? (sig2 || null) : null,
+      ];
+      const r = (await rpc.request_raw("submitslashevidence", params)) as SlashEvidenceResp;
+      setResult(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-4 space-y-3">
+      <h4 className="font-semibold text-orange-200 flex items-center gap-2 text-sm">
+        <Gavel className="w-4 h-4" /> Submit Slash Evidence
+      </h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+        <div>
+          <label className="text-gray-400 block mb-0.5">Validator address *</label>
+          <input
+            value={validatorAddr}
+            onChange={(e) => setValidatorAddr(e.target.value)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+            placeholder="ob1…"
+          />
+        </div>
+        <div>
+          <label className="text-gray-400 block mb-0.5">Reason *</label>
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value as typeof reason)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 text-gray-100 text-xs"
+          >
+            <option value="downtime">downtime</option>
+            <option value="double_sign">double_sign</option>
+            <option value="invalid_block">invalid_block</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-gray-400 block mb-0.5">Evidence block height *</label>
+          <input
+            value={blockHeight}
+            onChange={(e) => setBlockHeight(e.target.value)}
+            type="number"
+            min="0"
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+            placeholder="12345"
+          />
+        </div>
+        <div>
+          <label className="text-gray-400 block mb-0.5">Reporter address *</label>
+          <input
+            value={reporterAddr}
+            onChange={(e) => setReporterAddr(e.target.value)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+            placeholder="ob1…"
+          />
+        </div>
+        {needsHashes && (
+          <>
+            <div>
+              <label className="text-gray-400 block mb-0.5">Block hash 1 (hex)</label>
+              <input
+                value={hash1}
+                onChange={(e) => setHash1(e.target.value)}
+                className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+                placeholder="64 hex chars"
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 block mb-0.5">Block hash 2 (hex)</label>
+              <input
+                value={hash2}
+                onChange={(e) => setHash2(e.target.value)}
+                className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+                placeholder="64 hex chars"
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 block mb-0.5">Validator sig 1 (hex)</label>
+              <input
+                value={sig1}
+                onChange={(e) => setSig1(e.target.value)}
+                className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 block mb-0.5">Validator sig 2 (hex)</label>
+              <input
+                value={sig2}
+                onChange={(e) => setSig2(e.target.value)}
+                className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+              />
+            </div>
+          </>
+        )}
+      </div>
+      <button
+        onClick={onSubmit}
+        disabled={loading || !validatorAddr || !blockHeight || !reporterAddr}
+        className="px-4 py-1.5 rounded text-xs bg-orange-500/30 hover:bg-orange-500/50 text-orange-100 border border-orange-500/40 disabled:opacity-50"
+      >
+        {loading ? "Submitting…" : "Submit Evidence"}
+      </button>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mt-1">
+          <div className="bg-gray-800/40 rounded p-2">
+            <div className="text-gray-400">Valid</div>
+            <div className={result.valid ? "text-green-400" : "text-red-400"}>
+              {result.valid ? "yes" : "no"}
+            </div>
+          </div>
+          <div className="bg-gray-800/40 rounded p-2">
+            <div className="text-gray-400">Slashed (sat)</div>
+            <div className="font-mono text-red-300">{result.slashed_amount}</div>
+          </div>
+          <div className="bg-gray-800/40 rounded p-2">
+            <div className="text-gray-400">Reporter reward</div>
+            <div className="font-mono text-green-300">{result.reporter_reward}</div>
+          </div>
+          <div className="bg-gray-800/40 rounded p-2">
+            <div className="text-gray-400">New stake</div>
+            <div className="font-mono text-gray-200">{result.new_stake}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SlashHistoryPanel() {
+  const [address, setAddress] = useState("");
+  const [history, setHistory] = useState<SlashHistoryEntry[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    if (!address) return;
+    setLoading(true);
+    setErr(null);
+    setHistory(null);
+    try {
+      const r = await rpc.getSlashHistory(address);
+      setHistory(r as SlashHistoryEntry[]);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-gray-700/40 bg-mempool-bg-elev p-4 space-y-3">
+      <h4 className="font-semibold text-gray-200 flex items-center gap-2 text-sm">
+        <AlertOctagon className="w-4 h-4 text-red-400" /> Slash History Lookup
+      </h4>
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-xs text-gray-400 block mb-0.5">Validator address</label>
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+            placeholder="ob1…"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <button
+          onClick={onLookup}
+          disabled={loading || !address}
+          className="px-3 py-1.5 rounded text-xs bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30 disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {history !== null && (
+        history.length === 0 ? (
+          <p className="text-xs text-gray-500">No slash history for this address.</p>
+        ) : (
+          <div className="overflow-x-auto rounded border border-gray-700/40">
+            <table className="w-full text-xs min-w-[400px]">
+              <thead className="bg-gray-800/60 text-gray-400 uppercase">
+                <tr>
+                  <th className="text-right px-3 py-2">Block</th>
+                  <th className="text-left px-3 py-2">Reason</th>
+                  <th className="text-right px-3 py-2">Slashed (sat)</th>
+                  <th className="text-left px-3 py-2">Reporter</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((h, i) => (
+                  <tr key={`${h.block_height}:${h.reason}:${i}`} className="border-t border-gray-800/60">
+                    <td className="px-3 py-1.5 text-right font-mono text-gray-300">{h.block_height}</td>
+                    <td className="px-3 py-1.5 text-red-300">{h.reason}</td>
+                    <td className="px-3 py-1.5 text-right font-mono text-red-400">{h.slashed_amount}</td>
+                    <td className="px-3 py-1.5 font-mono text-xs text-gray-400">
+                      <AddressLabel address={h.reporter} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
 
 function SlashingLogTab() {
   const [events, setEvents] = useState<SlashEvent[]>([]);
@@ -612,22 +1090,22 @@ function SlashingLogTab() {
     let cancelled = false;
     const refresh = async () => {
       try {
-        const r = (await rpc.request_raw("getslashevents", [{ limit: 100 }])) as {
-          events: SlashEvent[];
-        };
+        const r = await rpc.getSlashEvents(100);
         if (!cancelled) {
-          setEvents(Array.isArray(r?.events) ? r.events : []);
+          setEvents(Array.isArray(r?.events) ? r.events as SlashEvent[] : []);
           setErr(null);
         }
       } catch (e: any) {
         if (!cancelled) setErr(e?.message ?? String(e));
       }
     };
-    refresh();
-    const id = setInterval(refresh, 15_000);
+    void refresh();
+    const unsub3 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub3();
     };
   }, []);
 
@@ -640,7 +1118,7 @@ function SlashingLogTab() {
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm flex-wrap">
         <span className="text-xs sm:text-sm text-gray-400">Filter:</span>
-        {(["all", "double_sign", "extended_downtime", "invalid_block"] as const).map((k) => (
+        {SLASH_FILTERS.map((k) => (
           <button
             key={k}
             onClick={() => setFilter(k)}
@@ -674,12 +1152,12 @@ function SlashingLogTab() {
           </thead>
           <tbody>
             {filtered.map((e, i) => (
-              <tr key={i} className="border-t border-gray-800/60">
+              <tr key={`${e.evidence_block_height}:${e.address}:${i}`} className="border-t border-gray-800/60">
                 <td className="px-3 py-2 text-gray-400">
-                  {new Date(e.timestamp * 1000).toLocaleString()}
+                  <span title={new Date(e.timestamp * 1000).toLocaleString()}>{fmtAge(e.timestamp * 1000)}</span>
                 </td>
                 <td className="px-3 py-2 font-mono text-xs text-red-300/90 line-through">
-                  {truncAddr(e.address)}
+                  <AddressLabel address={e.address} showEmoji truncate={{ left: 8, right: 6 }} />
                 </td>
                 <td className="px-3 py-2">
                   <span className="inline-flex items-center gap-1 text-red-300">
@@ -691,7 +1169,7 @@ function SlashingLogTab() {
                   {e.evidence_block_height}
                 </td>
                 <td className="px-3 py-2 text-right font-mono text-red-300">
-                  {fmtOmni(e.slash_amount_omni)}
+                  {fmtNum(e.slash_amount_omni)}
                 </td>
               </tr>
             ))}
@@ -704,6 +1182,200 @@ function SlashingLogTab() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <SlashEvidencePanel />
+      <SlashHistoryPanel />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tab 4: Consensus & Slots
+// ---------------------------------------------------------------------------
+
+const SLOT_STATE_COLOR: Record<string, string> = {
+  future: "text-gray-400",
+  in_flight: "text-yellow-300",
+  finalized: "text-green-400",
+  missed: "text-red-400",
+};
+
+function ConsensusTab() {
+  const [leader, setLeader] = useState<SlotLeaderResp2 | null>(null);
+  const [clock, setClock] = useState<ClockStatusResp | null>(null);
+  const [calendar, setCalendar] = useState<SlotCalendarResp | null>(null);
+  const [futurePool, setFuturePool] = useState<FuturePoolResp | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const [l, c, cal, fp] = await Promise.all([
+          rpc.getSlotLeader() as Promise<SlotLeaderResp2 | null>,
+          rpc.getClockStatus() as Promise<ClockStatusResp | null>,
+          rpc.getSlotCalendar() as Promise<SlotCalendarResp | null>,
+          rpc.getFuturePool() as Promise<FuturePoolResp | null>,
+        ]);
+        if (cancelled) return;
+        setLeader(l);
+        setClock(c);
+        setCalendar(cal);
+        setFuturePool(fp);
+        setErr(null);
+      } catch (e: any) {
+        if (!cancelled) setErr(e?.message ?? String(e));
+      }
+    };
+    void refresh();
+    const unsub2 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(() => { void refresh(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub2(); };
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      {err && (
+        <div className="p-3 rounded border border-red-500/40 bg-red-500/10 text-red-300 text-sm">
+          {err}
+        </div>
+      )}
+
+      {/* Slot Leader + Clock */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
+          <h4 className="font-semibold text-yellow-200 flex items-center gap-2 text-sm mb-3">
+            <Crown className="w-4 h-4" /> Current Slot Leader
+          </h4>
+          {leader ? (
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Slot</span>
+                <span className="font-mono text-gray-200">{leader.slot ?? "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Leader</span>
+                <span className="font-mono text-yellow-300">
+                  {leader.leader
+                    ? <AddressLabel address={leader.leader} showEmoji truncate={{ left: 8, right: 6 }} />
+                    : "none"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Weight</span>
+                <span className="font-mono text-gray-200">{leader.weight ?? 0}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">Loading…</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-4">
+          <h4 className="font-semibold text-cyan-200 flex items-center gap-2 text-sm mb-3">
+            <Clock className="w-4 h-4" /> Hardware Clock Status
+          </h4>
+          {clock ? (
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Now (ms)</span>
+                <span className="font-mono text-gray-200">{clock.now_ms}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">RDTSC cycles</span>
+                <span className="font-mono text-gray-200">{clock.rdtsc}</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-gray-400 block mb-1">RDTSC spectrum (64 bits)</span>
+                <span className="font-mono text-[9px] text-cyan-300 break-all leading-tight">
+                  {clock.spectrum ?? "—"}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">Loading…</p>
+          )}
+        </div>
+      </div>
+
+      {/* Future Pool */}
+      {futurePool && (
+        <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 p-4">
+          <h4 className="font-semibold text-purple-200 flex items-center gap-2 text-sm mb-3">
+            <Layers className="w-4 h-4" /> Future TX Pool (time-locked)
+          </h4>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400">Current height</div>
+              <div className="font-mono text-gray-100">{futurePool.current_height}</div>
+            </div>
+            <div className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400">Locked TXs</div>
+              <div className="font-mono text-purple-300">{futurePool.locked_count}</div>
+            </div>
+            <div className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400">Earliest unlock</div>
+              <div className="font-mono text-gray-200">{futurePool.earliest_target || "—"}</div>
+            </div>
+            <div className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400">Latest unlock</div>
+              <div className="font-mono text-gray-200">{futurePool.latest_target || "—"}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slot Calendar */}
+      <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
+        <h4 className="font-semibold text-blue-200 flex items-center gap-2 text-sm mb-1">
+          <Calendar className="w-4 h-4" /> Slot Calendar
+          {calendar && (
+            <span className="text-xs text-gray-400 font-normal">
+              — head {calendar.head_slot} · interval {calendar.slot_interval_ms}ms
+            </span>
+          )}
+        </h4>
+        {calendar ? (
+          <div className="overflow-x-auto mt-2 rounded border border-blue-500/10">
+            <table className="w-full text-xs min-w-[520px]">
+              <thead className="bg-gray-800/60 text-gray-400 uppercase">
+                <tr>
+                  <th className="text-right px-3 py-2">Slot</th>
+                  <th className="text-left px-3 py-2">Leader</th>
+                  <th className="text-right px-3 py-2">Expected (ms)</th>
+                  <th className="text-left px-3 py-2">State</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(calendar.entries ?? []).map((e) => (
+                  <tr
+                    key={e.slot_id}
+                    className={`border-t border-gray-800/60 ${
+                      e.state === "in_flight" ? "bg-yellow-500/5" : ""
+                    }`}
+                  >
+                    <td className="px-3 py-1.5 text-right font-mono text-gray-300">{e.slot_id}</td>
+                    <td className="px-3 py-1.5 font-mono text-xs text-gray-200">
+                      <AddressLabel address={e.leader} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </td>
+                    <td className="px-3 py-1.5 text-right font-mono text-gray-400">{e.expected_arrival_ms}</td>
+                    <td className={`px-3 py-1.5 font-semibold ${SLOT_STATE_COLOR[e.state] ?? "text-gray-400"}`}>
+                      {e.state}
+                    </td>
+                  </tr>
+                ))}
+                {(calendar.entries ?? []).length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-gray-500">No calendar entries.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500 mt-2">Loading…</p>
+        )}
       </div>
     </div>
   );
@@ -721,7 +1393,7 @@ function StatCard({
   mono,
 }: {
   label: string;
-  value: number | string;
+  value: number | string | React.ReactNode;
   icon: React.ComponentType<{ className?: string }>;
   accent?: string;
   mono?: boolean;

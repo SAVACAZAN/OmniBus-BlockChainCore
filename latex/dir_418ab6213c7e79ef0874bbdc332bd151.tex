@@ -1,0 +1,71 @@
+\doxysection{frontend/\+node\+\_\+modules/\+victory-\/vendor Directory Reference}
+\hypertarget{dir_418ab6213c7e79ef0874bbdc332bd151}{}\label{dir_418ab6213c7e79ef0874bbdc332bd151}\index{frontend/node\_modules/victory-\/vendor Directory Reference@{frontend/node\_modules/victory-\/vendor Directory Reference}}
+Directory dependency graph for victory-\/vendor:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9311}{}\doxysubsection{\texorpdfstring{Victory\+Vendor}{Victory\+Vendor}}\label{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9311}
+Vendored dependencies for Victory.\hypertarget{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9312}{}\doxysubsection{\texorpdfstring{Background}{Background}}\label{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9312}
+D3 has released most of its libraries as ESM-\/only. This means that consumers in Node.\+js applications can no longer just {\ttfamily require()} anything with a d3 transitive dependency, including much of Victory.
+
+To help provide an easy path to folks still using Common\+JS in their Node.\+js applications that consume Victory, we now provide this package to vendor in various d3-\/related packages.\hypertarget{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9313}{}\doxysubsection{\texorpdfstring{Packages}{Packages}}\label{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9313}
+\doxylink{namespace_we}{We} presently provide the following top-\/level libraries:\+
+
+
+\begin{DoxyItemize}
+\item d3-\/ease
+\item d3-\/interpolate
+\item d3-\/scale
+\item d3-\/shape
+\item d3-\/timer
+\end{DoxyItemize}
+
+This is the total list of top and transitive libraries we vendor:\+
+
+
+\begin{DoxyItemize}
+\item d3-\/array
+\item d3-\/color
+\item d3-\/ease
+\item d3-\/format
+\item d3-\/interpolate
+\item d3-\/path
+\item d3-\/scale
+\item d3-\/shape
+\item d3-\/time
+\item d3-\/time-\/format
+\item d3-\/timer
+\item internmap
+\end{DoxyItemize}
+
+Note that this does {\itshape not} include the following D3 libraries that still support Common\+JS:\+
+
+
+\begin{DoxyItemize}
+\item d3-\/voronoi
+\end{DoxyItemize}\hypertarget{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9314}{}\doxysubsection{\texorpdfstring{How it works}{How it works}}\label{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9314}
+\doxylink{namespace_we}{We} provide two alternate paths and behaviors -- for ESM and Common\+JS\hypertarget{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9315}{}\doxysubsubsection{\texorpdfstring{ESM}{ESM}}\label{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9315}
+If you do a Node.\+js import like:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ interpolate\ \}\ from\ "{}victory-\/vendor/d3-\/interpolate"{};}
+
+\end{DoxyCode}
+
+
+under the hood it\textquotesingle{}s going to just re-\/export and pass you through to {\ttfamily node\+\_\+modules/\+d3-\/interpolate}, the {\bfseries{real}} ESM library from D3.\hypertarget{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9316}{}\doxysubsubsection{\texorpdfstring{Common\+JS}{Common\+JS}}\label{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9316}
+If you do a Node.\+js import like:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ \{\ interpolate\ \}\ =\ require("{}victory-\/vendor/d3-\/interpolate"{});}
+
+\end{DoxyCode}
+
+
+under the hood it\textquotesingle{}s going to will go to an alternate path that contains the transpiled version of the underlying d3 library to be found at {\ttfamily victory-\/vendor/\+lib-\/vendor/\+d3-\/interpolate/\+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}/\+\texorpdfstring{$\ast$}{*}.js}. This futher has internally consistent import references to other {\ttfamily victory-\/vendor/\+lib-\/vendor/\+\texorpdfstring{$<$}{<}pkg-\/name\texorpdfstring{$>$}{>}} paths.
+
+Note that for some tooling (like Jest) that doesn\textquotesingle{}t play well with {\ttfamily package.\+json:\+exports} routing to this Common\+JS path, we {\bfseries{also}} output a root file in the form of {\ttfamily victory-\/vendor/\+d3-\/interpolate.\+js}.\hypertarget{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9317}{}\doxysubsection{\texorpdfstring{Licenses}{Licenses}}\label{dir_418ab6213c7e79ef0874bbdc332bd151_autotoc_md9317}
+This project is released under the MIT license, but the vendor\textquotesingle{}ed in libraries include other licenses (e.\+g. ISC) that we enumerate in our {\ttfamily package.\+json:\+license} field. 

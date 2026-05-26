@@ -1,0 +1,6 @@
+# bitcoin.conf
+server=1
+rpcuser=your_username
+rpcpassword=your_password
+rpcallowip=127.0.0.1
+testnet=1  # or mainnet=1

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient, { ApiKeyInfo } from "../../api/rpc-client";
+import { midTrunc } from "../../utils/fmt";
+import { rpc, type ApiKeyInfo } from "../../api/rpc-client";
 import {
   signCreateApiKeyPayload,
   signRevokeApiKeyPayload,
 } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
 
-const rpc = new OmniBusRpcClient();
 
 /**
  * API keys live as long as the chain remembers them — server stores
@@ -33,15 +33,10 @@ export function ApiKeysPanel() {
     }
     let cancelled = false;
     setLoading(true);
-    rpc.exchangeListApiKeys(u.address).then((list) => {
-      if (!cancelled) {
-        setKeys(list);
-        setLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
+    rpc.exchangeListApiKeys(u.address)
+      .then((list) => { if (!cancelled) { setKeys(list); setLoading(false); } })
+      .catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [u?.address]);
 
   const refresh = async () => {
@@ -123,7 +118,7 @@ export function ApiKeysPanel() {
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
       <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
-        API keys for {u.address.slice(0, 10)}…{u.address.slice(-6)}
+        API keys for {midTrunc(u.address, 10, 6)}
       </h3>
 
       <div className="flex gap-2">

@@ -1,0 +1,430 @@
+\chapter{OMNIBUS PROTOCOL — ENCYCLOPEDIC REFERENCE v1.\+0 }
+\hypertarget{md_wiki-omnibus_2enciclopedia}{}\label{md_wiki-omnibus_2enciclopedia}\index{OMNIBUS PROTOCOL — ENCYCLOPEDIC REFERENCE v1.0@{OMNIBUS PROTOCOL — ENCYCLOPEDIC REFERENCE v1.0}}
+\label{md_wiki-omnibus_2enciclopedia_autotoc_md11178}%
+\Hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11178}%
+
+
+{\itshape Citizendium /\+ Infoplease style — 2026-\/03-\/26}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11180}{}\doxysection{\texorpdfstring{CE ESTE OMNIBUS PROTOCOL}{CE ESTE OMNIBUS PROTOCOL}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11180}
+{\bfseries{Omnibus Protocol}} este un ecosistem software complet pentru trading algoritmici de înaltă frecvență și stocare securizată de valoare, construit pe criptografie post-\/quantum. Proiectul cuprinde 6 repository-\/uri publice pe Git\+Hub, acoperind tot stackul de la bare-\/metal OS până la wallet desktop și interfețe web.
+
+{\bfseries{Creat de:\+}} SAVACAZAN /\+ Omni\+Bus\+DSL {\bfseries{Limbaje principale:\+}} Zig, C++, Python, Type\+Script/\+\+React, Ada, Assembly x86-\/64 {\bfseries{Securitate:\+}} Post-\/quantum (ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA-\/256s, ML-\/\+KEM-\/768 via liboqs)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11182}{}\doxysection{\texorpdfstring{CELE 6 COMPONENTE}{CELE 6 COMPONENTE}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11182}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11183}{}\doxysubsection{\texorpdfstring{1. Omni\+Bus — Bare-\/\+Metal HFT OS}{1. Omni\+Bus — Bare-\/\+Metal HFT OS}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11183}
+{\ttfamily github.\+com/\+\+SAVACAZAN/\+\+Omni\+Bus} \texorpdfstring{$\vert$}{|} Zig + Ada + ASM \texorpdfstring{$\vert$}{|} 28MB
+
+{\bfseries{Ce este:\+}} Un sistem de operare complet (fără Linux) care rulează direct pe hardware x86-\/64, dedicat exclusiv trading-\/ului de ultra-\/înaltă frecvență.
+
+{\bfseries{Arhitectură (5 niveluri, 54+ module):\+}}
+\begin{DoxyItemize}
+\item {\bfseries{Tier 1}} (Trading):\+ {\ttfamily analytics\+\_\+os}, {\ttfamily execution\+\_\+os}, {\ttfamily grid\+\_\+os}, {\ttfamily bot\+\_\+strategies} (25 fișiere)
+\item {\bfseries{Tier 2}} (Sistem):\+ {\ttfamily database\+\_\+os}, {\ttfamily audit\+\_\+log\+\_\+os}
+\item {\bfseries{Tier 3}} (Coordonare):\+ {\ttfamily consensus\+\_\+engine\+\_\+os}, {\ttfamily bank\+\_\+os} (SWIFT/\+\+ACH)
+\item {\bfseries{Tier 4}} (Protecție):\+ {\ttfamily cross\+\_\+chain\+\_\+bridge\+\_\+os}, {\ttfamily dao\+\_\+governance\+\_\+os}, {\ttfamily domain\+\_\+resolver}
+\item {\bfseries{Tier 5}} (Verificare):\+ Ada SPARK + Coq + Why3 (formal proofs)
+\end{DoxyItemize}
+
+{\bfseries{Performanță țintă:\+}} Latență Tier 1 \texorpdfstring{$\sim$}{\string~}40µs \texorpdfstring{$\vert$}{|} Memorie 3.\+2\+MB \texorpdfstring{$\vert$}{|} Verificare formală 99\%+
+
+{\bfseries{Unic în ecosistem:\+}} {\ttfamily bank\+\_\+os} — integrare SWIFT (8KB) și ACH (11.\+8\+KB) pentru settlement bancar real.
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11185}{}\doxysubsection{\texorpdfstring{2. Omni\+Bus-\/\+Block\+Chain\+Core — Nodul Blockchain}{2. Omni\+Bus-\/\+Block\+Chain\+Core — Nodul Blockchain}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11185}
+{\ttfamily github.\+com/\+\+SAVACAZAN/\+\+Omni\+Bus-\/\+Block\+Chain\+Core} \texorpdfstring{$\vert$}{|} Zig 0.\+15.\+2 + Node.\+js + React \texorpdfstring{$\vert$}{|} Scor:\+ \texorpdfstring{$\sim$}{\string~}87\%
+
+{\bfseries{Ce este:\+}} Nod blockchain complet, rulabil, cu criptografie post-\/quantum nativă și compatibilitate Bitcoin.
+
+{\bfseries{Parametri blockchain:\+}}
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  \\
+Supply maxim  &21,000,000 OMNI  \\
+1 OMNI  &1,000,000,000 SAT  \\
+Block time  &10s  \\
+Difficulty  &4 zerouri hex (SHA256d PoW)  \\
+Block reward  &50 OMNI, halving la 210,000  \\
+Semnătură  &secp256k1 ECDSA  \\
+\end{DoxyTable}
+
+
+{\bfseries{5 domenii PQ (coin types 777–781):\+}}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prefix  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coin\+Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Algoritm  \\
+{\ttfamily ob1q} (Bech32)  &777  &ML-\/\+DSA-\/87 + ML-\/\+KEM-\/768  \\
+{\ttfamily ob\+\_\+k1\+\_\+}  &778  &ML-\/\+DSA-\/87 (Dilithium-\/5)  \\
+{\ttfamily ob\+\_\+f5\+\_\+}  &779  &Falcon-\/512  \\
+{\ttfamily ob\+\_\+d5\+\_\+}  &780  &ML-\/\+DSA-\/87  \\
+{\ttfamily ob\+\_\+s3\+\_\+}  &781  &SLH-\/\+DSA-\/256s (SPHINCS+)  \\
+\end{DoxyTable}
+
+
+{\bfseries{RPC API (port 8332):\+}}
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metodă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+{\ttfamily getbalance}  &address, balance, balance\+OMNI, node\+Height  \\
+{\ttfamily sendtransaction}  &txid, from, to, amount, status=accepted  \\
+{\ttfamily gettransactions}  &TX history per adresă:\+ txid/\+from/\+to/\+amount/\+status/\+direction/\+block\+Height  \\
+{\ttfamily getblockcount}  &Număr blocuri în chain  \\
+{\ttfamily getlatestblock}  &index, hash, timestamp, nonce, tx\+Count  \\
+{\ttfamily getmempoolsize}  &TX pending  \\
+{\ttfamily getmempoolstats}  &Detailed mempool stats (size, bytes, fees)  \\
+{\ttfamily getstatus}  &Status complet nod  \\
+{\ttfamily gettransaction}  &TX by hash  \\
+{\ttfamily estimatefee}  &Fee estimation per byte  \\
+{\ttfamily getaddresshistory}  &Full TX history for address  \\
+{\ttfamily getnonce}  &Next nonce for address  \\
+{\ttfamily generatewallet}  &Generate new wallet  \\
+{\ttfamily getstakinginfo}  &Staking stats, validators  \\
+{\ttfamily createmultisig}  &M-\/of-\/N multisig address  \\
+{\ttfamily openchannel}  &Open payment channel (L2)  \\
+{\ttfamily channelpay}  &Pay through L2 channel  \\
+{\ttfamily getperformance}  &Node performance metrics  \\
+\end{DoxyTable}
+
+
+{\bfseries{Implementat 2026-\/03-\/26:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily validate\+Transaction} — verificare hash integrity SHA256d (anti-\/tampering)
+\item {\ttfamily gettransactions} — scanare mempool + blocuri, filtru opțional adresă
+\item {\ttfamily database.\+zig} — persistență binară ({\ttfamily omnibus-\/chain.\+dat}), atomic write tmp→rename
+\item {\ttfamily storage.\+zig} — fix deinit memory leak (iterator duplex)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11187}{}\doxysubsection{\texorpdfstring{3. v5-\/\+Cpp\+Mono — Grid-\/\+DSL Trading Engine}{3. v5-\/\+Cpp\+Mono — Grid-\/\+DSL Trading Engine}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11187}
+{\ttfamily github.\+com/\+\+SAVACAZAN/\+v5-\/\+Cpp\+Mono} \texorpdfstring{$\vert$}{|} C++ \texorpdfstring{$\vert$}{|} 250 opcodes \texorpdfstring{$\vert$}{|} \texorpdfstring{$<$}{<}50ns parsing
+
+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Ce este:\+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} Un DSL (Domain-\/\+Specific Language) pentru strategii de trading algorithmic, expus via C-\/\+ABI pentru 92+ limbaje de programare.
+
+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Categorii de comenzi (12 categorii, 250 keywords):\+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} Grid strategies, risk management, order placement, backtesting, alerts, position sizing, indicators, automation, exchange-\/specific, monitoring, DCA, statistical analysis.
+
+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Bindings generate automat (SWIG):\+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} Python, Java, C\#, Go, Node.\+js, Rust, Zig, Ada + 84 altele.
+
+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Platforme:\+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 100+ (Windows, Linux, mac\+OS, BSD, Android, i\+OS, Web\+Assembly, Free\+RTOS, Solaris, AIX)
+
+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Exemplu DSL:\+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{grid.set\_range(95000,\ 105000)}
+\DoxyCodeLine{grid.set\_levels(20)}
+\DoxyCodeLine{risk.max\_drawdown(5\%)}
+\DoxyCodeLine{order.buy\_limit(BTC/USDT,\ 0.01,\ 98000)}
+\DoxyCodeLine{alert.price\_above(110000,\ "{}Take\ profit!"{})}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11189}{}\doxysubsection{\texorpdfstring{4. HFT-\/\+Multi\+Exchange — Agregator Exchange}{4. HFT-\/\+Multi\+Exchange — Agregator Exchange}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11189}
+{\ttfamily github.\+com/\+\+Omni\+Bus\+DSL/\+\+HFT-\/\+Multi\+Exchange} \texorpdfstring{$\vert$}{|} Zig (backend) + Type\+Script/\+\+React (frontend) \texorpdfstring{$\vert$}{|} ⭐1
+
+{\bfseries{Ce este:\+}} Platformă HFT cu agregare real-\/time a order book-\/urilor de la LCX, Kraken, Coinbase + scanner arbitraj.
+
+{\bfseries{Backend Zig:\+}}
+\begin{DoxyItemize}
+\item 37 endpoint REST (HTTP/\+1.\+1)
+\item SQLite WAL mode pentru persistență
+\item JWT (HMAC-\/\+SHA256) + PBKDF2 auth
+\item XCha\+Cha20-\/\+Poly1305 pentru cheile API stocate
+\item Thread-\/safe concurrent requests
+\end{DoxyItemize}
+
+{\bfseries{Suite avansată (ORDERBOOKDOMINATOR/\+):\+}}
+\begin{DoxyItemize}
+\item {\ttfamily lcx-\/sentinel/\+} (Type\+Script) — monitorizare LCX
+\item {\ttfamily order-\/shield/\+} — protecție ordine private
+\item {\ttfamily shield-\/dashboard/\+} — Zig desktop monitor
+\item Integrare Gemini AI
+\end{DoxyItemize}
+
+{\bfseries{Notă:\+}} Bug gzip Zig 0.\+14.\+0 pentru răspunsuri compressed — workaround prin HTTP polling.
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11191}{}\doxysubsection{\texorpdfstring{5. Omnibus\+Sidebar — Desktop Trading App}{5. Omnibus\+Sidebar — Desktop Trading App}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11191}
+{\ttfamily github.\+com/\+\+Omni\+Bus\+DSL/\+\+Omnibus\+Sidebar} \texorpdfstring{$\vert$}{|} C++17 + Raylib 5.\+0 + Dear Im\+Gui 1.\+92 \texorpdfstring{$\vert$}{|} \texorpdfstring{$\sim$}{\string~}2.4MB exe
+
+{\bfseries{Ce este:\+}} Aplicație desktop Windows (sidebar lateral, always-\/on-\/top, transparent) cu 5 tab-\/uri de trading și wallet integrat.
+
+{\bfseries{Tab-\/uri:\+}}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tab  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcționalitate  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+PRICES  &Prețuri live 3 exchange-\/uri, 1s polling  &✅ 100\%  \\
+CHARTS  &Candlestick OHLCV, 5 timeframes, zoom  &✅ 100\%  \\
+WALLET  &Balance + send → RPC Zig port 8332  &✅ 100\%  \\
+TRADE  &Buy/\+sell + HMAC-\/\+SHA512 Kraken /\+ HMAC-\/\+SHA256 LCX/\+\+Coinbase  &✅ 100\%  \\
+VAULT  &DPAPI encrypted storage  &✅ 100\%  \\
+\end{DoxyTable}
+
+
+{\bfseries{Actualizat 2026-\/03-\/26:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily mod\+\_\+trade.\+cpp} — {\ttfamily Send\+Order\+Kraken} (HMAC-\/\+SHA512), {\ttfamily Send\+Order\+LCX}/\+{\ttfamily Send\+Order\+Coinbase} (HMAC-\/\+SHA256) REAL
+\item {\ttfamily fetch.\+cpp} — {\ttfamily Hmac\+Sha256\+Hex} + {\ttfamily Hmac\+Sha512\+B64} via Win\+Crypt REAL
+\item {\ttfamily Get\+Vault\+Creds(exchange)} — cross-\/platform:\+ Named Pipe Windows /\+ Unix socket Linux
+\item Build confirmat:\+ {\ttfamily mingw32-\/make} → {\ttfamily Omnibus\+Sidebar.\+exe} 2.\+4\+MB, zero erori
+\end{DoxyItemize}
+
+{\bfseries{Super\+Vault (subsistem criptare) — actualizat 2026-\/03-\/26:\+}}
+\begin{DoxyItemize}
+\item Protocol:\+ {\ttfamily \+[opcode:\+1]\+\+[exchange:\+1]\+\+[slot:\+2]\+\+[payload\+\_\+len:\+2]\+\+[payload]\+}
+\item Pipe:\+ {\ttfamily \textbackslash{}\textbackslash{}.\textbackslash{}pipe\textbackslash{}Omnibus\+Vault} (Windows) /\+ {\ttfamily /\+tmp/\+omnibus\+\_\+vault.sock} (Linux)
+\item Opcodes:\+ 0x40-\/0x4C inclusiv {\ttfamily 0x4C GET\+\_\+\+TRADING\+\_\+\+CREDS} (api\+\_\+key + api\+\_\+secret)
+\item {\ttfamily vault.\+dat} format v4, magic {\ttfamily OMNV} — identic Windows (DPAPI) și Linux (libsodium Argon2id)
+\item {\ttfamily vault\+\_\+core\+\_\+linux.\+cpp} (NOU) — Argon2id KDF + XSalsa20-\/\+Poly1305
+\item {\ttfamily vault\+\_\+service\+\_\+linux.\+cpp} (NOU) — Unix socket daemon, PID lock, chmod 0600
+\item {\ttfamily Makefile.\+linux} (NOU) — {\ttfamily apt install libsodium-\/dev \&\& make -\/f Makefile.\+linux}
+\item {\ttfamily vault\+\_\+manager.\+py} — Tkinter GUI, 4 tab-\/uri
+\end{DoxyItemize}
+
+{\bfseries{Omnibus\+Wallet Python (19 chain-\/uri + 4 domenii PQ) — actualizat 2026-\/03-\/26:\+}}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Note  \\
+wallet\+\_\+core.\+py  &✅ REAL  &BIP-\/39/\+44 via bip\+\_\+utils  \\
+wallet\+\_\+store.\+py  &✅ REAL  &DPAPI wallets.\+dat, atomic write  \\
+pq\+\_\+domain.\+py  &✅ REAL  &HKDF-\/\+SHA512, secp256k1 pubkey  \\
+pq\+\_\+sign.\+py  &✅ REAL  &ctypes liboqs.\+dll + keypair cache — ML-\/\+DSA-\/87/\+\+Falcon-\/512/\+\+SLH\+\_\+\+DSA\+\_\+\+PURE\+\_\+\+SHAKE\+\_\+256S  \\
+balance\+\_\+fetcher.\+py  &✅ REAL  &19 blockchain-\/uri + OMNI RPC 8332  \\
+send\+\_\+transaction.\+py  &✅ REAL  &SHA256d hash, secp256k1 sign, send OMNI  \\
+\end{DoxyTable}
+
+
+pq\+\_\+sign.\+py backends:\+ A (ctypes DLL direct) → B (WSL) → C (HMAC-\/\+SHA512 fallback) Cache:\+ {\ttfamily \texorpdfstring{$\sim$}{\string~}/\+.omnibus\+\_\+sidebar/\+pq\+\_\+keys/\+\texorpdfstring{$<$}{<}\doxylink{namespacesha256}{sha256}\+[:\+32]\+\texorpdfstring{$>$}{>}.json} chmod 0600, atomic write
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11193}{}\doxysubsection{\texorpdfstring{6. Omni\+Bus-\/\+Connect — Python Exchange Gateway}{6. Omni\+Bus-\/\+Connect — Python Exchange Gateway}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11193}
+{\ttfamily github.\+com/\+\+Omni\+Bus\+DSL/\+\+Omni\+Bus-\/\+Connect-\/\+Multi-\/\+Exchange-\/\+End\+Pointss} \texorpdfstring{$\vert$}{|} Python \texorpdfstring{$\vert$}{|} 7,900+ linii
+
+{\bfseries{Ce este:\+}} Gateway Python unificat pentru 9 exchange-\/uri, cu DSL de trading și module de intelligence.
+
+{\bfseries{Exchange-\/uri (Tier 1):\+}} LCX, Kraken, Coinbase — full DSL + Web\+Socket + private endpoints {\bfseries{Exchange-\/uri (Tier 2):\+}} Binance, OKX, Bybit, Gate.\+io, Bitget, Ku\+Coin {\bfseries{Succes rate testare:\+}} 85.\+1\% din 74 endpoint-\/uri publice
+
+{\bfseries{Module DSL intelligence:\+}}
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  \\
+{\ttfamily arbitrage\+\_\+dsl.\+py}  &Detecție discrepanțe multi-\/exchange, profit fee-\/adjusted  \\
+{\ttfamily bot\+\_\+trading\+\_\+dsl.\+py}  &Grid trading, DCA, TP/\+\+SL, trend-\/following  \\
+{\ttfamily indicators\+\_\+dsl.\+py}  &SMA, EMA, RSI, MACD, Bollinger, semnale automate  \\
+{\ttfamily stats\+\_\+dsl.\+py}  &Sharpe/\+\+Sortino, drawdown, corelație, rapoarte  \\
+{\ttfamily live\+\_\+data\+\_\+integration.\+py}  &Streaming real-\/time, fallback graceful  \\
+\end{DoxyTable}
+
+
+{\bfseries{Extensie VSCode:\+}} syntax highlighting pentru {\ttfamily .\doxylink{namespaceomnibus}{omnibus}} script files.
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11195}{}\doxysection{\texorpdfstring{ARHITECTURA GLOBALĂ}{ARHITECTURA GLOBALĂ}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11195}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{USER\ INTERFACES}
+\DoxyCodeLine{├──\ OmnibusSidebar\ (C++\ desktop,\ Windows)}
+\DoxyCodeLine{├──\ HFT-\/MultiExchange\ Frontend\ (React,\ browser)}
+\DoxyCodeLine{└──\ CLI\ (Python,\ Node.js)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{INTEGRATION\ LAYER}
+\DoxyCodeLine{├──\ HTTP/JSON-\/RPC\ (port\ 8332)\ ──\ BlockchainCore\ ←\ Sidebar\ mod\_wallet}
+\DoxyCodeLine{├──\ Named\ Pipe\ (\(\backslash\)\(\backslash\).\(\backslash\)pipe\(\backslash\)OmnibusVault)\ ──\ SuperVault\ ←\ Sidebar}
+\DoxyCodeLine{├──\ REST\ API\ (port\ 8000)\ ──\ HFT-\/MultiExchange\ ←\ React\ Frontend}
+\DoxyCodeLine{├──\ C-\/ABI\ /\ SWIG\ ──\ v5-\/CppMono\ DSL\ ←\ Python\ Connect}
+\DoxyCodeLine{└──\ [PLANIFICAT]\ gRPC\ /\ WASM\ /\ FFI}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{CORE\ ENGINES}
+\DoxyCodeLine{├──\ Zig\ Blockchain\ Node\ (secp256k1,\ PQ,\ BIP-\/32/39,\ PoW)}
+\DoxyCodeLine{├──\ C++\ DSL\ Engine\ (250\ opcodes,\ <50ns,\ 92\ limbaje)}
+\DoxyCodeLine{├──\ Python\ Exchange\ Gateway\ (9\ exchange-\/uri,\ DSL\ AI)}
+\DoxyCodeLine{└──\ Zig\ HFT\ Aggregator\ (37\ REST,\ SQLite,\ JWT)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{INFRASTRUCTURE}
+\DoxyCodeLine{├──\ OmniBus\ bare-\/metal\ OS\ (Zig/Ada/ASM,\ 54\ module)}
+\DoxyCodeLine{├──\ Mining\ Pool\ (Node.js,\ dynamic\ registration)}
+\DoxyCodeLine{└──\ Exchange\ APIs\ (LCX,\ Kraken,\ Coinbase\ +\ 6\ altele)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11197}{}\doxysection{\texorpdfstring{INTERCONEXIUNI REALE}{INTERCONEXIUNI REALE}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11197}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmniBus-\/BlockChainCore\ (port\ 8332)}
+\DoxyCodeLine{\ \ \ \ ←\ WinHTTP\ POST:\ OmnibusSidebar\ mod\_wallet.cpp}
+\DoxyCodeLine{\ \ \ \ ←\ React\ frontend\ (BlockchainCore/frontend)}
+\DoxyCodeLine{}
+\DoxyCodeLine{OmnibusSidebar\ (C++)}
+\DoxyCodeLine{\ \ \ \ →\ Named\ Pipe\ \(\backslash\)\(\backslash\).\(\backslash\)pipe\(\backslash\)OmnibusVault\ →\ SuperVault\ (Python)}
+\DoxyCodeLine{\ \ \ \ →\ WinHTTP\ →\ BlockchainCore\ port\ 8332}
+\DoxyCodeLine{}
+\DoxyCodeLine{v5-\/CppMono\ DSL\ (C-\/ABI)}
+\DoxyCodeLine{\ \ \ \ →\ Python\ ctypes\ bindings\ →\ OmniBus-\/Connect}
+\DoxyCodeLine{\ \ \ \ →\ Ada\ bindings\ →\ OmniBus\ bare-\/metal\ formal\ verification}
+\DoxyCodeLine{}
+\DoxyCodeLine{HFT-\/MultiExchange\ openapi.json}
+\DoxyCodeLine{\ \ \ \ →\ generate\_dsl\_from\_json.py\ →\ OmniBus-\/Connect\ cod-\/gen}
+\DoxyCodeLine{}
+\DoxyCodeLine{OmniBus\ (bare-\/metal)}
+\DoxyCodeLine{\ \ \ \ →\ execution\_os:\ Dilithium\ PQ\ signing\ (pattern\ comun\ cu\ BlockChainCore)}
+\DoxyCodeLine{\ \ \ \ →\ bank\_os:\ SWIFT/ACH\ (unic\ în\ ecosistem)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11199}{}\doxysection{\texorpdfstring{WHITEPAPER OMNIBUS PROTOCOL v1.\+0}{WHITEPAPER OMNIBUS PROTOCOL v1.\+0}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11199}
+{\bfseries{Titlu:\+}} Multi-\/\+Chain HD Wallet with Post-\/\+Quantum Security and Utility Domains {\bfseries{Autori:\+}} SAVACAZAN \texorpdfstring{$\vert$}{|} {\bfseries{Data:\+}} 2026-\/03-\/26 \texorpdfstring{$\vert$}{|} {\bfseries{Versiune:\+}} 1.\+0\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11200}{}\doxysubsection{\texorpdfstring{Layers}{Layers}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11200}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Layer  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Nume  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Descriere  \\
+L0  &Identity  &Single BIP39 seed → HD derivare multi-\/chain  \\
+L1  &OMNI  &Store-\/of-\/value, 21M supply fix, transferabil  \\
+L2  &Utility Domains  &omnibus.\+omni/\+.love/\+.food/\+.rent/\+.vacation — non-\/transferabile  \\
+L3  &Cross-\/\+Chain Anchors  &Settlement proofs pe BTC/\+\+ETH  \\
+L4  &Applications  &Marketplaces, loyalty, HFT, subscriptions  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11201}{}\doxysubsection{\texorpdfstring{Derivare HD}{Derivare HD}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11201}
+
+\begin{DoxyItemize}
+\item OMNI:\+ {\ttfamily m/\+84\textquotesingle{}/\+777\textquotesingle{}/\+0\textquotesingle{}/\+0/\+i}
+\item BTC:\+ {\ttfamily m/\+84\textquotesingle{}/\+0\textquotesingle{}/\+0\textquotesingle{}/\+0/\+i}
+\item Domains:\+ {\ttfamily m/\+44\textquotesingle{}/\+777\textquotesingle{}/\+domain\+\_\+index\textquotesingle{}/\+0/\+i}
+\item Format adresă:\+ {\ttfamily prefix} + primii 12 hex din {\ttfamily RIPEMD160(\+SHA256(pubkey))}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11203}{}\doxysection{\texorpdfstring{PLAN MULTI-\/\+LANGUAGE (WASM /\+ FFI /\+ g\+RPC)}{PLAN MULTI-\/\+LANGUAGE (WASM /\+ FFI /\+ g\+RPC)}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11203}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11204}{}\doxysubsection{\texorpdfstring{De ce}{De ce}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11204}
+Toate componentele rulează izolat. Scopul este să fie apelabile din orice limbaj fără a copia logica criptografică.\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11205}{}\doxysubsection{\texorpdfstring{WASM}{WASM}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11205}
+
+\begin{DoxyItemize}
+\item Zig core ({\ttfamily bip32\+\_\+wallet.\+zig}, {\ttfamily pq\+\_\+crypto.\+zig}, {\ttfamily transaction.\+zig}) → compilat {\ttfamily wasm32-\/freestanding}
+\item C++ DSL ({\ttfamily grid\+\_\+dsl.\+cpp}) → WASM via Emscripten
+\item Integrare în React frontends existente pentru wallet în browser
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11206}{}\doxysubsection{\texorpdfstring{FFI}{FFI}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11206}
+
+\begin{DoxyItemize}
+\item Zig → static lib {\ttfamily libomnibus\+\_\+core.\+a} + header {\ttfamily omnibus\+\_\+core.\+h} → link în C++ (Omnibus\+Sidebar)
+\item Zig → shared lib {\ttfamily .dll/\+.so} → Python ctypes (Super\+Vault, Omni\+Bus-\/\+Connect)
+\item C++ DSL → deja SWIG pentru Python (extins la toate modulele)
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11207}{}\doxysubsection{\texorpdfstring{g\+RPC}{g\+RPC}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11207}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{service\ WalletService\ \{}
+\DoxyCodeLine{\ \ \ \ rpc\ DeriveKey\ (DeriveRequest)\ returns\ (KeyPair);}
+\DoxyCodeLine{\ \ \ \ rpc\ SignTransaction\ (SignRequest)\ returns\ (Signature);}
+\DoxyCodeLine{\ \ \ \ rpc\ GetBalance\ (BalanceRequest)\ returns\ (Balance);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{service\ TradingDSL\ \{}
+\DoxyCodeLine{\ \ \ \ rpc\ Execute\ (DSLCommand)\ returns\ (ExecutionResult);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{service\ ExchangeAggregator\ \{}
+\DoxyCodeLine{\ \ \ \ rpc\ GetTicker\ (TickerRequest)\ returns\ (Ticker);}
+\DoxyCodeLine{\ \ \ \ rpc\ DetectArbitrage\ (ArbitrageRequest)\ returns\ (ArbitrageResponse);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11209}{}\doxysection{\texorpdfstring{SCOR GENERAL ECOSISTEM (actualizat 2026-\/03-\/26)}{SCOR GENERAL ECOSISTEM (actualizat 2026-\/03-\/26)}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11209}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Scor  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+Blockchain Core (Zig)  &95\%  &69 module, 873 funcții, 217 structuri, 39 RPC methods  \\
+Crypto (secp256k1, PQ, BIP-\/32)  &95\%  &Funcțional; crypto.\+zig AES=XOR stub (minor)  \\
+RPC Server (JSON-\/\+RPC 2.\+0)  &99\%  &39 metode:\+ staking, multisig, channels, performance  \\
+Mining Pool (Node.\+js)  &95\%  &Dynamic, persistent  \\
+Desktop App (C++ sidebar)  &99\%  &HMAC signing REAL, vault cross-\/platform, build OK 2.\+4\+MB  \\
+Super\+Vault (DPAPI/\+libsodium)  &99\%  &Windows DPAPI + Linux libsodium, opcode 0x4C, Makefile.\+linux  \\
+Omnibus\+Wallet Python  &100\%  &pq\+\_\+sign.\+py REAL (ctypes+cache), toate 6 fișiere complete  \\
+DSL Engine (C++)  &85\%  &Engine OK; integration tests lipsesc  \\
+HFT Aggregator (Zig+\+React)  &80\%  &Funcțional; Zig 0.\+14 gzip bug nerezolvat  \\
+Python Exchange Gateway  &85\%  &85.\+1\% endpoint success; live trading auth TODO  \\
+Bare-\/metal OS  &90\%  &Production Phase 72; boot real pe hardware neconfirmat  \\
+P2P Network (Zig)  &90\%  &TCP real, Kademlia DHT, peer scoring, broadcast, sync  \\
+Exo\+Charts (Zig+\+HTML5)  &75\%  &Funcțional; Zig 0.\+12 → upgrade necesar  \\
+Cross-\/language bindings  &20\%  &Planificat (WASM/\+\+FFI/\+g\+RPC)  \\
+\end{DoxyTable}
+
+
+{\bfseries{MEDIE GLOBALĂ:\+ \texorpdfstring{$\sim$}{\string~}91\%}} {\itshape (+13\% față de documentația anterioară, actualizat 2026-\/03-\/31)}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11211}{}\doxysection{\texorpdfstring{NEXT STEPS PRIORITARE (actualizat 2026-\/03-\/26)}{NEXT STEPS PRIORITARE (actualizat 2026-\/03-\/26)}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11211}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11212}{}\doxysubsection{\texorpdfstring{Bifate ✅ (finalizate în sesiunile recente)}{Bifate ✅ (finalizate în sesiunile recente)}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11212}
+
+\begin{DoxyItemize}
+\item \sout{{\bfseries{HMAC trading signing}}} — ✅ mod\+\_\+trade.\+cpp REAL (Kraken/\+\+LCX/\+\+Coinbase)
+\item \sout{{\bfseries{Linux Super\+Vault}}} — ✅ libsodium Argon2id, vault\+\_\+service\+\_\+linux.\+cpp, Makefile.\+linux
+\item \sout{{\bfseries{pq\+\_\+sign.\+py real}}} — ✅ ctypes liboqs.\+dll + cache, toate 4 domenii
+\item \sout{{\bfseries{Metachain + Shard in mining loop}}} — ✅ main.\+zig integrat
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11213}{}\doxysubsection{\texorpdfstring{Rămase}{Rămase}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11213}
+
+\begin{DoxyEnumerate}
+\item \sout{{\bfseries{P2P TCP real}}} — ✅ {\ttfamily p2p.\+zig} TCP real, Kademlia DHT, peer scoring, broadcast
+\item {\bfseries{Rocks\+DB persistence}} — {\ttfamily database.\+zig} → disk persistent (nu in-\/memory)
+\item {\bfseries{HFT gzip fix}} — Zig 0.\+14 → 0.\+15.\+2 upgrade pentru Kraken/\+\+Coinbase decompression
+\item {\bfseries{Exo\+Charts upgrade}} — Zig 0.\+12 → 0.\+15.\+2
+\item {\bfseries{Omni\+Bus-\/\+Connect live auth}} — token OAuth complet 9 exchange-\/uri
+\item {\bfseries{WASM wallet}} — compila {\ttfamily bip32\+\_\+wallet.\+zig} + {\ttfamily pq\+\_\+crypto.\+zig} → WASM browser
+\item \sout{{\bfseries{Web\+Socket real-\/time}}} — ✅ {\ttfamily ws\+\_\+server.\+zig} port 8334, push events to React
+\item {\bfseries{g\+RPC proto}} — {\ttfamily omnibus.\+proto} cu Wallet\+Service + Trading\+DSL
+\item \sout{{\bfseries{Docker Compose}}} — ✅ {\ttfamily Dockerfile} + {\ttfamily docker-\/compose.\+yml} adăugate
+\item {\bfseries{mod\+\_\+wallet.\+cpp UI}} — {\ttfamily gettransactions} afișat în tab WALLET
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2enciclopedia_autotoc_md11215}{}\doxysection{\texorpdfstring{INSTRUCȚ\+IUNI PENTRU AGENT AI}{INSTRUCȚ\+IUNI PENTRU AGENT AI}}\label{md_wiki-omnibus_2enciclopedia_autotoc_md11215}
+Dacă ești un agent AI care citești acest document, iată contextul complet:\+
+
+{\bfseries{Proiectul este real și funcțional}} — nu este un proiect demo. Codul compilează și rulează.
+
+{\bfseries{Limbaje și build tools:\+}}
+\begin{DoxyItemize}
+\item Zig 0.\+15.\+2:\+ {\ttfamily \doxylink{namespacezig}{zig} \doxylink{namespacebuild}{build}} în {\ttfamily Omni\+Bus-\/\+Block\+Chain\+Core/\+}
+\item C++17 Min\+GW:\+ {\ttfamily mingw32-\/make} în {\ttfamily Omnibus\+Sidebar/\+}
+\item Python 3.\+x:\+ {\ttfamily pip install bip\+\_\+utils secp256k1}
+\item Node.\+js:\+ {\ttfamily \doxylink{namespacenode}{node} rpc-\/server.\+js} pentru mining pool
+\end{DoxyItemize}
+
+{\bfseries{Zig 0.\+15.\+2 — diferențe față de versiuni mai vechi:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily std.\+Array\+List} → {\ttfamily std.\+array\+\_\+list.\+Managed(\+T)}
+\item {\ttfamily file.\+reader()} → {\ttfamily file.\+reader(buffer:\+ \+[$\,$]\+u8)} (necesită buffer explicit)
+\item {\ttfamily catch \texorpdfstring{$\vert$}{|}\+\_\+\texorpdfstring{$\vert$}{|}} → {\ttfamily catch} (discard error capture interzis)
+\item {\ttfamily std.\+io.\+buffered\+Reader} → nu există; folosește {\ttfamily file.\+read\+All(buf)} + {\ttfamily std.\+mem.\+read\+Int}
+\end{DoxyItemize}
+
+{\bfseries{Windows specifics:\+}}
+\begin{DoxyItemize}
+\item RPC server folosește {\ttfamily ws2\+\_\+32.\+recv} direct (nu {\ttfamily Read\+File} pe socket)
+\item DPAPI disponibil via {\ttfamily Crypt\+Protect\+Data/\+\+Crypt\+Unprotect\+Data}
+\item Named Pipe:\+ {\ttfamily \textbackslash{}\textbackslash{}.\textbackslash{}pipe\textbackslash{}Omnibus\+Vault}
+\item Build C++:\+ {\ttfamily g++ -\/std=c++17 ... -\/lwinhttp -\/lwininet -\/lraylib -\/lcrypt32}
+\end{DoxyItemize}
+
+{\bfseries{Structura locală:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{C:\(\backslash\)Kits\ work\(\backslash\)limaje\ de\ programare\(\backslash\)}
+\DoxyCodeLine{├──\ OmniBus-\/BlockChainCore\(\backslash\)\ \ \ (git:\ SAVACAZAN/OmniBus-\/BlockChainCore)}
+\DoxyCodeLine{├──\ OmnibusSidebar\(\backslash\)\ \ \ \ \ \ \ \ \ \ \ (git:\ OmniBusDSL/OmnibusSidebar)}
+\DoxyCodeLine{└──\ liboqs-\/src\(\backslash\)build\(\backslash\)lib\(\backslash\)liboqs.a\ \ \ (compilat\ MinGW)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Document generat din analiza directă a codului sursă și documentației din toate 6 repository-\/uri.} {\itshape Versiune:\+ 1.\+0 \texorpdfstring{$\vert$}{|} Data:\+ 2026-\/03-\/26 \texorpdfstring{$\vert$}{|} Autor:\+ SAVACAZAN} 

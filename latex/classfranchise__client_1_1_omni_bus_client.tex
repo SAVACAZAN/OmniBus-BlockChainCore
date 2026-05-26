@@ -1,0 +1,106 @@
+\doxysection{franchise\+\_\+client.\+Omni\+Bus\+Client Class Reference}
+\hypertarget{classfranchise__client_1_1_omni_bus_client}{}\label{classfranchise__client_1_1_omni_bus_client}\index{franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a0835461d580f5a002f827756f05b93d4}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str endpoint, float timeout\+\_\+s=10.\+0)
+\item 
+Any \doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a1d09d11b02edf3c456b87bef166d4b1d}{call}} (self, str method, list\+[Any]\+\texorpdfstring{$\vert$}{|}None params=None)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a7b683abd4abe24030668ab3b786a659b}{endpoint}} = endpoint.\+rstrip("{}/\+"{}) + "{}/\+"{}
+\item 
+\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_ac2f75a9ca649b1118f9ee3b72d44dfb4}{timeout\+\_\+s}} = timeout\+\_\+s
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a1f2d78cf9063809e75530d1a9c11cece}{\+\_\+id}} = 0
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Tiny JSON-RPC 2.0 client over the public OmniBus endpoint.
+
+No retries, no async, no websockets. Just HTTP POST with JSON body.
+The point of this file is to show how thin the surface area is —
+you can re-implement it in any language in ~30 lines.
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00060}{60}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+
+
+\label{classfranchise__client_1_1_omni_bus_client_doc-constructors}
+\Hypertarget{classfranchise__client_1_1_omni_bus_client_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classfranchise__client_1_1_omni_bus_client_a0835461d580f5a002f827756f05b93d4}\index{franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classfranchise__client_1_1_omni_bus_client_a0835461d580f5a002f827756f05b93d4} 
+franchise\+\_\+client.\+Omni\+Bus\+Client.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{endpoint}{, }\item[{float }]{timeout\+\_\+s}{ = {\ttfamily 10.0}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00069}{69}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+
+
+\label{classfranchise__client_1_1_omni_bus_client_doc-func-members}
+\Hypertarget{classfranchise__client_1_1_omni_bus_client_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classfranchise__client_1_1_omni_bus_client_a1d09d11b02edf3c456b87bef166d4b1d}\index{franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}!call@{call}}
+\index{call@{call}!franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}}
+\doxysubsubsection{\texorpdfstring{call()}{call()}}
+{\footnotesize\ttfamily \label{classfranchise__client_1_1_omni_bus_client_a1d09d11b02edf3c456b87bef166d4b1d} 
+ Any franchise\+\_\+client.\+Omni\+Bus\+Client.\+call (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{method}{, }\item[{list\+[Any]\+ \texorpdfstring{$\vert$}{|} None }]{params}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+
+
+\label{classfranchise__client_1_1_omni_bus_client_doc-variable-members}
+\Hypertarget{classfranchise__client_1_1_omni_bus_client_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classfranchise__client_1_1_omni_bus_client_a1f2d78cf9063809e75530d1a9c11cece}\index{franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}!\_id@{\_id}}
+\index{\_id@{\_id}!franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}}
+\doxysubsubsection{\texorpdfstring{\_id}{\_id}}
+{\footnotesize\ttfamily \label{classfranchise__client_1_1_omni_bus_client_a1f2d78cf9063809e75530d1a9c11cece} 
+int franchise\+\_\+client.\+Omni\+Bus\+Client.\+\_\+id = 0\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00072}{72}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+\Hypertarget{classfranchise__client_1_1_omni_bus_client_a7b683abd4abe24030668ab3b786a659b}\index{franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}!endpoint@{endpoint}}
+\index{endpoint@{endpoint}!franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}}
+\doxysubsubsection{\texorpdfstring{endpoint}{endpoint}}
+{\footnotesize\ttfamily \label{classfranchise__client_1_1_omni_bus_client_a7b683abd4abe24030668ab3b786a659b} 
+str franchise\+\_\+client.\+Omni\+Bus\+Client.\+endpoint = endpoint.\+rstrip("{}/\+"{}) + "{}/\+"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00070}{70}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+\Hypertarget{classfranchise__client_1_1_omni_bus_client_ac2f75a9ca649b1118f9ee3b72d44dfb4}\index{franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}!timeout\_s@{timeout\_s}}
+\index{timeout\_s@{timeout\_s}!franchise\_client.OmniBusClient@{franchise\_client.OmniBusClient}}
+\doxysubsubsection{\texorpdfstring{timeout\_s}{timeout\_s}}
+{\footnotesize\ttfamily \label{classfranchise__client_1_1_omni_bus_client_ac2f75a9ca649b1118f9ee3b72d44dfb4} 
+franchise\+\_\+client.\+Omni\+Bus\+Client.\+timeout\+\_\+s = timeout\+\_\+s}
+
+
+
+Definition at line \doxymbox{\hyperlink{franchise__client_8py_source_l00071}{71}} of file \doxymbox{\hyperlink{franchise__client_8py_source}{franchise\+\_\+client.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+examples/\+client\+\_\+python/\+\doxymbox{\hyperlink{franchise__client_8py}{franchise\+\_\+client.\+py}}\end{DoxyCompactItemize}

@@ -45,8 +45,19 @@ pub const ColdWalletStore = struct {
         self.entries.deinit();
     }
 
-    /// Add a watch-only entry. Returns false if already present or store full.
+    /// Add a watch-only entry. Returns false if already present, store full,
+    /// or label contains characters that would break the JSON envelope when
+    /// returned from RPC (quotes, backslashes, control chars, non-ASCII).
+    /// We reject at the store boundary so the format-string emitter in
+    /// rpc_server.zig can keep its plain `{s}` interpolation safe.
     pub fn add(self: *ColdWalletStore, address: []const u8, label: []const u8) bool {
+        // Label hygiene — must be printable ASCII without quotes/backslashes.
+        // Empty label is allowed (means "unnamed entry").
+        for (label) |c| {
+            if (c < 0x20 or c > 0x7E) return false;  // control / non-ASCII
+            if (c == '"' or c == '\\') return false; // JSON delimiters
+        }
+
         self.mutex.lock();
         defer self.mutex.unlock();
         if (self.entries.items.len >= MAX_ENTRIES) return false;

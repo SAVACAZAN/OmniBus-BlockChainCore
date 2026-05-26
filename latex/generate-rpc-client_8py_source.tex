@@ -1,0 +1,202 @@
+\doxysection{generate-\/rpc-\/client.py}
+\hypertarget{generate-rpc-client_8py_source}{}\label{generate-rpc-client_8py_source}\index{scripts/frontend/generate-\/rpc-\/client.py@{scripts/frontend/generate-\/rpc-\/client.py}}
+\doxymbox{\hyperlink{generate-rpc-client_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00001}\doxymbox{\hyperlink{namespacegenerate-rpc-client}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00002}\doxymbox{\hyperlink{namespacegenerate}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ TypeScript\ RPC\ Client\ Generator}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00005}00005\ \textcolor{stringliteral}{Reads\ core/rpc\_server.zig,\ extracts\ all\ JSON-\/RPC\ method\ names\ from}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00006}00006\ \textcolor{stringliteral}{std.mem.eql(u8,\ method,\ "{}..."{})\ patterns,\ and\ generates\ a\ TypeScript}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00007}00007\ \textcolor{stringliteral}{RPC\ client\ class\ with\ a\ typed\ method\ for\ each.\ Output\ to\ stdout.}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00008}00008\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00010}00010\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00011}00011\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00012}00012\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00014}00014\ \textcolor{comment}{\#\ ANSI\ colors\ (stderr\ only,\ stdout\ is\ the\ generated\ code)}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00015}\doxymbox{\hyperlink{namespacegenerate-rpc-client_a9a01d2fdeed9ea0a3bb6b90a7fd0811c}{00015}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00016}\doxymbox{\hyperlink{namespacegenerate-rpc-client_a0d11ed54f34da506e906add8c6ce0324}{00016}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00017}\doxymbox{\hyperlink{namespacegenerate-rpc-client_a49b1997ddda8b36d34223a3a23928a0f}{00017}}\ DIM\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00018}\doxymbox{\hyperlink{namespacegenerate-rpc-client_a44821d8378909d83b10b82bc350e4f0a}{00018}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00021}\doxymbox{\hyperlink{namespacegenerate-rpc-client_aba274f7bfb7834f2b3bf51265060e062}{00021}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacelog}{log}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00022}00022\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ to\ stderr\ so\ stdout\ stays\ clean\ for\ the\ generated\ code."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00023}00023\ \ \ \ \ print(msg,\ file=sys.stderr)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00026}\doxymbox{\hyperlink{namespacegenerate-rpc-client_a77291fface3880c66e48eb80bc91aac4}{00026}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-rpc-client_a77291fface3880c66e48eb80bc91aac4}{find\_rpc\_server\_zig}}()\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00027}00027\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Locate\ core/rpc\_server.zig\ relative\ to\ this\ script's\ project\ root."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00028}00028\ \ \ \ \ script\_dir\ =\ os.path.dirname(os.path.abspath(\_\_file\_\_))}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00029}00029\ \ \ \ \ project\_root\ =\ os.path.abspath(os.path.join(script\_dir,\ \textcolor{stringliteral}{"{}.."{}},\ \textcolor{stringliteral}{"{}.."{}}))}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00030}00030\ \ \ \ \ candidate\ =\ os.path.join(project\_root,\ \textcolor{stringliteral}{"{}core"{}},\ \textcolor{stringliteral}{"{}rpc\_server.zig"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00031}00031\ \ \ \ \ \textcolor{keywordflow}{if}\ os.path.isfile(candidate):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ candidate}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00033}00033\ \ \ \ \ \textcolor{comment}{\#\ Fallback:\ try\ current\ directory}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00034}00034\ \ \ \ \ \textcolor{keywordflow}{if}\ os.path.isfile(\textcolor{stringliteral}{"{}core/rpc\_server.zig"{}}):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ os.path.abspath(\textcolor{stringliteral}{"{}core/rpc\_server.zig"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{return}\ candidate\ \ \textcolor{comment}{\#\ return\ expected\ path\ for\ error\ message}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00039}\doxymbox{\hyperlink{namespacegenerate-rpc-client_a34801374b2230f72f6fe8faa7492a3ad}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-rpc-client_a34801374b2230f72f6fe8faa7492a3ad}{extract\_rpc\_methods}}(filepath:\ str)\ -\/>\ list[dict]:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00040}00040\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00041}00041\ \textcolor{stringliteral}{\ \ \ \ Extract\ RPC\ method\ names\ from\ rpc\_server.zig\ by\ matching:}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00042}00042\ \textcolor{stringliteral}{\ \ \ \ \ \ std.mem.eql(u8,\ method,\ "{}methodname"{})}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00043}00043\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00044}00044\ \textcolor{stringliteral}{\ \ \ \ Also\ tries\ to\ extract\ parameter\ hints\ from\ nearby\ Usage\ comments.}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00045}00045\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00046}00046\ \ \ \ \ \textcolor{keyword}{with}\ open(filepath,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ content\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00049}00049\ \ \ \ \ \textcolor{comment}{\#\ Find\ all\ method\ string\ literals}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00050}00050\ \ \ \ \ pattern\ =\ re.compile(\textcolor{stringliteral}{r'std\(\backslash\).mem\(\backslash\).eql\(\backslash\)(u8,\(\backslash\)s*method,\(\backslash\)s*"{}([a-\/zA-\/Z\_][a-\/zA-\/Z0-\/9\_]*)"{}\(\backslash\))'})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00051}00051\ \ \ \ \ raw\_methods\ =\ pattern.findall(content)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00053}00053\ \ \ \ \ \textcolor{comment}{\#\ Deduplicate\ while\ preserving\ order}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00054}00054\ \ \ \ \ seen\ =\ set()}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00055}00055\ \ \ \ \ methods\ =\ []}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{for}\ name\ \textcolor{keywordflow}{in}\ raw\_methods:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ name\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ seen:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ seen.add(name)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ methods.append(name)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00061}00061\ \ \ \ \ \textcolor{comment}{\#\ Try\ to\ extract\ parameter\ info\ from\ Usage\ comments}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00062}00062\ \ \ \ \ \textcolor{comment}{\#\ Pattern:\ ///\ Usage:\ \{"{}method"{}:"{}NAME"{},"{}params"{}:["{}param1"{},"{}param2"{},...],"{}id"{}:1\}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00063}00063\ \ \ \ \ usage\_pattern\ =\ re.compile(}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'///\(\backslash\)s*Usage:\(\backslash\)s*\(\backslash\)\{[\string^\}]*"{}method"{}\(\backslash\)s*:\(\backslash\)s*"{}([\string^"{}]+)"{}[\string^\}]*"{}params"{}\(\backslash\)s*:\(\backslash\)s*\(\backslash\)[([\string^\(\backslash\)]]*)\(\backslash\)]'},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ re.MULTILINE,}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00066}00066\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00067}00067\ \ \ \ \ usage\_params:\ dict[str,\ list[str]]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ usage\_pattern.finditer(content):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ method\_name\ =\ m.group(1)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ params\_raw\ =\ m.group(2).strip()}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ params\_raw:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Extract\ param\ names/types\ from\ the\ usage\ example}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ params\ =\ []}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ re.findall(\textcolor{stringliteral}{r'"{}([\string^"{}]*)"{}'},\ params\_raw):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ params.append(p)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Also\ catch\ numeric\ placeholders\ like\ count,\ amount\_sat}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ re.findall(\textcolor{stringliteral}{r'\(\backslash\)b([a-\/z\_]+(?:\_[a-\/z]+)*)\(\backslash\)b'},\ params\_raw):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ p\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ params\ \textcolor{keywordflow}{and}\ p\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}true"{}},\ \textcolor{stringliteral}{"{}false"{}}):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ params.append(p)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ usage\_params[method\_name]\ =\ params}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00082}00082\ \ \ \ \ result\ =\ []}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00083}00083\ \ \ \ \ \textcolor{keywordflow}{for}\ name\ \textcolor{keywordflow}{in}\ methods:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ entry\ =\ \{\textcolor{stringliteral}{"{}name"{}}:\ name,\ \textcolor{stringliteral}{"{}params"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ name\ \textcolor{keywordflow}{in}\ usage\_params:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ p\ \textcolor{keywordflow}{in}\ enumerate(usage\_params[name]):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Infer\ type\ from\ name}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ any(kw\ \textcolor{keywordflow}{in}\ p\ \textcolor{keywordflow}{for}\ kw\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}hash"{}},\ \textcolor{stringliteral}{"{}hex"{}},\ \textcolor{stringliteral}{"{}addr"{}},\ \textcolor{stringliteral}{"{}address"{}},\ \textcolor{stringliteral}{"{}data"{}},\ \textcolor{stringliteral}{"{}string"{}},\ \textcolor{stringliteral}{"{}id"{}}]):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ptype\ =\ \textcolor{stringliteral}{"{}string"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ any(kw\ \textcolor{keywordflow}{in}\ p\ \textcolor{keywordflow}{for}\ kw\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}height"{}},\ \textcolor{stringliteral}{"{}count"{}},\ \textcolor{stringliteral}{"{}amount"{}},\ \textcolor{stringliteral}{"{}fee"{}},\ \textcolor{stringliteral}{"{}sat"{}},\ \textcolor{stringliteral}{"{}port"{}},\ \textcolor{stringliteral}{"{}nonce"{}}]):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ptype\ =\ \textcolor{stringliteral}{"{}number"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ptype\ =\ \textcolor{stringliteral}{"{}string"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ param\_name\ =\ re.sub(\textcolor{stringliteral}{r'[\string^a-\/zA-\/Z0-\/9\_]'},\ \textcolor{stringliteral}{'\_'},\ p).strip(\textcolor{stringliteral}{'\_'})\ \textcolor{keywordflow}{or}\ f\textcolor{stringliteral}{"{}param\{i\}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry[\textcolor{stringliteral}{"{}params"{}}].append(\{\textcolor{stringliteral}{"{}name"{}}:\ param\_name,\ \textcolor{stringliteral}{"{}type"{}}:\ ptype\})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ result.append(entry)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00098}00098\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00101}\doxymbox{\hyperlink{namespacegenerate-rpc-client_affcc3036f96577a6c5df0ecf0b55b0f7}{00101}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-rpc-client_affcc3036f96577a6c5df0ecf0b55b0f7}{generate\_typescript}}(methods:\ list[dict],\ class\_name:\ str\ =\ \textcolor{stringliteral}{"{}OmniBusRPC"{}})\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00102}00102\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ a\ TypeScript\ RPC\ client\ class."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00103}00103\ \ \ \ \ lines\ =\ [}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}//\ ============================================================================="{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}//\ OmniBus\ Blockchain\ Core\ —\ Auto-\/generated\ TypeScript\ RPC\ Client"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}//\ Generated\ from\ core/rpc\_server.zig\ (\{len(methods)\}\ methods)"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}//\ Do\ not\ edit\ manually\ —\ regenerate\ with:\ python\ scripts/frontend/generate-\/rpc-\/client.py"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}//\ ============================================================================="{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}export\ interface\ RPCResponse<T\ =\ unknown>\ \{"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ jsonrpc:\ string;"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ id:\ number;"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ result?:\ T;"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ error?:\ \{\ code:\ number;\ message:\ string\ \};"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}export\ class\ \{class\_name\}\ \{\{"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ private\ url:\ string;"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ private\ nextId\ =\ 1;"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ constructor(url:\ string\ =\ 'http://127.0.0.1:8332')\ \{"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ this.url\ =\ url;"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ private\ async\ call<T\ =\ unknown>(method:\ string,\ params:\ unknown[]\ =\ []):\ Promise<T>\ \{"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ const\ id\ =\ this.nextId++;"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ const\ res\ =\ await\ fetch(this.url,\ \{"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \ \ method:\ 'POST',"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \ \ headers:\ \{\ 'Content-\/Type':\ 'application/json'\ \},"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \ \ body:\ JSON.stringify(\{\ jsonrpc:\ '2.0',\ id,\ method,\ params\ \}),"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \});"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ if\ (!res.ok)\ \{"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \ \ throw\ new\ Error(`HTTP\ \$\{res.status\}:\ \$\{res.statusText\}`);"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ const\ data:\ RPCResponse<T>\ =\ await\ res.json();"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ if\ (data.error)\ \{"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \ \ throw\ new\ Error(`RPC\ \$\{data.error.code\}:\ \$\{data.error.message\}`);"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ return\ data.result\ as\ T;"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00142}00142\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00144}00144\ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ methods:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ name\ =\ m[\textcolor{stringliteral}{"{}name"{}}]}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ params\ =\ m.get(\textcolor{stringliteral}{"{}params"{}},\ [])}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Build\ typed\ parameter\ list}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ params:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ args\_typed\ =\ \textcolor{stringliteral}{"{},\ "{}}.join(f\textcolor{stringliteral}{"{}\{p['name']\}:\ \{p['type']\}"{}}\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ params)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ args\_pass\ =\ \textcolor{stringliteral}{"{},\ "{}}.join(p[\textcolor{stringliteral}{"{}name"{}}]\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ params)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ args\_typed\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ args\_pass\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Camel-\/case\ method\ name\ for\ the\ TS\ function}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ ts\_name\ =\ name}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00158}00158\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ /**\ JSON-\/RPC\ method:\ \{name\}\ */"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ async\ \{ts\_name\}(\{args\_typed\}):\ Promise<unknown>\ \{\{"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}\ \ \ \ return\ this.call('\{name\}',\ [\{args\_pass\}]);"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\ \ \}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00165}00165\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00166}00166\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00167}00167\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00170}\doxymbox{\hyperlink{namespacegenerate-rpc-client_a7431cb90017e54fe695b23d4190db046}{00170}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-rpc-client_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00171}00171\ \ \ \ \ zig\_path\ =\ \doxymbox{\hyperlink{namespacegenerate-rpc-client_a77291fface3880c66e48eb80bc91aac4}{find\_rpc\_server\_zig}}()}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00173}00173\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isfile(zig\_path):}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacelog}{log}}(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\ Cannot\ find\ \{zig\_path\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacelog}{log}}(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\ Generating\ client\ with\ empty\ method\ list\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ methods\ =\ []}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00177}00177\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacelog}{log}}(f\textcolor{stringliteral}{"{}\{GREEN\}[OK]\{RESET\}\ Reading\ \{zig\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ methods\ =\ \doxymbox{\hyperlink{namespacegenerate-rpc-client_a34801374b2230f72f6fe8faa7492a3ad}{extract\_rpc\_methods}}(zig\_path)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacelog}{log}}(f\textcolor{stringliteral}{"{}\{GREEN\}[OK]\{RESET\}\ Extracted\ \{len(methods)\}\ RPC\ methods"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Log\ method\ names}}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ methods:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ params\_str\ =\ \textcolor{stringliteral}{"{},\ "{}}.join(f\textcolor{stringliteral}{"{}\{p['name']\}:\{p['type']\}"{}}\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ m.get(\textcolor{stringliteral}{"{}params"{}},\ []))}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacelog}{log}}(f\textcolor{stringliteral}{"{}\{DIM\}\ \ -\/\ \{m['name']\}(\{params\_str\})\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00187}00187\ \ \ \ \ ts\_code\ =\ \doxymbox{\hyperlink{namespacegenerate-rpc-client_affcc3036f96577a6c5df0ecf0b55b0f7}{generate\_typescript}}(methods)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00188}00188\ \ \ \ \ print(ts\_code)}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00190}00190\ \ \ \ \ \doxymbox{\hyperlink{namespacelog}{log}}(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[DONE]\{RESET\}\ TypeScript\ client\ written\ to\ stdout"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00191}00191\ \ \ \ \ \doxymbox{\hyperlink{namespacelog}{log}}(f\textcolor{stringliteral}{"{}\{DIM\}Pipe\ to\ file:\ python\ generate-\/rpc-\/client.py\ >\ frontend/src/api/rpc-\/client.generated.ts\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00192}00192\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00195}00195\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{generate-rpc-client_8py_source_l00196}00196\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacegenerate-rpc-client_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

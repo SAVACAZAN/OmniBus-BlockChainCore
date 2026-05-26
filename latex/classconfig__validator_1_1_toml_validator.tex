@@ -1,0 +1,172 @@
+\doxysection{config\+\_\+validator.\+Toml\+Validator Class Reference}
+\hypertarget{classconfig__validator_1_1_toml_validator}{}\label{classconfig__validator_1_1_toml_validator}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator_a32ee07c92883bae088e3729b3248d9d6}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, Path project\+\_\+root)
+\item 
+Dict\+[str, Any]\+ \doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator_a364b162ce7c7f45e32fe2038608f933c}{parse\+\_\+toml\+\_\+simple}} (self, str content)
+\item 
+List\+[\doxymbox{\hyperlink{classconfig__validator_1_1_validation_error}{Validation\+Error}}]\+ \doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator_a0c46c6248842b5fbbdd10cc2bb7f813a}{validate\+\_\+omnibus\+\_\+toml}} (self, Path filepath)
+\item 
+List\+[\doxymbox{\hyperlink{classconfig__validator_1_1_validation_error}{Validation\+Error}}]\+ \doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator_a2cc4aa7380d98f6b80cb4266679e6e9e}{validate\+\_\+all}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator_a029a969b35bfcc8eb08f3429e2e02c7d}{project\+\_\+root}} = project\+\_\+root
+\item 
+list \doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator_a3c4f0ce241b378521aacabc666aac7a2}{errors}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator_ab7d6ebc5d0134ec4308a0c0534963530}{OMNIBUS\+\_\+\+SCHEMA}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Any \doxymbox{\hyperlink{classconfig__validator_1_1_toml_validator_acccdaf5eed451792e86ac0508793716f}{\+\_\+parse\+\_\+value}} (self, str value)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Validator simplu pentru fișiere TOML.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+
+
+\label{classconfig__validator_1_1_toml_validator_doc-constructors}
+\Hypertarget{classconfig__validator_1_1_toml_validator_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classconfig__validator_1_1_toml_validator_a32ee07c92883bae088e3729b3248d9d6}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classconfig__validator_1_1_toml_validator_a32ee07c92883bae088e3729b3248d9d6} 
+config\+\_\+validator.\+Toml\+Validator.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+
+
+\label{classconfig__validator_1_1_toml_validator_doc-func-members}
+\Hypertarget{classconfig__validator_1_1_toml_validator_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classconfig__validator_1_1_toml_validator_acccdaf5eed451792e86ac0508793716f}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}!\_parse\_value@{\_parse\_value}}
+\index{\_parse\_value@{\_parse\_value}!config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection{\texorpdfstring{\_parse\_value()}{\_parse\_value()}}
+{\footnotesize\ttfamily \label{classconfig__validator_1_1_toml_validator_acccdaf5eed451792e86ac0508793716f} 
+ Any config\+\_\+validator.\+Toml\+Validator.\+\_\+parse\+\_\+value (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{value}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Parsează o valoare TOML.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00089}{89}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classconfig__validator_1_1_toml_validator_a364b162ce7c7f45e32fe2038608f933c}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}!parse\_toml\_simple@{parse\_toml\_simple}}
+\index{parse\_toml\_simple@{parse\_toml\_simple}!config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection{\texorpdfstring{parse\_toml\_simple()}{parse\_toml\_simple()}}
+{\footnotesize\ttfamily \label{classconfig__validator_1_1_toml_validator_a364b162ce7c7f45e32fe2038608f933c} 
+ Dict\+[str, Any]\+ config\+\_\+validator.\+Toml\+Validator.\+parse\+\_\+toml\+\_\+simple (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{content}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parsează TOML simplu (fără librărie externă).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00058}{58}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{classconfig__validator_1_1_toml_validator_a2cc4aa7380d98f6b80cb4266679e6e9e}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}!validate\_all@{validate\_all}}
+\index{validate\_all@{validate\_all}!config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection{\texorpdfstring{validate\_all()}{validate\_all()}}
+{\footnotesize\ttfamily \label{classconfig__validator_1_1_toml_validator_a2cc4aa7380d98f6b80cb4266679e6e9e} 
+ List\+[\doxymbox{\hyperlink{classconfig__validator_1_1_validation_error}{Validation\+Error}}]\+ config\+\_\+validator.\+Toml\+Validator.\+validate\+\_\+all (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Validează toate config-urile.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00222}{222}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{classconfig__validator_1_1_toml_validator_a0c46c6248842b5fbbdd10cc2bb7f813a}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}!validate\_omnibus\_toml@{validate\_omnibus\_toml}}
+\index{validate\_omnibus\_toml@{validate\_omnibus\_toml}!config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection{\texorpdfstring{validate\_omnibus\_toml()}{validate\_omnibus\_toml()}}
+{\footnotesize\ttfamily \label{classconfig__validator_1_1_toml_validator_a0c46c6248842b5fbbdd10cc2bb7f813a} 
+ List\+[\doxymbox{\hyperlink{classconfig__validator_1_1_validation_error}{Validation\+Error}}]\+ config\+\_\+validator.\+Toml\+Validator.\+validate\+\_\+omnibus\+\_\+toml (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Validează omnibus.toml.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00118}{118}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+
+
+\label{classconfig__validator_1_1_toml_validator_doc-variable-members}
+\Hypertarget{classconfig__validator_1_1_toml_validator_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classconfig__validator_1_1_toml_validator_a3c4f0ce241b378521aacabc666aac7a2}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}!errors@{errors}}
+\index{errors@{errors}!config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection{\texorpdfstring{errors}{errors}}
+{\footnotesize\ttfamily \label{classconfig__validator_1_1_toml_validator_a3c4f0ce241b378521aacabc666aac7a2} 
+list config\+\_\+validator.\+Toml\+Validator.\+errors = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00056}{56}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+\Hypertarget{classconfig__validator_1_1_toml_validator_ab7d6ebc5d0134ec4308a0c0534963530}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}!OMNIBUS\_SCHEMA@{OMNIBUS\_SCHEMA}}
+\index{OMNIBUS\_SCHEMA@{OMNIBUS\_SCHEMA}!config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection{\texorpdfstring{OMNIBUS\_SCHEMA}{OMNIBUS\_SCHEMA}}
+{\footnotesize\ttfamily \label{classconfig__validator_1_1_toml_validator_ab7d6ebc5d0134ec4308a0c0534963530} 
+dict config\+\_\+validator.\+Toml\+Validator.\+OMNIBUS\+\_\+\+SCHEMA\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{'network'}:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'port'}:\ \{\textcolor{stringliteral}{'type'}:\ \textcolor{stringliteral}{'int'},\ \textcolor{stringliteral}{'min'}:\ 1024,\ \textcolor{stringliteral}{'max'}:\ 65535\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'host'}:\ \{\textcolor{stringliteral}{'type'}:\ \textcolor{stringliteral}{'string'}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{'mining'}:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'enabled'}:\ \{\textcolor{stringliteral}{'type'}:\ \textcolor{stringliteral}{'bool'}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'threads'}:\ \{\textcolor{stringliteral}{'type'}:\ \textcolor{stringliteral}{'int'},\ \textcolor{stringliteral}{'min'}:\ 0,\ \textcolor{stringliteral}{'max'}:\ 128\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{'database'}:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'path'}:\ \{\textcolor{stringliteral}{'type'}:\ \textcolor{stringliteral}{'string'}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'cache\_size\_mb'}:\ \{\textcolor{stringliteral}{'type'}:\ \textcolor{stringliteral}{'int'},\ \textcolor{stringliteral}{'min'}:\ 16,\ \textcolor{stringliteral}{'max'}:\ 4096\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+\Hypertarget{classconfig__validator_1_1_toml_validator_a029a969b35bfcc8eb08f3429e2e02c7d}\index{config\_validator.TomlValidator@{config\_validator.TomlValidator}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!config\_validator.TomlValidator@{config\_validator.TomlValidator}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily \label{classconfig__validator_1_1_toml_validator_a029a969b35bfcc8eb08f3429e2e02c7d} 
+config\+\_\+validator.\+Toml\+Validator.\+project\+\_\+root = project\+\_\+root}
+
+
+
+Definition at line \doxymbox{\hyperlink{config__validator_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{config__validator_8py_source}{config\+\_\+validator.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts/\+\doxymbox{\hyperlink{config__validator_8py}{config\+\_\+validator.\+py}}\end{DoxyCompactItemize}

@@ -1,0 +1,312 @@
+\chapter{Module:\+ {\ttfamily finality} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality}{}\label{md_archived-4-eterniti_2docs-plans_2api_2finality}\index{Module: $<$tt$>$finality$<$/tt$>$@{Module: $<$tt$>$finality$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1566}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1566}%
+
+
+\begin{quote}
+Casper FFG finality gadget — checkpoint creation, validator attestations, supermajority detection (2/\+3+1), epoch finalization. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+finality.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 355 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 7 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 8
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1568}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1568}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1569}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1569}
+
+\begin{DoxyItemize}
+\item \`{}\+Checkpoint\`{}{\ttfamily Checkpoint}
+\end{DoxyItemize}— A checkpoint in the finality chain
+\begin{DoxyItemize}
+\item \`{}\+Attestation\`{}{\ttfamily Attestation}
+\end{DoxyItemize}— Attestation from a validator
+\begin{DoxyItemize}
+\item \`{}\+Slashing\+Evidence\`{}{\ttfamily Slashing\+Evidence}
+\end{DoxyItemize}— Slashing condition:\+ equivocation (voting for two different blocks at same epoch)
+\begin{DoxyItemize}
+\item \`{}\+Finality\+Engine\`{}{\ttfamily Finality\+Engine}
+\end{DoxyItemize}— Finality Engine\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1570}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1570}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1571}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1571}
+
+\begin{DoxyItemize}
+\item \`{}has\+Supermajority()\`{}{\ttfamily has\+Supermajority()}
+\end{DoxyItemize}— Check if this checkpoint has supermajority (2/\+3+)
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}propose\+Checkpoint()\`{}{\ttfamily propose\+Checkpoint()}
+\end{DoxyItemize}— Propose a new checkpoint at given block height
+\begin{DoxyItemize}
+\item \`{}attest()\`{}{\ttfamily attest()}
+\end{DoxyItemize}— Submit an attestation for a checkpoint
+\begin{DoxyItemize}
+\item \`{}is\+Finalized()\`{}{\ttfamily is\+Finalized()}
+\end{DoxyItemize}— Check if a block height is finalized (can never be reverted)
+\begin{DoxyItemize}
+\item \`{}has\+Soft\+Finality()\`{}{\ttfamily has\+Soft\+Finality()}
+\end{DoxyItemize}— Check if a block has soft finality (N confirmations, like Bitcoin)
+\begin{DoxyItemize}
+\item \`{}get\+Last\+Finalized()\`{}{\ttfamily get\+Last\+Finalized()}
+\end{DoxyItemize}— Get the latest finalized checkpoint
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1573}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1573}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1574}{}\doxysubsection{\texorpdfstring{{\ttfamily Checkpoint}}{{\ttfamily Checkpoint}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1574}
+A checkpoint in the finality chain
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily epoch}  &{\ttfamily u64}  &Epoch  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+{\ttfamily status}  &{\ttfamily Checkpoint\+Status}  &Status  \\
+{\ttfamily attestation\+\_\+count}  &{\ttfamily u32}  &Attestation\+\_\+count  \\
+{\ttfamily attested\+\_\+power}  &{\ttfamily u64}  &Attested\+\_\+power  \\
+{\ttfamily first\+\_\+attestation\+\_\+block}  &{\ttfamily u64}  &First\+\_\+attestation\+\_\+block  \\
+{\ttfamily parent\+\_\+epoch}  &{\ttfamily u64}  &Parent\+\_\+epoch  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 40}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1576}{}\doxysubsection{\texorpdfstring{{\ttfamily Attestation}}{{\ttfamily Attestation}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1576}
+Attestation from a validator
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily validator\+\_\+id}  &{\ttfamily u16}  &Validator\+\_\+id  \\
+{\ttfamily target\+\_\+epoch}  &{\ttfamily u64}  &Target\+\_\+epoch  \\
+{\ttfamily source\+\_\+epoch}  &{\ttfamily u64}  &Source\+\_\+epoch  \\
+{\ttfamily voting\+\_\+power}  &{\ttfamily u64}  &Voting\+\_\+power  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 67}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1578}{}\doxysubsection{\texorpdfstring{{\ttfamily Slashing\+Evidence}}{{\ttfamily Slashing\+Evidence}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1578}
+Slashing condition:\+ equivocation (voting for two different blocks at same epoch)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily validator\+\_\+id}  &{\ttfamily u16}  &Validator\+\_\+id  \\
+{\ttfamily epoch}  &{\ttfamily u64}  &Epoch  \\
+{\ttfamily hash\+\_\+a}  &{\ttfamily \+[32]\+u8}  &Hash\+\_\+a  \\
+{\ttfamily hash\+\_\+b}  &{\ttfamily \+[32]\+u8}  &Hash\+\_\+b  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 82}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1580}{}\doxysubsection{\texorpdfstring{{\ttfamily Finality\+Engine}}{{\ttfamily Finality\+Engine}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1580}
+Finality Engine
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily checkpoints}  &{\ttfamily \+[MAX\+\_\+\+CHECKPOINTS]\+Checkpoint}  &Checkpoints  \\
+{\ttfamily checkpoint\+\_\+count}  &{\ttfamily usize}  &Checkpoint\+\_\+count  \\
+{\ttfamily last\+\_\+justified\+\_\+epoch}  &{\ttfamily u64}  &Last\+\_\+justified\+\_\+epoch  \\
+{\ttfamily last\+\_\+finalized\+\_\+epoch}  &{\ttfamily u64}  &Last\+\_\+finalized\+\_\+epoch  \\
+{\ttfamily last\+\_\+finalized\+\_\+height}  &{\ttfamily u64}  &Last\+\_\+finalized\+\_\+height  \\
+{\ttfamily total\+\_\+voting\+\_\+power}  &{\ttfamily u64}  &Total\+\_\+voting\+\_\+power  \\
+{\ttfamily validator\+\_\+votes}  &{\ttfamily \+[MAX\+\_\+\+VALIDATORS]\+u64}  &Validator\+\_\+votes  \\
+{\ttfamily slash\+\_\+count}  &{\ttfamily u32}  &Slash\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 92}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1582}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1582}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily CHECKPOINT\+\_\+\+INTERVAL}  &{\ttfamily u64 = 64}  &C h e c k p o i n t\+\_\+ i n t e r v a l  \\
+{\ttfamily SOFT\+\_\+\+FINALITY\+\_\+\+CONFIRMS}  &{\ttfamily u32 = 6}  &S o f t\+\_\+ f i n a l i t y\+\_\+ c o n f i r m s  \\
+{\ttfamily MAX\+\_\+\+CHECKPOINTS}  &{\ttfamily usize = 256}  &M a x\+\_\+ c h e c k p o i n t s  \\
+{\ttfamily MAX\+\_\+\+VALIDATORS}  &{\ttfamily usize = 128}  &M a x\+\_\+ v a l i d a t o r s  \\
+{\ttfamily Checkpoint\+Status}  &{\ttfamily enum(u8) \{}  &Checkpoint status  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1584}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1584}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1585}{}\doxysubsection{\texorpdfstring{{\ttfamily has\+Supermajority()}}{{\ttfamily has\+Supermajority()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1585}
+Check if this checkpoint has supermajority (2/\+3+)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hasSupermajority(self:\ *const\ Checkpoint,\ total\_power:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Checkpoint}  &The instance  \\
+{\ttfamily total\+\_\+power}  &{\ttfamily u64}  &Total\+\_\+power  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 59}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1587}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1587}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(total\_voting\_power:\ u64)\ FinalityEngine\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily total\+\_\+voting\+\_\+power}  &{\ttfamily u64}  &Total\+\_\+voting\+\_\+power  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Finality\+Engine}
+
+{\itshape Defined at line 108}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1589}{}\doxysubsection{\texorpdfstring{{\ttfamily propose\+Checkpoint()}}{{\ttfamily propose\+Checkpoint()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1589}
+Propose a new checkpoint at given block height
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ proposeCheckpoint(self:\ *FinalityEngine,\ block\_height:\ u64,\ block\_hash:\ [32]u8)\ !u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Finality\+Engine}  &The instance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u64}
+
+{\itshape Defined at line 135}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1591}{}\doxysubsection{\texorpdfstring{{\ttfamily attest()}}{{\ttfamily attest()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1591}
+Submit an attestation for a checkpoint
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ attest(self:\ *FinalityEngine,\ attestation:\ Attestation)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Finality\+Engine}  &The instance  \\
+{\ttfamily attestation}  &{\ttfamily Attestation}  &Attestation  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 157}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1593}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Finalized()}}{{\ttfamily is\+Finalized()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1593}
+Check if a block height is finalized (can never be reverted)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isFinalized(self:\ *const\ FinalityEngine,\ block\_height:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Finality\+Engine}  &The instance  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 205}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1595}{}\doxysubsection{\texorpdfstring{{\ttfamily has\+Soft\+Finality()}}{{\ttfamily has\+Soft\+Finality()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1595}
+Check if a block has soft finality (N confirmations, like Bitcoin)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hasSoftFinality(\_:\ *const\ FinalityEngine,\ block\_height:\ u64,\ current\_height:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \+\_\+}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Finality\+Engine}  &\+\_\+  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily current\+\_\+height}  &{\ttfamily u64}  &Current\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 210}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1597}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Last\+Finalized()}}{{\ttfamily get\+Last\+Finalized()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2finality_autotoc_md1597}
+Get the latest finalized checkpoint
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getLastFinalized(self:\ *const\ FinalityEngine)\ ?*const\ Checkpoint\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Finality\+Engine}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const Checkpoint}
+
+{\itshape Defined at line 216}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

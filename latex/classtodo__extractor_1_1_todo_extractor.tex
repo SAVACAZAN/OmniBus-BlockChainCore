@@ -1,0 +1,210 @@
+\doxysection{todo\+\_\+extractor.\+Todo\+Extractor Class Reference}
+\hypertarget{classtodo__extractor_1_1_todo_extractor}{}\label{classtodo__extractor_1_1_todo_extractor}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a21614bdcdfb2e04f6846b987af35e447}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, Path project\+\_\+root)
+\item 
+str \doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a4bdc7676bbea773cafe9089d06fb1cf7}{determine\+\_\+priority}} (self, str text, Optional\+[str]\+ explicit)
+\item 
+Tuple\+[str, str]\+ \doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a96f3396992909ed5ecba27d0930c288d}{extract\+\_\+author}} (self, str text)
+\item 
+List\+[\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item}{Todo\+Item}}]\+ \doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a0f882b8b2aa284f1af0edeeaa7b555b6}{scan\+\_\+file}} (self, Path filepath)
+\item 
+List\+[\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item}{Todo\+Item}}]\+ \doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a58c10fccf5a581cf0de3554218d3b4c9}{scan\+\_\+project}} (self)
+\item 
+Dict \doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a8364b741c3e5668912c28ce2a7a5a0e3}{get\+\_\+stats}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_aeedd20d88e640c6839ca60bc3cc05c35}{project\+\_\+root}} = project\+\_\+root
+\item 
+list \doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}{todos}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_a962ea493bfb27b8af04042c5a1bf8cb2}{TODO\+\_\+\+PATTERN}}
+\item 
+\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_ab012958a1a9a2b3185da52035dac17a6}{AUTHOR\+\_\+\+PATTERN}}
+\item 
+dict \doxymbox{\hyperlink{classtodo__extractor_1_1_todo_extractor_ad6b17b81e844212a69023a6c21981ee4}{PRIORITY\+\_\+\+KEYWORDS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Extrage TODO-uri din fișierele Zig.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+
+
+\label{classtodo__extractor_1_1_todo_extractor_doc-constructors}
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_a21614bdcdfb2e04f6846b987af35e447}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_a21614bdcdfb2e04f6846b987af35e447} 
+todo\+\_\+extractor.\+Todo\+Extractor.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00060}{60}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+
+
+\label{classtodo__extractor_1_1_todo_extractor_doc-func-members}
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_a4bdc7676bbea773cafe9089d06fb1cf7}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!determine\_priority@{determine\_priority}}
+\index{determine\_priority@{determine\_priority}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{determine\_priority()}{determine\_priority()}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_a4bdc7676bbea773cafe9089d06fb1cf7} 
+ str todo\+\_\+extractor.\+Todo\+Extractor.\+determine\+\_\+priority (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{text}{, }\item[{Optional\+[str]\+}]{explicit}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Determină prioritatea bazată pe text și marker explicit.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00064}{64}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_a96f3396992909ed5ecba27d0930c288d}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!extract\_author@{extract\_author}}
+\index{extract\_author@{extract\_author}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{extract\_author()}{extract\_author()}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_a96f3396992909ed5ecba27d0930c288d} 
+ Tuple\+[str, str]\+ todo\+\_\+extractor.\+Todo\+Extractor.\+extract\+\_\+author (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{text}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extrage autorul din text (@username).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00086}{86}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_a8364b741c3e5668912c28ce2a7a5a0e3}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!get\_stats@{get\_stats}}
+\index{get\_stats@{get\_stats}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{get\_stats()}{get\_stats()}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_a8364b741c3e5668912c28ce2a7a5a0e3} 
+ Dict todo\+\_\+extractor.\+Todo\+Extractor.\+get\+\_\+stats (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Returnează statistici despre TODO-uri.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00164}{164}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_a0f882b8b2aa284f1af0edeeaa7b555b6}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!scan\_file@{scan\_file}}
+\index{scan\_file@{scan\_file}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{scan\_file()}{scan\_file()}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_a0f882b8b2aa284f1af0edeeaa7b555b6} 
+ List\+[\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item}{Todo\+Item}}]\+ todo\+\_\+extractor.\+Todo\+Extractor.\+scan\+\_\+file (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scanează un singur fișier pentru TODO-uri.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00095}{95}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_a58c10fccf5a581cf0de3554218d3b4c9}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!scan\_project@{scan\_project}}
+\index{scan\_project@{scan\_project}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{scan\_project()}{scan\_project()}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_a58c10fccf5a581cf0de3554218d3b4c9} 
+ List\+[\doxymbox{\hyperlink{classtodo__extractor_1_1_todo_item}{Todo\+Item}}]\+ todo\+\_\+extractor.\+Todo\+Extractor.\+scan\+\_\+project (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scanează întregul proiect.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00143}{143}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+
+
+\label{classtodo__extractor_1_1_todo_extractor_doc-variable-members}
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_ab012958a1a9a2b3185da52035dac17a6}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!AUTHOR\_PATTERN@{AUTHOR\_PATTERN}}
+\index{AUTHOR\_PATTERN@{AUTHOR\_PATTERN}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{AUTHOR\_PATTERN}{AUTHOR\_PATTERN}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_ab012958a1a9a2b3185da52035dac17a6} 
+todo\+\_\+extractor.\+Todo\+Extractor.\+AUTHOR\+\_\+\+PATTERN\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'@(\(\backslash\)w+)'}}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_ad6b17b81e844212a69023a6c21981ee4}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!PRIORITY\_KEYWORDS@{PRIORITY\_KEYWORDS}}
+\index{PRIORITY\_KEYWORDS@{PRIORITY\_KEYWORDS}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{PRIORITY\_KEYWORDS}{PRIORITY\_KEYWORDS}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_ad6b17b81e844212a69023a6c21981ee4} 
+dict todo\+\_\+extractor.\+Todo\+Extractor.\+PRIORITY\+\_\+\+KEYWORDS\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{'high'}:\ [\textcolor{stringliteral}{'high'},\ \textcolor{stringliteral}{'critical'},\ \textcolor{stringliteral}{'urgent'},\ \textcolor{stringliteral}{'important'},\ \textcolor{stringliteral}{'security'}],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{'medium'}:\ [\textcolor{stringliteral}{'medium'},\ \textcolor{stringliteral}{'normal'},\ \textcolor{stringliteral}{'should'}],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{'low'}:\ [\textcolor{stringliteral}{'low'},\ \textcolor{stringliteral}{'minor'},\ \textcolor{stringliteral}{'optional'},\ \textcolor{stringliteral}{'nice'}],}
+\DoxyCodeLine{\ \ \ \ \}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_aeedd20d88e640c6839ca60bc3cc05c35}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_aeedd20d88e640c6839ca60bc3cc05c35} 
+todo\+\_\+extractor.\+Todo\+Extractor.\+project\+\_\+root = project\+\_\+root}
+
+
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00061}{61}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_a962ea493bfb27b8af04042c5a1bf8cb2}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!TODO\_PATTERN@{TODO\_PATTERN}}
+\index{TODO\_PATTERN@{TODO\_PATTERN}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{TODO\_PATTERN}{TODO\_PATTERN}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_a962ea493bfb27b8af04042c5a1bf8cb2} 
+todo\+\_\+extractor.\+Todo\+Extractor.\+TODO\+\_\+\+PATTERN\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{stringliteral}{r'//\(\backslash\)s*(TODO|FIXME|BUG|HACK|XXX|NOTE)[\(\backslash\)s:]*\(\backslash\)(?(?P<prio>HIGH|LOW|MEDIUM)?\(\backslash\))?[:\(\backslash\)s-\/]*\(\backslash\)s*(?P<text>.*)'},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ re.IGNORECASE}
+\DoxyCodeLine{\ \ \ \ )}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+\Hypertarget{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293}\index{todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}!todos@{todos}}
+\index{todos@{todos}!todo\_extractor.TodoExtractor@{todo\_extractor.TodoExtractor}}
+\doxysubsubsection{\texorpdfstring{todos}{todos}}
+{\footnotesize\ttfamily \label{classtodo__extractor_1_1_todo_extractor_a78d5c884e66b7cb234afb6bbb0e8e293} 
+list todo\+\_\+extractor.\+Todo\+Extractor.\+todos = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{todo__extractor_8py_source_l00062}{62}} of file \doxymbox{\hyperlink{todo__extractor_8py_source}{todo\+\_\+extractor.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts/\+\doxymbox{\hyperlink{todo__extractor_8py}{todo\+\_\+extractor.\+py}}\end{DoxyCompactItemize}

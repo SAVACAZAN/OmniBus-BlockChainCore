@@ -1,0 +1,29 @@
+\chapter{utxo.\+zig — API Reference }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2utxo}{}\label{md_archived-4-eterniti_2docs-plans_2api_2utxo}\index{utxo.zig — API Reference@{utxo.zig — API Reference}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2utxo_autotoc_md3474}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2utxo_autotoc_md3474}%
+
+
+\begin{quote}
+Auto-\/generated from core/\+utxo.\+zig \end{quote}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2utxo_autotoc_md3475}{}\doxysection{\texorpdfstring{Public Functions}{Public Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2utxo_autotoc_md3475}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ UTXO\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ outpoint(self:\ *const\ UTXO,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ isMature(self:\ *const\ UTXO,\ current\_height:\ u64)\ bool\ \{}
+\DoxyCodeLine{pub\ const\ UTXOSet\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ init(allocator:\ std.mem.Allocator)\ UTXOSet\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ deinit(self:\ *UTXOSet)\ void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ addUTXO(}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ spendUTXO(self:\ *UTXOSet,\ tx\_hash:\ []const\ u8,\ output\_index:\ u32)\ !UTXO\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getUTXOsForAddress(self:\ *const\ UTXOSet,\ address:\ []const\ u8)\ []const\ []const\ u8\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getBalance(self:\ *const\ UTXOSet,\ address:\ []const\ u8)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getUTXO(self:\ *const\ UTXOSet,\ tx\_hash:\ []const\ u8,\ output\_index:\ u32)\ ?UTXO\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ hasUTXO(self:\ *const\ UTXOSet,\ tx\_hash:\ []const\ u8,\ output\_index:\ u32)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ selectUTXOs(}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getUTXOCount(self:\ *const\ UTXOSet,\ address:\ []const\ u8)\ usize\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getStats(self:\ *const\ UTXOSet)\ struct\ \{\ count:\ u64,\ total\_value:\ u64,\ addresses:\ u32\ \}\ \{}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2utxo_autotoc_md3476}{}\doxysection{\texorpdfstring{Tests:\+ 7}{Tests:\+ 7}}\label{md_archived-4-eterniti_2docs-plans_2api_2utxo_autotoc_md3476}

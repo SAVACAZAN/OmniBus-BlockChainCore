@@ -1,0 +1,154 @@
+\doxysection{Wallet\+Manager.\+h}
+\hypertarget{_wallet_manager_8h_source}{}\label{_wallet_manager_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/WalletManager.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/WalletManager.h}}
+\doxymbox{\hyperlink{_wallet_manager_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QObject>}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QString>}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QStringList>}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QJsonObject>}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QJsonArray>}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <QList>}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <QDateTime>}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00010}00010\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_local_crypto_8h}{core/LocalCrypto.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00012}00012\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00014}00014\ \textcolor{comment}{//\ ───\ Wallet\ file\ data\ structures\ ───}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00016}\doxymbox{\hyperlink{structomni_1_1_wallet_address}{00016}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_wallet_address}{WalletAddress}}\ \{}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00017}\doxymbox{\hyperlink{structomni_1_1_wallet_address_a24bad1a50eb7828e80f290790d3ec872}{00017}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_wallet_address_a24bad1a50eb7828e80f290790d3ec872}{index}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00018}\doxymbox{\hyperlink{structomni_1_1_wallet_address_a2a2381e2bc3458d0582913defd4c62d4}{00018}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_address_a2a2381e2bc3458d0582913defd4c62d4}{path}};\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ e.g.\ "{}m/44'/9999'/0'/0/0"{}}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00019}\doxymbox{\hyperlink{structomni_1_1_wallet_address_ae9acc12ba156df29327cf9d62451e446}{00019}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{namespaceaddress}{address}};\ \ \ \ \ \ \ \textcolor{comment}{//\ ob1q...}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00020}\doxymbox{\hyperlink{structomni_1_1_wallet_address_a2f58e364d5e4ae414cfe2c612e289c3b}{00020}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_address_a2f58e364d5e4ae414cfe2c612e289c3b}{label}};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00021}\doxymbox{\hyperlink{structomni_1_1_wallet_address_a38730b0abca985260ebeb34532bf2e32}{00021}}\ \ \ \ \ QByteArray\ \doxymbox{\hyperlink{structomni_1_1_wallet_address_a38730b0abca985260ebeb34532bf2e32}{pubkey}};\ \ \ \ \ \textcolor{comment}{//\ 33-\/byte\ compressed}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00023}00023\ \ \ \ \ QJsonObject\ \doxymbox{\hyperlink{structomni_1_1_wallet_address_a0d17f91b8c026047a641fc7b15131ecb}{toJson}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00024}00024\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_wallet_address}{WalletAddress}}\ \doxymbox{\hyperlink{structomni_1_1_wallet_address_a82d36c658a956412ade97a038a08deb6}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00025}00025\ \};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00027}\doxymbox{\hyperlink{structomni_1_1_wallet_meta}{00027}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_wallet_meta}{WalletMeta}}\ \{}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00028}\doxymbox{\hyperlink{structomni_1_1_wallet_meta_a96a503ea1110343117dd456b0245b656}{00028}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_a96a503ea1110343117dd456b0245b656}{id}};\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ UUID}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00029}\doxymbox{\hyperlink{structomni_1_1_wallet_meta_ac434239d19250ad0192ccfab46a34e54}{00029}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_ac434239d19250ad0192ccfab46a34e54}{name}};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00030}\doxymbox{\hyperlink{structomni_1_1_wallet_meta_af265cff92ba4cfa0734db96f9cd9a61e}{00030}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_af265cff92ba4cfa0734db96f9cd9a61e}{filename}};\ \ \ \ \ \ \textcolor{comment}{//\ relative\ filename\ in\ wallet\ dir}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00031}\doxymbox{\hyperlink{structomni_1_1_wallet_meta_a62e818d7440e085ab75e558719e87cc8}{00031}}\ \ \ \ \ QDateTime\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_a62e818d7440e085ab75e558719e87cc8}{createdAt}};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00032}\doxymbox{\hyperlink{structomni_1_1_wallet_meta_a26523f78ed57b1abac1a7008a08057b2}{00032}}\ \ \ \ \ QDateTime\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_a26523f78ed57b1abac1a7008a08057b2}{lastAccessed}};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00033}\doxymbox{\hyperlink{structomni_1_1_wallet_meta_af97428170b67a5b9f0ef4c93038f08a7}{00033}}\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_af97428170b67a5b9f0ef4c93038f08a7}{addressCount}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00034}\doxymbox{\hyperlink{structomni_1_1_wallet_meta_a4f9deecdff31bd5785d6922a8945c15d}{00034}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_a4f9deecdff31bd5785d6922a8945c15d}{firstAddress}};\ \ \textcolor{comment}{//\ for\ display}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00036}00036\ \ \ \ \ QJsonObject\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_aba4de44f58185c19539d5569c62f4148}{toJson}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00037}00037\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta}{WalletMeta}}\ \doxymbox{\hyperlink{structomni_1_1_wallet_meta_af6ebdc0fb8c9b586a0913c5eef34b4d6}{fromJson}}(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00038}00038\ \};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00040}00040\ \textcolor{comment}{//\ ───\ The\ main\ wallet\ manager\ ───}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00042}\doxymbox{\hyperlink{classomni_1_1_wallet_manager}{00042}}\ \textcolor{keyword}{class\ }WalletManager\ :\ \textcolor{keyword}{public}\ QObject\ \{}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00043}00043\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00044}00044\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00045}00045\ \ \ \ \ \textcolor{keyword}{static}\ WalletManager\&\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f4ae45aa1377e13c884556f136fd94f}{instance}}();}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00047}00047\ \ \ \ \ \textcolor{comment}{//\ Wallet\ directory}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00048}00048\ \ \ \ \ QString\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a50b34bbfe2ca7b11b46487005264599e}{walletDir}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00050}00050\ \ \ \ \ \textcolor{comment}{//\ List\ available\ wallets}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00051}00051\ \ \ \ \ QList<WalletMeta>\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_ab1da46ca366f5b2356f3e3854bcfd31f}{listWallets}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00053}00053\ \ \ \ \ \textcolor{comment}{//\ Create\ a\ new\ wallet\ (returns\ mnemonic\ for\ backup)}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00054}\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{00054}}\ \ \ \ \ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{CreateResult}}\ \{}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00055}\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result_a020c9e84dc28779d36ca558145a3a951}{00055}}\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result_a020c9e84dc28779d36ca558145a3a951}{success}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00056}\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result_a6d7c9fd64293ae7127311e3d5812bae7}{00056}}\ \ \ \ \ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result_a6d7c9fd64293ae7127311e3d5812bae7}{error}};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00057}\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result_ac7e99f9b8e1c06a71a8da55907724656}{00057}}\ \ \ \ \ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result_ac7e99f9b8e1c06a71a8da55907724656}{mnemonic}};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00058}\doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result_a06332e50a7aa9bab65a619944751e7bf}{00058}}\ \ \ \ \ \ \ \ \ QString\ \doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result_a06332e50a7aa9bab65a619944751e7bf}{walletId}};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00059}00059\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00060}00060\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{CreateResult}}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a55d9eeae4d1cb5300606a1fe75454002}{createWallet}}(\textcolor{keyword}{const}\ QString\&\ name,\ \textcolor{keyword}{const}\ QString\&\ password,}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ mnemonicWords\ =\ 12,\ \textcolor{keyword}{const}\ QString\&\ passphrase\ =\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00063}00063\ \ \ \ \ \textcolor{comment}{//\ Import\ wallet\ from\ mnemonic}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00064}00064\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_wallet_manager_1_1_create_result}{CreateResult}}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a2aa11ccb4554ae6f6d41433a1ac52ac3}{importWallet}}(\textcolor{keyword}{const}\ QString\&\ name,\ \textcolor{keyword}{const}\ QString\&\ password,}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QString\&\ mnemonic,\ \textcolor{keyword}{const}\ QString\&\ passphrase\ =\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00067}00067\ \ \ \ \ \textcolor{comment}{//\ Unlock\ /\ lock}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00068}00068\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_ad90978d371736c6bed2455ab4f4e2d18}{unlock}}(\textcolor{keyword}{const}\ QString\&\ walletId,\ \textcolor{keyword}{const}\ QString\&\ password);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00069}00069\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a867da6436db16586709c4b1005a164c0}{lock}}();}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00070}\doxymbox{\hyperlink{classomni_1_1_wallet_manager_af796e20edbb9cb8c2d7ea1d8604ab9a0}{00070}}\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_af796e20edbb9cb8c2d7ea1d8604ab9a0}{isUnlocked}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_unlocked;\ \}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00072}00072\ \ \ \ \ \textcolor{comment}{//\ Current\ wallet\ info}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00073}\doxymbox{\hyperlink{classomni_1_1_wallet_manager_a683f20571973449f36696ed8f0d6970e}{00073}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a683f20571973449f36696ed8f0d6970e}{currentWalletId}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_currentId;\ \}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00074}\doxymbox{\hyperlink{classomni_1_1_wallet_manager_a470e433cf3855e51a38940da6230a955}{00074}}\ \ \ \ \ QString\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a470e433cf3855e51a38940da6230a955}{currentWalletName}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_currentName;\ \}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00075}\doxymbox{\hyperlink{classomni_1_1_wallet_manager_ab6767557b7705aac6d0c835403ddf5ef}{00075}}\ \ \ \ \ QList<WalletAddress>\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_ab6767557b7705aac6d0c835403ddf5ef}{addresses}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_addresses;\ \}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00076}00076\ \ \ \ \ QString\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a015849f6acfbe9cf2236f3a26c7969eb}{primaryAddress}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00078}00078\ \ \ \ \ \textcolor{comment}{//\ Generate\ next\ receive\ address}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00079}00079\ \ \ \ \ \doxymbox{\hyperlink{structomni_1_1_wallet_address}{WalletAddress}}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3e686877688afa10f0ae54de01668115}{generateAddress}}(\textcolor{keyword}{const}\ QString\&\ label\ =\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00081}00081\ \ \ \ \ \textcolor{comment}{//\ Get\ the\ 64-\/byte\ seed\ (only\ when\ unlocked,\ for\ multi-\/chain\ derivation)}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00082}\doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f88c4f3cfe2cd52d136be61ede31f86}{00082}}\ \ \ \ \ QByteArray\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f88c4f3cfe2cd52d136be61ede31f86}{getSeed}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_unlocked\ ?\ m\_seed\ :\ QByteArray();\ \}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00084}00084\ \ \ \ \ \textcolor{comment}{//\ Get\ private\ key\ for\ signing\ (only\ when\ unlocked)}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00085}00085\ \ \ \ \ QByteArray\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a2bcf254ed38af2fce0db95f2fa6ac22d}{getPrivateKey}}(\textcolor{keywordtype}{int}\ addressIndex)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00087}00087\ \ \ \ \ \textcolor{comment}{//\ Sign\ a\ transaction\ hash}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00088}00088\ \ \ \ \ QByteArray\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a2808272207e4d6502403749c348f17db}{signTransaction}}(\textcolor{keyword}{const}\ QByteArray\&\ txHash,\ \textcolor{keywordtype}{int}\ addressIndex\ =\ 0)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00090}00090\ \ \ \ \ \textcolor{comment}{//\ Switch\ wallet}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00091}00091\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a8806be583efef3465e1b637b00bb8a54}{switchWallet}}(\textcolor{keyword}{const}\ QString\&\ walletId,\ \textcolor{keyword}{const}\ QString\&\ password);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00093}00093\ \ \ \ \ \textcolor{comment}{//\ Delete\ wallet}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00094}00094\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a18ec308df1f6edf24f9321eb415175b3}{deleteWallet}}(\textcolor{keyword}{const}\ QString\&\ walletId);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00096}00096\ \ \ \ \ \textcolor{comment}{//\ Rename\ wallet}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00097}00097\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a6d689086d1fce4baf9134cdb2a9deb69}{renameWallet}}(\textcolor{keyword}{const}\ QString\&\ walletId,\ \textcolor{keyword}{const}\ QString\&\ newName);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00099}00099\ \ \ \ \ \textcolor{comment}{//\ Check\ if\ any\ wallets\ exist\ (for\ first-\/launch\ detection)}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00100}00100\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_ad5ce005ba673a7993d0a4b72a97ec9d8}{hasWallets}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00102}00102\ \ \ \ \ \textcolor{comment}{//\ Export\ mnemonic\ (requires\ password\ verification)}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00103}00103\ \ \ \ \ QString\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a17be13c29532c86c972213e13a1df39a}{exportMnemonic}}(\textcolor{keyword}{const}\ QString\&\ password)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00105}00105\ signals:}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00106}00106\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a39fee57b17186763d9c440e6290c81b9}{walletChanged}}(\textcolor{keyword}{const}\ QString\&\ walletId,\ \textcolor{keyword}{const}\ QString\&\ walletName);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00107}00107\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a770d96bbdd19fdba7d12417b2ab23f03}{addressGenerated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_wallet_address}{WalletAddress}}\&\ addr);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00108}00108\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a0d19e01a8b83fea5860317e4cc99fa69}{walletLocked}}();}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00109}00109\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a424727996953b57a45492125fe5452d6}{walletUnlocked}}();}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00111}00111\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00112}00112\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager}{WalletManager}}(QObject*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00114}00114\ \ \ \ \ \textcolor{comment}{//\ Wallet\ file\ format\ (JSON\ encrypted)}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00115}00115\ \ \ \ \ \textcolor{keyword}{struct\ }WalletFile\ \{}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00116}00116\ \ \ \ \ \ \ \ \ QString\ id;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00117}00117\ \ \ \ \ \ \ \ \ QString\ name;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00118}00118\ \ \ \ \ \ \ \ \ QDateTime\ createdAt;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00119}00119\ \ \ \ \ \ \ \ \ QByteArray\ encryptedSeed;\ \ \textcolor{comment}{//\ AES-\/256-\/CBC\ encrypted\ 64-\/byte\ seed}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00120}00120\ \ \ \ \ \ \ \ \ QByteArray\ iv;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 16-\/byte\ IV}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00121}00121\ \ \ \ \ \ \ \ \ QByteArray\ salt;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 32-\/byte\ salt\ for\ PBKDF2}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00122}00122\ \ \ \ \ \ \ \ \ QJsonArray\ addressesJson;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ nextIndex\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00125}00125\ \ \ \ \ \ \ \ \ QJsonObject\ toJson()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ WalletFile\ fromJson(\textcolor{keyword}{const}\ QJsonObject\&\ obj);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00127}00127\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00129}00129\ \ \ \ \ \textcolor{keywordtype}{bool}\ saveWallet();}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00130}00130\ \ \ \ \ \textcolor{keywordtype}{bool}\ loadWallet(\textcolor{keyword}{const}\ QString\&\ walletId);}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00131}00131\ \ \ \ \ QByteArray\ deriveEncryptionKey(\textcolor{keyword}{const}\ QString\&\ password,\ \textcolor{keyword}{const}\ QByteArray\&\ salt)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00133}00133\ \ \ \ \ \textcolor{comment}{//\ Index\ file\ tracking\ all\ wallets}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00134}00134\ \ \ \ \ \textcolor{keywordtype}{void}\ saveIndex();}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00135}00135\ \ \ \ \ \textcolor{keywordtype}{void}\ loadIndex();}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00137}00137\ \ \ \ \ \textcolor{comment}{//\ State}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00138}00138\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_unlocked\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00139}00139\ \ \ \ \ QString\ m\_currentId;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00140}00140\ \ \ \ \ QString\ m\_currentName;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00141}00141\ \ \ \ \ QByteArray\ m\_seed;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 64-\/byte\ seed\ (only\ in\ memory\ when\ unlocked)}}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00142}00142\ \ \ \ \ crypto::ExtendedKey\ m\_masterKey;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00143}00143\ \ \ \ \ QList<WalletAddress>\ m\_addresses;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00144}00144\ \ \ \ \ WalletFile\ m\_walletFile;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00145}00145\ \ \ \ \ QList<WalletMeta>\ m\_walletIndex;}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00146}00146\ \};}
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{_wallet_manager_8h_source_l00148}00148\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

@@ -1,5 +1,16 @@
 import { useEffect, useRef } from "react";
 
+const CYCLE_DURATION = 56;
+const STAGES = [
+  { t: 0,                label: "Seed" },
+  { t: 6,                label: "Orange Plasma Awakens" },
+  { t: 16,               label: "Spark" },
+  { t: 26,               label: "Plasma Split" },
+  { t: 36,               label: "Convergence" },
+  { t: 46,               label: "OmniBus 0day" },
+  { t: CYCLE_DURATION,   label: "" },
+] as const;
+
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
@@ -100,17 +111,6 @@ export function ZeroDayPage() {
       spawnPoints[1] = randomSpawn();
     }
 
-    const CYCLE_DURATION = 56;
-
-    const STAGES = [
-      { t: 0, label: "Seed" },
-      { t: 6, label: "Orange Plasma Awakens" },
-      { t: 16, label: "Spark" },
-      { t: 26, label: "Plasma Split" },
-      { t: 36, label: "Convergence" },
-      { t: 46, label: "OmniBus 0day" },
-      { t: CYCLE_DURATION, label: "" },
-    ];
 
     function getStageProgress(elapsed: number) {
       for (let i = 0; i < STAGES.length - 1; i++) {

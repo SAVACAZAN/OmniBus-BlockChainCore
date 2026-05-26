@@ -1,0 +1,399 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@noble/\+post-\/quantum Directory Reference}
+\hypertarget{dir_12325e2eab58645f2a58d374e10651de}{}\label{dir_12325e2eab58645f2a58d374e10651de}\index{frontend/node\_modules/"@noble/post-\/quantum Directory Reference@{frontend/node\_modules/"@noble/post-\/quantum Directory Reference}}
+Directory dependency graph for post-\/quantum:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_368ff636d28e631f47bcf387d56f9658}{node\+\_\+modules}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4681}{}\doxysubsection{\texorpdfstring{noble-\/post-\/quantum}{noble-\/post-\/quantum}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4681}
+Auditable \& minimal JS implementation of post-\/quantum public-\/key cryptography.
+
+
+\begin{DoxyItemize}
+\item 🔒 Auditable
+\item 🔻 Tree-\/shakeable:\+ unused code is excluded from your builds
+\item 🔍 Reliable:\+ tests ensure correctness
+\item 🦾 ML-\/\+KEM \& CRYSTALS-\/\+Kyber:\+ lattice-\/based KEM from FIPS-\/203
+\item 🔋 ML-\/\+DSA \& CRYSTALS-\/\+Dilithium:\+ lattice-\/based signatures from FIPS-\/204
+\item 🐈 SLH-\/\+DSA \& SPHINCS+:\+ hash-\/based Winternitz signatures from FIPS-\/205
+\item 🦅 Falcon:\+ lattice-\/based signatures from Falcon Round 3
+\item 🍡 Hybrid algorithms, combining classic \& post-\/quantum:\+ Concrete, XWing, Kitchen\+Sink
+\item 🪶 16KB (gzipped) for everything, including bundled hashes \& curves
+\end{DoxyItemize}
+
+Take a glance at \href{https://github.com/paulmillr/noble-post-quantum/discussions}{\texttt{Git\+Hub Discussions}} for questions and support.
+
+\begin{DoxyImportant}{Important}
+NIST published \href{https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8547.ipd.pdf}{\texttt{IR 8547}}, prohibiting classical cryptography (RSA, DSA, ECDSA, ECDH) after 2035. Australian ASD does same thing \href{https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism/cyber-security-guidelines/guidelines-cryptography}{\texttt{after 2030}}. Take it into an account while designing a new cryptographic system.
+\end{DoxyImportant}
+\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4682}{}\doxysubsubsection{\texorpdfstring{This library belongs to {\itshape noble} cryptography}{This library belongs to {\itshape noble} cryptography}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4682}
+\begin{quote}
+{\bfseries{noble cryptography}} — high-\/security, easily auditable set of contained cryptographic libraries and tools. \end{quote}
+
+
+
+\begin{DoxyItemize}
+\item Zero or minimal dependencies
+\item Highly readable Type\+Script /\+ JS code
+\item PGP-\/signed releases and transparent NPM builds
+\item All libraries:\+ \href{https://github.com/paulmillr/noble-ciphers}{\texttt{ciphers}}, \href{https://github.com/paulmillr/noble-curves}{\texttt{curves}}, \href{https://github.com/paulmillr/noble-hashes}{\texttt{hashes}}, \href{https://github.com/paulmillr/noble-post-quantum}{\texttt{post-\/quantum}}, 5kb \href{https://github.com/paulmillr/noble-secp256k1}{\texttt{secp256k1}} /\+ \href{https://github.com/paulmillr/noble-ed25519}{\texttt{ed25519}}
+\item \href{https://paulmillr.com/noble/}{\texttt{Check out the homepage}} for reading resources, documentation, and apps built with noble
+\end{DoxyItemize}\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4683}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4683}
+\begin{quote}
+{\ttfamily npm install @noble/\+post-\/quantum} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno add jsr:\+@noble/\+post-\/quantum} \end{quote}
+
+
+\doxylink{namespace_we}{We} support all major platforms and runtimes. For React Native, you may need a \href{https://github.com/LinusU/react-native-get-random-values}{\texttt{polyfill for get\+Random\+Values}}. A standalone file \href{https://github.com/paulmillr/noble-post-quantum/releases}{\texttt{noble-\/post-\/quantum.\+js}} is also available.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ import\ *\ from\ '@noble/post-\/quantum';\ //\ Error:\ use\ sub-\/imports\ instead}
+\DoxyCodeLine{import\ \{\ ml\_kem512,\ ml\_kem768,\ ml\_kem1024\ \}\ from\ '@noble/post-\/quantum/ml-\/kem.js';}
+\DoxyCodeLine{import\ \{\ ml\_dsa44,\ ml\_dsa65,\ ml\_dsa87\ \}\ from\ '@noble/post-\/quantum/ml-\/dsa.js';}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_128f,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_128s,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_192f,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_192s,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_256f,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_256s,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_128f,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_128s,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_192f,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_192s,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_256f,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_256s,}
+\DoxyCodeLine{\}\ from\ '@noble/post-\/quantum/slh-\/dsa.js';}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ falcon512,\ falcon512padded,\ falcon1024,\ falcon1024padded,}
+\DoxyCodeLine{\}\ from\ '@noble/post-\/quantum/falcon.js';}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ ml\_kem768\_x25519,\ ml\_kem768\_p256,\ ml\_kem1024\_p384,}
+\DoxyCodeLine{\ \ KitchenSink\_ml\_kem768\_x25519,\ XWing,}
+\DoxyCodeLine{\ \ QSF\_ml\_kem768\_p256,\ QSF\_ml\_kem1024\_p384,}
+\DoxyCodeLine{\}\ from\ '@noble/post-\/quantum/hybrid.js';}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item ML-\/\+KEM /\+ KyberML-\/\+KEM /\+ Kyber
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item ML-\/\+DSA /\+ DilithiumML-\/\+DSA /\+ Dilithium
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SLH-\/\+DSA /\+ SPHINCS+SLH-\/\+DSA /\+ SPHINCS+
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item FalconFalcon
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item hybrid:\+ XWing, Kitchen\+Sink and othershybrid:\+ XWing, Kitchen\+Sink and others
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item What should I use?What should I use?
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SecuritySecurity
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SpeedSpeed
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Contributing \& testingContributing \& testing
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item LicenseLicense
+\end{DoxyItemize}\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4684}{}\doxysubsubsection{\texorpdfstring{ML-\/\+KEM /\+ Kyber shared secrets}{ML-\/\+KEM /\+ Kyber shared secrets}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4684}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ ml\_kem512,\ ml\_kem768,\ ml\_kem1024\ \}\ from\ '@noble/post-\/quantum/ml-\/kem.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/post-\/quantum/utils.js';}
+\DoxyCodeLine{import\ \{\ notDeepStrictEqual\ \}\ from\ 'node:assert';}
+\DoxyCodeLine{const\ seed\ =\ randomBytes(64);\ //\ seed\ is\ optional}
+\DoxyCodeLine{const\ aliceKeys\ =\ ml\_kem768.keygen(seed);}
+\DoxyCodeLine{const\ \{\ cipherText,\ sharedSecret:\ bobShared\ \}\ =\ ml\_kem768.encapsulate(aliceKeys.publicKey);}
+\DoxyCodeLine{const\ aliceShared\ =\ ml\_kem768.decapsulate(cipherText,\ aliceKeys.secretKey);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Warning:\ Can\ be\ MITM-\/ed}
+\DoxyCodeLine{const\ malloryKeys\ =\ ml\_kem768.keygen();}
+\DoxyCodeLine{const\ malloryShared\ =\ ml\_kem768.decapsulate(cipherText,\ malloryKeys.secretKey);\ //\ No\ error!}
+\DoxyCodeLine{notDeepStrictEqual(aliceShared,\ malloryShared);\ //\ Different\ key!}
+
+\end{DoxyCode}
+
+
+Lattice-\/based key encapsulation mechanism, defined in \href{https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf}{\texttt{FIPS-\/203}} (\href{https://www.pq-crystals.org/kyber/resources.shtml}{\texttt{website}}, \href{https://github.com/pq-crystals/kyber}{\texttt{repo}}). Can be used as follows:\+
+
+
+\begin{DoxyEnumerate}
+\item {\itshape Alice} generates secret \& public keys, then sends public\+Key to {\itshape Bob}
+\item {\itshape Bob} generates shared secret for Alice public\+Key. bob\+Shared never leaves {\itshape Bob} system and is unknown to other parties
+\item {\itshape Alice} gets and decrypts cipher\+Text from Bob Now, both Alice and Bob have same shared\+Secret key without exchanging in plain\+Text:\+ alice\+Shared == bob\+Shared.
+\end{DoxyEnumerate}
+
+There are some concerns with regards to security:\+ see \href{https://blog.cr.yp.to/20231003-countcorrectly.html}{\texttt{djb blog}} and \href{https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/W2VOzy0wz_E}{\texttt{mailing list}}. Old, incompatible version (Kyber) is not provided. Open an issue if you need it.
+
+\begin{DoxyWarning}{Warning}
+Unlike ECDH, KEM doesn\textquotesingle{}t verify whether it was "{}\+Bob"{} who\textquotesingle{}ve sent the ciphertext. Instead of throwing an error when the ciphertext is encrypted by a different pubkey, {\ttfamily decapsulate} will simply return a different shared secret. ML-\/\+KEM is also probabilistic and relies on quality of CSPRNG.
+\end{DoxyWarning}
+\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4685}{}\doxysubsubsection{\texorpdfstring{ML-\/\+DSA /\+ Dilithium signatures}{ML-\/\+DSA /\+ Dilithium signatures}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4685}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ ml\_dsa44,\ ml\_dsa65,\ ml\_dsa87\ \}\ from\ '@noble/post-\/quantum/ml-\/dsa.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/post-\/quantum/utils.js';}
+\DoxyCodeLine{const\ seed\ =\ randomBytes(32);\ //\ seed\ is\ optional}
+\DoxyCodeLine{const\ keys\ =\ ml\_dsa65.keygen(seed);}
+\DoxyCodeLine{const\ msg\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ sig\ =\ ml\_dsa65.sign(msg,\ keys.secretKey);}
+\DoxyCodeLine{const\ isValid\ =\ ml\_dsa65.verify(sig,\ msg,\ keys.publicKey);}
+
+\end{DoxyCode}
+
+
+Lattice-\/based digital signature algorithm, defined in \href{https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf}{\texttt{FIPS-\/204}} (\href{https://www.pq-crystals.org/dilithium/index.shtml}{\texttt{website}}, \href{https://github.com/pq-crystals/dilithium}{\texttt{repo}}). The internals are similar to ML-\/\+KEM, but keys and params are different.\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4686}{}\doxysubsubsection{\texorpdfstring{SLH-\/\+DSA /\+ SPHINCS+ signatures}{SLH-\/\+DSA /\+ SPHINCS+ signatures}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4686}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_128f\ as\ sph,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_128s,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_192f,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_192s,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_256f,}
+\DoxyCodeLine{\ \ slh\_dsa\_sha2\_256s,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_128f,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_128s,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_192f,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_192s,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_256f,}
+\DoxyCodeLine{\ \ slh\_dsa\_shake\_256s,}
+\DoxyCodeLine{\}\ from\ '@noble/post-\/quantum/slh-\/dsa.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ keys2\ =\ sph.keygen();}
+\DoxyCodeLine{const\ msg2\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ sig2\ =\ sph.sign(msg2,\ keys2.secretKey);}
+\DoxyCodeLine{const\ isValid2\ =\ sph.verify(sig2,\ msg2,\ keys2.publicKey);}
+
+\end{DoxyCode}
+
+
+Hash-\/based digital signature algorithm, defined in \href{https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf}{\texttt{FIPS-\/205}} (\href{https://sphincs.org}{\texttt{website}}, \href{https://github.com/sphincs/sphincsplus}{\texttt{repo}}). \doxylink{namespace_we}{We} implement spec v3.\+1 with FIPS adjustments.
+
+
+\begin{DoxyItemize}
+\item sha2 vs shake (sha3):\+ indicates internal hash function used
+\item 128 /\+ 192 /\+ 256:\+ indicates security level in bits
+\item s /\+ f:\+ indicates small vs fast trade-\/off
+\end{DoxyItemize}
+
+SLH-\/\+DSA is slow:\+ see benchmarksbenchmarks for key size \& speed.\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4687}{}\doxysubsubsection{\texorpdfstring{Falcon signatures}{Falcon signatures}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4687}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ falcon512,\ falcon1024\ \}\ from\ '@noble/post-\/quantum/falcon.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/post-\/quantum/utils.js';}
+\DoxyCodeLine{const\ seed3\ =\ randomBytes(48);\ //\ seed\ is\ optional}
+\DoxyCodeLine{const\ keys3\ =\ falcon512.keygen(seed3);}
+\DoxyCodeLine{const\ msg3\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ sig3\ =\ falcon512.sign(msg3,\ keys3.secretKey);}
+\DoxyCodeLine{const\ isValid3\ =\ falcon512.verify(sig3,\ msg3,\ keys3.publicKey);}
+
+\end{DoxyCode}
+
+
+Lattice-\/based digital signature algorithm, submitted to NIST PQC Round 3 (\href{https://falcon-sign.info/}{\texttt{website}}, \href{https://csrc.nist.gov/projects/post-quantum-cryptography/post-quantum-cryptography-standardization/round-3-submissions}{\texttt{Round 3 submissions}}).
+
+\begin{DoxyWarning}{Warning}
+This is Falcon Round 3, not FN-\/\+DSA. FN-\/\+DSA is not final yet. FN-\/\+DSA (FIPS-\/206) would most likely be backwards-\/incompatible with Falcon. The implementation passes the published Round 3 KATs.
+\end{DoxyWarning}
+
+\begin{DoxyItemize}
+\item {\ttfamily falcon512}, {\ttfamily falcon1024}:\+ variable-\/length detached signatures
+\item {\ttfamily falcon512padded}, {\ttfamily falcon1024padded}:\+ fixed-\/length detached signatures
+\item {\ttfamily attached.\+seal(...)} /\+ {\ttfamily attached.\+open(...)}:\+ attached-\/signature API for Round 3 vectors and interop
+\end{DoxyItemize}\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4688}{}\doxysubsubsection{\texorpdfstring{hybrid:\+ XWing, Kitchen\+Sink and others}{hybrid:\+ XWing, Kitchen\+Sink and others}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4688}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ ml\_kem768\_x25519,\ ml\_kem768\_p256,\ ml\_kem1024\_p384,}
+\DoxyCodeLine{\ \ KitchenSink\_ml\_kem768\_x25519,\ XWing,}
+\DoxyCodeLine{\ \ QSF\_ml\_kem768\_p256,\ QSF\_ml\_kem1024\_p384,}
+\DoxyCodeLine{\}\ from\ '@noble/post-\/quantum/hybrid.js';}
+
+\end{DoxyCode}
+
+
+Hybrid submodule combine post-\/quantum algorithms with elliptic curve cryptography:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily ml\+\_\+kem768\+\_\+x25519}:\+ ML-\/\+KEM-\/768 + X25519 (CG Framework, same as XWing)
+\item {\ttfamily ml\+\_\+kem768\+\_\+p256}:\+ ML-\/\+KEM-\/768 + P-\/256 (CG Framework)
+\item {\ttfamily ml\+\_\+kem1024\+\_\+p384}:\+ ML-\/\+KEM-\/1024 + P-\/384 (CG Framework)
+\item {\ttfamily Kitchen\+Sink\+\_\+ml\+\_\+kem768\+\_\+x25519}:\+ ML-\/\+KEM-\/768 + X25519 with HKDF-\/\+SHA256 combiner
+\item {\ttfamily QSF\+\_\+ml\+\_\+kem768\+\_\+p256}:\+ ML-\/\+KEM-\/768 + P-\/256 (QSF construction)
+\item {\ttfamily QSF\+\_\+ml\+\_\+kem1024\+\_\+p384}:\+ ML-\/\+KEM-\/1024 + P-\/384 (QSF construction)
+\end{DoxyItemize}
+
+The following spec drafts are matched:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://datatracker.ietf.org/doc/draft-irtf-cfrg-hybrid-kems/}{\texttt{irtf-\/cfrg-\/hybrid-\/kems-\/07}}
+\item \href{https://datatracker.ietf.org/doc/draft-irtf-cfrg-concrete-hybrid-kems/}{\texttt{irtf-\/cfrg-\/concrete-\/hybrid-\/kems-\/02}}
+\item \href{https://datatracker.ietf.org/doc/draft-connolly-cfrg-xwing-kem/}{\texttt{connolly-\/cfrg-\/xwing-\/kem-\/09}}
+\item \href{https://datatracker.ietf.org/doc/draft-tls-westerbaan-xyber768d00/}{\texttt{tls-\/westerbaan-\/xyber768d00-\/03}}
+\end{DoxyItemize}\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4689}{}\doxysubsubsection{\texorpdfstring{What should I use?}{What should I use?}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4689}
+
+\begin{DoxyTable}{7}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}&\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Speed  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Key size  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Sig size  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Created in  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Popularized in  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Post-\/quantum?  \\
+RSA  &Normal  &256B -\/ 2KB  &256B -\/ 2KB  &1970s  &1990s  &No  \\
+ECC  &Normal  &32 -\/ 256B  &48 -\/ 128B  &1980s  &2010s  &No  \\
+ML-\/\+KEM  &Fast  &1.\+6 -\/ 31KB  &1KB  &1990s  &2020s  &Yes  \\
+ML-\/\+DSA  &Normal  &1.\+3 -\/ 2.\+5\+KB  &2.\+5 -\/ 4.\+5\+KB  &1990s  &2020s  &Yes  \\
+SLH-\/\+DSA  &Slow  &32 -\/ 128B  &17 -\/ 50KB  &1970s  &2020s  &Yes  \\
+FN-\/\+DSA  &Slow  &0.\+9 -\/ 1.\+8\+KB  &0.\+6 -\/ 1.\+2\+KB  &1990s  &2020s  &Yes  \\
+\end{DoxyTable}
+
+
+\doxylink{namespace_we}{We} suggest to use ECC + ML-\/\+KEM for key agreement, ECC + SLH-\/\+DSA for signatures.
+
+ML-\/\+KEM and ML-\/\+DSA are lattice-\/based. SLH-\/\+DSA is hash-\/based, which means it is built on top of older, more conservative primitives. NIST guidance for security levels:\+
+
+
+\begin{DoxyItemize}
+\item Category 3 (\texorpdfstring{$\sim$}{\string~}\+AES-\/192):\+ ML-\/\+KEM-\/768, ML-\/\+DSA-\/65, SLH-\/\+DSA-\/192
+\item Category 5 (\texorpdfstring{$\sim$}{\string~}\+AES-\/256):\+ ML-\/\+KEM-\/1024, ML-\/\+DSA-\/87, SLH-\/\+DSA-\/256
+\end{DoxyItemize}
+
+NIST recommends to use cat-\/3+, while australian \href{https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism/cyber-security-guidelines/guidelines-cryptography}{\texttt{ASD only allows cat-\/5 after 2030}}.
+
+It\textquotesingle{}s also useful to check out \href{https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar3.ipd.pdf}{\texttt{NIST SP 800-\/131Ar3}} for "{}\+Transitioning the Use of Cryptographic Algorithms and Key Lengths"{}.
+
+For \href{https://github.com/paulmillr/noble-hashes}{\texttt{hashes}}, use SHA512 or SHA3-\/512 (not SHA256); and for \href{https://github.com/paulmillr/noble-ciphers}{\texttt{ciphers}} ensure AES-\/256 or Cha\+Cha.\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4690}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4690}
+The library has not been independently audited yet.
+
+
+\begin{DoxyItemize}
+\item at version 0.\+6.\+1, in Apr 2026, it was audited by ourselves (self-\/audited)
+\begin{DoxyItemize}
+\item Scope:\+ everything
+\item \href{https://github.com/paulmillr/noble-post-quantum/compare/0.6.1..main}{\texttt{Changes since audit}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+If you see anything unusual:\+ investigate and report.\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4691}{}\doxysubsubsection{\texorpdfstring{Constant-\/timeness}{Constant-\/timeness}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4691}
+There is no protection against side-\/channel attacks. \doxylink{namespace_we}{We} actively research how to provide this property for post-\/quantum algorithms in JS. Keep in mind that even hardware versions ML-\/\+KEM \href{https://eprint.iacr.org/2023/1084}{\texttt{are vulnerable}}.\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4692}{}\doxysubsubsection{\texorpdfstring{Supply chain security}{Supply chain security}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4692}
+
+\begin{DoxyItemize}
+\item {\bfseries{Commits}} are signed with PGP keys to prevent forgery. Be sure to verify the commit signatures
+\item {\bfseries{Releases}} are made transparently through token-\/less Git\+Hub CI and Trusted Publishing. Be sure to verify the \href{https://docs.npmjs.com/generating-provenance-statements}{\texttt{provenance logs}} for authenticity.
+\item {\bfseries{Rare releasing}} is practiced to minimize the need for re-\/audits by end-\/users.
+\item {\bfseries{Dependencies}} are minimized and strictly pinned to reduce supply-\/chain risk.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} use as few dependencies as possible.
+\item Version ranges are locked, and changes are checked with npm-\/diff.
+\end{DoxyItemize}
+\item {\bfseries{Dev dependencies}} are excluded from end-\/user installs; they\textquotesingle{}re only used for development and build steps.
+\end{DoxyItemize}
+
+For this package, there are 2 dependencies; and a few dev dependencies:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://github.com/paulmillr/noble-hashes}{\texttt{noble-\/hashes}} provides cryptographic hashing functionality, used internally in every algorithm
+\item \href{https://github.com/paulmillr/noble-curves}{\texttt{noble-\/curves}} provides elliptic curve cryptography for hybrid algorithms
+\item jsbt is used for benchmarking /\+ testing /\+ build tooling and developed by the same author
+\item prettier, fast-\/check and typescript are used for code quality /\+ test generation /\+ ts compilation
+\end{DoxyItemize}\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4693}{}\doxysubsubsection{\texorpdfstring{Randomness}{Randomness}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4693}
+\doxylink{namespace_we}{We} rely on the built-\/in \href{https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues}{\texttt{{\ttfamily crypto.\+get\+Random\+Values}}}, which is considered a cryptographically secure PRNG.
+
+Browsers have had weaknesses in the past -\/ and could again -\/ but implementing a userspace CSPRNG is even worse, as there’s no reliable userspace source of high-\/quality entropy.\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4694}{}\doxysubsection{\texorpdfstring{Contributing \& testing}{Contributing \& testing}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4694}
+
+\begin{DoxyItemize}
+\item {\ttfamily npm install \&\& npm run \doxylink{namespacebuild}{build} \&\& npm \doxylink{namespacetest}{test}} will build the code and run tests.
+\item {\ttfamily npm run lint} /\+ {\ttfamily npm run format} will run linter /\+ fix linter issues.
+\item {\ttfamily npm run bench} will run benchmarks
+\item {\ttfamily npm run \doxylink{namespacebuild}{build}:\+release} will build single file
+\end{DoxyItemize}
+
+Check out \href{https://github.com/paulmillr/guidelines}{\texttt{github.\+com/\+paulmillr/\+guidelines}} for general coding practices and rules.
+
+See \href{https://paulmillr.com/noble/}{\texttt{paulmillr.\+com/\+noble}} for useful resources, articles, documentation and demos related to the library.\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4695}{}\doxysubsection{\texorpdfstring{Speed}{Speed}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4695}
+\begin{quote}
+{\ttfamily npm run bench} \end{quote}
+
+
+Noble is the fastest JS implementation of post-\/quantum algorithms.
+
+Benchmarks on Apple M4 ({\bfseries{higher is better}}):\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ ML-\/KEM768}
+\DoxyCodeLine{keygen\ x\ 4,277\ ops/sec\ @\ 233μs/op}
+\DoxyCodeLine{encapsulate\ x\ 3,470\ ops/sec\ @\ 288μs/op}
+\DoxyCodeLine{decapsulate\ x\ 3,757\ ops/sec\ @\ 266μs/op}
+\DoxyCodeLine{\#\ ML-\/DSA65}
+\DoxyCodeLine{keygen\ x\ 669\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{sign\ x\ 271\ ops/sec\ @\ 3ms/op}
+\DoxyCodeLine{verify\ x\ 565\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{\#\ SLH-\/DSA\ SHA2\ 192f}
+\DoxyCodeLine{keygen\ x\ 235\ ops/sec\ @\ 4ms/op}
+\DoxyCodeLine{sign\ x\ 8\ ops/sec\ @\ 117ms/op}
+\DoxyCodeLine{verify\ x\ 159\ ops/sec\ @\ 6ms/op}
+\DoxyCodeLine{\#\ Falcon512}
+\DoxyCodeLine{keygen\ x\ 14\ ops/sec\ @\ 66ms/op\ ±\ 11.01\%\ (56ms..96ms)}
+\DoxyCodeLine{sign\ x\ 749\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{verify\ x\ 2,160\ ops/sec\ @\ 462μs/op}
+\DoxyCodeLine{\#\ Falcon1024}
+\DoxyCodeLine{keygen\ x\ 4\ ops/sec\ @\ 247ms/op\ ±\ 5.22\%\ (234ms..266ms)}
+\DoxyCodeLine{sign\ x\ 343\ ops/sec\ @\ 2ms/op}
+\DoxyCodeLine{verify\ x\ 950\ ops/sec\ @\ 1ms/op}
+
+\end{DoxyCode}
+
+
+Compared with pre-\/quantum:\+
+
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}OPs/\+sec  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Keygen  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Signing  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Verification  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Shared secret  \\
+ECC x/\+ed25519  &12648  &6157  &1255  &1981  \\
+ML-\/\+KEM-\/768  &4277  &&&3757  \\
+ML-\/\+DSA65  &669  &271  &565  &\\
+SLH-\/\+DSA-\/\+SHA2-\/192f  &235  &8  &159  &\\
+Falcon512  &14  &749  &950  &\\
+\end{DoxyTable}
+
+
+SLH-\/\+DSA:\+
+
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}&\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}sig size  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}keygen  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}sign  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}verify  \\
+sha2\+\_\+128f  &18088  &4ms  &90ms  &6ms  \\
+sha2\+\_\+192f  &35664  &6ms  &160ms  &9ms  \\
+sha2\+\_\+256f  &49856  &15ms  &340ms  &9ms  \\
+sha2\+\_\+128s  &7856  &260ms  &2000ms  &2ms  \\
+sha2\+\_\+192s  &16224  &380ms  &3800ms  &3ms  \\
+sha2\+\_\+256s  &29792  &250ms  &3400ms  &4ms  \\
+shake\+\_\+192f  &35664  &21ms  &553ms  &29ms  \\
+shake\+\_\+192s  &16224  &260ms  &2635ms  &2ms  \\
+\end{DoxyTable}
+\hypertarget{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4696}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_12325e2eab58645f2a58d374e10651de_autotoc_md4696}
+The MIT License (MIT)
+
+Copyright (c) 2024 Paul Miller \href{https://paulmillr.com}{\texttt{(https:\+/\+/\+paulmillr.\+com)}}
+
+See LICENSE file. 

@@ -1,0 +1,452 @@
+\chapter{Module:\+ {\ttfamily metachain} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain}{}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain}\index{Module: $<$tt$>$metachain$<$/tt$>$@{Module: $<$tt$>$metachain$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2000}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2000}%
+
+
+\begin{quote}
+EGLD-\/style metachain coordination — aggregates shard headers, cross-\/shard communication, meta-\/block finalization. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+metachain.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 385 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 13 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 4 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 9
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2002}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2002}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2003}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2003}
+
+\begin{DoxyItemize}
+\item \`{}\+Shard\+Block\+Header\`{}{\ttfamily Shard\+Block\+Header}
+\end{DoxyItemize}— Header rezumat al unui shard block — trimis la Metachain pentru confirmare
+\begin{DoxyItemize}
+\item \`{}\+Cross\+Shard\+Receipt\`{}{\ttfamily Cross\+Shard\+Receipt}
+\end{DoxyItemize}— Cross-\/shard receipt — confirmă că o TX cross-\/shard a fost procesată La EGLD:\+ faz...
+\begin{DoxyItemize}
+\item \`{}\+Meta\+Block\`{}{\ttfamily Meta\+Block}
+\end{DoxyItemize}— Meta\+Block — blocul Metachain-\/ului (1 per secundă)
+\begin{DoxyItemize}
+\item \`{}\+Metachain\`{}{\ttfamily Metachain}
+\end{DoxyItemize}— Metachain — chain de Meta\+Block-\/uri, coordonator global\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2004}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2004}
+
+\begin{DoxyItemize}
+\item 3 constants defined3 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2005}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2005}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+Shard\+Header()\`{}{\ttfamily add\+Shard\+Header()}
+\end{DoxyItemize}— Adaugă header-\/ul unui shard la acest Meta\+Block
+\begin{DoxyItemize}
+\item \`{}add\+Cross\+Receipt()\`{}{\ttfamily add\+Cross\+Receipt()}
+\end{DoxyItemize}— Adaugă un receipt cross-\/shard
+\begin{DoxyItemize}
+\item \`{}calculate\+Hash()\`{}{\ttfamily calculate\+Hash()}
+\end{DoxyItemize}— Calculează hash-\/ul Meta\+Block-\/ului (SHA256 peste toate datele)
+\begin{DoxyItemize}
+\item \`{}is\+Complete()\`{}{\ttfamily is\+Complete()}
+\end{DoxyItemize}— Checks whether the complete condition is true.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}get\+Height()\`{}{\ttfamily get\+Height()}
+\end{DoxyItemize}— Returns the current height.
+\begin{DoxyItemize}
+\item \`{}get\+Latest\+Hash()\`{}{\ttfamily get\+Latest\+Hash()}
+\end{DoxyItemize}— Returns the current latest hash.
+\begin{DoxyItemize}
+\item \`{}begin\+Meta\+Block()\`{}{\ttfamily begin\+Meta\+Block()}
+\end{DoxyItemize}— Creează un nou Meta\+Block gol pentru height-\/ul următor
+\begin{DoxyItemize}
+\item \`{}finalize\+Meta\+Block()\`{}{\ttfamily finalize\+Meta\+Block()}
+\end{DoxyItemize}— Finalizează Meta\+Block-\/ul curent:\+ calculează hash + procesează receipts...
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the metachain module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2007}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2007}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2008}{}\doxysubsection{\texorpdfstring{{\ttfamily Shard\+Block\+Header}}{{\ttfamily Shard\+Block\+Header}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2008}
+Header rezumat al unui shard block — trimis la Metachain pentru confirmare
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+{\ttfamily tx\+\_\+count}  &{\ttfamily u32}  &Tx\+\_\+count  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily miner}  &{\ttfamily \+[]\+const u8}  &Miner  \\
+{\ttfamily reward\+\_\+sat}  &{\ttfamily u64}  &Reward\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 20}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2010}{}\doxysubsection{\texorpdfstring{{\ttfamily Cross\+Shard\+Receipt}}{{\ttfamily Cross\+Shard\+Receipt}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2010}
+Cross-\/shard receipt — confirmă că o TX cross-\/shard a fost procesată La EGLD:\+ faza 1 = scade din shard sursei; faza 2 = creditează în shard destinației
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily from\+\_\+shard}  &{\ttfamily u8}  &From\+\_\+shard  \\
+{\ttfamily to\+\_\+shard}  &{\ttfamily u8}  &To\+\_\+shard  \\
+{\ttfamily from\+\_\+address}  &{\ttfamily \+[]\+const u8}  &From\+\_\+address  \\
+{\ttfamily to\+\_\+address}  &{\ttfamily \+[]\+const u8}  &To\+\_\+address  \\
+{\ttfamily amount\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+sat  \\
+{\ttfamily phase}  &{\ttfamily Cross\+Shard\+Phase}  &Phase  \\
+{\ttfamily meta\+\_\+height}  &{\ttfamily u64}  &Meta\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 32}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2012}{}\doxysubsection{\texorpdfstring{{\ttfamily Meta\+Block}}{{\ttfamily Meta\+Block}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2012}
+Meta\+Block — blocul Metachain-\/ului (1 per secundă)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily previous\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Previous\+\_\+hash  \\
+{\ttfamily hash}  &{\ttfamily \+[32]\+u8}  &Hash  \\
+{\ttfamily shard\+\_\+headers}  &{\ttfamily array\+\_\+list.\+Managed(\+Shard\+Block\+Header)}  &Shard\+\_\+headers  \\
+{\ttfamily cross\+\_\+receipts}  &{\ttfamily array\+\_\+list.\+Managed(\+Cross\+Shard\+Receipt)}  &Cross\+\_\+receipts  \\
+{\ttfamily total\+\_\+tx\+\_\+count}  &{\ttfamily u64}  &Total\+\_\+tx\+\_\+count  \\
+{\ttfamily active\+\_\+shards}  &{\ttfamily u8}  &Active\+\_\+shards  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 50}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2014}{}\doxysubsection{\texorpdfstring{{\ttfamily Metachain}}{{\ttfamily Metachain}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2014}
+Metachain — chain de Meta\+Block-\/uri, coordonator global
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacechain}{chain}}  &{\ttfamily array\+\_\+list.\+Managed(\+Meta\+Block)}  &Chain  \\
+{\ttfamily coordinator}  &{\ttfamily Shard\+Coordinator}  &Coordinator  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily pending\+\_\+receipts}  &{\ttfamily array\+\_\+list.\+Managed(\+Cross\+Shard\+Receipt)}  &Pending\+\_\+receipts  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 141}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2016}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2016}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Shard\+Coordinator}  &{\ttfamily shard\+\_\+coord\+\_\+mod.\+Shard\+Coordinator}  &Shard coordinator  \\
+{\ttfamily METACHAIN\+\_\+\+SHARD}  &{\ttfamily shard\+\_\+coord\+\_\+mod.\+METACHAIN\+\_\+\+SHARD}  &M e t a c h a i n\+\_\+ s h a r d  \\
+{\ttfamily Cross\+Shard\+Phase}  &{\ttfamily enum(u8) \{}  &Cross shard phase  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2018}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2018}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2019}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2019}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ height:\ u64,\ prev\_hash:\ [32]u8)\ MetaBlock\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+{\ttfamily prev\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Prev\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Meta\+Block}
+
+{\itshape Defined at line 68}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2021}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2021}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *MetaBlock)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Meta\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 81}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2023}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Shard\+Header()}}{{\ttfamily add\+Shard\+Header()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2023}
+Adaugă header-\/ul unui shard la acest Meta\+Block
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addShardHeader(self:\ *MetaBlock,\ hdr:\ ShardBlockHeader)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Meta\+Block}  &The instance  \\
+{\ttfamily hdr}  &{\ttfamily Shard\+Block\+Header}  &Hdr  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2025}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Cross\+Receipt()}}{{\ttfamily add\+Cross\+Receipt()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2025}
+Adaugă un receipt cross-\/shard
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addCrossReceipt(self:\ *MetaBlock,\ receipt:\ CrossShardReceipt)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Meta\+Block}  &The instance  \\
+{\ttfamily receipt}  &{\ttfamily Cross\+Shard\+Receipt}  &Receipt  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 96}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2027}{}\doxysubsection{\texorpdfstring{{\ttfamily calculate\+Hash()}}{{\ttfamily calculate\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2027}
+Calculează hash-\/ul Meta\+Block-\/ului (SHA256 peste toate datele)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calculateHash(self:\ *MetaBlock)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Meta\+Block}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 101}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2029}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Complete()}}{{\ttfamily is\+Complete()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2029}
+Checks whether the complete condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isComplete(self:\ *const\ MetaBlock,\ expected\_shards:\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Meta\+Block}  &The instance  \\
+{\ttfamily expected\+\_\+shards}  &{\ttfamily u8}  &Expected\+\_\+shards  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 135}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2031}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2031}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ num\_shards:\ u8)\ !Metachain\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily num\+\_\+shards}  &{\ttfamily u8}  &Num\+\_\+shards  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Metachain}
+
+{\itshape Defined at line 149}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2033}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2033}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *Metachain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metachain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 165}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2035}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Height()}}{{\ttfamily get\+Height()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2035}
+Returns the current height.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getHeight(self:\ *const\ Metachain)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Metachain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 171}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2037}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Latest\+Hash()}}{{\ttfamily get\+Latest\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2037}
+Returns the current latest hash.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getLatestHash(self:\ *const\ Metachain)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Metachain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 175}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2039}{}\doxysubsection{\texorpdfstring{{\ttfamily begin\+Meta\+Block()}}{{\ttfamily begin\+Meta\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2039}
+Creează un nou Meta\+Block gol pentru height-\/ul următor
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ beginMetaBlock(self:\ *Metachain)\ !*MetaBlock\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metachain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\texorpdfstring{$\ast$}{*}\+Meta\+Block}
+
+{\itshape Defined at line 180}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2041}{}\doxysubsection{\texorpdfstring{{\ttfamily finalize\+Meta\+Block()}}{{\ttfamily finalize\+Meta\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2041}
+Finalizează Meta\+Block-\/ul curent:\+ calculează hash + procesează receipts pending
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ finalizeMetaBlock(self:\ *Metachain)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metachain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 189}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2043}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2metachain_autotoc_md2043}
+Performs the print status operation on the metachain module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ Metachain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Metachain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 257}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

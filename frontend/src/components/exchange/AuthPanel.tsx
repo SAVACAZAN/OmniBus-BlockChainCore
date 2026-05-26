@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { midTrunc } from "../../utils/fmt";
 import {
   clearVault,
   getUnlocked,
@@ -164,7 +165,7 @@ export function AuthPanel() {
       {mode === "vault" && meta && (
         <div className="space-y-2">
           <div className="text-[10px] text-mempool-text-dim">
-            Saved wallet: <span className="font-mono text-mempool-text">{meta.address.slice(0, 14)}…{meta.address.slice(-8)}</span>
+            Saved wallet: <span className="font-mono text-mempool-text">{midTrunc(meta.address, 14, 8)}</span>
           </div>
           <input
             type="password"

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import {
   fetchEvmBalance,
@@ -11,8 +12,6 @@ import {
   fetchXrpBalance,
 } from "../../api/multichain-balances";
 
-const rpc = new OmniBusRpcClient();
-const SAT = 1_000_000_000;
 
 // IMPORTANT: this table no longer hardcodes "savacazan.omnibus / admin.omnibus
 // / exchange.omnibus / …" against slot indices 0..9.
@@ -93,7 +92,7 @@ function blank(): Pick<WRow, ColKey> {
 function fmt(v: BalVal, isSat: boolean): string {
   if (v === "loading") return "…";
   if (v === null || v === undefined) return "—";
-  const n = isSat ? (v as number) / SAT : (v as number);
+  const n = isSat ? (v as number) / SAT_PER_OMNI : (v as number);
   if (n === 0) return "0";
   if (n > 0 && n < 0.01) return n.toFixed(4);
   return n.toFixed(2);
@@ -109,7 +108,7 @@ function sumCol(rows: WRow[], key: ColKey, isSat: boolean): number {
   return rows.reduce((acc, r) => {
     const v = r[key];
     if (typeof v !== "number") return acc;
-    return acc + (isSat ? v / SAT : v);
+    return acc + (isSat ? v / SAT_PER_OMNI : v);
   }, 0);
 }
 
@@ -182,8 +181,8 @@ export function MultiWalletBalances() {
     // OMNI — per address
     for (const { index, address } of addrs) {
       fetches.push(
-        rpc.request_raw("getbalance", [address])
-          .then((res: any) => setVal(index, "omni", res?.balance ?? 0))
+        rpc.getAddressBalance(address)
+          .then((res) => setVal(index, "omni", res?.balance ?? 0))
           .catch(() => setVal(index, "omni", null))
       );
     }
@@ -251,12 +250,14 @@ export function MultiWalletBalances() {
   if (!u) return <p className="text-xs text-mempool-text-dim p-2">Unlock wallet with mnemonic.</p>;
   if (!u.allAddresses?.length) return <p className="text-xs text-mempool-text-dim p-2">Re-unlock with mnemonic to derive all addresses.</p>;
 
-  const totals = Object.fromEntries(
-    COLS.map(c => [c.key, sumCol(rows, c.key, c.isSat)])
-  ) as Record<ColKey, number>;
+  const totals = useMemo(() =>
+    Object.fromEntries(COLS.map(c => [c.key, sumCol(rows, c.key, c.isSat)])) as Record<ColKey, number>,
+  [rows]);
 
-  const evmAddrs = [...new Set(rows.map(r => r.evmAddr).filter(Boolean))];
-  const sameEvm = evmAddrs.length === 1;
+  const { evmAddrs, sameEvm } = useMemo(() => {
+    const evmAddrs = [...new Set(rows.map(r => r.evmAddr).filter(Boolean))];
+    return { evmAddrs, sameEvm: evmAddrs.length === 1 };
+  }, [rows]);
 
   return (
     <div className="space-y-3">
@@ -271,6 +272,34 @@ export function MultiWalletBalances() {
         </div>
         <div className="flex items-center gap-2">
           {fetching && <span className="text-[10px] text-mempool-text-dim animate-pulse">Fetching…</span>}
+          {rows.length > 0 && !fetching && (
+            <button
+              onClick={() => {
+                const header = ["slot", "omni_addr", "evm_addr", ...COLS.map(c => c.label.replace(" ", "_").toLowerCase())].join(",");
+                const dataRows = rows.map(r =>
+                  [
+                    r.index,
+                    `"${r.omniAddr}"`,
+                    `"${r.evmAddr}"`,
+                    ...COLS.map(c => {
+                      const v = r[c.key];
+                      if (v === "loading" || v === null || v === undefined) return "";
+                      return c.isSat ? ((v as number) / SAT_PER_OMNI).toFixed(8) : (v as number).toFixed(6);
+                    }),
+                  ].join(",")
+                );
+                const csv = [header, ...dataRows].join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-multichain-balances.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <div className="flex gap-0.5 bg-mempool-bg rounded p-0.5">
             <button onClick={() => setView("cards")}
               className={`px-2 py-1 text-[10px] rounded transition-colors ${view === "cards" ? "bg-mempool-blue/20 text-mempool-blue font-semibold" : "text-mempool-text-dim hover:text-mempool-text"}`}>
@@ -287,7 +316,7 @@ export function MultiWalletBalances() {
       {sameEvm && (
         <div className="text-[10px] text-mempool-text-dim bg-mempool-bg px-3 py-1.5 rounded">
           Same EVM address for all wallets (index 0):{" "}
-          <span className="font-mono text-mempool-text">{evmAddrs[0]?.slice(0,10)}…{evmAddrs[0]?.slice(-6)}</span>
+          <span className="font-mono text-mempool-text">{midTrunc(evmAddrs[0] ?? "", 10, 6)}</span>
           {" "}— Sepolia/Liberty/Base balances shown once, applied to all rows.
         </div>
       )}
@@ -295,7 +324,7 @@ export function MultiWalletBalances() {
       {view === "cards" ? (
         <div className="space-y-2">
           {rows.map(row => {
-            const omniVal = typeof row.omni === "number" ? row.omni / SAT : 0;
+            const omniVal = typeof row.omni === "number" ? row.omni / SAT_PER_OMNI : 0;
             const hasBalance = omniVal > 0 || COLS.slice(1).some(c => typeof row[c.key] === "number" && (row[c.key] as number) > 0);
             return (
               <div key={row.index} className={`rounded-lg border p-3 ${hasBalance ? "border-mempool-blue/30 bg-mempool-bg-elev" : "border-mempool-border bg-mempool-bg-elev/50"}`}>
@@ -310,14 +339,14 @@ export function MultiWalletBalances() {
                         <div className="flex items-center gap-1 text-[10px]">
                           <span className="text-mempool-text-dim w-8 shrink-0">EVM</span>
                           <span className="font-mono text-mempool-text-dim truncate" title={row.evmAddr}>
-                            {row.evmAddr.slice(0,12)}…{row.evmAddr.slice(-6)}
+                            {midTrunc(row.evmAddr, 12, 6)}
                           </span>
                         </div>
                       )}
                       <div className="flex items-center gap-1 text-[10px]">
                         <span className="text-mempool-text-dim w-8 shrink-0">OMNI</span>
                         <span className="font-mono text-[10px] text-mempool-text-dim truncate" title={row.omniAddr}>
-                          {row.omniAddr.slice(0,14)}…{row.omniAddr.slice(-8)}
+                          {midTrunc(row.omniAddr, 14, 8)}
                         </span>
                       </div>
                     </div>
@@ -382,7 +411,7 @@ export function MultiWalletBalances() {
                   <td className="py-1 px-1">
                     <div className="text-mempool-text font-semibold truncate" style={{ fontSize: "8px" }}>Slot #{row.index}</div>
                     <div className="font-mono text-mempool-text-dim truncate" style={{ fontSize: "7px" }} title={row.evmAddr}>
-                      {row.evmAddr ? `${row.evmAddr.slice(0,6)}…${row.evmAddr.slice(-3)}` : ""}
+                      {midTrunc(row.evmAddr, 6, 3)}
                     </div>
                   </td>
                   {COLS.map(c => (

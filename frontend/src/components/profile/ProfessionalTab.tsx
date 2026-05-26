@@ -91,7 +91,7 @@ export function ProfessionalTab({
         ) : (
           <>
             {certs.map((c, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={`cert-${i}`} className="flex gap-2 items-center">
                 {editable ? (
                   <>
                     <input
@@ -168,7 +168,7 @@ export function ProfessionalTab({
         ) : (
           <>
             {work.map((w, i) => (
-              <div key={i} className="flex gap-2 items-center flex-wrap">
+              <div key={`work-${i}`} className="flex gap-2 items-center flex-wrap">
                 {editable ? (
                   <>
                     <input
@@ -257,7 +257,7 @@ export function ProfessionalTab({
             <div className="flex flex-wrap gap-1.5">
               {skills.map((s, i) => (
                 <span
-                  key={i}
+                  key={`skill-${i}`}
                   className="inline-flex items-center gap-1 bg-mempool-bg border border-mempool-border rounded-full px-2 py-0.5 text-xs text-mempool-text"
                 >
                   {s}

@@ -1,0 +1,392 @@
+\doxysection{archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts Directory Reference}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5}{}\label{dir_d147bc643bfa9de686471d4bfc540fd5}\index{archived-\/4-\/eterniti/tools-\/python/agentscripts Directory Reference@{archived-\/4-\/eterniti/tools-\/python/agentscripts Directory Reference}}
+Directory dependency graph for agentscripts:\+
+% FIG 0
+\doxysubsubsection*{Files}
+\begin{DoxyCompactItemize}
+\item 
+file \doxymbox{\hyperlink{code__metrics_8py}{code\+\_\+metrics.\+py}}
+\item 
+file \doxymbox{\hyperlink{config__validator_8py}{config\+\_\+validator.\+py}}
+\item 
+file \doxymbox{\hyperlink{dependency__check_8py}{dependency\+\_\+check.\+py}}
+\item 
+file \doxymbox{\hyperlink{project__health_8py}{project\+\_\+health.\+py}}
+\item 
+file \doxymbox{\hyperlink{prompt__generator_8py}{prompt\+\_\+generator.\+py}}
+\item 
+file \doxymbox{\hyperlink{quick__check_8py}{quick\+\_\+check.\+py}}
+\item 
+file \doxymbox{\hyperlink{security__scan_8py}{security\+\_\+scan.\+py}}
+\item 
+file \doxymbox{\hyperlink{agentscripts_2test__runner_8py}{test\+\_\+runner.\+py}}
+\item 
+file \doxymbox{\hyperlink{todo__extractor_8py}{todo\+\_\+extractor.\+py}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4003}{}\doxysubsection{\texorpdfstring{Omni\+Bus Blockchain -\/ Agent Scripts}{Omni\+Bus Blockchain -\/ Agent Scripts}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4003}
+\begin{quote}
+{\bfseries{Toolbox Python pentru AI agents să lucreze eficient cu proiectul.}} \end{quote}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4005}{}\doxysubsection{\texorpdfstring{🚀 Quick Start}{🚀 Quick Start}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4005}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Verificare\ rapidă\ starea\ proiectului}
+\DoxyCodeLine{python\ project\_health.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Verifică\ sintaxă\ +\ build\ rapid}
+\DoxyCodeLine{python\ quick\_check.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Vezi\ ce\ taskuri\ sunt\ de\ făcut}
+\DoxyCodeLine{python\ todo\_extractor.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Rulează\ teste\ specifice}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/group\ crypto}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4007}{}\doxysubsection{\texorpdfstring{📋 Tooluri Disponibile}{📋 Tooluri Disponibile}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4007}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4008}{}\doxysubsubsection{\texorpdfstring{🔴 Critice (rulează acestea primul)}{🔴 Critice (rulează acestea primul)}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4008}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Scop  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Timp  \\
+{\ttfamily \doxylink{project__health_8py}{project\+\_\+health.\+py}}  &Stare generală proiect  &\texorpdfstring{$<$}{<}1s  \\
+{\ttfamily \doxylink{quick__check_8py}{quick\+\_\+check.\+py}}  &Sintaxă + build rapid  &2-\/5s  \\
+{\ttfamily \doxylink{todo__extractor_8py}{todo\+\_\+extractor.\+py}}  &Taskuri în backlog  &\texorpdfstring{$<$}{<}1s  \\
+{\ttfamily test\+\_\+runner.\+py}  &Teste selective  &10-\/60s  \\
+\end{DoxyTable}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4009}{}\doxysubsubsection{\texorpdfstring{🟡 Importante}{🟡 Importante}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4009}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Tool  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Scop  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Timp  \\
+{\ttfamily \doxylink{code__metrics_8py}{code\+\_\+metrics.\+py}}  &Metrici cod (LOC, etc.)  &\texorpdfstring{$<$}{<}1s  \\
+{\ttfamily \doxylink{security__scan_8py}{security\+\_\+scan.\+py}}  &Vulnerabilități  &2-\/3s  \\
+{\ttfamily \doxylink{prompt__generator_8py}{prompt\+\_\+generator.\+py}}  &Generează prompturi AI  &\texorpdfstring{$<$}{<}1s  \\
+{\ttfamily \doxylink{dependency__check_8py}{dependency\+\_\+check.\+py}}  &Verifică dependințe  &\texorpdfstring{$<$}{<}1s  \\
+{\ttfamily \doxylink{config__validator_8py}{config\+\_\+validator.\+py}}  &Validează config  &\texorpdfstring{$<$}{<}1s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4011}{}\doxysubsection{\texorpdfstring{🎯 Workflow Recomandat}{🎯 Workflow Recomandat}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4011}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4012}{}\doxysubsubsection{\texorpdfstring{Înainte de a începe un task nou:\+}{Înainte de a începe un task nou:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4012}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Verifică\ starea\ proiectului}
+\DoxyCodeLine{python\ project\_health.py}
+\DoxyCodeLine{\#\ Output:\ Zig\ OK,\ 79\ fișiere,\ build\ OK}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Vezi\ ce\ taskuri\ există\ deja}
+\DoxyCodeLine{python\ todo\_extractor.py\ -\/-\/high}
+\DoxyCodeLine{\#\ Output:\ Listează\ TODO-\/uri\ HIGH\ priority}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Generează\ prompt\ pentru\ agent}
+\DoxyCodeLine{python\ prompt\_generator.py\ -\/-\/task\ "{}Implementează\ LMD\ GHOST"{}\ -\/-\/include-\/todos}
+\DoxyCodeLine{\#\ Output:\ Prompt\ complet\ cu\ context}
+
+\end{DoxyCode}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4013}{}\doxysubsubsection{\texorpdfstring{După ce scrii cod:\+}{După ce scrii cod:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4013}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Verifică\ sintaxa\ și\ build}
+\DoxyCodeLine{python\ quick\_check.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Rulează\ testele\ relevante}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/group\ chain}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Scanare\ securitate\ rapidă}
+\DoxyCodeLine{python\ security\_scan.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 4.\ Verifică\ metrici\ (nu\ crește\ prea\ mult\ fișierul)}
+\DoxyCodeLine{python\ code\_metrics.py\ -\/-\/summary}
+
+\end{DoxyCode}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4014}{}\doxysubsubsection{\texorpdfstring{Înainte de commit:\+}{Înainte de commit:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4014}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Verifică\ TODO-\/urile}
+\DoxyCodeLine{python\ todo\_extractor.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Validare\ config}
+\DoxyCodeLine{python\ config\_validator.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Verifică\ dependințe}
+\DoxyCodeLine{python\ dependency\_check.py}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 4.\ Build\ +\ teste\ complete}
+\DoxyCodeLine{python\ quick\_check.py\ \&\&\ python\ test\_runner.py}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4016}{}\doxysubsection{\texorpdfstring{📖 Documentație Tooluri}{📖 Documentație Tooluri}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4016}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4017}{}\doxysubsubsection{\texorpdfstring{project\+\_\+health.\+py}{project\+\_\+health.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4017}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ project\_health.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Verificare\ standard}
+\DoxyCodeLine{python\ project\_health.py\ -\/-\/json\ \ \ \ \ \ \ \#\ Output\ JSON}
+\DoxyCodeLine{python\ project\_health.py\ -\/-\/quiet\ \ \ \ \ \ \#\ Doar\ cod\ de\ ieșire}
+
+\end{DoxyCode}
+
+
+{\bfseries{Verifică:\+}}
+\begin{DoxyItemize}
+\item Zig instalat și versiunea
+\item liboqs (opțional)
+\item Număr fișiere, LOC, constante, enum-\/uri
+\item Structură proiect (build.\+zig, etc.)
+\end{DoxyItemize}
+
+{\bfseries{Cod ieșire:\+}} 0 = sănătos, 1 = probleme
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4019}{}\doxysubsubsection{\texorpdfstring{quick\+\_\+check.\+py}{quick\+\_\+check.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4019}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ quick\_check.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Verificare\ completă}
+\DoxyCodeLine{python\ quick\_check.py\ -\/-\/syntax\ \ \ \ \ \ \ \ \#\ Doar\ sintaxă}
+\DoxyCodeLine{python\ quick\_check.py\ -\/-\/build\ \ \ \ \ \ \ \ \ \#\ Doar\ build}
+\DoxyCodeLine{python\ quick\_check.py\ -\/-\/test\ \ \ \ \ \ \ \ \ \ \#\ Doar\ teste}
+
+\end{DoxyCode}
+
+
+{\bfseries{Verifică:\+}}
+\begin{DoxyItemize}
+\item Sintaxă Zig (zig fmt --check)
+\item Build rapid (fără liboqs)
+\item Teste crypto și chain
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4021}{}\doxysubsubsection{\texorpdfstring{todo\+\_\+extractor.\+py}{todo\+\_\+extractor.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4021}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ todo\_extractor.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Toate\ TODO-\/urile}
+\DoxyCodeLine{python\ todo\_extractor.py\ -\/-\/high\ \ \ \ \ \ \ \#\ Doar\ HIGH\ priority}
+\DoxyCodeLine{python\ todo\_extractor.py\ -\/-\/medium\ \ \ \ \ \#\ Doar\ MEDIUM}
+\DoxyCodeLine{python\ todo\_extractor.py\ -\/-\/json\ \ \ \ \ \ \ \#\ Output\ JSON}
+
+\end{DoxyCode}
+
+
+{\bfseries{Detectează:\+}} TODO, FIXME, BUG, HACK, XXX, NOTE
+
+{\bfseries{Prioritizare:\+}}
+\begin{DoxyItemize}
+\item HIGH:\+ FIXME, BUG, cuvinte cheie (critical, security)
+\item MEDIUM:\+ TODO normal
+\item LOW:\+ NOTE, optional
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4023}{}\doxysubsubsection{\texorpdfstring{test\+\_\+runner.\+py}{test\+\_\+runner.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4023}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ test\_runner.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Toate\ testele}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/group\ crypto\ \ \#\ Doar\ crypto}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/group\ chain\ \ \ \#\ Doar\ chain}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/file\ core/p2p.zig\ \ \#\ Fișier\ specific}
+\DoxyCodeLine{python\ test\_runner.py\ -\/-\/watch\ \ \ \ \ \ \ \ \ \#\ Watch\ mode\ (TDD)}
+
+\end{DoxyCode}
+
+
+{\bfseries{Grupe disponibile:\+}} crypto, chain, net, shard, storage, light, wallet
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4025}{}\doxysubsubsection{\texorpdfstring{code\+\_\+metrics.\+py}{code\+\_\+metrics.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4025}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ code\_metrics.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Metrici\ complete}
+\DoxyCodeLine{python\ code\_metrics.py\ -\/-\/summary\ \ \ \ \ \ \#\ Doar\ sumar}
+\DoxyCodeLine{python\ code\_metrics.py\ -\/-\/json\ \ \ \ \ \ \ \ \ \#\ Output\ JSON}
+
+\end{DoxyCode}
+
+
+{\bfseries{Calculează:\+}}
+\begin{DoxyItemize}
+\item Total LOC, fișiere, funcții
+\item Raport test/\+cod
+\item Complexitate medie
+\item Top fișiere ca dimensiune
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4027}{}\doxysubsubsection{\texorpdfstring{security\+\_\+scan.\+py}{security\+\_\+scan.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4027}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ security\_scan.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Scan\ complet}
+\DoxyCodeLine{python\ security\_scan.py\ -\/-\/critical\ \ \ \ \#\ Doar\ critice}
+\DoxyCodeLine{python\ security\_scan.py\ -\/-\/json\ \ \ \ \ \ \ \ \#\ Output\ JSON}
+
+\end{DoxyCode}
+
+
+{\bfseries{Detectează:\+}}
+\begin{DoxyItemize}
+\item Secrete hardcodate
+\item Buffer operations unsafe
+\item TODO-\/uri de securitate
+\item Panic/\+expect în cod
+\item Debug prints
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4029}{}\doxysubsubsection{\texorpdfstring{prompt\+\_\+generator.\+py}{prompt\+\_\+generator.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4029}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ prompt\_generator.py\ -\/-\/task\ "{}Implementează\ X"{}\ -\/-\/include-\/todos}
+\DoxyCodeLine{python\ prompt\_generator.py\ -\/-\/task\ "{}Fix\ bug"{}\ -\/-\/file\ core/p2p.zig}
+\DoxyCodeLine{python\ prompt\_generator.py\ -\/-\/task\ "{}Refactor"{}\ -\/-\/output\ prompt.txt}
+
+\end{DoxyCode}
+
+
+{\bfseries{Generează:\+}}
+\begin{DoxyItemize}
+\item Context proiect (dimensiune, build status)
+\item Task clar definit
+\item TODO-\/uri relevante
+\item Cerințe specifice
+\item Referințe utile
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4031}{}\doxysubsubsection{\texorpdfstring{dependency\+\_\+check.\+py}{dependency\+\_\+check.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4031}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ dependency\_check.py\ \ \ \ \ \ \ \ \ \ \ \ \#\ Verificare\ completă}
+\DoxyCodeLine{python\ dependency\_check.py\ -\/-\/json\ \ \ \ \ \#\ Output\ JSON}
+
+\end{DoxyCode}
+
+
+{\bfseries{Verifică:\+}}
+\begin{DoxyItemize}
+\item Zig (versiune minimă 0.\+15.\+0)
+\item Python (3.\+8+)
+\item Git
+\item liboqs (opțional)
+\item Porturi libere (8332, 8333, 8334)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4033}{}\doxysubsubsection{\texorpdfstring{config\+\_\+validator.\+py}{config\+\_\+validator.\+py}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4033}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{python\ config\_validator.py\ \ \ \ \ \ \ \ \ \ \ \ \#\ Validează\ omnibus.toml}
+\DoxyCodeLine{python\ config\_validator.py\ -\/-\/json\ \ \ \ \ \#\ Output\ JSON}
+
+\end{DoxyCode}
+
+
+{\bfseries{Validează:\+}}
+\begin{DoxyItemize}
+\item Sintaxă TOML
+\item Valori în range-\/uri
+\item Referințe fișiere existente
+\item Secțiuni required
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4035}{}\doxysubsection{\texorpdfstring{🔄 Integrare CI/\+\+CD}{🔄 Integrare CI/\+\+CD}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4035}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4036}{}\doxysubsubsection{\texorpdfstring{Pre-\/commit hook:\+}{Pre-\/commit hook:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4036}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/bin/bash}
+\DoxyCodeLine{\#\ .git/hooks/pre-\/commit}
+\DoxyCodeLine{}
+\DoxyCodeLine{cd\ tools/agentscripts}
+\DoxyCodeLine{}
+\DoxyCodeLine{python\ quick\_check.py\ -\/-\/quiet\ ||\ exit\ 1}
+\DoxyCodeLine{python\ security\_scan.py\ -\/-\/critical\ -\/-\/quiet\ ||\ exit\ 1}
+\DoxyCodeLine{python\ config\_validator.py\ -\/-\/quiet\ ||\ exit\ 1}
+
+\end{DoxyCode}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4037}{}\doxysubsubsection{\texorpdfstring{Git\+Hub Actions:\+}{Git\+Hub Actions:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4037}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{name:\ Quick\ Checks}
+\DoxyCodeLine{on:\ [push,\ pull\_request]}
+\DoxyCodeLine{}
+\DoxyCodeLine{jobs:}
+\DoxyCodeLine{\ \ check:}
+\DoxyCodeLine{\ \ \ \ runs-\/on:\ ubuntu-\/latest}
+\DoxyCodeLine{\ \ \ \ steps:}
+\DoxyCodeLine{\ \ \ \ \ \ -\/\ uses:\ actions/checkout@v2}
+\DoxyCodeLine{\ \ \ \ \ \ -\/\ name:\ Project\ Health}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ run:\ python\ tools/agentscripts/project\_health.py}
+\DoxyCodeLine{\ \ \ \ \ \ -\/\ name:\ Quick\ Check}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ run:\ python\ tools/agentscripts/quick\_check.py}
+\DoxyCodeLine{\ \ \ \ \ \ -\/\ name:\ Security\ Scan}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ run:\ python\ tools/agentscripts/security\_scan.py}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4039}{}\doxysubsection{\texorpdfstring{📝 Convenții}{📝 Convenții}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4039}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4040}{}\doxysubsubsection{\texorpdfstring{Cod de ieșire:\+}{Cod de ieșire:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4040}
+
+\begin{DoxyItemize}
+\item {\bfseries{0}} = Succes /\+ OK
+\item {\bfseries{1}} = Warning-\/uri /\+ Probleme minore
+\item {\bfseries{2}} = Erori critice
+\end{DoxyItemize}\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4041}{}\doxysubsubsection{\texorpdfstring{Output:\+}{Output:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4041}
+
+\begin{DoxyItemize}
+\item Default:\+ Human-\/readable cu culori
+\item {\ttfamily -\/-\/json}:\+ Parsabil pentru alte tooluri
+\item {\ttfamily -\/-\/quiet}:\+ Doar cod de ieșire
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4043}{}\doxysubsection{\texorpdfstring{🔧 Dezvoltare}{🔧 Dezvoltare}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4043}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4044}{}\doxysubsubsection{\texorpdfstring{Adăugarea unui tool nou:\+}{Adăugarea unui tool nou:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4044}
+
+\begin{DoxyEnumerate}
+\item Creează {\ttfamily nume\+\_\+tool.\+py}
+\item Adaugă la această documentație
+\item Actualizează tabela de mai sus
+\item Testează cu {\ttfamily -\/-\/json} și {\ttfamily -\/-\/quiet}
+\end{DoxyEnumerate}\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4045}{}\doxysubsubsection{\texorpdfstring{Reguli:\+}{Reguli:\+}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4045}
+
+\begin{DoxyItemize}
+\item Fără dependințe externe (doar standard library)
+\item Timp de execuție \texorpdfstring{$<$}{<} 60s (ideal \texorpdfstring{$<$}{<} 5s)
+\item Cod de ieșire corect
+\item Suport pentru {\ttfamily -\/-\/json} și {\ttfamily -\/-\/quiet}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4047}{}\doxysubsection{\texorpdfstring{🐛 Troubleshooting}{🐛 Troubleshooting}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4047}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4048}{}\doxysubsubsection{\texorpdfstring{"{}\+Zig not found"{}}{"{}\+Zig not found"{}}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4048}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Adaugă\ Zig\ la\ PATH\ sau}
+\DoxyCodeLine{export\ PATH="{}\$PATH:/path/to/zig"{}}
+
+\end{DoxyCode}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4049}{}\doxysubsubsection{\texorpdfstring{"{}\+Permission denied"{}}{"{}\+Permission denied"{}}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4049}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{chmod\ +x\ tools/agentscripts/*.py}
+
+\end{DoxyCode}
+\hypertarget{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4050}{}\doxysubsubsection{\texorpdfstring{"{}\+Module not found"{}}{"{}\+Module not found"{}}}\label{dir_d147bc643bfa9de686471d4bfc540fd5_autotoc_md4050}
+Toate scripturile folosesc doar standard library Python. Nu sunt necesare pachete externe.
+
+\DoxyHorRuler{0}
+
+
+{\itshape Omni\+Bus Blockchain -\/ AI Agent Tools v1.\+0} 

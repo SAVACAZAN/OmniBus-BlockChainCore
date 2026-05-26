@@ -1,0 +1,120 @@
+\doxysection{frontend/\+node\+\_\+modules/\+recharts Directory Reference}
+\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2}{}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2}\index{frontend/node\_modules/recharts Directory Reference@{frontend/node\_modules/recharts Directory Reference}}
+Directory dependency graph for recharts:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8583}{}\doxysubsection{\texorpdfstring{Recharts}{Recharts}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8583}
+\href{https://release--63da8268a0da9970db6992aa.chromatic.com/}{\texttt{}} \href{https://github.com/recharts/recharts/actions}{\texttt{}} \href{https://coveralls.io/github/recharts/recharts?branch=master}{\texttt{}} \href{http://badge.fury.io/js/recharts}{\texttt{}} \href{https://www.npmjs.com/package/recharts}{\texttt{}} \href{/LICENSE}{\texttt{}}\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8584}{}\doxysubsection{\texorpdfstring{Introduction}{Introduction}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8584}
+Recharts is a {\bfseries{Redefined}} chart library built with \href{https://facebook.github.io/react/}{\texttt{React}} and \href{http://d3js.org}{\texttt{D3}}.
+
+The main purpose of this library is to help you to write charts in React applications without any pain. Main principles of Recharts are:\+
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Simply}} deploy with React components.
+\item {\bfseries{Native}} SVG support, lightweight depending only on some D3 submodules.
+\item {\bfseries{Declarative}} components, components of charts are purely presentational.
+\end{DoxyEnumerate}
+
+Documentation at \href{https://recharts.org}{\texttt{recharts.\+org}} and our \href{https://release--63da8268a0da9970db6992aa.chromatic.com/}{\texttt{storybook (WIP)}}
+
+Please see \href{https://github.com/recharts/recharts/wiki}{\texttt{the wiki}} for FAQ.
+
+All development is done on the {\ttfamily master} branch. The current latest release and storybook documentation reflects what is on the {\ttfamily release} branch.\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8585}{}\doxysubsection{\texorpdfstring{Examples}{Examples}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8585}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<LineChart\ width=\{400\}\ height=\{400\}\ data=\{data\}\ margin=\{\{\ top:\ 5,\ right:\ 20,\ left:\ 10,\ bottom:\ 5\ \}\}>}
+\DoxyCodeLine{\ \ <XAxis\ dataKey="{}name"{}\ />}
+\DoxyCodeLine{\ \ <Tooltip\ />}
+\DoxyCodeLine{\ \ <CartesianGrid\ stroke="{}\#f5f5f5"{}\ />}
+\DoxyCodeLine{\ \ <Line\ type="{}monotone"{}\ dataKey="{}uv"{}\ stroke="{}\#ff7300"{}\ yAxisId=\{0\}\ />}
+\DoxyCodeLine{\ \ <Line\ type="{}monotone"{}\ dataKey="{}pv"{}\ stroke="{}\#387908"{}\ yAxisId=\{1\}\ />}
+\DoxyCodeLine{</LineChart>}
+
+\end{DoxyCode}
+
+
+All the components of Recharts are clearly separated. The line\+Chart is composed of x axis, tooltip, grid, and line items, and each of them is an independent React Component. The clear separation and composition of components is one of the principle Recharts follows.\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8586}{}\doxysubsection{\texorpdfstring{Installation}{Installation}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8586}
+\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8587}{}\doxysubsubsection{\texorpdfstring{npm}{npm}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8587}
+NPM is the easiest and fastest way to get started using Recharts. It is also the recommended installation method when building single-\/page applications (SPAs). It pairs nicely with a Common\+JS module bundler such as Webpack.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ latest\ stable}
+\DoxyCodeLine{\$\ npm\ install\ recharts}
+
+\end{DoxyCode}
+\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8588}{}\doxysubsubsection{\texorpdfstring{umd}{umd}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8588}
+The UMD build is also available on unpkg.\+com:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ src="{}https://unpkg.com/react/umd/react.production.min.js"{}></script>}
+\DoxyCodeLine{<script\ src="{}https://unpkg.com/react-\/dom/umd/react-\/dom.production.min.js"{}></script>}
+\DoxyCodeLine{<script\ src="{}https://unpkg.com/recharts/umd/Recharts.min.js"{}></script>}
+
+\end{DoxyCode}
+
+
+Then you can find the library on {\ttfamily window.\+Recharts}.\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8589}{}\doxysubsubsection{\texorpdfstring{dev build}{dev build}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8589}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ git\ clone\ https://github.com/recharts/recharts.git}
+\DoxyCodeLine{\$\ cd\ recharts}
+\DoxyCodeLine{\$\ npm\ install}
+\DoxyCodeLine{\$\ npm\ run\ build}
+
+\end{DoxyCode}
+\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8590}{}\doxysubsection{\texorpdfstring{Demo}{Demo}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8590}
+To examine the demos in your local build, execute:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ npm\ run[-\/script]\ demo}
+
+\end{DoxyCode}
+
+
+and then browse to \href{http://localhost:3000}{\texttt{http:\+/\+/\+localhost:\+3000}}.\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8591}{}\doxysubsection{\texorpdfstring{Storybook}{Storybook}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8591}
+\doxylink{namespace_we}{We} are in the process of unifying documentation and examples in storybook. To run it locally, execute
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ npm\ run[-\/script]\ storybook}
+
+\end{DoxyCode}
+
+
+and then browse to \href{http://localhost:6006}{\texttt{http:\+/\+/\+localhost:\+6006}}.\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8592}{}\doxysubsection{\texorpdfstring{Releases}{Releases}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8592}
+\href{https://github.com/recharts/recharts/releases}{\texttt{Releases}} are automated via GH Actions -\/ when a new release is created in GH, CI will trigger that:\+
+
+
+\begin{DoxyEnumerate}
+\item Runs a build
+\item Runs tests
+\item Runs {\ttfamily npm publish}
+\end{DoxyEnumerate}
+
+Version increments and tagging are not automated at this time.\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8593}{}\doxysubsubsection{\texorpdfstring{Release testing}{Release testing}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8593}
+Until we can automate more, it should be preferred to test as close to the results of {\ttfamily npm publish} as we possibly can. This ensures we don\textquotesingle{}t publish unintended breaking changes. One way to do that is using {\ttfamily yalc} -\/ {\ttfamily npm i -\/g yalc}.
+
+
+\begin{DoxyEnumerate}
+\item Make your changes in recharts
+\item {\ttfamily yalc publish} in recharts
+\item {\ttfamily yalc add recharts} in your test package (ex:\+ in a vite or webpack reach app with recharts installed, imported, and your recent changes used)
+\item {\ttfamily npm install}
+\item Test a local run, a build, etc.
+\end{DoxyEnumerate}\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8594}{}\doxysubsection{\texorpdfstring{Module Formats}{Module Formats}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8594}
+
+\begin{DoxyItemize}
+\item \href{https://github.com/recharts/babel-plugin-recharts}{\texttt{babel-\/plugin-\/recharts}} A simple transform to cherry-\/pick Recharts modules so you don’t have to. {\bfseries{Note:\+ this plugin is out of date and may not work with 2.\+x}}
+\end{DoxyItemize}\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8595}{}\doxysubsection{\texorpdfstring{Thanks}{Thanks}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8595}
+\href{https://www.chromatic.com/}{\texttt{}}
+
+Thanks to \href{https://www.chromatic.com/}{\texttt{Chromatic}} for providing the visual testing platform that helps us review UI changes and catch visual regressions.\hypertarget{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8596}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_f11d6dc7f3a143e30aa66c2060540bd2_autotoc_md8596}
+\href{http://opensource.org/licenses/MIT}{\texttt{MIT}}
+
+Copyright (c) 2015-\/2023 Recharts Group. 

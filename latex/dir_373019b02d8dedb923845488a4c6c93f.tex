@@ -1,0 +1,415 @@
+\doxysection{frontend/\+node\+\_\+modules/\+terser/\+node\+\_\+modules/\+commander Directory Reference}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f}{}\label{dir_373019b02d8dedb923845488a4c6c93f}\index{frontend/node\_modules/terser/node\_modules/commander Directory Reference@{frontend/node\_modules/terser/node\_modules/commander Directory Reference}}
+Directory dependency graph for commander:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9104}{}\doxysubsection{\texorpdfstring{Commander.\+js}{Commander.\+js}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9104}
+\href{http://travis-ci.org/tj/commander.js}{\texttt{}} \href{https://www.npmjs.org/package/commander}{\texttt{}} \href{https://npmcharts.com/compare/commander?minimal=true}{\texttt{}} \href{https://packagephobia.now.sh/result?p=commander}{\texttt{}} \href{https://gitter.im/tj/commander.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge}{\texttt{}}
+
+The complete solution for \href{http://nodejs.org}{\texttt{node.\+js}} command-\/line interfaces, inspired by Ruby\textquotesingle{}s \href{https://github.com/commander-rb/commander}{\texttt{commander}}. ~\newline
+ \href{http://tj.github.com/commander.js/}{\texttt{API documentation}}\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9105}{}\doxysubsection{\texorpdfstring{Installation}{Installation}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9105}
+\begin{DoxyVerb}$ npm install commander
+\end{DoxyVerb}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9106}{}\doxysubsection{\texorpdfstring{Option parsing}{Option parsing}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9106}
+Options with commander are defined with the {\ttfamily .option()} method, also serving as documentation for the options. The example below parses args and options from {\ttfamily process.\+argv}, leaving remaining args as the {\ttfamily program.\+args} array which were not consumed by options.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/usr/bin/env\ node}
+\DoxyCodeLine{}
+\DoxyCodeLine{/**}
+\DoxyCodeLine{\ *\ Module\ dependencies.}
+\DoxyCodeLine{\ */}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .option('-\/p,\ -\/-\/peppers',\ 'Add\ peppers')}
+\DoxyCodeLine{\ \ .option('-\/P,\ -\/-\/pineapple',\ 'Add\ pineapple')}
+\DoxyCodeLine{\ \ .option('-\/b,\ -\/-\/bbq-\/sauce',\ 'Add\ bbq\ sauce')}
+\DoxyCodeLine{\ \ .option('-\/c,\ -\/-\/cheese\ [type]',\ 'Add\ the\ specified\ type\ of\ cheese\ [marble]',\ 'marble')}
+\DoxyCodeLine{\ \ .parse(process.argv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{console.log('you\ ordered\ a\ pizza\ with:');}
+\DoxyCodeLine{if\ (program.peppers)\ console.log('\ \ -\/\ peppers');}
+\DoxyCodeLine{if\ (program.pineapple)\ console.log('\ \ -\/\ pineapple');}
+\DoxyCodeLine{if\ (program.bbqSauce)\ console.log('\ \ -\/\ bbq');}
+\DoxyCodeLine{console.log('\ \ -\/\ \%s\ cheese',\ program.cheese);}
+
+\end{DoxyCode}
+
+
+Short flags may be passed as a single arg, for example {\ttfamily -\/abc} is equivalent to {\ttfamily -\/a -\/b -\/c}. Multi-\/word options such as "{}-\/-\/template-\/engine"{} are camel-\/cased, becoming {\ttfamily program.\+template\+Engine} etc.
+
+Note that multi-\/word options starting with {\ttfamily -\/-\/no} prefix negate the boolean value of the following word. For example, {\ttfamily -\/-\/no-\/sauce} sets the value of {\ttfamily program.\+sauce} to false.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/usr/bin/env\ node}
+\DoxyCodeLine{}
+\DoxyCodeLine{/**}
+\DoxyCodeLine{\ *\ Module\ dependencies.}
+\DoxyCodeLine{\ */}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .option('-\/-\/no-\/sauce',\ 'Remove\ sauce')}
+\DoxyCodeLine{\ \ .parse(process.argv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{console.log('you\ ordered\ a\ pizza');}
+\DoxyCodeLine{if\ (program.sauce)\ console.log('\ \ with\ sauce');}
+\DoxyCodeLine{else\ console.log('\ without\ sauce');}
+
+\end{DoxyCode}
+
+
+To get string arguments from options you will need to use angle brackets \texorpdfstring{$<$}{<}\texorpdfstring{$>$}{>} for required inputs or square brackets \+[]\+ for optional inputs.
+
+e.\+g. {\ttfamily .option(\textquotesingle{}-\/m -\/-\/myarg \+[my\+Var]\+\textquotesingle{}, \textquotesingle{}my super cool description\textquotesingle{})}
+
+Then to access the input if it was passed in.
+
+e.\+g. {\ttfamily var my\+Input = program.\+myarg}
+
+{\bfseries{NOTE}}:\+ If you pass a argument without using brackets the example above will return true and not the value passed in.\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9107}{}\doxysubsection{\texorpdfstring{Version option}{Version option}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9107}
+Calling the {\ttfamily version} implicitly adds the {\ttfamily -\/V} and {\ttfamily -\/-\/version} options to the command. When either of these options is present, the command prints the version number and exits. \begin{DoxyVerb}$ ./examples/pizza -V
+0.0.1
+\end{DoxyVerb}
+
+
+If you want your program to respond to the {\ttfamily -\/v} option instead of the {\ttfamily -\/V} option, simply pass custom flags to the {\ttfamily version} method using the same syntax as the {\ttfamily option} method.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.0.1',\ '-\/v,\ -\/-\/version')}
+
+\end{DoxyCode}
+
+
+The version flags can be named anything, but the long option is required.\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9108}{}\doxysubsection{\texorpdfstring{Command-\/specific options}{Command-\/specific options}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9108}
+You can attach options to a command.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/usr/bin/env\ node}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .command('rm\ <dir>')}
+\DoxyCodeLine{\ \ .option('-\/r,\ -\/-\/recursive',\ 'Remove\ recursively')}
+\DoxyCodeLine{\ \ .action(function\ (dir,\ cmd)\ \{}
+\DoxyCodeLine{\ \ \ \ console.log('remove\ '\ +\ dir\ +\ (cmd.recursive\ ?\ '\ recursively'\ :\ ''))}
+\DoxyCodeLine{\ \ \})}
+\DoxyCodeLine{}
+\DoxyCodeLine{program.parse(process.argv)}
+
+\end{DoxyCode}
+
+
+A command\textquotesingle{}s options are validated when the command is used. Any unknown options will be reported as an error. However, if an action-\/based command does not define an action, then the options are not validated.\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9109}{}\doxysubsection{\texorpdfstring{Coercion}{Coercion}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9109}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{function\ range(val)\ \{}
+\DoxyCodeLine{\ \ return\ val.split('..').map(Number);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ list(val)\ \{}
+\DoxyCodeLine{\ \ return\ val.split(',');}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ collect(val,\ memo)\ \{}
+\DoxyCodeLine{\ \ memo.push(val);}
+\DoxyCodeLine{\ \ return\ memo;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ increaseVerbosity(v,\ total)\ \{}
+\DoxyCodeLine{\ \ return\ total\ +\ 1;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .usage('[options]\ <file\ ...>')}
+\DoxyCodeLine{\ \ .option('-\/i,\ -\/-\/integer\ <n>',\ 'An\ integer\ argument',\ parseInt)}
+\DoxyCodeLine{\ \ .option('-\/f,\ -\/-\/float\ <n>',\ 'A\ float\ argument',\ parseFloat)}
+\DoxyCodeLine{\ \ .option('-\/r,\ -\/-\/range\ <a>..<b>',\ 'A\ range',\ range)}
+\DoxyCodeLine{\ \ .option('-\/l,\ -\/-\/list\ <items>',\ 'A\ list',\ list)}
+\DoxyCodeLine{\ \ .option('-\/o,\ -\/-\/optional\ [value]',\ 'An\ optional\ value')}
+\DoxyCodeLine{\ \ .option('-\/c,\ -\/-\/collect\ [value]',\ 'A\ repeatable\ value',\ collect,\ [])}
+\DoxyCodeLine{\ \ .option('-\/v,\ -\/-\/verbose',\ 'A\ value\ that\ can\ be\ increased',\ increaseVerbosity,\ 0)}
+\DoxyCodeLine{\ \ .parse(process.argv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{console.log('\ int:\ \%j',\ program.integer);}
+\DoxyCodeLine{console.log('\ float:\ \%j',\ program.float);}
+\DoxyCodeLine{console.log('\ optional:\ \%j',\ program.optional);}
+\DoxyCodeLine{program.range\ =\ program.range\ ||\ [];}
+\DoxyCodeLine{console.log('\ range:\ \%j..\%j',\ program.range[0],\ program.range[1]);}
+\DoxyCodeLine{console.log('\ list:\ \%j',\ program.list);}
+\DoxyCodeLine{console.log('\ collect:\ \%j',\ program.collect);}
+\DoxyCodeLine{console.log('\ verbosity:\ \%j',\ program.verbose);}
+\DoxyCodeLine{console.log('\ args:\ \%j',\ program.args);}
+
+\end{DoxyCode}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9110}{}\doxysubsection{\texorpdfstring{Regular Expression}{Regular Expression}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9110}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .option('-\/s\ -\/-\/size\ <size>',\ 'Pizza\ size',\ /\string^(large|medium|small)\$/i,\ 'medium')}
+\DoxyCodeLine{\ \ .option('-\/d\ -\/-\/drink\ [drink]',\ 'Drink',\ /\string^(coke|pepsi|izze)\$/i)}
+\DoxyCodeLine{\ \ .parse(process.argv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{console.log('\ size:\ \%j',\ program.size);}
+\DoxyCodeLine{console.log('\ drink:\ \%j',\ program.drink);}
+
+\end{DoxyCode}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9111}{}\doxysubsection{\texorpdfstring{Variadic arguments}{Variadic arguments}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9111}
+The last argument of a command can be variadic, and only the last argument. To make an argument variadic you have to append {\ttfamily ...} to the argument name. Here is an example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/usr/bin/env\ node}
+\DoxyCodeLine{}
+\DoxyCodeLine{/**}
+\DoxyCodeLine{\ *\ Module\ dependencies.}
+\DoxyCodeLine{\ */}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .command('rmdir\ <dir>\ [otherDirs...]')}
+\DoxyCodeLine{\ \ .action(function\ (dir,\ otherDirs)\ \{}
+\DoxyCodeLine{\ \ \ \ console.log('rmdir\ \%s',\ dir);}
+\DoxyCodeLine{\ \ \ \ if\ (otherDirs)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ otherDirs.forEach(function\ (oDir)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ console.log('rmdir\ \%s',\ oDir);}
+\DoxyCodeLine{\ \ \ \ \ \ \});}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{program.parse(process.argv);}
+
+\end{DoxyCode}
+
+
+An {\ttfamily Array} is used for the value of a variadic argument. This applies to {\ttfamily program.\+args} as well as the argument passed to your action as demonstrated above.\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9112}{}\doxysubsection{\texorpdfstring{Specify the argument syntax}{Specify the argument syntax}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9112}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/usr/bin/env\ node}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .arguments('<cmd>\ [env]')}
+\DoxyCodeLine{\ \ .action(function\ (cmd,\ env)\ \{}
+\DoxyCodeLine{\ \ \ \ \ cmdValue\ =\ cmd;}
+\DoxyCodeLine{\ \ \ \ \ envValue\ =\ env;}
+\DoxyCodeLine{\ \ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{program.parse(process.argv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{if\ (typeof\ cmdValue\ ===\ 'undefined')\ \{}
+\DoxyCodeLine{\ \ \ console.error('no\ command\ given!');}
+\DoxyCodeLine{\ \ \ process.exit(1);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{console.log('command:',\ cmdValue);}
+\DoxyCodeLine{console.log('environment:',\ envValue\ ||\ "{}no\ environment\ given"{});}
+
+\end{DoxyCode}
+ Angled brackets (e.\+g. {\ttfamily \texorpdfstring{$<$}{<}cmd\texorpdfstring{$>$}{>}}) indicate required input. Square brackets (e.\+g. {\ttfamily \+[env]\+}) indicate optional input.\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9113}{}\doxysubsection{\texorpdfstring{Git-\/style sub-\/commands}{Git-\/style sub-\/commands}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9113}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ file:\ ./examples/pm}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .command('install\ [name]',\ 'install\ one\ or\ more\ packages')}
+\DoxyCodeLine{\ \ .command('search\ [query]',\ 'search\ with\ optional\ query')}
+\DoxyCodeLine{\ \ .command('list',\ 'list\ packages\ installed',\ \{isDefault:\ true\})}
+\DoxyCodeLine{\ \ .parse(process.argv);}
+
+\end{DoxyCode}
+
+
+When {\ttfamily .command()} is invoked with a description argument, no {\ttfamily .action(callback)} should be called to handle sub-\/commands, otherwise there will be an error. This tells commander that you\textquotesingle{}re going to use separate executables for sub-\/commands, much like {\ttfamily \doxylink{namespacegit}{git(1)}} and other popular tools. ~\newline
+ The commander will try to search the executables in the directory of the entry script (like {\ttfamily ./\+examples/\+pm}) with the name {\ttfamily program-\/command}, like {\ttfamily pm-\/install}, {\ttfamily pm-\/search}.
+
+Options can be passed with the call to {\ttfamily .command()}. Specifying {\ttfamily true} for {\ttfamily opts.\+no\+Help} will remove the subcommand from the generated help output. Specifying {\ttfamily true} for {\ttfamily opts.\+is\+Default} will run the subcommand if no other subcommand is specified.
+
+If the program is designed to be installed globally, make sure the executables have proper modes, like {\ttfamily 755}.\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9114}{}\doxysubsubsection{\texorpdfstring{{\ttfamily -\/-\/harmony}}{{\ttfamily -\/-\/harmony}}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9114}
+You can enable {\ttfamily -\/-\/harmony} option in two ways:\+
+\begin{DoxyItemize}
+\item Use {\ttfamily \#! /\+usr/\+bin/\+env \doxylink{namespacenode}{node} -\/-\/harmony} in the sub-\/commands scripts. Note some os version don’t support this pattern.
+\item Use the {\ttfamily -\/-\/harmony} option when call the command, like {\ttfamily \doxylink{namespacenode}{node} -\/-\/harmony examples/\+pm publish}. The {\ttfamily -\/-\/harmony} option will be preserved when spawning sub-\/command process.
+\end{DoxyItemize}\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9115}{}\doxysubsection{\texorpdfstring{Automated --help}{Automated --help}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9115}
+The help information is auto-\/generated based on the information commander already knows about your program, so the following {\ttfamily -\/-\/help} info is for free:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ ./examples/pizza\ -\/-\/help}
+\DoxyCodeLine{Usage:\ pizza\ [options]}
+\DoxyCodeLine{}
+\DoxyCodeLine{An\ application\ for\ pizzas\ ordering}
+\DoxyCodeLine{}
+\DoxyCodeLine{Options:}
+\DoxyCodeLine{\ \ -\/h,\ -\/-\/help\ \ \ \ \ \ \ \ \ \ \ output\ usage\ information}
+\DoxyCodeLine{\ \ -\/V,\ -\/-\/version\ \ \ \ \ \ \ \ output\ the\ version\ number}
+\DoxyCodeLine{\ \ -\/p,\ -\/-\/peppers\ \ \ \ \ \ \ \ Add\ peppers}
+\DoxyCodeLine{\ \ -\/P,\ -\/-\/pineapple\ \ \ \ \ \ Add\ pineapple}
+\DoxyCodeLine{\ \ -\/b,\ -\/-\/bbq\ \ \ \ \ \ \ \ \ \ \ \ Add\ bbq\ sauce}
+\DoxyCodeLine{\ \ -\/c,\ -\/-\/cheese\ <type>\ \ Add\ the\ specified\ type\ of\ cheese\ [marble]}
+\DoxyCodeLine{\ \ -\/C,\ -\/-\/no-\/cheese\ \ \ \ \ \ You\ do\ not\ want\ any\ cheese}
+
+\end{DoxyCode}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9116}{}\doxysubsection{\texorpdfstring{Custom help}{Custom help}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9116}
+You can display arbitrary {\ttfamily -\/h, -\/-\/help} information by listening for "{}-\/-\/help"{}. Commander will automatically exit once you are done so that the remainder of your program does not execute causing undesired behaviors, for example in the following executable "{}stuff"{} will not output when {\ttfamily -\/-\/help} is used.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#!/usr/bin/env\ node}
+\DoxyCodeLine{}
+\DoxyCodeLine{/**}
+\DoxyCodeLine{\ *\ Module\ dependencies.}
+\DoxyCodeLine{\ */}
+\DoxyCodeLine{}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .option('-\/f,\ -\/-\/foo',\ 'enable\ some\ foo')}
+\DoxyCodeLine{\ \ .option('-\/b,\ -\/-\/bar',\ 'enable\ some\ bar')}
+\DoxyCodeLine{\ \ .option('-\/B,\ -\/-\/baz',\ 'enable\ some\ baz');}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ must\ be\ before\ .parse()\ since}
+\DoxyCodeLine{//\ node's\ emit()\ is\ immediate}
+\DoxyCodeLine{}
+\DoxyCodeLine{program.on('-\/-\/help',\ function()\{}
+\DoxyCodeLine{\ \ console.log('')}
+\DoxyCodeLine{\ \ console.log('Examples:');}
+\DoxyCodeLine{\ \ console.log('\ \ \$\ custom-\/help\ -\/-\/help');}
+\DoxyCodeLine{\ \ console.log('\ \ \$\ custom-\/help\ -\/h');}
+\DoxyCodeLine{\});}
+\DoxyCodeLine{}
+\DoxyCodeLine{program.parse(process.argv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{console.log('stuff');}
+
+\end{DoxyCode}
+
+
+Yields the following help output when {\ttfamily \doxylink{namespacenode}{node} script-\/name.\+js -\/h} or {\ttfamily \doxylink{namespacenode}{node} script-\/name.\+js -\/-\/help} are run:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Usage:\ custom-\/help\ [options]}
+\DoxyCodeLine{}
+\DoxyCodeLine{Options:}
+\DoxyCodeLine{\ \ -\/h,\ -\/-\/help\ \ \ \ \ output\ usage\ information}
+\DoxyCodeLine{\ \ -\/V,\ -\/-\/version\ \ output\ the\ version\ number}
+\DoxyCodeLine{\ \ -\/f,\ -\/-\/foo\ \ \ \ \ \ enable\ some\ foo}
+\DoxyCodeLine{\ \ -\/b,\ -\/-\/bar\ \ \ \ \ \ enable\ some\ bar}
+\DoxyCodeLine{\ \ -\/B,\ -\/-\/baz\ \ \ \ \ \ enable\ some\ baz}
+\DoxyCodeLine{}
+\DoxyCodeLine{Examples:}
+\DoxyCodeLine{\ \ \$\ custom-\/help\ -\/-\/help}
+\DoxyCodeLine{\ \ \$\ custom-\/help\ -\/h}
+
+\end{DoxyCode}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9117}{}\doxysubsection{\texorpdfstring{.output\+Help(cb)}{.output\+Help(cb)}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9117}
+Output help information without exiting. Optional callback cb allows post-\/processing of help text before it is displayed.
+
+If you want to display help by default (e.\+g. if no command was provided), you can use something like:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{var\ colors\ =\ require('colors');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .command('getstream\ [url]',\ 'get\ stream\ URL')}
+\DoxyCodeLine{\ \ .parse(process.argv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{if\ (!process.argv.slice(2).length)\ \{}
+\DoxyCodeLine{\ \ program.outputHelp(make\_red);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ make\_red(txt)\ \{}
+\DoxyCodeLine{\ \ return\ colors.red(txt);\ //display\ the\ help\ text\ in\ red\ on\ the\ console}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9118}{}\doxysubsection{\texorpdfstring{.help(cb)}{.help(cb)}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9118}
+Output help information and exit immediately. Optional callback cb allows post-\/processing of help text before it is displayed.\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9119}{}\doxysubsection{\texorpdfstring{Custom event listeners}{Custom event listeners}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9119}
+You can execute custom actions by listening to command and option events.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{program.on('option:verbose',\ function\ ()\ \{}
+\DoxyCodeLine{\ \ process.env.VERBOSE\ =\ this.verbose;}
+\DoxyCodeLine{\});}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ error\ on\ unknown\ commands}
+\DoxyCodeLine{program.on('command:*',\ function\ ()\ \{}
+\DoxyCodeLine{\ \ console.error('Invalid\ command:\ \%s\(\backslash\)nSee\ -\/-\/help\ for\ a\ list\ of\ available\ commands.',\ program.args.join('\ '));}
+\DoxyCodeLine{\ \ process.exit(1);}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9120}{}\doxysubsection{\texorpdfstring{Examples}{Examples}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9120}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ program\ =\ require('commander');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .version('0.1.0')}
+\DoxyCodeLine{\ \ .option('-\/C,\ -\/-\/chdir\ <path>',\ 'change\ the\ working\ directory')}
+\DoxyCodeLine{\ \ .option('-\/c,\ -\/-\/config\ <path>',\ 'set\ config\ path.\ defaults\ to\ ./deploy.conf')}
+\DoxyCodeLine{\ \ .option('-\/T,\ -\/-\/no-\/tests',\ 'ignore\ test\ hook');}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .command('setup\ [env]')}
+\DoxyCodeLine{\ \ .description('run\ setup\ commands\ for\ all\ envs')}
+\DoxyCodeLine{\ \ .option("{}-\/s,\ -\/-\/setup\_mode\ [mode]"{},\ "{}Which\ setup\ mode\ to\ use"{})}
+\DoxyCodeLine{\ \ .action(function(env,\ options)\{}
+\DoxyCodeLine{\ \ \ \ var\ mode\ =\ options.setup\_mode\ ||\ "{}normal"{};}
+\DoxyCodeLine{\ \ \ \ env\ =\ env\ ||\ 'all';}
+\DoxyCodeLine{\ \ \ \ console.log('setup\ for\ \%s\ env(s)\ with\ \%s\ mode',\ env,\ mode);}
+\DoxyCodeLine{\ \ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .command('exec\ <cmd>')}
+\DoxyCodeLine{\ \ .alias('ex')}
+\DoxyCodeLine{\ \ .description('execute\ the\ given\ remote\ cmd')}
+\DoxyCodeLine{\ \ .option("{}-\/e,\ -\/-\/exec\_mode\ <mode>"{},\ "{}Which\ exec\ mode\ to\ use"{})}
+\DoxyCodeLine{\ \ .action(function(cmd,\ options)\{}
+\DoxyCodeLine{\ \ \ \ console.log('exec\ "{}\%s"{}\ using\ \%s\ mode',\ cmd,\ options.exec\_mode);}
+\DoxyCodeLine{\ \ \}).on('-\/-\/help',\ function()\ \{}
+\DoxyCodeLine{\ \ \ \ console.log('');}
+\DoxyCodeLine{\ \ \ \ console.log('Examples:');}
+\DoxyCodeLine{\ \ \ \ console.log('');}
+\DoxyCodeLine{\ \ \ \ console.log('\ \ \$\ deploy\ exec\ sequential');}
+\DoxyCodeLine{\ \ \ \ console.log('\ \ \$\ deploy\ exec\ async');}
+\DoxyCodeLine{\ \ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{program}
+\DoxyCodeLine{\ \ .command('*')}
+\DoxyCodeLine{\ \ .action(function(env)\{}
+\DoxyCodeLine{\ \ \ \ console.log('deploying\ "{}\%s"{}',\ env);}
+\DoxyCodeLine{\ \ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{program.parse(process.argv);}
+
+\end{DoxyCode}
+
+
+More Demos can be found in the \href{https://github.com/tj/commander.js/tree/master/examples}{\texttt{examples}} directory.\hypertarget{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9121}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_373019b02d8dedb923845488a4c6c93f_autotoc_md9121}
+\href{https://github.com/tj/commander.js/blob/master/LICENSE}{\texttt{MIT}} 

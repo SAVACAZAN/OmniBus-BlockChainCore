@@ -1,0 +1,131 @@
+\doxysection{rpc-\/tester.py}
+\hypertarget{rpc-tester_8py_source}{}\label{rpc-tester_8py_source}\index{tools/NETWORK/rpc-\/tester.py@{tools/NETWORK/rpc-\/tester.py}}
+\doxymbox{\hyperlink{rpc-tester_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00001}\doxymbox{\hyperlink{namespacerpc-tester}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00002}\doxymbox{\hyperlink{namespacerpc}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ JSON-\/RPC\ 2.0\ Test\ Suite}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00005}00005\ \textcolor{stringliteral}{Tests\ each\ method,\ verifies\ error\ handling,\ stress\ tests\ with\ concurrent\ requests.}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00009}00009\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00010}00010\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00011}00011\ \textcolor{keyword}{import}\ threading}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00012}00012\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00013}00013\ \textcolor{keyword}{from}\ concurrent.futures\ \textcolor{keyword}{import}\ ThreadPoolExecutor,\ as\_completed}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00014}00014\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List,\ Optional}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00015}00015\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00017}\doxymbox{\hyperlink{namespacerpc-tester_a166984753be0b29ec11886dfe5944a8b}{00017}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00018}\doxymbox{\hyperlink{namespacerpc-tester_a538a6f0abcb2e7b30642980b3c07f0f6}{00018}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00019}\doxymbox{\hyperlink{namespacerpc-tester_ae25de94a4bff813c05d0b6315222558c}{00019}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00020}\doxymbox{\hyperlink{namespacerpc-tester_a9328e4efed1086c41fe856a1c8e915f9}{00020}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00023}\doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{00023}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00024}00024\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00027}\doxymbox{\hyperlink{namespacerpc-tester_a2e161f80d87aab27df3f259b872ac410}{00027}}\ RPC\_METHODS\ =\ [}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00028}00028\ \ \ \ \ (\textcolor{stringliteral}{"{}getblockchaininfo"{}},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00029}00029\ \ \ \ \ (\textcolor{stringliteral}{"{}getblockcount"{}},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00030}00030\ \ \ \ \ (\textcolor{stringliteral}{"{}getbestblockhash"{}},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00031}00031\ \ \ \ \ (\textcolor{stringliteral}{"{}getblock"{}},\ [\textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000000"{}}]),}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00032}00032\ \ \ \ \ (\textcolor{stringliteral}{"{}getrawmempool"{}},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00033}00033\ \ \ \ \ (\textcolor{stringliteral}{"{}sendrawtransaction"{}},\ [\textcolor{stringliteral}{"{}00"{}}]),}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00034}00034\ \ \ \ \ (\textcolor{stringliteral}{"{}getpeerinfo"{}},\ []),}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00035}00035\ ]}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00038}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester}{00038}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester}{RPCTester}}:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00039}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_abeea52666e05e3eefc74443fb14caacf}{00039}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_abeea52666e05e3eefc74443fb14caacf}{\_\_init\_\_}}(self,\ url:\ str\ =\ \textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}},\ user:\ str\ =\ \textcolor{stringliteral}{"{}"{}},\ password:\ str\ =\ \textcolor{stringliteral}{"{}"{}}):}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00040}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a44683ae8331805cea52b790e4cc3fc2b}{00040}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a44683ae8331805cea52b790e4cc3fc2b}{url}}\ =\ url}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00041}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a1fbf5170c1e8e2bc9bece2daea8222f1}{00041}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a1fbf5170c1e8e2bc9bece2daea8222f1}{headers}}\ =\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00042}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ac93516e770887378b801c5d0dbfc7b0e}{00042}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ac93516e770887378b801c5d0dbfc7b0e}{session}}\ =\ requests.Session()}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ac93516e770887378b801c5d0dbfc7b0e}{session}}.headers.update(self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a1fbf5170c1e8e2bc9bece2daea8222f1}{headers}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ user:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ac93516e770887378b801c5d0dbfc7b0e}{session}}.auth\ =\ (user,\ password)}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00046}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}{00046}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}{results}}:\ List[Dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00048}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce}{00048}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce}{\_call}}(self,\ method:\ str,\ params:\ List[Any])\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}params"{}}:\ params\}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ac93516e770887378b801c5d0dbfc7b0e}{session}}.post(self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a44683ae8331805cea52b790e4cc3fc2b}{url}},\ json=payload,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}status\_code"{}}:\ resp.status\_code,\ \textcolor{stringliteral}{"{}body"{}}:\ resp.text\}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ requests.RequestException\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}error"{}}:\ str(e)\}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00056}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a0aa5af7c44698c0116d371572a9b1ce9}{00056}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a0aa5af7c44698c0116d371572a9b1ce9}{test\_methods}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ RPC\ Method\ Tests\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ method,\ params\ \textcolor{keywordflow}{in}\ RPC\_METHODS:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ res\ =\ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce}{\_call}}(method,\ params)}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ ok\ =\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ res}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}{results}}.append(\{\textcolor{stringliteral}{"{}check"{}}:\ f\textcolor{stringliteral}{"{}rpc\_\{method\}"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ res.get(\textcolor{stringliteral}{"{}body"{}},\ res.get(\textcolor{stringliteral}{"{}error"{}},\ \textcolor{stringliteral}{"{}"{}}))[:120]\})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color,\ f\textcolor{stringliteral}{"{}\{'[PASS]'\ if\ ok\ else\ '[FAIL]'\}\ \{method\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00065}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a69cef8989c7d40426ca4a53e307a20a5}{00065}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a69cef8989c7d40426ca4a53e307a20a5}{test\_error\_handling}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Error\ Handling\ Tests\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Invalid\ method}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ res\ =\ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce}{\_call}}(\textcolor{stringliteral}{"{}nonexistent\_method"{}},\ [])}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ has\_error\ =\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ res.get(\textcolor{stringliteral}{"{}body"{}},\ \textcolor{stringliteral}{"{}"{}}).lower()\ \textcolor{keywordflow}{or}\ res.get(\textcolor{stringliteral}{"{}status\_code"{}},\ 200)\ !=\ 200}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}{results}}.append(\{\textcolor{stringliteral}{"{}check"{}}:\ \textcolor{stringliteral}{"{}error\_invalid\_method"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ has\_error\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ res.get(\textcolor{stringliteral}{"{}body"{}},\ \textcolor{stringliteral}{"{}"{}})[:120]\})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN\ \textcolor{keywordflow}{if}\ has\_error\ \textcolor{keywordflow}{else}\ RED,\ f\textcolor{stringliteral}{"{}\{'[PASS]'\ if\ has\_error\ else\ '[FAIL]'\}\ Invalid\ method\ returns\ error"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Invalid\ params\ (too\ many)}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ res2\ =\ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce}{\_call}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ [\textcolor{stringliteral}{"{}extra"{}}])}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ has\_err2\ =\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ res2.get(\textcolor{stringliteral}{"{}body"{}},\ \textcolor{stringliteral}{"{}"{}}).lower()}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}{results}}.append(\{\textcolor{stringliteral}{"{}check"{}}:\ \textcolor{stringliteral}{"{}error\_invalid\_params"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ has\_err2\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ res2.get(\textcolor{stringliteral}{"{}body"{}},\ \textcolor{stringliteral}{"{}"{}})[:120]\})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN\ \textcolor{keywordflow}{if}\ has\_err2\ \textcolor{keywordflow}{else}\ YELLOW,\ f\textcolor{stringliteral}{"{}\{'[PASS]'\ if\ has\_err2\ else\ '[WARN]'\}\ Invalid\ params\ returns\ error"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00079}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_adb7d100b61373d2b99d69eb0a9d9b69d}{00079}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_adb7d100b61373d2b99d69eb0a9d9b69d}{stress\_test}}(self,\ concurrency:\ int\ =\ 50,\ requests\_count:\ int\ =\ 500)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Stress\ Test\ (\{requests\_count\}\ req\ @\ \{concurrency\}\ threads)\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ ok\ =\ 0}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ fail\ =\ 0}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }worker(\_:\ int)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ r\ =\ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a27e4601b670a4743d204b74c4f5c9bce}{\_call}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ [])}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ r}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ ThreadPoolExecutor(max\_workers=concurrency)\ \textcolor{keyword}{as}\ ex:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ futures\ =\ [ex.submit(worker,\ i)\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(requests\_count)]}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ fut\ \textcolor{keywordflow}{in}\ as\_completed(futures):}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ fut.result():}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ok\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fail\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}{results}}.append(\{\textcolor{stringliteral}{"{}check"{}}:\ \textcolor{stringliteral}{"{}stress\_test"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ fail\ ==\ 0\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ f\textcolor{stringliteral}{"{}\{ok\}\ OK,\ \{fail\}\ FAIL"{}}\})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN\ \textcolor{keywordflow}{if}\ fail\ ==\ 0\ \textcolor{keywordflow}{else}\ RED,\ f\textcolor{stringliteral}{"{}Stress:\ \{ok\}\ OK,\ \{fail\}\ FAIL"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00099}\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a85c0ef988d1353ad25b1170252561697}{00099}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a85c0ef988d1353ad25b1170252561697}{run}}(self)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ JSON-\/RPC\ Tester\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a0aa5af7c44698c0116d371572a9b1ce9}{test\_methods}}()}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a69cef8989c7d40426ca4a53e307a20a5}{test\_error\_handling}}()}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_adb7d100b61373d2b99d69eb0a9d9b69d}{stress\_test}}()}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}rpc\_url"{}}:\ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_a44683ae8331805cea52b790e4cc3fc2b}{url}},\ \textcolor{stringliteral}{"{}results"{}}:\ self.\doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester_ad9c9cf299f6073746959d7e1f96bf954}{results}}\}}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00107}\doxymbox{\hyperlink{namespacerpc-tester_a7431cb90017e54fe695b23d4190db046}{00107}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerpc-tester_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00108}00108\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Test\ OmniBus\ JSON-\/RPC\ interface"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00109}00109\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/url"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}},\ help=\textcolor{stringliteral}{"{}RPC\ URL"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00110}00110\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ user"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00111}00111\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00112}00112\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}rpc-\/test-\/report.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00113}00113\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00115}00115\ \ \ \ \ tester\ =\ \doxymbox{\hyperlink{classrpc-tester_1_1_r_p_c_tester}{RPCTester}}(url=args.url,\ user=args.user,\ password=args.password)}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00116}00116\ \ \ \ \ report\ =\ tester.run()}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00118}00118\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00120}00120\ \ \ \ \ \doxymbox{\hyperlink{namespacerpc-tester_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nReport\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00121}00121\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00124}00124\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{rpc-tester_8py_source_l00125}00125\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacerpc-tester_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

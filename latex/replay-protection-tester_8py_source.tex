@@ -1,0 +1,338 @@
+\doxysection{replay-\/protection-\/tester.py}
+\hypertarget{replay-protection-tester_8py_source}{}\label{replay-protection-tester_8py_source}\index{tools/EXPLOITS/replay-\/protection-\/tester.py@{tools/EXPLOITS/replay-\/protection-\/tester.py}}
+\doxymbox{\hyperlink{replay-protection-tester_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00001}\doxymbox{\hyperlink{namespacereplay-protection-tester}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00002}\doxymbox{\hyperlink{namespacereplay}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00003}00003\ \textcolor{stringliteral}{replay-\/protection-\/tester.py\ —\ OmniBus\ BlockChainCore\ Replay\ Protection\ Tester}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00005}00005\ \textcolor{stringliteral}{Test\ the\ blockchain\ node's\ replay\ protection\ mechanisms:}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Create\ valid\ transaction,\ modify\ chain/genesis\ identifier,\ verify\ REJECTED}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Submit\ the\ same\ valid\ transaction\ twice\ (double-\/spend\ via\ RPC)}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Submit\ transaction\ with\ wrong\ genesis\ hash}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Submit\ transaction\ with\ future\ nonce}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00011}00011\ \textcolor{stringliteral}{Uses\ http.client\ for\ JSON-\/RPC\ calls\ to\ port\ 8332\ (no\ external\ deps).}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00012}00012\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00014}00014\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00015}00015\ \textcolor{keyword}{import}\ hashlib}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00016}00016\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00017}00017\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00018}00018\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00019}00019\ \textcolor{keyword}{import}\ secrets}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00021}00021\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00022}00022\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00024}\doxymbox{\hyperlink{namespacereplay-protection-tester_a06f4112d4bf139d1d1ef1cfdd505ad6b}{00024}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00025}\doxymbox{\hyperlink{namespacereplay-protection-tester_a6b9e30f3ffbe450d5504c43c709db1a2}{00025}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00026}\doxymbox{\hyperlink{namespacereplay-protection-tester_ae51ec820a3ff1f73f03b42c46d65f2ec}{00026}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00027}\doxymbox{\hyperlink{namespacereplay-protection-tester_ae679babbd3b793a448f0faf286c08c5e}{00027}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00028}\doxymbox{\hyperlink{namespacereplay-protection-tester_aff839ec6d6173ac37cd0472e35f4c4c7}{00028}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00029}\doxymbox{\hyperlink{namespacereplay-protection-tester_a2447925153500ec79ee01dcd3aad0399}{00029}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00032}\doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00032}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00033}00033\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00036}\doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00036}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00037}00037\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00040}\doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{00040}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00041}00041\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00044}\doxymbox{\hyperlink{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783}{00044}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00045}00045\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00048}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c}{00048}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c}{OmnibusRPC}}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00049}00049\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}JSON-\/RPC\ 2.0\ client\ for\ OmniBus\ BlockChainCore\ node."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00051}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a66b159efbe741641376e867cf6e3ed97}{00051}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a66b159efbe741641376e867cf6e3ed97}{\_\_init\_\_}}(self,\ host:\ str,\ port:\ int,\ timeout:\ int\ =\ 10):}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00052}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_af91400f423e7fb875e6b6a2a78b4f532}{00052}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_af91400f423e7fb875e6b6a2a78b4f532}{host}}\ =\ host}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00053}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a8ef206bb9038a0ad4d7dc3078b12aac2}{00053}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a8ef206bb9038a0ad4d7dc3078b12aac2}{port}}\ =\ port}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00054}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_ad4c711ab65739f3ee971c563415ba251}{00054}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_ad4c711ab65739f3ee971c563415ba251}{timeout}}\ =\ timeout}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00055}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a1bbb5fb3d61f9445883cc663652e39cd}{00055}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a1bbb5fb3d61f9445883cc663652e39cd}{\_id}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00057}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}{00057}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}{call}}(self,\ method:\ str,\ params:\ list\ |\ dict\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ JSON-\/RPC\ request\ and\ return\ parsed\ response."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a1bbb5fb3d61f9445883cc663652e39cd}{\_id}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a1bbb5fb3d61f9445883cc663652e39cd}{\_id}},}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_af91400f423e7fb875e6b6a2a78b4f532}{host}},\ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a8ef206bb9038a0ad4d7dc3078b12aac2}{port}},\ timeout=self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_ad4c711ab65739f3ee971c563415ba251}{timeout}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload.encode(\textcolor{stringliteral}{"{}utf-\/8"{}}),\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ body\ =\ resp.read().decode(\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ json.loads(body)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ (ConnectionRefusedError,\ OSError)\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ \{\textcolor{stringliteral}{"{}code"{}}:\ -\/1,\ \textcolor{stringliteral}{"{}message"{}}:\ f\textcolor{stringliteral}{"{}Connection\ failed:\ \{e\}"{}}\}\}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ json.JSONDecodeError:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ \{\textcolor{stringliteral}{"{}code"{}}:\ -\/2,\ \textcolor{stringliteral}{"{}message"{}}:\ f\textcolor{stringliteral}{"{}Invalid\ JSON\ response:\ \{body[:100]\}"{}}\}\}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ \{\textcolor{stringliteral}{"{}code"{}}:\ -\/3,\ \textcolor{stringliteral}{"{}message"{}}:\ str(e)\}\}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00081}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a1fcd724246a5d2e81581217adc2be1a9}{00081}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a1fcd724246a5d2e81581217adc2be1a9}{is\_alive}}(self)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}{call}}(\textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ resp}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00085}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a4c969fa378796591dea9ab68c019d9b0}{00085}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a4c969fa378796591dea9ab68c019d9b0}{get\_block\_count}}(self)\ -\/>\ int\ |\ None:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}{call}}(\textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ resp:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp[\textcolor{stringliteral}{"{}result"{}}]}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00091}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_aef1cbef7f30c89754f918155da77fb1c}{00091}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_aef1cbef7f30c89754f918155da77fb1c}{get\_block\_hash}}(self,\ height:\ int)\ -\/>\ str\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}{call}}(\textcolor{stringliteral}{"{}getblockhash"{}},\ [height])}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ resp:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp[\textcolor{stringliteral}{"{}result"{}}]}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00097}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a0775d2ed05f011bdf85337bd07f1c410}{00097}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a0775d2ed05f011bdf85337bd07f1c410}{get\_mempool\_info}}(self)\ -\/>\ dict\ |\ None:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ resp\ =\ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}{call}}(\textcolor{stringliteral}{"{}getmempoolinfo"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ resp:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp[\textcolor{stringliteral}{"{}result"{}}]}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00103}\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_aaaa361c22e251cf0630a195ce5fb6520}{00103}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_aaaa361c22e251cf0630a195ce5fb6520}{send\_raw\_transaction}}(self,\ tx\_hex:\ str)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c_a87484b261a816facba2a4653739f7596}{call}}(\textcolor{stringliteral}{"{}sendrawtransaction"{}},\ [tx\_hex])}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00107}\doxymbox{\hyperlink{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}{00107}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}{build\_test\_transaction}}(sender:\ str,\ recipient:\ str,\ amount:\ int,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ nonce:\ int,\ genesis\_hash:\ str)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00109}00109\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Build\ a\ test\ transaction\ JSON\ matching\ our\ chain's\ format."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00110}00110\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}version"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sender"{}}:\ sender,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}recipient"{}}:\ recipient,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}amount"{}}:\ amount,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fee"{}}:\ 1000,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nonce"{}}:\ nonce,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}genesis\_hash"{}}:\ genesis\_hash,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ int(time.time()),}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}signature"{}}:\ \textcolor{stringliteral}{"{}"{}},\ \ \textcolor{comment}{\#\ Will\ be\ "{}signed"{}\ with\ test\ key}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00121}00121\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00124}\doxymbox{\hyperlink{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}{00124}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}{fake\_sign\_transaction}}(tx:\ dict,\ private\_key\_hex:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00125}00125\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Create\ a\ fake\ signature\ for\ testing\ (not\ cryptographically\ valid)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00126}00126\ \ \ \ \ tx\_data\ =\ json.dumps(tx,\ sort\_keys=\textcolor{keyword}{True}).encode(\textcolor{stringliteral}{"{}utf-\/8"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00127}00127\ \ \ \ \ key\_bytes\ =\ bytes.fromhex(private\_key\_hex)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00128}00128\ \ \ \ \ sig\ =\ hashlib.sha256(tx\_data\ +\ key\_bytes).hexdigest()}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00129}00129\ \ \ \ \ tx[\textcolor{stringliteral}{"{}signature"{}}]\ =\ sig}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00130}00130\ \ \ \ \ \textcolor{keywordflow}{return}\ json.dumps(tx)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00133}\doxymbox{\hyperlink{namespacereplay-protection-tester_a9a30f32ef5794d937aca272245a7325b}{00133}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereplay-protection-tester_a9a30f32ef5794d937aca272245a7325b}{run\_tests}}(rpc:\ OmnibusRPC)\ -\/>\ list[dict]:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00134}00134\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ all\ replay\ protection\ tests."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00135}00135\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00137}00137\ \ \ \ \ \textcolor{comment}{\#\ Check\ node}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00138}00138\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ rpc.is\_alive():}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Node\ not\ reachable\ at\ \{rpc.host\}:\{rpc.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Start:\ zig-\/out/bin/omnibus-\/node.exe\ -\/-\/mode\ seed\ -\/-\/node-\/id\ test-\/1\ -\/-\/port\ 9000"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00143}00143\ \ \ \ \ block\_count\ =\ rpc.get\_block\_count()}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00144}00144\ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Node\ alive,\ block\ height:\ \{block\_count\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00146}00146\ \ \ \ \ \textcolor{comment}{\#\ Get\ genesis\ hash\ for\ valid\ transactions}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00147}00147\ \ \ \ \ genesis\_hash\ =\ rpc.get\_block\_hash(0)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00148}00148\ \ \ \ \ \textcolor{keywordflow}{if}\ genesis\_hash:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Genesis\ hash:\ \{genesis\_hash[:16]\}..."{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ genesis\_hash\ =\ \textcolor{stringliteral}{"{}0"{}}\ *\ 64}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Could\ not\ get\ genesis\ hash,\ using\ placeholder"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00154}00154\ \ \ \ \ test\_privkey\ =\ \textcolor{stringliteral}{"{}deadbeefcafebabe"{}}\ *\ 4}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00155}00155\ \ \ \ \ test\_sender\ =\ hashlib.sha256(bytes.fromhex(test\_privkey)).hexdigest()[:40]}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00156}00156\ \ \ \ \ test\_recipient\ =\ \textcolor{stringliteral}{"{}0"{}}\ *\ 38\ +\ \textcolor{stringliteral}{"{}01"{}}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00158}00158\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00159}00159\ \ \ \ \ \textcolor{comment}{\#\ Test\ 1:\ Valid\ transaction\ with\ wrong\ genesis\ hash\ (different\ chain)}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00160}00160\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00161}00161\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Test\ 1:\ Transaction\ with\ wrong\ genesis\ hash\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00162}00162\ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Creating\ transaction\ signed\ for\ a\ different\ chain..."{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00164}00164\ \ \ \ \ wrong\_genesis\ =\ \textcolor{stringliteral}{"{}ff"{}}\ *\ 32\ \ \textcolor{comment}{\#\ Fake\ genesis\ hash}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00165}00165\ \ \ \ \ tx1\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}{build\_test\_transaction}}(test\_sender,\ test\_recipient,\ 1000,\ 0,\ wrong\_genesis)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00166}00166\ \ \ \ \ tx1\_hex\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}{fake\_sign\_transaction}}(tx1,\ test\_privkey)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00168}00168\ \ \ \ \ resp1\ =\ rpc.send\_raw\_transaction(tx1\_hex)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00169}00169\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp1:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}REJECTED:\ \{resp1['error'].get('message',\ '')[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}wrong\_genesis\_hash"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}REJECTED"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ str(resp1[\textcolor{stringliteral}{"{}error"{}}])[:200]\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00172}00172\ \ \ \ \ \textcolor{keywordflow}{elif}\ resp1.get(\textcolor{stringliteral}{"{}result"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{or}\ resp1.get(\textcolor{stringliteral}{"{}result"{}})\ ==\ \textcolor{stringliteral}{"{}"{}}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}REJECTED\ (empty\ result)"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}wrong\_genesis\_hash"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}REJECTED"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ \textcolor{stringliteral}{"{}empty\ result"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}ACCEPTED\ with\ wrong\ genesis:\ \{resp1\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}wrong\_genesis\_hash"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}ACCEPTED"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ str(resp1)[:200]\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00179}00179\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00180}00180\ \ \ \ \ \textcolor{comment}{\#\ Test\ 2:\ Double-\/spend\ —\ submit\ same\ transaction\ twice}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00181}00181\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00182}00182\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Test\ 2:\ Double-\/spend\ via\ duplicate\ transaction\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00183}00183\ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Submitting\ the\ same\ transaction\ twice..."{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00184}00184\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00185}00185\ \ \ \ \ tx2\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}{build\_test\_transaction}}(test\_sender,\ test\_recipient,\ 500,\ 1,\ genesis\_hash)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00186}00186\ \ \ \ \ tx2\_hex\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}{fake\_sign\_transaction}}(tx2,\ test\_privkey)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00188}00188\ \ \ \ \ resp2a\ =\ rpc.send\_raw\_transaction(tx2\_hex)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00189}00189\ \ \ \ \ time.sleep(0.5)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00190}00190\ \ \ \ \ resp2b\ =\ rpc.send\_raw\_transaction(tx2\_hex)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00192}00192\ \ \ \ \ first\_ok\ =\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ resp2a\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ resp2a}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00193}00193\ \ \ \ \ second\_rejected\ =\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp2b}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00195}00195\ \ \ \ \ \textcolor{keywordflow}{if}\ second\_rejected:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Second\ submission\ REJECTED:\ \{resp2b['error'].get('message',\ '')[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}double\_spend\_duplicate"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}REJECTED"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00198}00198\ \ \ \ \ \textcolor{keywordflow}{elif}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp2a\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp2b:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Both\ rejected\ (possibly\ invalid\ signature\ —\ expected\ in\ test\ mode)"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}double\_spend\_duplicate"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}BOTH\_REJECTED"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ \textcolor{stringliteral}{"{}Test\ key\ not\ recognized"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00201}00201\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Both\ transactions\ accepted\ —\ possible\ double-\/spend!"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}double\_spend\_duplicate"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}ACCEPTED"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ str(resp2b)[:200]\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00205}00205\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00206}00206\ \ \ \ \ \textcolor{comment}{\#\ Test\ 3:\ Modified\ chain\ identifier\ in\ transaction}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00207}00207\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00208}00208\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Test\ 3:\ Transaction\ with\ modified\ chain\ identifier\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00209}00209\ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Modifying\ chain\ identifier\ mid-\/transaction..."{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00211}00211\ \ \ \ \ tx3\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}{build\_test\_transaction}}(test\_sender,\ test\_recipient,\ 300,\ 2,\ genesis\_hash)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00212}00212\ \ \ \ \ tx3[\textcolor{stringliteral}{"{}chain\_id"{}}]\ =\ 99999\ \ \textcolor{comment}{\#\ Wrong\ chain\ ID}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00213}00213\ \ \ \ \ tx3\_hex\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}{fake\_sign\_transaction}}(tx3,\ test\_privkey)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00215}00215\ \ \ \ \ resp3\ =\ rpc.send\_raw\_transaction(tx3\_hex)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00216}00216\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp3:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}REJECTED:\ \{resp3['error'].get('message',\ '')[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}wrong\_chain\_id"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}REJECTED"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Response:\ \{resp3\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}wrong\_chain\_id"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}INVESTIGATE"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ str(resp3)[:200]\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00223}00223\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00224}00224\ \ \ \ \ \textcolor{comment}{\#\ Test\ 4:\ Transaction\ with\ future\ nonce\ (gap)}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00225}00225\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00226}00226\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Test\ 4:\ Transaction\ with\ future\ nonce\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00227}00227\ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Submitting\ transaction\ with\ nonce\ far\ in\ the\ future..."{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00229}00229\ \ \ \ \ tx4\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}{build\_test\_transaction}}(test\_sender,\ test\_recipient,\ 100,\ 999999,\ genesis\_hash)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00230}00230\ \ \ \ \ tx4\_hex\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}{fake\_sign\_transaction}}(tx4,\ test\_privkey)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00232}00232\ \ \ \ \ resp4\ =\ rpc.send\_raw\_transaction(tx4\_hex)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00233}00233\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp4:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}REJECTED:\ \{resp4['error'].get('message',\ '')[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}future\_nonce"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}REJECTED"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00236}00236\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}Future\ nonce\ accepted\ —\ may\ queue\ in\ mempool\ (check\ eviction\ policy)"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}future\_nonce"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}QUEUED"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ str(resp4)[:200]\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00240}00240\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00241}00241\ \ \ \ \ \textcolor{comment}{\#\ Test\ 5:\ Transaction\ with\ negative\ amount}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00242}00242\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00243}00243\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Test\ 5:\ Transaction\ with\ negative\ amount\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00244}00244\ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Submitting\ transaction\ with\ amount\ =\ -\/1..."{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00245}00245\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00246}00246\ \ \ \ \ tx5\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_a42a92ec72ace7baa6c84005d4e6720cc}{build\_test\_transaction}}(test\_sender,\ test\_recipient,\ -\/1,\ 3,\ genesis\_hash)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00247}00247\ \ \ \ \ tx5\_hex\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_ad6b1defe90f7ae556f7868a4ec41abd6}{fake\_sign\_transaction}}(tx5,\ test\_privkey)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00249}00249\ \ \ \ \ resp5\ =\ rpc.send\_raw\_transaction(tx5\_hex)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00250}00250\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp5:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}REJECTED:\ \{resp5['error'].get('message',\ '')[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}negative\_amount"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}REJECTED"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00253}00253\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Negative\ amount\ accepted!"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}negative\_amount"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}ACCEPTED"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ str(resp5)[:200]\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00257}00257\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00258}00258\ \ \ \ \ \textcolor{comment}{\#\ Test\ 6:\ Empty\ transaction}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00259}00259\ \ \ \ \ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00260}00260\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Test\ 6:\ Empty/malformed\ transaction\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00261}00261\ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Submitting\ empty\ string\ as\ transaction..."{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00262}00262\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00263}00263\ \ \ \ \ resp6\ =\ rpc.send\_raw\_transaction(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00264}00264\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp6:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}REJECTED:\ \{resp6['error'].get('message',\ '')[:80]\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}empty\_tx"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}REJECTED"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00267}00267\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Empty\ transaction\ accepted!"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ results.append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}empty\_tx"{}},\ \textcolor{stringliteral}{"{}result"{}}:\ \textcolor{stringliteral}{"{}ACCEPTED"{}}\})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00271}00271\ \ \ \ \ \textcolor{comment}{\#\ Verify\ node\ is\ still\ alive}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00272}00272\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00273}00273\ \ \ \ \ \textcolor{keywordflow}{if}\ rpc.is\_alive():}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Node\ survived\ all\ tests"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00275}00275\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Node\ appears\ to\ have\ crashed\ during\ testing!"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00278}00278\ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00280}00280\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00281}\doxymbox{\hyperlink{namespacereplay-protection-tester_a7431cb90017e54fe695b23d4190db046}{00281}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacereplay-protection-tester_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00282}00282\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ Replay\ Protection\ Tester"{}},}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00284}00284\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00285}00285\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}RPC\ host\ (default:\ 127.0.0.1)"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00286}00286\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=8332,\ help=\textcolor{stringliteral}{"{}RPC\ port\ (default:\ 8332)"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00287}00287\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/timeout"{}},\ type=int,\ default=10,\ help=\textcolor{stringliteral}{"{}Request\ timeout\ in\ seconds"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00288}00288\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ \textcolor{stringliteral}{"{}-\/o"{}},\ default=\textcolor{keywordtype}{None},\ help=\textcolor{stringliteral}{"{}Save\ results\ to\ JSON"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00289}00289\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00290}00290\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00291}00291\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00292}00292\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ OmniBus\ Replay\ Protection\ Tester\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00293}00293\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00294}00294\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Target:\ \{args.host\}:\{args.port\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00295}00295\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00296}00296\ \ \ \ \ rpc\ =\ \doxymbox{\hyperlink{classreplay-protection-tester_1_1_omnibus_r_p_c}{OmnibusRPC}}(args.host,\ args.port,\ args.timeout)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00297}00297\ \ \ \ \ results\ =\ \doxymbox{\hyperlink{namespacereplay-protection-tester_a9a30f32ef5794d937aca272245a7325b}{run\_tests}}(rpc)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00298}00298\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00299}00299\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ results:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00301}00301\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00302}00302\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00303}00303\ \ \ \ \ rejected\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}result"{}}]\ ==\ \textcolor{stringliteral}{"{}REJECTED"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00304}00304\ \ \ \ \ accepted\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}result"{}}]\ ==\ \textcolor{stringliteral}{"{}ACCEPTED"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00305}00305\ \ \ \ \ other\ =\ len(results)\ -\/\ rejected\ -\/\ accepted}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00306}00306\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00307}00307\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00308}00308\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Rejected\ (protected):\{RESET\}\ \ \{rejected\}/\{len(results)\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00309}00309\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}Accepted\ (vulnerable):\{RESET\}\ \{accepted\}/\{len(results)\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00310}00310\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Other/investigate:\{RESET\}\ \ \ \ \ \{other\}/\{len(results)\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00311}00311\ \ \ \ \ \textcolor{keywordflow}{if}\ accepted\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}\{BOLD\}Replay\ protection\ mechanisms\ appear\ solid.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00313}00313\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}\{BOLD\}WARNING:\ Some\ replay\ attacks\ succeeded!\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00315}00315\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00316}00316\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00317}00317\ \ \ \ \ \textcolor{keywordflow}{if}\ args.output:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.now(tz=timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target"{}}:\ f\textcolor{stringliteral}{"{}\{args.host\}:\{args.port\}"{}},}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00321}00321\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}summary"{}}:\ \{\textcolor{stringliteral}{"{}rejected"{}}:\ rejected,\ \textcolor{stringliteral}{"{}accepted"{}}:\ accepted,\ \textcolor{stringliteral}{"{}other"{}}:\ other\},}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00325}00325\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacereplay-protection-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Report\ saved\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00328}00328\ \ \ \ \ \textcolor{keywordflow}{return}\ 1\ \textcolor{keywordflow}{if}\ accepted\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00329}00329\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00331}00331\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{replay-protection-tester_8py_source_l00332}00332\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacereplay-protection-tester_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

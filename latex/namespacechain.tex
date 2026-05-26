@@ -1,0 +1,27 @@
+\doxysection{chain Namespace Reference}
+\hypertarget{namespacechain}{}\label{namespacechain}\index{chain@{chain}}
+
+
+-\/growth-\/tracker  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/growth-\/tracker 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Chain Growth Tracker
+==============================================
+Monitors the omnibus-chain.dat file size over time and logs growth
+data to MONITORING/data/chain-growth.csv.  Calculates the growth rate
+in bytes/hour and raises alerts when growth stops (node not mining)
+or grows abnormally fast (possible spam / attack).
+
+Uses only Python stdlib.
+
+Usage:
+    python chain-growth-tracker.py
+    python chain-growth-tracker.py --chain-file ../../omnibus-chain.dat --interval 60
+    python chain-growth-tracker.py --max-rate 50000000 --stale-minutes 30
+\end{DoxyVerb}
+ 

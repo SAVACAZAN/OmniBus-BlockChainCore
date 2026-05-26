@@ -1,0 +1,966 @@
+\chapter{Catalog Complet Module -\/ Omni\+Bus Block\+Chain Core }
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g}{}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g}\index{Catalog Complet Module -\/ OmniBus BlockChain Core@{Catalog Complet Module -\/ OmniBus BlockChain Core}}
+\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10907}%
+\Hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10907}%
+
+
+{\bfseries{Data:\+}} 2026-\/03-\/31 {\bfseries{Total Module:\+}} 69 {\bfseries{Status:\+}} ✅ Toate implementate {\bfseries{Total funcții publice:\+}} 873 {\bfseries{Total structuri:\+}} 217
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10909}{}\doxysection{\texorpdfstring{Legenda Status}{Legenda Status}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10909}
+
+\begin{DoxyItemize}
+\item ✅ = Implementat complet, testat
+\item ⚠️ = Implementat parțial /\+ stub
+\item 🔄 = În dezvoltare
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10911}{}\doxysection{\texorpdfstring{INDEX RAPID}{INDEX RAPID}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10911}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10912}{}\doxysubsection{\texorpdfstring{După Categorie:\+}{După Categorie:\+}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10912}
+
+\begin{DoxyEnumerate}
+\item Blockchain \& ConsensBlockchain \& Consens
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Sharding \& ScalabilitateSharding \& Scalabilitate
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item CriptografieCriptografie
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Networking \& P2PNetworking \& P2P
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Storage \& PersistențăStorage \& Persistență
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Tranzacții \& MempoolTranzacții \& Mempool
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Ecosistem \& FeaturesEcosistem \& Features
+\end{DoxyEnumerate}\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10913}{}\doxysubsection{\texorpdfstring{După Importanță:\+}{După Importanță:\+}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10913}
+
+\begin{DoxyItemize}
+\item 🔴 {\bfseries{Critical:\+}} blockchain, transaction, consensus, pq\+\_\+crypto, wallet
+\item 🟡 {\bfseries{High:\+}} mempool, \doxylink{namespacep2p}{p2p}, storage, staking, finality
+\item 🟢 {\bfseries{Medium:\+}} oracle, bridge, ubi, etc.
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10915}{}\doxysection{\texorpdfstring{1. Blockchain \& Consens (13 module)}{1. Blockchain \& Consens (13 module)}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10915}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10916}{}\doxysubsection{\texorpdfstring{🔴 blockchain.\+zig}{🔴 blockchain.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10916}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}400 ~\newline
+ {\bfseries{Dependințe:\+}} block, transaction, mempool, crypto
+
+{\bfseries{Funcții principale:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Blockchain\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ init(allocator:\ Allocator)\ !Blockchain}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ mineBlock(self:\ *Blockchain)\ !Block}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ addBlock(self:\ *Blockchain,\ block:\ Block)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ validateChain(self:\ *Blockchain)\ bool}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ retargetDifficulty(self:\ *Blockchain)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getBlockCount(self:\ *Blockchain)\ u32}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getLatestBlock(self:\ *Blockchain)\ Block}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getBalance(self:\ *Blockchain,\ address:\ []const\ u8)\ u64}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 72 teste (genesis, mining, validation, difficulty)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10918}{}\doxysubsection{\texorpdfstring{🔴 block.\+zig}{🔴 block.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10918}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}150 ~\newline
+ {\bfseries{Dependințe:\+}} transaction, crypto
+
+{\bfseries{Structuri:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Block\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ index:\ u32,}
+\DoxyCodeLine{\ \ \ \ timestamp:\ i64,}
+\DoxyCodeLine{\ \ \ \ transactions:\ ArrayList(Transaction),}
+\DoxyCodeLine{\ \ \ \ previous\_hash:\ [32]u8,}
+\DoxyCodeLine{\ \ \ \ nonce:\ u64,}
+\DoxyCodeLine{\ \ \ \ hash:\ [32]u8,}
+\DoxyCodeLine{\ \ \ \ merkle\_root:\ [32]u8,}
+\DoxyCodeLine{\ \ \ \ difficulty:\ u8,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ calculateHash(self:\ *Block)\ [32]u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ isValid(self:\ *Block)\ bool}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ addTransaction(self:\ *Block,\ tx:\ Transaction)\ !void}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10920}{}\doxysubsection{\texorpdfstring{🟡 blockchain\+\_\+v2.\+zig}{🟡 blockchain\+\_\+v2.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10920}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}450 ~\newline
+ {\bfseries{Dependințe:\+}} sub\+\_\+block, shard\+\_\+config, binary\+\_\+codec
+
+{\bfseries{Feature:\+}} Sharded blockchain v2 cu:\+
+\begin{DoxyItemize}
+\item Sub-\/block aggregation
+\item Shard headers
+\item Binary encoding eficient
+\item Pruning support
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10922}{}\doxysubsection{\texorpdfstring{🟡 sub\+\_\+block.\+zig}{🟡 sub\+\_\+block.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10922}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Dependințe:\+}} transaction
+
+{\bfseries{Concept:\+}} Sub-\/blocuri de 0.\+1s 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ SubBlock\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ sub\_id:\ u8,\ \ \ \ \ \ \ \ \ \ \ //\ 0-\/9}
+\DoxyCodeLine{\ \ \ \ block\_number:\ u32,}
+\DoxyCodeLine{\ \ \ \ timestamp\_ms:\ i64,}
+\DoxyCodeLine{\ \ \ \ merkle\_root:\ [32]u8,}
+\DoxyCodeLine{\ \ \ \ shard\_id:\ u8,\ \ \ \ \ \ \ \ \ //\ 0-\/6}
+\DoxyCodeLine{\ \ \ \ miner\_id:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ nonce:\ u64,}
+\DoxyCodeLine{\ \ \ \ hash:\ [32]u8,}
+\DoxyCodeLine{\ \ \ \ tx\_count:\ u32,}
+\DoxyCodeLine{\ \ \ \ transactions:\ ArrayList(Transaction),}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ const\ KeyBlock\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ //\ Agregă\ 10\ SubBlocks}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Constante:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{SUB\_BLOCKS\_PER\_BLOCK:\ u8\ =\ 10}
+\DoxyCodeLine{SUB\_BLOCK\_INTERVAL\_MS:\ u64\ =\ 100}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10924}{}\doxysubsection{\texorpdfstring{🟡 consensus.\+zig}{🟡 consensus.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10924}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}250 ~\newline
+ {\bfseries{Dependințe:\+}} staking
+
+{\bfseries{Implementare:\+}} PoS (Proof of Stake) 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ ConsensusEngine\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ validators:\ HashMap(Validator),}
+\DoxyCodeLine{\ \ \ \ min\_stake:\ u64,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ registerValidator(self:\ *ConsensusEngine,\ id:\ []const\ u8,\ stake:\ u64)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ selectProposer(self:\ *ConsensusEngine,\ block\_height:\ u64)\ []const\ u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ vote(self:\ *ConsensusEngine,\ validator:\ []const\ u8,\ block\_hash:\ []const\ u8,\ approve:\ bool)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getQuorum(self:\ *ConsensusEngine)\ usize}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ tallyVotes(self:\ *ConsensusEngine,\ block\_hash:\ []const\ u8)\ VoteResult}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10926}{}\doxysubsection{\texorpdfstring{🟡 finality.\+zig}{🟡 finality.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10926}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}300 ~\newline
+ {\bfseries{Implementare:\+}} Casper FFG (Friendly Finality Gadget)
+
+{\bfseries{Concept:\+}}
+\begin{DoxyItemize}
+\item Checkpoints la fiecare N blocuri
+\item Justification:\+ 2/\+3 votes
+\item Finalization:\+ 2/\+3 consecutive justified
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ FinalityGadget\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ justify(self:\ *FinalityGadget,\ block\_hash:\ []const\ u8,\ validator:\ []const\ u8)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getStatus(self:\ *FinalityGadget,\ block\_hash:\ []const\ u8)\ FinalityStatus}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10928}{}\doxysubsection{\texorpdfstring{🟡 staking.\+zig}{🟡 staking.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10928}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}280 ~\newline
+ {\bfseries{Funcții:\+}}
+\begin{DoxyItemize}
+\item Stake deposit/\+withdraw
+\item Rewards distribution
+\item Slashing pentru equivocation
+\item Validator set management
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ StakingPool\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ stake(self:\ *StakingPool,\ validator:\ []const\ u8,\ amount:\ u64)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ unstake(self:\ *StakingPool,\ validator:\ []const\ u8,\ amount:\ u64)\ !u64}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ distributeRewards(self:\ *StakingPool,\ total\_reward:\ u64)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ slash(self:\ *StakingPool,\ validator:\ []const\ u8,\ percentage:\ u8)\ !void}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 11 teste
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10930}{}\doxysubsection{\texorpdfstring{🟡 governance.\+zig}{🟡 governance.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10930}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}220 ~\newline
+ {\bfseries{Feature:\+}} On-\/chain governance
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Proposal\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ id:\ u64,}
+\DoxyCodeLine{\ \ \ \ title:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ description:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ proposer:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ yes\_votes:\ u64,}
+\DoxyCodeLine{\ \ \ \ no\_votes:\ u64,}
+\DoxyCodeLine{\ \ \ \ status:\ ProposalStatus,\ \ //\ Active\ |\ Passed\ |\ Rejected\ |\ Executed}
+\DoxyCodeLine{\ \ \ \ voting\_end\_block:\ u64,}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ fn\ createProposal(title,\ description,\ proposer,\ voting\_period)\ !Proposal}
+\DoxyCodeLine{pub\ fn\ vote(proposal\_id,\ voter,\ vote,\ voting\_power)\ !void}
+\DoxyCodeLine{pub\ fn\ finalize(proposal\_id)\ !bool\ \ //\ Execută\ dacă\ passed}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10932}{}\doxysubsection{\texorpdfstring{🟢 genesis.\+zig}{🟢 genesis.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10932}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}180 ~\newline
+ {\bfseries{Funcție:\+}} Genesis block initialization
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ GenesisConfig\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ timestamp:\ i64,}
+\DoxyCodeLine{\ \ \ \ difficulty:\ u8,}
+\DoxyCodeLine{\ \ \ \ initial\_validators:\ []Validator,}
+\DoxyCodeLine{\ \ \ \ allocations:\ []GenesisAllocation,\ \ //\ 21M\ OMNI\ distribution}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ fn\ createGenesisBlock(config:\ GenesisConfig)\ Block}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 78 teste
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10934}{}\doxysubsection{\texorpdfstring{🟢 miner\+\_\+genesis.\+zig}{🟢 miner\+\_\+genesis.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10934}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}250 ~\newline
+ {\bfseries{Funcție:\+}} Genesis mining cu 10 miner bootstrap
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10936}{}\doxysubsection{\texorpdfstring{🟢 e2e\+\_\+mining.\+zig}{🟢 e2e\+\_\+mining.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10936}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}150 ~\newline
+ {\bfseries{Funcție:\+}} End-\/to-\/end mining tests
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10938}{}\doxysubsection{\texorpdfstring{🟡 metachain.\+zig}{🟡 metachain.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10938}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}320 ~\newline
+ {\bfseries{Concept:\+}} EGLD-\/style metachain
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ MetaBlock\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ shard\_headers:\ [7]ShardHeader,\ \ //\ Notarizare\ de\ la\ toate\ shards}
+\DoxyCodeLine{\ \ \ \ notarized\_at:\ i64,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ beginMetaBlock(self:\ *MetaBlock)}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ addShardHeader(self:\ *MetaBlock,\ header:\ ShardHeader)}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ finalize(self:\ *MetaBlock)\ [32]u8\ \ //\ Meta\ hash}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10940}{}\doxysubsection{\texorpdfstring{🟢 spark\+\_\+invariants.\+zig}{🟢 spark\+\_\+invariants.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10940}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}180 ~\newline
+ {\bfseries{Concept:\+}} Ada/\+\+SPARK-\/style verification la compile-\/time
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Invarianți\ comptime\ verificați}
+\DoxyCodeLine{comptime\ \{}
+\DoxyCodeLine{\ \ \ \ assert(MAX\_BLOCK\_SIZE\ >=\ MIN\_BLOCK\_SIZE);}
+\DoxyCodeLine{\ \ \ \ assert(SUB\_BLOCKS\_PER\_BLOCK\ >\ 0);}
+\DoxyCodeLine{\ \ \ \ assert(SHARD\_COUNT\ >\ 0\ and\ SHARD\_COUNT\ <=\ 128);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10942}{}\doxysection{\texorpdfstring{2. Sharding \& Scalabilitate (6 module)}{2. Sharding \& Scalabilitate (6 module)}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10942}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10943}{}\doxysubsection{\texorpdfstring{🟡 shard\+\_\+config.\+zig}{🟡 shard\+\_\+config.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10943}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Configurare:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ ShardConfig\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ shard\_count:\ u8\ =\ 7,}
+\DoxyCodeLine{\ \ \ \ validators\_per\_shard:\ u16\ =\ 100,}
+\DoxyCodeLine{\ \ \ \ block\_time\_ms:\ u64\ =\ 1000,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getShardForAddress(self:\ ShardConfig,\ address:\ []const\ u8)\ u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getShardForValidator(self:\ ShardConfig,\ validator:\ []const\ u8)\ u8}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10945}{}\doxysubsection{\texorpdfstring{🟡 shard\+\_\+coordinator.\+zig}{🟡 shard\+\_\+coordinator.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10945}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}280 ~\newline
+ {\bfseries{Funcție:\+}} Cross-\/shard transaction routing
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ CrossShardRoute\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ source\_shard:\ u8,}
+\DoxyCodeLine{\ \ \ \ target\_shard:\ u8,}
+\DoxyCodeLine{\ \ \ \ is\_cross\_shard:\ bool,}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ fn\ routeTransaction(tx:\ Transaction)\ CrossShardRoute}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10947}{}\doxysubsection{\texorpdfstring{🟢 compact\+\_\+blocks.\+zig}{🟢 compact\+\_\+blocks.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10947}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}180 ~\newline
+ {\bfseries{Compresie:\+}} Block headers compacte
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10949}{}\doxysubsection{\texorpdfstring{🟢 compact\+\_\+transaction.\+zig}{🟢 compact\+\_\+transaction.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10949}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}220 ~\newline
+ {\bfseries{Optimizare:\+}} 161 bytes/\+\+TX (vs 432B standard)
+\begin{DoxyItemize}
+\item 63\% reducere mărime
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10951}{}\doxysubsection{\texorpdfstring{🟢 witness\+\_\+data.\+zig}{🟢 witness\+\_\+data.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10951}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}420 ~\newline
+ {\bfseries{Concept:\+}} Seg\+Wit-\/style witness separation
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10953}{}\doxysection{\texorpdfstring{3. Criptografie (12 module)}{3. Criptografie (12 module)}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10953}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10954}{}\doxysubsection{\texorpdfstring{🔴 secp256k1.\+zig}{🔴 secp256k1.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10954}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}150 ~\newline
+ {\bfseries{Status:\+}} ✅ Implementare reală, zero dependențe externe
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateKeyPair()\ KeyPair}
+\DoxyCodeLine{pub\ fn\ privateKeyToPublicKey(privkey:\ [32]u8)\ [33]u8}
+\DoxyCodeLine{pub\ fn\ hash160(data:\ []const\ u8)\ [20]u8}
+\DoxyCodeLine{pub\ fn\ sign(privkey:\ [32]u8,\ message\_hash:\ [32]u8)\ Signature}
+\DoxyCodeLine{pub\ fn\ verify(pubkey:\ [33]u8,\ message\_hash:\ [32]u8,\ sig:\ Signature)\ bool}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 8 teste (all pass)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10956}{}\doxysubsection{\texorpdfstring{🔴 schnorr.\+zig}{🔴 schnorr.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10956}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}180 ~\newline
+ {\bfseries{Standard:\+}} BIP-\/340
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ SchnorrSignature\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ r:\ [32]u8,\ \ //\ x-\/only\ pubkey}
+\DoxyCodeLine{\ \ \ \ s:\ [32]u8,\ \ //\ scalar}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ fn\ schnorrSign(privkey:\ [32]u8,\ message:\ []const\ u8)\ SchnorrSignature}
+\DoxyCodeLine{pub\ fn\ schnorrVerify(pubkey:\ SchnorrPubKey,\ message:\ []const\ u8,\ sig:\ SchnorrSignature)\ bool}
+\DoxyCodeLine{pub\ fn\ taggedHash(tag:\ []const\ u8,\ msg:\ []const\ u8)\ [32]u8}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 16 teste
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10958}{}\doxysubsection{\texorpdfstring{🔴 bls\+\_\+signatures.\+zig}{🔴 bls\+\_\+signatures.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10958}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Curba:\+}} BLS12-\/381 (simulată cu hash)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ BlsSignature\ =\ struct\ \{\ bytes:\ [96]u8\ \}}
+\DoxyCodeLine{pub\ const\ BlsPublicKey\ =\ struct\ \{\ bytes:\ [48]u8\ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ fn\ blsSign(secret:\ BlsSecretKey,\ message:\ []const\ u8)\ BlsSignature}
+\DoxyCodeLine{pub\ fn\ blsVerify(pubkey:\ BlsPublicKey,\ message:\ []const\ u8,\ sig:\ BlsSignature)\ bool}
+\DoxyCodeLine{pub\ fn\ aggregateSignatures(sigs:\ []BlsSignature)\ BlsSignature}
+\DoxyCodeLine{pub\ fn\ thresholdSign(signers:\ []BlsSecretKey,\ threshold:\ usize,\ message:\ []const\ u8)\ !BlsSignature}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 16 teste
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10960}{}\doxysubsection{\texorpdfstring{🔴 pq\+\_\+crypto.\+zig}{🔴 pq\+\_\+crypto.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10960}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}350 ~\newline
+ {\bfseries{Dependințe:\+}} liboqs (FFI)
+
+{\bfseries{Algoritmi:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ PQCrypto\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ const\ MlDsa87\ =\ struct\ \{\ \ //\ FIPS\ 204}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ pub\ const\ PUBLIC\_KEY\_SIZE:\ usize\ =\ 2592;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ pub\ const\ SECRET\_KEY\_SIZE:\ usize\ =\ 4896;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ pub\ const\ SIGNATURE\_MAX:\ usize\ =\ 4627;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ pub\ fn\ generateKeyPair()\ !MlDsa87}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ pub\ fn\ sign(self:\ *MlDsa87,\ msg:\ []const\ u8,\ sig\_buf:\ []u8)\ !usize}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ pub\ fn\ verify(pk:\ [2592]u8,\ msg:\ []const\ u8,\ sig:\ []const\ u8)\ bool}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ const\ Falcon512\ =\ struct\ \{\ ...\ \};\ \ //\ FIPS\ 206}
+\DoxyCodeLine{\ \ \ \ pub\ const\ SPHINCSPlus\ =\ struct\ \{\ ...\ \};\ \ //\ FIPS\ 205}
+\DoxyCodeLine{\ \ \ \ pub\ const\ MlKem768\ =\ struct\ \{\ ...\ \};\ \ //\ FIPS\ 203}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 13 teste
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10962}{}\doxysubsection{\texorpdfstring{🟡 crypto.\+zig}{🟡 crypto.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10962}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Funcții:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Crypto\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ sha256(data:\ []const\ u8)\ [32]u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ sha256d(data:\ []const\ u8)\ [32]u8\ \ //\ Double\ SHA256}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ hmacSha256(key:\ []const\ u8,\ data:\ []const\ u8)\ [32]u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ hmacSha512(key:\ []const\ u8,\ data:\ []const\ u8)\ [64]u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ aes256gcmEncrypt(key:\ [32]u8,\ nonce:\ [12]u8,\ plaintext:\ []const\ u8)\ []u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ aes256gcmDecrypt(key:\ [32]u8,\ nonce:\ [12]u8,\ ciphertext:\ []const\ u8)\ []u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ isStrongPassword(password:\ []const\ u8)\ bool}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10964}{}\doxysubsection{\texorpdfstring{🟢 ripemd160.\+zig}{🟢 ripemd160.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10964}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Status:\+}} Pur Zig, 80 runde, testat cu vectori Bitcoin
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10966}{}\doxysubsection{\texorpdfstring{🔴 bip32\+\_\+wallet.\+zig}{🔴 bip32\+\_\+wallet.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10966}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}350 ~\newline
+ {\bfseries{Standard:\+}} BIP-\/32/\+39/\+44
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ BIP32Wallet\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ master\_key:\ [32]u8,}
+\DoxyCodeLine{\ \ \ \ chain\_code:\ [32]u8,}
+\DoxyCodeLine{\ \ \ \ mnemonic:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ initFromMnemonic(mnemonic:\ []const\ u8,\ allocator:\ Allocator)\ !BIP32Wallet}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ deriveChildKey(self:\ *BIP32Wallet,\ index:\ u32)\ ![32]u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ derivePath(self:\ *BIP32Wallet,\ path:\ []const\ u8)\ ![32]u8}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ const\ PQDomainDerivation\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ deriveAllAddresses(self:\ *PQDomainDerivation,\ allocator:\ Allocator)\ ![][]const\ u8}
+\DoxyCodeLine{\ \ \ \ //\ Generează\ 5\ adrese:\ ob\_omni\_,\ ob\_k1\_,\ ob\_f5\_,\ ob\_d5\_,\ ob\_s3\_}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10968}{}\doxysubsection{\texorpdfstring{🔴 wallet.\+zig}{🔴 wallet.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10968}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}400 ~\newline
+ {\bfseries{Funcții:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Wallet\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ addresses:\ [5]Address,}
+\DoxyCodeLine{\ \ \ \ mnemonic:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ fromMnemonic(mnemonic:\ []const\ u8)\ !Wallet}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ createTransaction(self:\ *Wallet,\ to:\ []const\ u8,\ amount:\ u64)\ !Transaction}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ signTransaction(self:\ *Wallet,\ tx:\ *Transaction)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getBalance(self:\ *Wallet)\ u64}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10970}{}\doxysubsection{\texorpdfstring{🟡 key\+\_\+encryption.\+zig}{🟡 key\+\_\+encryption.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10970}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}250 ~\newline
+ {\bfseries{Funcție:\+}} Criptare chei private cu password
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10972}{}\doxysubsection{\texorpdfstring{🟢 multisig.\+zig}{🟢 multisig.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10972}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}220 ~\newline
+ {\bfseries{Scheme:\+}} M-\/of-\/N multisig
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10974}{}\doxysubsection{\texorpdfstring{🟢 hex\+\_\+utils.\+zig}{🟢 hex\+\_\+utils.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10974}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}100 ~\newline
+ {\bfseries{Funcții:\+}} Hex encode/\+decode
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10976}{}\doxysubsection{\texorpdfstring{🟢 domain\+\_\+minter.\+zig}{🟢 domain\+\_\+minter.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10976}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}180 ~\newline
+ {\bfseries{Funcție:\+}} Mintare domenii PQ
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10978}{}\doxysection{\texorpdfstring{4. Networking \& P2P (10 module)}{4. Networking \& P2P (10 module)}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10978}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10979}{}\doxysubsection{\texorpdfstring{🔴 p2p.\+zig}{🔴 p2p.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10979}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}400 ~\newline
+ {\bfseries{Protocol:\+}} TCP custom
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ P2PNode\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ peers:\ ArrayList(Peer),}
+\DoxyCodeLine{\ \ \ \ listener:\ std.net.Server,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ startListener(self:\ *P2PNode,\ port:\ u16)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ connectToPeer(self:\ *P2PNode,\ address:\ []const\ u8,\ port:\ u16)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ broadcastBlock(self:\ *P2PNode,\ block:\ Block)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ broadcastTransaction(self:\ *P2PNode,\ tx:\ Transaction)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ requestBlocks(self:\ *P2PNode,\ from\_peer:\ Peer,\ start\_height:\ u64,\ count:\ u64)\ !void}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10981}{}\doxysubsection{\texorpdfstring{🟡 network.\+zig}{🟡 network.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10981}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}350 ~\newline
+ {\bfseries{Management:\+}} Peer connections, message routing
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10983}{}\doxysubsection{\texorpdfstring{🟡 sync.\+zig}{🟡 sync.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10983}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}300 ~\newline
+ {\bfseries{Funcție:\+}} Block synchronization
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ downloadBlocks(from\_peer:\ Peer,\ start\_height:\ u64,\ count:\ u64)\ ![]Block}
+\DoxyCodeLine{pub\ fn\ applyBlocksFromPeer(self:\ *Blockchain,\ blocks:\ []Block)\ !void}
+\DoxyCodeLine{pub\ fn\ detectStall(self:\ *SyncManager)\ bool}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10985}{}\doxysubsection{\texorpdfstring{🟡 bootstrap.\+zig}{🟡 bootstrap.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10985}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}300 ~\newline
+ {\bfseries{Funcție:\+}} Peer discovery, PEX (Peer Exchange)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ BootstrapNode\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ known\_peers:\ HashMap(PeerInfo),}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ registerPeer(self:\ *BootstrapNode,\ peer:\ PeerInfo)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getPeers(self:\ *BootstrapNode,\ count:\ usize)\ []PeerInfo}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ cleanupStalePeers(self:\ *BootstrapNode,\ timeout\_sec:\ u64)\ void}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10987}{}\doxysubsection{\texorpdfstring{🔴 rpc\+\_\+server.\+zig}{🔴 rpc\+\_\+server.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10987}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}450 ~\newline
+ {\bfseries{Protocol:\+}} JSON-\/\+RPC 2.\+0
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ RPCServer\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ port:\ u16\ =\ 8332,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ start(self:\ *RPCServer)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ stop(self:\ *RPCServer)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ handleRequest(self:\ *RPCServer,\ request:\ JSONRPCRequest)\ JSONRPCResponse}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ //\ Metode\ implementate:}
+\DoxyCodeLine{\ \ \ \ //\ getblockcount,\ getblock,\ getlatestblock,\ getbalance}
+\DoxyCodeLine{\ \ \ \ //\ sendtransaction,\ getmempoolsize,\ getstatus,\ gettransactions}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10989}{}\doxysubsection{\texorpdfstring{🟡 ws\+\_\+server.\+zig}{🟡 ws\+\_\+server.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10989}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}280 ~\newline
+ {\bfseries{Protocol:\+}} Web\+Socket pentru push real-\/time
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ WebSocketServer\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ port:\ u16\ =\ 8334,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ broadcastNewBlock(self:\ *WebSocketServer,\ block:\ Block)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ broadcastNewTransaction(self:\ *WebSocketServer,\ tx:\ Transaction)\ void}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10991}{}\doxysubsection{\texorpdfstring{🟢 kademlia\+\_\+dht.\+zig}{🟢 kademlia\+\_\+dht.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10991}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}250 ~\newline
+ {\bfseries{Funcție:\+}} Distributed Hash Table pentru peer discovery
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10993}{}\doxysubsection{\texorpdfstring{🟡 node\+\_\+launcher.\+zig}{🟡 node\+\_\+launcher.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10993}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}280 ~\newline
+ {\bfseries{Moduri:\+}}
+\begin{DoxyItemize}
+\item Seed mode (full node)
+\item Miner mode
+\item Light client mode
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10995}{}\doxysubsection{\texorpdfstring{🟡 light\+\_\+client.\+zig}{🟡 light\+\_\+client.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10995}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}480 ~\newline
+ {\bfseries{Features:\+}}
+\begin{DoxyItemize}
+\item SPV (Simplified Payment Verification)
+\item Block headers only (200B vs 1MB)
+\item Bloom filter
+\item Fast sync
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10997}{}\doxysubsection{\texorpdfstring{🟢 light\+\_\+miner.\+zig}{🟢 light\+\_\+miner.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10997}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}350 ~\newline
+ {\bfseries{Funcție:\+}} Light miner cu hashrate limitat
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10999}{}\doxysection{\texorpdfstring{5. Storage \& Persistență (8 module)}{5. Storage \& Persistență (8 module)}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md10999}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11000}{}\doxysubsection{\texorpdfstring{🟡 storage.\+zig}{🟡 storage.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11000}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}350 ~\newline
+ {\bfseries{Tip:\+}} In-\/memory KV store
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Storage\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ block\_store:\ HashMap(Block),}
+\DoxyCodeLine{\ \ \ \ tx\_index:\ HashMap(Transaction),}
+\DoxyCodeLine{\ \ \ \ addr\_index:\ HashMap([]TxRef),}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ putBlock(self:\ *Storage,\ block:\ Block)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getBlock(self:\ *Storage,\ hash:\ [32]u8)\ ?Block}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ putTransaction(self:\ *Storage,\ tx:\ Transaction)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getTransactionsForAddress(self:\ *Storage,\ address:\ []const\ u8)\ []TxRef}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11002}{}\doxysubsection{\texorpdfstring{🟡 database.\+zig}{🟡 database.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11002}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}300 ~\newline
+ {\bfseries{Format:\+}} Binary custom {\ttfamily omnibus-\/chain.\+dat}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Database\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ appendBlock(self:\ *Database,\ block:\ Block)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ readBlock(self:\ *Database,\ offset:\ u64)\ !Block}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getBlockCount(self:\ *Database)\ u64}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ compact(self:\ *Database)\ !void\ \ //\ Remove\ orphans}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11004}{}\doxysubsection{\texorpdfstring{🟡 state\+\_\+trie.\+zig}{🟡 state\+\_\+trie.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11004}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}280 ~\newline
+ {\bfseries{Structură:\+}} Merkle Patricia Trie
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ StateTrie\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ root:\ ?Node,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ put(self:\ *StateTrie,\ key:\ []const\ u8,\ value:\ []const\ u8)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ get(self:\ *StateTrie,\ key:\ []const\ u8)\ ?[]const\ u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ delete(self:\ *StateTrie,\ key:\ []const\ u8)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getRootHash(self:\ *StateTrie)\ [32]u8}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11006}{}\doxysubsection{\texorpdfstring{🟢 archive\+\_\+manager.\+zig}{🟢 archive\+\_\+manager.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11006}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}250 ~\newline
+ {\bfseries{Compresie:\+}} 75\% (simulată)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11008}{}\doxysubsection{\texorpdfstring{🟢 prune\+\_\+config.\+zig}{🟢 prune\+\_\+config.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11008}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}230 ~\newline
+ {\bfseries{Strategii:\+}}
+\begin{DoxyItemize}
+\item Archive mode (keep everything)
+\item Prune mode (keep last N blocks)
+\item Custom mode
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11010}{}\doxysubsection{\texorpdfstring{🟢 binary\+\_\+codec.\+zig}{🟢 binary\+\_\+codec.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11010}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}280 ~\newline
+ {\bfseries{Encoding:\+}} Varint, compact
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeU64(value:\ u64,\ buf:\ []u8)\ []u8}
+\DoxyCodeLine{pub\ fn\ decodeU64(data:\ []const\ u8,\ out:\ *u64)\ usize}
+\DoxyCodeLine{pub\ fn\ encodeBytes(data:\ []const\ u8,\ buf:\ []u8)\ []u8}
+\DoxyCodeLine{pub\ fn\ decodeBytes(data:\ []const\ u8,\ out:\ *[]u8,\ allocator:\ Allocator)\ !usize}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11012}{}\doxysubsection{\texorpdfstring{🟢 tx\+\_\+receipt.\+zig}{🟢 tx\+\_\+receipt.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11012}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Structură:\+}} TX receipts + logs
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11014}{}\doxysubsection{\texorpdfstring{🟢 witness\+\_\+data.\+zig}{🟢 witness\+\_\+data.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11014}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}420 ~\newline
+ {\bfseries{Funcție:\+}} Witness data pool + archive
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11016}{}\doxysection{\texorpdfstring{6. Tranzacții \& Mempool (5 module)}{6. Tranzacții \& Mempool (5 module)}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11016}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11017}{}\doxysubsection{\texorpdfstring{🔴 transaction.\+zig}{🔴 transaction.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11017}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}250 ~\newline
+ {\bfseries{Structură:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Transaction\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ from:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ to:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ amount:\ u64,\ \ \ \ \ \ //\ SAT}
+\DoxyCodeLine{\ \ \ \ fee:\ u64,}
+\DoxyCodeLine{\ \ \ \ timestamp:\ i64,}
+\DoxyCodeLine{\ \ \ \ hash:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ signature:\ []const\ u8,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ isValid(self:\ *Transaction)\ bool}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ calculateHash(self:\ *Transaction)\ [32]u8}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ sign(self:\ *Transaction,\ privkey:\ [32]u8)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ verify(self:\ *Transaction,\ pubkey:\ [33]u8)\ bool}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ const\ VALID\_PREFIXES\ =\ [5][]const\ u8\{}
+\DoxyCodeLine{\ \ \ \ "{}ob\_omni\_"{},\ "{}ob\_k1\_"{},\ "{}ob\_f5\_"{},\ "{}ob\_d5\_"{},\ "{}ob\_s3\_"{}}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 33 teste
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11019}{}\doxysubsection{\texorpdfstring{🔴 mempool.\+zig}{🔴 mempool.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11019}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}350 ~\newline
+ {\bfseries{Policy:\+}} FIFO (anti-\/\+MEV)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Mempool\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ entries:\ ArrayList(MempoolEntry),}
+\DoxyCodeLine{\ \ \ \ tx\_hashes:\ StringHashMap(void),}
+\DoxyCodeLine{\ \ \ \ total\_bytes:\ usize,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ add(self:\ *Mempool,\ tx:\ Transaction)\ MempoolError!void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getTransactionsForBlock(self:\ *Mempool,\ max\_count:\ usize)\ []Transaction}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ removeTransactions(self:\ *Mempool,\ hashes:\ [][]const\ u8)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getTransactionCount(self:\ *Mempool)\ usize}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Limite:}
+\DoxyCodeLine{MEMPOOL\_MAX\_TX:\ usize\ =\ 10\_000}
+\DoxyCodeLine{MEMPOOL\_MAX\_BYTES:\ usize\ =\ 1\_048\_576\ \ //\ 1\ MB}
+\DoxyCodeLine{TX\_MAX\_BYTES:\ usize\ =\ 512}
+\DoxyCodeLine{TX\_MIN\_FEE\_SAT:\ u64\ =\ 1}
+\DoxyCodeLine{MEMPOOL\_EXPIRY\_SEC:\ i64\ =\ 1\_209\_600\ \ //\ 14\ zile}
+
+\end{DoxyCode}
+
+
+{\bfseries{Teste:\+}} 42 teste
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11021}{}\doxysubsection{\texorpdfstring{🟢 compact\+\_\+transaction.\+zig}{🟢 compact\+\_\+transaction.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11021}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}220 ~\newline
+ {\bfseries{Optimizare:\+}} 161 bytes/\+\+TX
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11023}{}\doxysubsection{\texorpdfstring{🟡 payment\+\_\+channel.\+zig}{🟡 payment\+\_\+channel.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11023}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}300 ~\newline
+ {\bfseries{Concept:\+}} Hydra L2, HTLC (Hash Time Locked Contracts)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ PaymentChannel\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ openChannel(participant\_a,\ participant\_b,\ deposit)\ !Channel}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ updateState(self:\ *Channel,\ new\_state:\ ChannelState)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ closeChannel(self:\ *Channel,\ final\_state:\ ChannelState)\ !void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ createHTLC(self:\ *Channel,\ hash,\ timeout,\ amount)\ !HTLC}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11025}{}\doxysubsection{\texorpdfstring{🟢 tx\+\_\+receipt.\+zig}{🟢 tx\+\_\+receipt.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11025}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Funcție:\+}} TX receipts
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11027}{}\doxysection{\texorpdfstring{7. Ecosistem \& Features (12 module)}{7. Ecosistem \& Features (12 module)}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11027}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11028}{}\doxysubsection{\texorpdfstring{🟡 mining\+\_\+pool.\+zig}{🟡 mining\+\_\+pool.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11028}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}250 ~\newline
+ {\bfseries{Features:\+}}
+\begin{DoxyItemize}
+\item Dynamic miner registration
+\item Proportional rewards
+\item Inactive cleanup (300s)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11030}{}\doxysubsection{\texorpdfstring{🟡 oracle.\+zig}{🟡 oracle.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11030}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}220 ~\newline
+ {\bfseries{Funcție:\+}} Price feed BID/\+\+ASK per exchange
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ Oracle\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ updatePrice(self:\ *Oracle,\ exchange:\ []const\ u8,\ bid:\ f64,\ ask:\ f64)\ void}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ bestBid(self:\ *Oracle)\ f64}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ bestAsk(self:\ *Oracle)\ f64}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11032}{}\doxysubsection{\texorpdfstring{🟢 bridge\+\_\+relay.\+zig}{🟢 bridge\+\_\+relay.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11032}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}280 ~\newline
+ {\bfseries{Bridge:\+}} Ethereum (Sepolia testnet)
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11034}{}\doxysubsection{\texorpdfstring{🟢 ubi\+\_\+distributor.\+zig}{🟢 ubi\+\_\+distributor.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11034}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Funcție:\+}} UBI/\+\+Bread distribution per epoch
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11036}{}\doxysubsection{\texorpdfstring{🟢 bread\+\_\+ledger.\+zig}{🟢 bread\+\_\+ledger.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11036}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}180 ~\newline
+ {\bfseries{Funcție:\+}} Bread voucher QR ledger
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11038}{}\doxysubsection{\texorpdfstring{🟢 vault\+\_\+engine.\+zig}{🟢 vault\+\_\+engine.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11038}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Funcție:\+}} BIP39 vault engine
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11040}{}\doxysubsection{\texorpdfstring{🟢 vault\+\_\+reader.\+zig}{🟢 vault\+\_\+reader.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11040}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}100 ~\newline
+ {\bfseries{Priority:\+}} Named Pipe → Env var → Dev mnemonic
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11042}{}\doxysubsection{\texorpdfstring{🟢 omni\+\_\+brain.\+zig}{🟢 omni\+\_\+brain.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11042}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}180 ~\newline
+ {\bfseries{Funcție:\+}} Auto-\/detect node type 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ NodeType\ =\ enum\ \{}
+\DoxyCodeLine{\ \ \ \ Full,}
+\DoxyCodeLine{\ \ \ \ Trading,}
+\DoxyCodeLine{\ \ \ \ Validator,}
+\DoxyCodeLine{\ \ \ \ Light,}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11044}{}\doxysubsection{\texorpdfstring{🟢 guardian.\+zig}{🟢 guardian.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11044}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}200 ~\newline
+ {\bfseries{Funcție:\+}} Security monitoring
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11046}{}\doxysubsection{\texorpdfstring{🟢 peer\+\_\+scoring.\+zig}{🟢 peer\+\_\+scoring.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11046}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}180 ~\newline
+ {\bfseries{Funcție:\+}} Peer reputation system
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11048}{}\doxysubsection{\texorpdfstring{🟢 dns\+\_\+registry.\+zig}{🟢 dns\+\_\+registry.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11048}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}150 ~\newline
+ {\bfseries{Funcție:\+}} DNS pentru peer addresses
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11050}{}\doxysubsection{\texorpdfstring{🟢 synapse\+\_\+priority.\+zig}{🟢 synapse\+\_\+priority.\+zig}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11050}
+{\bfseries{Linii:\+}} \texorpdfstring{$\sim$}{\string~}120 ~\newline
+ {\bfseries{Funcție:\+}} Synapse scheduler priority
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11052}{}\doxysection{\texorpdfstring{SUMAR STATISTICI}{SUMAR STATISTICI}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11052}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11053}{}\doxysubsection{\texorpdfstring{După Status:\+}{După Status:\+}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11053}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Count  \\
+✅ Complet  &58  \\
+⚠️ Parțial  &8  \\
+🔄 WIP  &0  \\
+{\bfseries{TOTAL}}  &{\bfseries{66}}  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11054}{}\doxysubsection{\texorpdfstring{După Importanță:\+}{După Importanță:\+}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11054}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Nivel  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Count  \\
+🔴 Critical  &10  \\
+🟡 High  &18  \\
+🟢 Medium  &38  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11055}{}\doxysubsection{\texorpdfstring{După Linii de Cod:\+}{După Linii de Cod:\+}}\label{md_wiki-kimi-omnibus_201-_m_o_d_u_l_e-_c_a_t_a_l_o_g_autotoc_md11055}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Range  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Count  \\
+100-\/200  &28  \\
+200-\/300  &22  \\
+300-\/400  &12  \\
+400+  &4  \\
+\end{DoxyTable}
+
+
+{\bfseries{Total linii estimate:\+}} \texorpdfstring{$\sim$}{\string~}12,000+ 

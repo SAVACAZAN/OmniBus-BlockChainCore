@@ -1,0 +1,299 @@
+\doxysection{tx-\/flood-\/stress.py}
+\hypertarget{tx-flood-stress_8py_source}{}\label{tx-flood-stress_8py_source}\index{tools/PERFORMANCE/tx-\/flood-\/stress.py@{tools/PERFORMANCE/tx-\/flood-\/stress.py}}
+\doxymbox{\hyperlink{tx-flood-stress_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00001}\doxymbox{\hyperlink{namespacetx-flood-stress}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00002}\doxymbox{\hyperlink{namespacetx}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ Transaction\ Flood\ Stress\ Test.}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00004}00004\ \textcolor{stringliteral}{Floods\ RPC\ port\ 8332\ with:}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00005}00005\ \textcolor{stringliteral}{\ \ -\/\ 1000\ valid-\/format\ JSON-\/RPC\ requests\ (getblockcount,\ getbestblockhash)}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ 500\ concurrent\ sendrawtransaction\ with\ random\ hex\ data}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ 100\ simultaneous\ connections}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00008}00008\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00009}00009\ \textcolor{stringliteral}{Measures:\ requests/sec,\ error\ rate,\ latency\ p50/p95/p99.}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00010}00010\ \textcolor{stringliteral}{Prints\ live\ dashboard.\ \ Stdlib\ only\ (threading\ +\ http.client).}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00011}00011\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00013}00013\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00014}00014\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00015}00015\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00016}00016\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00017}00017\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00018}00018\ \textcolor{keyword}{import}\ secrets}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00019}00019\ \textcolor{keyword}{import}\ statistics}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00021}00021\ \textcolor{keyword}{import}\ threading}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00022}00022\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00023}00023\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00025}00025\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00026}\doxymbox{\hyperlink{namespacetx-flood-stress_a7568fa98628615cc958f4863de7a5653}{00026}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00027}\doxymbox{\hyperlink{namespacetx-flood-stress_a1a7b7a342ae9200ad52d3f75d1d6067a}{00027}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00028}\doxymbox{\hyperlink{namespacetx-flood-stress_ae7e9fa7b39fa43aa4fa4165714a8e812}{00028}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00029}\doxymbox{\hyperlink{namespacetx-flood-stress_a7307440dc95f9f2ad625140759350861}{00029}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00030}\doxymbox{\hyperlink{namespacetx-flood-stress_a45b7f3f9e1be305a2440ba81f426724f}{00030}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00031}\doxymbox{\hyperlink{namespacetx-flood-stress_aefc97553a76bff9f24fa036a917dfb31}{00031}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00032}\doxymbox{\hyperlink{namespacetx-flood-stress_aa53b7be53ca4e0520ae8c2ac19fd7a14}{00032}}\ CLEAR\_LINE\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2K\(\backslash\)r"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00034}00034\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00035}\doxymbox{\hyperlink{namespacetx-flood-stress_a2615db73d0f0240fefa605f8de529cf9}{00035}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00036}\doxymbox{\hyperlink{namespacetx-flood-stress_a56fc3a69978451bf99fe0339ae38374c}{00036}}\ WS\_PORT\ =\ 8334}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00037}\doxymbox{\hyperlink{namespacetx-flood-stress_a3c1b861271a13d57b17685eb0fe29d36}{00037}}\ P2P\_PORT\ =\ 9000}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00038}\doxymbox{\hyperlink{namespacetx-flood-stress_aa5b913292ea363cf78e09e9f29c26e0b}{00038}}\ NODE\_BINARY\ =\ os.path.join(\textcolor{stringliteral}{"{}zig-\/out"{}},\ \textcolor{stringliteral}{"{}bin"{}},\ \textcolor{stringliteral}{"{}omnibus-\/node.exe"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00039}\doxymbox{\hyperlink{namespacetx-flood-stress_a1ab7f65c1d35c4ed315df7733e3ea342}{00039}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00040}\doxymbox{\hyperlink{namespacetx-flood-stress_abec7bf32d82c8adbd0c391449a3694a3}{00040}}\ SUB\_BLOCKS\ =\ 10}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00041}\doxymbox{\hyperlink{namespacetx-flood-stress_a7525c7b15f59302a61728290ccc120d1}{00041}}\ MAX\_SUPPLY\ =\ 21\_000\_000}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00042}\doxymbox{\hyperlink{namespacetx-flood-stress_a96652bb292479ccee7eb69a2ec16691c}{00042}}\ SAT\ =\ int(1e9)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00043}\doxymbox{\hyperlink{namespacetx-flood-stress_a1aa1989465b86d9fa9cf53ee9e1059bc}{00043}}\ BLOCK\_REWARD\ =\ 50}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00044}\doxymbox{\hyperlink{namespacetx-flood-stress_a3531da6277bddb89d09652b6efa95611}{00044}}\ HALVING\_INTERVAL\ =\ 210\_000}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00047}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{00047}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{StressResults}}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00048}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9ce074816a85340c1277640cfc6b49e8}{00048}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9ce074816a85340c1277640cfc6b49e8}{\_\_init\_\_}}(self):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00049}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_ad20d10e1dbf8e61142457d2ceccd5870}{00049}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_ad20d10e1dbf8e61142457d2ceccd5870}{lock}}\ =\ threading.Lock()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00050}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a917632971f746fc75bfacbd453fe0345}{00050}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a917632971f746fc75bfacbd453fe0345}{latencies}}\ =\ []}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00051}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a19c47133f1fa05e15676c9f5713fd6f1}{00051}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a19c47133f1fa05e15676c9f5713fd6f1}{errors}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00052}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a869f63a335ce4a5984d1689802259b4c}{00052}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a869f63a335ce4a5984d1689802259b4c}{successes}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00053}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a541304f4813f610037980e8791955767}{00053}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a541304f4813f610037980e8791955767}{by\_method}}\ =\ defaultdict(\textcolor{keyword}{lambda}:\ \{\textcolor{stringliteral}{"{}ok"{}}:\ 0,\ \textcolor{stringliteral}{"{}err"{}}:\ 0,\ \textcolor{stringliteral}{"{}latencies"{}}:\ []\})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00054}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_af456aa9ba7950edf2e3799123457d24f}{00054}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_af456aa9ba7950edf2e3799123457d24f}{start\_time}}\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00056}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9abf4245437d8a28f52ceb6cda7a3254}{00056}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9abf4245437d8a28f52ceb6cda7a3254}{record}}(self,\ method:\ str,\ latency:\ float,\ success:\ bool):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_ad20d10e1dbf8e61142457d2ceccd5870}{lock}}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a917632971f746fc75bfacbd453fe0345}{latencies}}.append(latency)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ success:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a869f63a335ce4a5984d1689802259b4c}{successes}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a541304f4813f610037980e8791955767}{by\_method}}[method][\textcolor{stringliteral}{"{}ok"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a19c47133f1fa05e15676c9f5713fd6f1}{errors}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a541304f4813f610037980e8791955767}{by\_method}}[method][\textcolor{stringliteral}{"{}err"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a541304f4813f610037980e8791955767}{by\_method}}[method][\textcolor{stringliteral}{"{}latencies"{}}].append(latency)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00067}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_af0180c97ed52165e85e3678670040263}{00067}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_af0180c97ed52165e85e3678670040263}{total}}(self)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a869f63a335ce4a5984d1689802259b4c}{successes}}\ +\ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a19c47133f1fa05e15676c9f5713fd6f1}{errors}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00070}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a5faa7bb3810d78b2e0633d9f496d2e61}{00070}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a5faa7bb3810d78b2e0633d9f496d2e61}{rps}}(self)\ -\/>\ float:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ elapsed\ =\ time.time()\ -\/\ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_af456aa9ba7950edf2e3799123457d24f}{start\_time}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_af0180c97ed52165e85e3678670040263}{total}}()\ /\ max(elapsed,\ 0.001)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00074}\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9b51a06409ef910b8961a3911b1d7f49}{00074}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9b51a06409ef910b8961a3911b1d7f49}{percentile}}(self,\ p:\ float)\ -\/>\ float:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_ad20d10e1dbf8e61142457d2ceccd5870}{lock}}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a917632971f746fc75bfacbd453fe0345}{latencies}}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ sorted\_lat\ =\ sorted(self.\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a917632971f746fc75bfacbd453fe0345}{latencies}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ idx\ =\ int(len(sorted\_lat)\ *\ p\ /\ 100)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ sorted\_lat[min(idx,\ len(sorted\_lat)\ -\/\ 1)]}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00083}\doxymbox{\hyperlink{namespacetx-flood-stress_a2f9bf22fd1cac13cf3e5f0d0a20fdbac}{00083}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-flood-stress_a2f9bf22fd1cac13cf3e5f0d0a20fdbac}{rpc\_request}}(host:\ str,\ port:\ int,\ method:\ str,\ params:\ list\ =\ \textcolor{keywordtype}{None})\ -\/>\ tuple:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00084}00084\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ JSON-\/RPC\ request.\ Returns\ (success,\ latency\_ms)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00085}00085\ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 999999),}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00090}00090\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00092}00092\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00093}00093\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload,\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ data\ =\ resp.read()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ latency\_ms\ =\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ result\ =\ json.loads(data)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ success\ =\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ result\ \textcolor{keywordflow}{or}\ result.get(\textcolor{stringliteral}{"{}result"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ success,\ latency\_ms}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ latency\_ms\ =\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ latency\_ms}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00109}\doxymbox{\hyperlink{namespacetx-flood-stress_ad1865115e19c8d8e98f1ba48138ad031}{00109}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-flood-stress_ad1865115e19c8d8e98f1ba48138ad031}{worker\_valid\_requests}}(host:\ str,\ port:\ int,\ count:\ int,\ results:\ StressResults):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00110}00110\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ valid\ RPC\ requests."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00111}00111\ \ \ \ \ methods\ =\ [\textcolor{stringliteral}{"{}getblockcount"{}},\ \textcolor{stringliteral}{"{}getbestblockhash"{}},\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}getmempoolinfo"{}},\ \textcolor{stringliteral}{"{}getpeerinfo"{}},\ \textcolor{stringliteral}{"{}getnetworkinfo"{}}]}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00113}00113\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(count):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ method\ =\ random.choice(methods)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ success,\ latency\ =\ \doxymbox{\hyperlink{namespacetx-flood-stress_a2f9bf22fd1cac13cf3e5f0d0a20fdbac}{rpc\_request}}(host,\ port,\ method)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ results.record(method,\ latency,\ success)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00119}\doxymbox{\hyperlink{namespacetx-flood-stress_af1d950fcf9ada35419145b3942b9ad35}{00119}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-flood-stress_af1d950fcf9ada35419145b3942b9ad35}{worker\_raw\_tx}}(host:\ str,\ port:\ int,\ count:\ int,\ results:\ StressResults):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00120}00120\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ sendrawtransaction\ with\ random\ hex\ data."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00121}00121\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(count):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ random\_hex\ =\ secrets.token\_hex(random.randint(100,\ 500))}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ success,\ latency\ =\ \doxymbox{\hyperlink{namespacetx-flood-stress_a2f9bf22fd1cac13cf3e5f0d0a20fdbac}{rpc\_request}}(host,\ port,\ \textcolor{stringliteral}{"{}sendrawtransaction"{}},\ [random\_hex])}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Expected\ to\ fail\ (invalid\ tx),\ but\ shouldn't\ crash\ the\ node}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ results.record(\textcolor{stringliteral}{"{}sendrawtransaction"{}},\ latency,\ \textcolor{keyword}{True})\ \ \textcolor{comment}{\#\ connection\ success\ counts}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00128}\doxymbox{\hyperlink{namespacetx-flood-stress_a22f0bfaf37fd281a37552b5caea4e7de}{00128}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-flood-stress_a22f0bfaf37fd281a37552b5caea4e7de}{worker\_connection\_hold}}(host:\ str,\ port:\ int,\ duration:\ float,\ results:\ StressResults):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00129}00129\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Open\ connection\ and\ hold\ it."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00130}00130\ \ \ \ \ \textcolor{keyword}{import}\ socket}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00131}00131\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ sock.settimeout(5)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ sock.connect((host,\ port))}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Send\ partial\ HTTP\ request\ to\ hold\ connection}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ sock.sendall(b\textcolor{stringliteral}{"{}POST\ /\ HTTP/1.1\(\backslash\)r\(\backslash\)nHost:\ localhost\(\backslash\)r\(\backslash\)nContent-\/Length:\ 999999\(\backslash\)r\(\backslash\)n\(\backslash\)r\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ time.sleep(duration)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ latency\ =\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ results.record(\textcolor{stringliteral}{"{}connection\_hold"{}},\ latency,\ \textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00142}00142\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ results.record(\textcolor{stringliteral}{"{}connection\_hold"{}},\ 0,\ \textcolor{keyword}{False})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00146}\doxymbox{\hyperlink{namespacetx-flood-stress_a72cc99ea8a4d657a5384ea0e4d2112a1}{00146}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-flood-stress_a72cc99ea8a4d657a5384ea0e4d2112a1}{print\_dashboard}}(results:\ StressResults,\ phase:\ str):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00147}00147\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ live\ stats."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00148}00148\ \ \ \ \ total\ =\ results.total()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00149}00149\ \ \ \ \ rps\ =\ results.rps()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00150}00150\ \ \ \ \ err\_rate\ =\ (results.errors\ /\ max(total,\ 1))\ *\ 100}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00151}00151\ \ \ \ \ p50\ =\ results.percentile(50)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00152}00152\ \ \ \ \ p95\ =\ results.percentile(95)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00153}00153\ \ \ \ \ p99\ =\ results.percentile(99)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00155}00155\ \ \ \ \ sys.stdout.write(f\textcolor{stringliteral}{"{}\{CLEAR\_LINE\}\{CYAN\}[\{phase\}]\{RESET\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}total=\{total\}\ rps=\{rps:.0f\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}err=\{err\_rate:.1f\}\%\ "{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}p50=\{p50:.1f\}ms\ p95=\{p95:.1f\}ms\ p99=\{p99:.1f\}ms"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00159}00159\ \ \ \ \ sys.stdout.flush()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00162}\doxymbox{\hyperlink{namespacetx-flood-stress_a5ecb900e8fd48b82356288d4dfd186f7}{00162}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-flood-stress_a5ecb900e8fd48b82356288d4dfd186f7}{run\_phase}}(name:\ str,\ target,\ args\_list:\ list,\ results:\ StressResults,}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ thread\_count:\ int):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00164}00164\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ a\ phase\ with\ N\ threads."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00165}00165\ \ \ \ \ threads\ =\ []}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00166}00166\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(thread\_count):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ t\ =\ threading.Thread(target=target,\ args=args\_list[i\ \%\ len(args\_list)],}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ daemon=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ threads.append(t)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00171}00171\ \ \ \ \ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ threads:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ t.start()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00173}00173\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00174}00174\ \ \ \ \ \textcolor{comment}{\#\ Monitor}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{while}\ any(t.is\_alive()\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ threads):}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetx-flood-stress_a72cc99ea8a4d657a5384ea0e4d2112a1}{print\_dashboard}}(results,\ name)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ time.sleep(0.5)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00179}00179\ \ \ \ \ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ threads:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ t.join(timeout=15)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00182}00182\ \ \ \ \ \doxymbox{\hyperlink{namespacetx-flood-stress_a72cc99ea8a4d657a5384ea0e4d2112a1}{print\_dashboard}}(results,\ name)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00183}00183\ \ \ \ \ print()\ \ \textcolor{comment}{\#\ newline\ after\ dashboard}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00184}00184\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00186}\doxymbox{\hyperlink{namespacetx-flood-stress_a51af30a60f9f02777c6396b8247e356f}{00186}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetx-flood-stress_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00187}00187\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ TX\ Flood\ Stress\ Test"{}}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00189}00189\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00190}00190\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc-\/url"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}RPC\ host\ (default:\ 127.0.0.1)"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00192}00192\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=RPC\_PORT,}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}RPC\ port\ (default:\ \{RPC\_PORT\})"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00194}00194\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/threads"{}},\ type=int,\ default=20,}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Thread\ count\ per\ phase\ (default:\ 20)"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00196}00196\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/count"{}},\ type=int,\ default=1000,}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Requests\ for\ phase\ 1\ (default:\ 1000)"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00198}00198\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00199}00199\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00201}00201\ \ \ \ \ host\ =\ args.rpc\_url}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00202}00202\ \ \ \ \ port\ =\ args.port}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00204}00204\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00205}00205\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ TX\ Flood\ Stress\ Test"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00206}00206\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Target:\ \{host\}:\{port\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00207}00207\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Threads:\ \{args.threads\}\ |\ Shards:\ \{SHARDS\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00208}00208\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Node:\ \{NODE\_BINARY\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00209}00209\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00211}00211\ \ \ \ \ \textcolor{comment}{\#\ Check\ node\ is\ alive}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00212}00212\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PREFLIGHT]\ Checking\ node\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00213}00213\ \ \ \ \ ok,\ lat\ =\ \doxymbox{\hyperlink{namespacetx-flood-stress_a2f9bf22fd1cac13cf3e5f0d0a20fdbac}{rpc\_request}}(host,\ port,\ \textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00214}00214\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ ok:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[ERROR]\ Cannot\ connect\ to\ \{host\}:\{port\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}\ \ Start\ node:\ \{NODE\_BINARY\}\ -\/-\/mode\ seed\ -\/-\/port\ \{P2P\_PORT\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.json:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00220}00220\ \ \ \ \ results\ =\ \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results}{StressResults}}()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00221}00221\ \ \ \ \ t\_start\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00223}00223\ \ \ \ \ \textcolor{comment}{\#\ Phase\ 1:\ Valid\ RPC\ requests}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00224}00224\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[PHASE\ 1]\ \{args.count\}\ valid\ JSON-\/RPC\ requests\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00225}00225\ \ \ \ \ per\_thread\ =\ args.count\ //\ args.threads}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00226}00226\ \ \ \ \ phase1\_args\ =\ [(host,\ port,\ per\_thread,\ results)]\ *\ args.threads}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00227}00227\ \ \ \ \ \doxymbox{\hyperlink{namespacetx-flood-stress_a5ecb900e8fd48b82356288d4dfd186f7}{run\_phase}}(\textcolor{stringliteral}{"{}VALID-\/RPC"{}},\ worker\_valid\_requests,\ phase1\_args,\ results,\ args.threads)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00229}00229\ \ \ \ \ \textcolor{comment}{\#\ Phase\ 2:\ Random\ raw\ transactions}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00230}00230\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PHASE\ 2]\ 500\ sendrawtransaction\ with\ random\ hex\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00231}00231\ \ \ \ \ rawtx\_per\_thread\ =\ 500\ //\ args.threads}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00232}00232\ \ \ \ \ phase2\_args\ =\ [(host,\ port,\ rawtx\_per\_thread,\ results)]\ *\ args.threads}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00233}00233\ \ \ \ \ \doxymbox{\hyperlink{namespacetx-flood-stress_a5ecb900e8fd48b82356288d4dfd186f7}{run\_phase}}(\textcolor{stringliteral}{"{}RAW-\/TX"{}},\ worker\_raw\_tx,\ phase2\_args,\ results,\ args.threads)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00235}00235\ \ \ \ \ \textcolor{comment}{\#\ Phase\ 3:\ Connection\ flood}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00236}00236\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PHASE\ 3]\ 100\ simultaneous\ connections\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00237}00237\ \ \ \ \ phase3\_args\ =\ [(host,\ port,\ 5.0,\ results)]\ *\ 100}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00238}00238\ \ \ \ \ \doxymbox{\hyperlink{namespacetx-flood-stress_a5ecb900e8fd48b82356288d4dfd186f7}{run\_phase}}(\textcolor{stringliteral}{"{}CONN-\/FLOOD"{}},\ worker\_connection\_hold,\ phase3\_args,\ results,\ 100)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00240}00240\ \ \ \ \ \textcolor{comment}{\#\ Verify\ node\ still\ alive}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00241}00241\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[POST-\/CHECK]\ Verifying\ node\ is\ still\ alive\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00242}00242\ \ \ \ \ ok,\ lat\ =\ \doxymbox{\hyperlink{namespacetx-flood-stress_a2f9bf22fd1cac13cf3e5f0d0a20fdbac}{rpc\_request}}(host,\ port,\ \textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00243}00243\ \ \ \ \ node\_alive\ =\ ok}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00245}00245\ \ \ \ \ elapsed\ =\ time.time()\ -\/\ t\_start}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00247}00247\ \ \ \ \ \textcolor{comment}{\#\ Build\ report}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00248}00248\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target"{}}:\ f\textcolor{stringliteral}{"{}\{host\}:\{port\}"{}},}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_requests"{}}:\ results.total(),}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}successes"{}}:\ results.successes,}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}errors"{}}:\ results.errors,}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}error\_rate\_pct"{}}:\ round((results.errors\ /\ max(results.total(),\ 1))\ *\ 100,\ 2),}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}requests\_per\_sec"{}}:\ round(results.rps(),\ 1),}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}latency\_p50\_ms"{}}:\ round(results.percentile(50),\ 2),}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}latency\_p95\_ms"{}}:\ round(results.percentile(95),\ 2),}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}latency\_p99\_ms"{}}:\ round(results.percentile(99),\ 2),}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node\_alive\_after"{}}:\ node\_alive,}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}elapsed\_seconds"{}}:\ round(elapsed,\ 2),}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}by\_method"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ m:\ \{\textcolor{stringliteral}{"{}ok"{}}:\ d[\textcolor{stringliteral}{"{}ok"{}}],\ \textcolor{stringliteral}{"{}err"{}}:\ d[\textcolor{stringliteral}{"{}err"{}}],}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}avg\_ms"{}}:\ round(statistics.mean(d[\textcolor{stringliteral}{"{}latencies"{}}]),\ 2)\ \textcolor{keywordflow}{if}\ d[\textcolor{stringliteral}{"{}latencies"{}}]\ \textcolor{keywordflow}{else}\ 0\}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m,\ d\ \textcolor{keywordflow}{in}\ results.by\_method.items()}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00265}00265\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00266}00266\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00267}00267\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00269}00269\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ alive\_color\ =\ GREEN\ \textcolor{keywordflow}{if}\ node\_alive\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ STRESS\ TEST\ RESULTS"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ requests:\ \ \{report['total\_requests']\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Successes:\ \ \ \ \ \ \ \{GREEN\}\{report['successes']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Errors:\ \ \ \ \ \ \ \ \ \ \{RED\}\{report['errors']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Error\ rate:\ \ \ \ \ \ \{report['error\_rate\_pct']\}\%"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Requests/sec:\ \ \ \ \{BOLD\}\{report['requests\_per\_sec']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Latency\ p50:\ \ \ \ \ \{report['latency\_p50\_ms']\}ms"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Latency\ p95:\ \ \ \ \ \{report['latency\_p95\_ms']\}ms"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Latency\ p99:\ \ \ \ \ \{report['latency\_p99\_ms']\}ms"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Node\ alive:\ \ \ \ \ \ \{alive\_color\}\{node\_alive\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Elapsed:\ \ \ \ \ \ \ \ \ \{elapsed:.2f\}s"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Per\ method:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m,\ d\ \textcolor{keywordflow}{in}\ report[\textcolor{stringliteral}{"{}by\_method"{}}].items():}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{m:30s\}\ ok=\{d['ok']:5d\}\ err=\{d['err']:3d\}\ avg=\{d['avg\_ms']:.1f\}ms"{}})}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00289}00289\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ node\_alive\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00290}00290\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00292}00292\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{tx-flood-stress_8py_source_l00293}00293\ \ \ \ \ \doxymbox{\hyperlink{namespacetx-flood-stress_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

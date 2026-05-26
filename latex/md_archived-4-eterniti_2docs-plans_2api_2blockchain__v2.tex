@@ -1,0 +1,598 @@
+\chapter{Module:\+ {\ttfamily blockchain\+\_\+v2} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2}{}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2}\index{Module: $<$tt$>$blockchain\_v2$<$/tt$>$@{Module: $<$tt$>$blockchain\_v2$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md989}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md989}%
+
+
+\begin{quote}
+Enhanced blockchain v2 — sub-\/block support, sharding integration, binary encoding, pruning support. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+blockchain\+\_\+v2.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 541 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 20 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 22
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md991}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md991}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md992}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md992}
+
+\begin{DoxyItemize}
+\item \`{}\+Blockchain\+V2\`{}{\ttfamily Blockchain\+V2}
+\end{DoxyItemize}— Blockchain v2 -\/ with sub-\/blocks, sharding, and pruning support
+\begin{DoxyItemize}
+\item \`{}\+Block\+Stats\`{}{\ttfamily Block\+Stats}
+\end{DoxyItemize}— Data structure for block stats. Fields include:\+ block\+\_\+count, transaction\+\_\+count, ...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md993}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md993}
+
+\begin{DoxyItemize}
+\item 10 constants defined10 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md994}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md994}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}init\+With\+Pruning()\`{}{\ttfamily init\+With\+Pruning()}
+\end{DoxyItemize}— Performs the init with pruning operation on the blockchain\+\_\+v2 module.
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+Transaction()\`{}{\ttfamily add\+Transaction()}
+\end{DoxyItemize}— Add transaction to mempool
+\begin{DoxyItemize}
+\item \`{}validate\+Transaction()\`{}{\ttfamily validate\+Transaction()}
+\end{DoxyItemize}— Validate transaction (delegates to Transaction.\+is\+Valid + hash integrit...
+\begin{DoxyItemize}
+\item \`{}create\+Sub\+Block()\`{}{\ttfamily create\+Sub\+Block()}
+\end{DoxyItemize}— Create sub-\/block (0.\+1s interval)
+\begin{DoxyItemize}
+\item \`{}add\+Sub\+Block()\`{}{\ttfamily add\+Sub\+Block()}
+\end{DoxyItemize}— Add sub-\/block via engine
+\begin{DoxyItemize}
+\item \`{}is\+Sub\+Block\+Pool\+Complete()\`{}{\ttfamily is\+Sub\+Block\+Pool\+Complete()}
+\end{DoxyItemize}— Check if all 10 sub-\/blocks are collected
+\begin{DoxyItemize}
+\item \`{}create\+Block\+From\+Sub\+Blocks()\`{}{\ttfamily create\+Block\+From\+Sub\+Blocks()}
+\end{DoxyItemize}— Create main block from complete sub-\/block pool
+\begin{DoxyItemize}
+\item \`{}mine\+Block()\`{}{\ttfamily mine\+Block()}
+\end{DoxyItemize}— Mine block (simple PoW)
+\begin{DoxyItemize}
+\item \`{}calculate\+Block\+Hash()\`{}{\ttfamily calculate\+Block\+Hash()}
+\end{DoxyItemize}— Calculate block hash (shared implementation in hex\+\_\+utils)
+\begin{DoxyItemize}
+\item \`{}is\+Valid\+Hash()\`{}{\ttfamily is\+Valid\+Hash()}
+\end{DoxyItemize}— Validate hash meets difficulty (delegates to shared hex\+\_\+utils)
+\begin{DoxyItemize}
+\item \`{}encode\+Block\+Binary()\`{}{\ttfamily encode\+Block\+Binary()}
+\end{DoxyItemize}— Encode block to binary format (93\% compression)
+\begin{DoxyItemize}
+\item \`{}get\+Stats()\`{}{\ttfamily get\+Stats()}
+\end{DoxyItemize}— Get blockchain statistics
+\begin{DoxyItemize}
+\item \`{}get\+Block\+Count()\`{}{\ttfamily get\+Block\+Count()}
+\end{DoxyItemize}— Returns the current block count.
+\begin{DoxyItemize}
+\item \`{}prune\+Old\+Blocks()\`{}{\ttfamily prune\+Old\+Blocks()}
+\end{DoxyItemize}— Prune old blocks based on configuration
+\begin{DoxyItemize}
+\item \`{}needs\+Pruning()\`{}{\ttfamily needs\+Pruning()}
+\end{DoxyItemize}— Check if pruning is needed
+\begin{DoxyItemize}
+\item \`{}get\+Prune\+Stats()\`{}{\ttfamily get\+Prune\+Stats()}
+\end{DoxyItemize}— Get pruning statistics
+\begin{DoxyItemize}
+\item \`{}get\+Estimated\+Storage\+Size()\`{}{\ttfamily get\+Estimated\+Storage\+Size()}
+\end{DoxyItemize}— Get estimated storage size
+\begin{DoxyItemize}
+\item \`{}print\+Info()\`{}{\ttfamily print\+Info()}
+\end{DoxyItemize}— Print blockchain info including pruning stats
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md996}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md996}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md997}{}\doxysubsection{\texorpdfstring{{\ttfamily Blockchain\+V2}}{{\ttfamily Blockchain\+V2}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md997}
+Blockchain v2 -\/ with sub-\/blocks, sharding, and pruning support
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacechain}{chain}}  &{\ttfamily array\+\_\+list.\+Managed(\+Block)}  &Chain  \\
+{\ttfamily mempool}  &{\ttfamily array\+\_\+list.\+Managed(\+Transaction)}  &Mempool  \\
+{\ttfamily sub\+\_\+block\+\_\+engine}  &{\ttfamily Sub\+Block\+Engine}  &Sub\+\_\+block\+\_\+engine  \\
+{\ttfamily shard\+\_\+config}  &{\ttfamily Shard\+Config}  &Shard\+\_\+config  \\
+{\ttfamily prune\+\_\+config}  &{\ttfamily Prune\+Config}  &Prune\+\_\+config  \\
+{\ttfamily archive\+\_\+mgr}  &{\ttfamily ?Archive\+Manager}  &Archive\+\_\+mgr  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 24}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md999}{}\doxysubsection{\texorpdfstring{{\ttfamily Block\+Stats}}{{\ttfamily Block\+Stats}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md999}
+Data structure for block stats. Fields include:\+ block\+\_\+count, transaction\+\_\+count, sub\+\_\+blocks\+\_\+pending, difficulty, shard\+\_\+id.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily block\+\_\+count}  &{\ttfamily usize}  &Block\+\_\+count  \\
+{\ttfamily transaction\+\_\+count}  &{\ttfamily usize}  &Transaction\+\_\+count  \\
+{\ttfamily sub\+\_\+blocks\+\_\+pending}  &{\ttfamily u8}  &Sub\+\_\+blocks\+\_\+pending  \\
+{\ttfamily \doxylink{namespacedifficulty}{difficulty}}  &{\ttfamily u32}  &Difficulty  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 337}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1001}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1001}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &Block  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &Transaction  \\
+{\ttfamily Sub\+Block}  &{\ttfamily sub\+\_\+block\+\_\+mod.\+Sub\+Block}  &Sub block  \\
+{\ttfamily Sub\+Block\+Engine}  &{\ttfamily sub\+\_\+block\+\_\+mod.\+Sub\+Block\+Engine}  &Sub block engine  \\
+{\ttfamily Shard\+Config}  &{\ttfamily shard\+\_\+config.\+Shard\+Config}  &Shard config  \\
+{\ttfamily Binary\+Encoder}  &{\ttfamily binary\+\_\+codec.\+Binary\+Encoder}  &Binary encoder  \\
+{\ttfamily Binary\+Decoder}  &{\ttfamily binary\+\_\+codec.\+Binary\+Decoder}  &Binary decoder  \\
+{\ttfamily Prune\+Config}  &{\ttfamily prune\+\_\+config.\+Prune\+Config}  &Prune config  \\
+{\ttfamily Prune\+Stats}  &{\ttfamily prune\+\_\+config.\+Prune\+Stats}  &Prune stats  \\
+{\ttfamily Archive\+Manager}  &{\ttfamily archive\+\_\+manager\+\_\+mod.\+Archive\+Manager}  &Archive manager  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1003}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1003}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1004}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1004}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ shard\_id:\ u8)\ !BlockchainV2\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Blockchain\+V2}
+
+{\itshape Defined at line 36}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1006}{}\doxysubsection{\texorpdfstring{{\ttfamily init\+With\+Pruning()}}{{\ttfamily init\+With\+Pruning()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1006}
+Performs the init with pruning operation on the blockchain\+\_\+v2 module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ initWithPruning(allocator:\ std.mem.Allocator,\ shard\_id:\ u8,\ prune\_cfg:\ PruneConfig)\ !BlockchainV2\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily shard\+\_\+id}  &{\ttfamily u8}  &Shard\+\_\+id  \\
+{\ttfamily prune\+\_\+cfg}  &{\ttfamily Prune\+Config}  &Prune\+\_\+cfg  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Blockchain\+V2}
+
+{\itshape Defined at line 40}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1008}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1008}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *BlockchainV2)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 81}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1010}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Transaction()}}{{\ttfamily add\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1010}
+Add transaction to mempool
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addTransaction(self:\ *BlockchainV2,\ tx:\ Transaction)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 94}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1012}{}\doxysubsection{\texorpdfstring{{\ttfamily validate\+Transaction()}}{{\ttfamily validate\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1012}
+Validate transaction (delegates to Transaction.\+is\+Valid + hash integrity)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validateTransaction(self:\ *BlockchainV2,\ tx:\ *const\ Transaction)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 102}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1014}{}\doxysubsection{\texorpdfstring{{\ttfamily create\+Sub\+Block()}}{{\ttfamily create\+Sub\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1014}
+Create sub-\/block (0.\+1s interval)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ createSubBlock(self:\ *BlockchainV2,\ sub\_id:\ u8,\ miner\_id:\ []const\ u8)\ !SubBlock\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+{\ttfamily sub\+\_\+id}  &{\ttfamily u8}  &Sub\+\_\+id  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Sub\+Block}
+
+{\itshape Defined at line 116}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1016}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Sub\+Block()}}{{\ttfamily add\+Sub\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1016}
+Add sub-\/block via engine
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addSubBlock(self:\ *BlockchainV2,\ sub:\ SubBlock)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+{\ttfamily sub}  &{\ttfamily Sub\+Block}  &Sub  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 138}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1018}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Sub\+Block\+Pool\+Complete()}}{{\ttfamily is\+Sub\+Block\+Pool\+Complete()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1018}
+Check if all 10 sub-\/blocks are collected
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isSubBlockPoolComplete(self:\ *const\ BlockchainV2)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 145}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1020}{}\doxysubsection{\texorpdfstring{{\ttfamily create\+Block\+From\+Sub\+Blocks()}}{{\ttfamily create\+Block\+From\+Sub\+Blocks()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1020}
+Create main block from complete sub-\/block pool
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ createBlockFromSubBlocks(self:\ *BlockchainV2)\ !Block\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Block}
+
+{\itshape Defined at line 150}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1022}{}\doxysubsection{\texorpdfstring{{\ttfamily mine\+Block()}}{{\ttfamily mine\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1022}
+Mine block (simple PoW)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ mineBlock(self:\ *BlockchainV2,\ block:\ *Block)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Block}  &Block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 186}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1024}{}\doxysubsection{\texorpdfstring{{\ttfamily calculate\+Block\+Hash()}}{{\ttfamily calculate\+Block\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1024}
+Calculate block hash (shared implementation in hex\+\_\+utils)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calculateBlockHash(self:\ *BlockchainV2,\ block:\ *const\ Block)\ ![]const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &Block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+const u8}
+
+{\itshape Defined at line 205}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1026}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Valid\+Hash()}}{{\ttfamily is\+Valid\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1026}
+Validate hash meets difficulty (delegates to shared hex\+\_\+utils)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isValidHash(self:\ *BlockchainV2,\ hash:\ []const\ u8)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 210}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1028}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+Block\+Binary()}}{{\ttfamily encode\+Block\+Binary()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1028}
+Encode block to binary format (93\% compression)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeBlockBinary(self:\ *BlockchainV2,\ block:\ *const\ Block)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &Block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 215}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1030}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Stats()}}{{\ttfamily get\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1030}
+Get blockchain statistics
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getStats(self:\ *const\ BlockchainV2)\ BlockStats\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Block\+Stats}
+
+{\itshape Defined at line 238}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1032}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block\+Count()}}{{\ttfamily get\+Block\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1032}
+Returns the current block count.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlockCount(self:\ *const\ BlockchainV2)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 248}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1034}{}\doxysubsection{\texorpdfstring{{\ttfamily prune\+Old\+Blocks()}}{{\ttfamily prune\+Old\+Blocks()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1034}
+Prune old blocks based on configuration
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ pruneOldBlocks(self:\ *BlockchainV2)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 253}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1036}{}\doxysubsection{\texorpdfstring{{\ttfamily needs\+Pruning()}}{{\ttfamily needs\+Pruning()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1036}
+Check if pruning is needed
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ needsPruning(self:\ *const\ BlockchainV2)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 297}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1038}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Prune\+Stats()}}{{\ttfamily get\+Prune\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1038}
+Get pruning statistics
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getPruneStats(self:\ *const\ BlockchainV2)\ PruneStats\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Prune\+Stats}
+
+{\itshape Defined at line 302}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1040}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Estimated\+Storage\+Size()}}{{\ttfamily get\+Estimated\+Storage\+Size()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1040}
+Get estimated storage size
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getEstimatedStorageSize(self:\ *const\ BlockchainV2)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 307}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1042}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Info()}}{{\ttfamily print\+Info()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain__v2_autotoc_md1042}
+Print blockchain info including pruning stats
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printInfo(self:\ *const\ BlockchainV2)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain\+V2}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 313}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

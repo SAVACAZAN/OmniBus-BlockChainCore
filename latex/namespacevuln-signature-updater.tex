@@ -1,0 +1,327 @@
+\doxysection{vuln-\/signature-\/updater Namespace Reference}
+\hypertarget{namespacevuln-signature-updater}{}\label{namespacevuln-signature-updater}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_aedd208f12212a74fc2e1f9e3b38c8ef3}{sha256\+\_\+file}} (str path)
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a4d048f8b0e84e039f67000ab71a9ea11}{sha256\+\_\+bytes}} (bytes data)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacevuln-signature-updater_a1cf48343cf1504e5d6355f98edf4a29d}{load\+\_\+rules}} ()
+\item 
+bool \doxymbox{\hyperlink{namespacevuln-signature-updater_aa58767b86530efeb326f2509c3166744}{update\+\_\+rules}} (str url)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacevuln-signature-updater_ad6c565526b239ca5273cacebd207bad1}{scan\+\_\+zig\+\_\+files}} (list\+[dict]\+ rules)
+\item 
+None \doxymbox{\hyperlink{namespacevuln-signature-updater_abaf7bdd99d407b9fcc2c6dd340d92f64}{list\+\_\+rules}} (list\+[dict]\+ rules)
+\item 
+int \doxymbox{\hyperlink{namespacevuln-signature-updater_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a2db11c8a910c2e8c80efd617fbc3c93b}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_ad631b90d5ec85297ac38c647a82b2bd8}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_aacddfce9d00e9daeef32fe34353e5ae2}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a6bca466d63420ebdde1d5d984876e57e}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a2e3b2b512c4653f6a08a9d73c662ffa4}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a955576e0aef87645eab2585457d16f94}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+\doxymbox{\hyperlink{namespacevuln-signature-updater_ae4ecdcd7478ab20b43e3d99207e30998}{SCRIPT\+\_\+\+DIR}} = Path(os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+)))
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{RULES\+\_\+\+DIR}} = \doxymbox{\hyperlink{namespacevuln-signature-updater_ae4ecdcd7478ab20b43e3d99207e30998}{SCRIPT\+\_\+\+DIR}} /\+ "{}rules"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_abb89b783526684978090e4902cc0ad9c}{CORE\+\_\+\+DIR}} = SCRIPT\+\_\+\+DIR.\+parent.\+parent /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a250633a1defe145192fa04c7a636f50b}{MANIFEST\+\_\+\+FILE}} = \doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{RULES\+\_\+\+DIR}} /\+ "{}manifest.\+json"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a2321a20a75428bc132fcf0e317040144}{DEFAULT\+\_\+\+RULES\+\_\+\+FILE}} = \doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{RULES\+\_\+\+DIR}} /\+ "{}default-\/rules.\+json"{}
+\item 
+str \doxymbox{\hyperlink{namespacevuln-signature-updater_a09afa5d4bb316a23c40d27c19d9ac189}{DEFAULT\+\_\+\+UPDATE\+\_\+\+URL}} = "{}"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacevuln-signature-updater_doc-func-members}
+\Hypertarget{namespacevuln-signature-updater_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacevuln-signature-updater_abaf7bdd99d407b9fcc2c6dd340d92f64}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!list\_rules@{list\_rules}}
+\index{list\_rules@{list\_rules}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{list\_rules()}{list\_rules()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_abaf7bdd99d407b9fcc2c6dd340d92f64} 
+ None list\+\_\+rules (\begin{DoxyParamCaption}\item[{list\+[dict]\+}]{rules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Display all loaded rules.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00235}{235}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacevuln-signature-updater_a1cf48343cf1504e5d6355f98edf4a29d}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!load\_rules@{load\_rules}}
+\index{load\_rules@{load\_rules}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{load\_rules()}{load\_rules()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a1cf48343cf1504e5d6355f98edf4a29d} 
+ list\+[dict]\+ load\+\_\+rules (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Load all vulnerability rules from rules directory.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00073}{73}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacevuln-signature-updater_adf0e2aa4d06b5ca38e44721821eca783}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacevuln-signature-updater_a7431cb90017e54fe695b23d4190db046}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!main@{main}}
+\index{main@{main}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00249}{249}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacevuln-signature-updater_ad6c565526b239ca5273cacebd207bad1}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!scan\_zig\_files@{scan\_zig\_files}}
+\index{scan\_zig\_files@{scan\_zig\_files}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{scan\_zig\_files()}{scan\_zig\_files()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_ad6c565526b239ca5273cacebd207bad1} 
+ list\+[dict]\+ scan\+\_\+zig\+\_\+files (\begin{DoxyParamCaption}\item[{list\+[dict]\+}]{rules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scan core/*.zig files for vulnerability pattern matches.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00190}{190}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacevuln-signature-updater_a4d048f8b0e84e039f67000ab71a9ea11}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!sha256\_bytes@{sha256\_bytes}}
+\index{sha256\_bytes@{sha256\_bytes}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{sha256\_bytes()}{sha256\_bytes()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a4d048f8b0e84e039f67000ab71a9ea11} 
+ str sha256\+\_\+bytes (\begin{DoxyParamCaption}\item[{bytes}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00069}{69}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacevuln-signature-updater_aedd208f12212a74fc2e1f9e3b38c8ef3}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!sha256\_file@{sha256\_file}}
+\index{sha256\_file@{sha256\_file}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{sha256\_file()}{sha256\_file()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_aedd208f12212a74fc2e1f9e3b38c8ef3} 
+ str sha256\+\_\+file (\begin{DoxyParamCaption}\item[{str}]{path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Compute SHA-256 of a file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00057}{57}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_aa58767b86530efeb326f2509c3166744}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!update\_rules@{update\_rules}}
+\index{update\_rules@{update\_rules}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{update\_rules()}{update\_rules()}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_aa58767b86530efeb326f2509c3166744} 
+ bool update\+\_\+rules (\begin{DoxyParamCaption}\item[{str}]{url}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check for and download updated rules from URL.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00108}{108}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+Here is the caller graph for this function:\+
+% FIG 13
+
+
+\label{namespacevuln-signature-updater_doc-var-members}
+\Hypertarget{namespacevuln-signature-updater_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacevuln-signature-updater_a2e3b2b512c4653f6a08a9d73c662ffa4}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a2e3b2b512c4653f6a08a9d73c662ffa4} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_abb89b783526684978090e4902cc0ad9c}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!CORE\_DIR@{CORE\_DIR}}
+\index{CORE\_DIR@{CORE\_DIR}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{CORE\_DIR}{CORE\_DIR}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_abb89b783526684978090e4902cc0ad9c} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+CORE\+\_\+\+DIR = SCRIPT\+\_\+\+DIR.\+parent.\+parent /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_a6bca466d63420ebdde1d5d984876e57e}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a6bca466d63420ebdde1d5d984876e57e} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_a2321a20a75428bc132fcf0e317040144}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!DEFAULT\_RULES\_FILE@{DEFAULT\_RULES\_FILE}}
+\index{DEFAULT\_RULES\_FILE@{DEFAULT\_RULES\_FILE}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{DEFAULT\_RULES\_FILE}{DEFAULT\_RULES\_FILE}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a2321a20a75428bc132fcf0e317040144} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+DEFAULT\+\_\+\+RULES\+\_\+\+FILE = \doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{RULES\+\_\+\+DIR}} /\+ "{}default-\/rules.\+json"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_a09afa5d4bb316a23c40d27c19d9ac189}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!DEFAULT\_UPDATE\_URL@{DEFAULT\_UPDATE\_URL}}
+\index{DEFAULT\_UPDATE\_URL@{DEFAULT\_UPDATE\_URL}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{DEFAULT\_UPDATE\_URL}{DEFAULT\_UPDATE\_URL}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a09afa5d4bb316a23c40d27c19d9ac189} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+DEFAULT\+\_\+\+UPDATE\+\_\+\+URL = "{}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_a2db11c8a910c2e8c80efd617fbc3c93b}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a2db11c8a910c2e8c80efd617fbc3c93b} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_a250633a1defe145192fa04c7a636f50b}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!MANIFEST\_FILE@{MANIFEST\_FILE}}
+\index{MANIFEST\_FILE@{MANIFEST\_FILE}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{MANIFEST\_FILE}{MANIFEST\_FILE}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a250633a1defe145192fa04c7a636f50b} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+MANIFEST\+\_\+\+FILE = \doxymbox{\hyperlink{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}{RULES\+\_\+\+DIR}} /\+ "{}manifest.\+json"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_ad631b90d5ec85297ac38c647a82b2bd8}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!RED@{RED}}
+\index{RED@{RED}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_ad631b90d5ec85297ac38c647a82b2bd8} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_a955576e0aef87645eab2585457d16f94}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!RESET@{RESET}}
+\index{RESET@{RESET}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a955576e0aef87645eab2585457d16f94} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!RULES\_DIR@{RULES\_DIR}}
+\index{RULES\_DIR@{RULES\_DIR}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{RULES\_DIR}{RULES\_DIR}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_a143ee94e571fa6a4300987b08c2b4197} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+RULES\+\_\+\+DIR = \doxymbox{\hyperlink{namespacevuln-signature-updater_ae4ecdcd7478ab20b43e3d99207e30998}{SCRIPT\+\_\+\+DIR}} /\+ "{}rules"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_ae4ecdcd7478ab20b43e3d99207e30998}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!SCRIPT\_DIR@{SCRIPT\_DIR}}
+\index{SCRIPT\_DIR@{SCRIPT\_DIR}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{SCRIPT\_DIR}{SCRIPT\_DIR}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_ae4ecdcd7478ab20b43e3d99207e30998} 
+\doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+SCRIPT\+\_\+\+DIR = Path(os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+)))}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+
+\Hypertarget{namespacevuln-signature-updater_aacddfce9d00e9daeef32fe34353e5ae2}\index{vuln-\/signature-\/updater@{vuln-\/signature-\/updater}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!vuln-\/signature-\/updater@{vuln-\/signature-\/updater}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacevuln-signature-updater_aacddfce9d00e9daeef32fe34353e5ae2} 
+str \doxymbox{\hyperlink{namespacevuln}{vuln}}-\/signature-\/updater.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{vuln-signature-updater_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{vuln-signature-updater_8py_source}{vuln-\/signature-\/updater.\+py}}.
+

@@ -1,33 +1,12 @@
-import { useState, useEffect } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
-import type { BlockData } from "../../types";
-
-const rpc = new OmniBusRpcClient();
-
-interface PriceEntry {
-  exchange: string;
-  pair: string;
-  bidMicroUsd: number;
-  askMicroUsd: number;
-  timestampMs: number;
-  success: boolean;
-}
+import { useState, useEffect, useMemo } from "react";
+import { rpc } from "../../api/rpc-client";
+import type { BlockData, BlockPriceSnapshot as PriceEntry } from "../../types";
+import { KIND_STYLE } from "../common/TxBadges";
+import { MICRO_PER_USD, SAT_PER_OMNI, midTrunc, fmtUsd } from "../../utils/fmt";
 
 interface BlockDetailProps {
   block: BlockData;
   onClose: () => void;
-}
-
-// Format micro-USD as $price with thousand-comma + dot decimals.
-// BTC -> $100,000.00 (2 decimals), LCX -> $0.0316 (4 decimals).
-function fmtUsd(micro: number, isLcx: boolean): string {
-  if (!micro) return "—";
-  const usd = micro / 1_000_000;
-  const decimals = isLcx ? 4 : 2;
-  return "$" + usd.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
 }
 
 // Format millisecond timestamp with 3 decimals (.123)
@@ -51,6 +30,7 @@ function blockDate(ts: number | undefined): Date {
 export function BlockDetail({ block, onClose }: BlockDetailProps) {
   const [txs, setTxs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
   const [prices, setPrices] = useState<PriceEntry[]>([]);
   // Tip height is used to decide whether prices were read live (from the
   // in-memory map) or from the on-chain block. Blocks older than tip-100
@@ -65,23 +45,22 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
   useEffect(() => {
     setFull(block);
     setPrices([]);
-    loadTxs();
-    loadFull();
-    loadTip();
+    setLoadErr(null);
+    void loadBlock();
+    void loadTip();
   }, [block.height]);
 
   const loadTip = async () => {
     try {
-      const r: any = await rpc.request_raw("getblockcount", []);
-      // Some nodes return { count } and others a bare number — handle both.
-      const h = typeof r === "number" ? r : r?.count;
-      if (typeof h === "number") setTipHeight(h);
+      const h = await rpc.getBlockCount();
+      setTipHeight(h);
     } catch {}
   };
 
-  const loadFull = async () => {
+  const loadBlock = async () => {
+    setLoading(true);
     try {
-      const result: any = await rpc.request_raw("getblock", [block.height]);
+      const result = await rpc.getBlock(block.height) as BlockData & { prices?: PriceEntry[]; transactions?: string[]; tx_ids?: string[]; txids?: string[] };
       if (result && typeof result === "object") {
         setFull({
           height:          result.height ?? block.height,
@@ -96,41 +75,42 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
           pricesValidated: result.pricesValidated ?? block.pricesValidated,
         });
         if (Array.isArray(result.prices)) setPrices(result.prices);
+        const txids: string[] = result.transactions || result.tx_ids || result.txids || [];
+        const settled = await Promise.allSettled(
+          txids.slice(0, 100).map((id: string) => rpc.getTransactionDetail(id))
+        );
+        setTxs(
+          settled
+            .filter((r): r is PromiseFulfilledResult<any> => r.status === "fulfilled" && !!r.value)
+            .map((r) => r.value)
+        );
       }
-    } catch {}
-  };
-
-  const loadTxs = async () => {
-    setLoading(true);
-    try {
-      const result: any = await rpc.request_raw("gettransactions");
-      const blockTxs = (result?.transactions || []).filter(
-        (tx: any) => tx.blockHeight === block.height
-      );
-
-      // Enrich each TX with detail (confirmations, fee) from gettransaction
-      const enriched = await Promise.all(
-        blockTxs.map(async (tx: any) => {
-          try {
-            const detail = await rpc.getTransactionDetail(tx.txid);
-            return {
-              ...tx,
-              fee: detail?.fee ?? tx.fee ?? 0,
-              confirmations: detail?.confirmations ?? 0,
-            };
-          } catch {
-            return { ...tx, fee: tx.fee ?? 0, confirmations: 0 };
-          }
-        })
-      );
-      setTxs(enriched);
-    } catch {}
+    } catch (e: any) {
+      setLoadErr(e?.message || "Failed to load block detail");
+    }
     setLoading(false);
   };
 
-  const totalFees = txs.reduce((sum, tx) => sum + (tx.fee || 0), 0);
-  const feeBurned = Math.floor(totalFees * 0.5);
-  const feeToMiner = totalFees - feeBurned;
+  const { totalFees, feeBurned, feeToMiner } = useMemo(() => {
+    const totalFees = txs.reduce((sum, tx) => sum + (tx.fee || 0), 0);
+    return { totalFees, feeBurned: Math.floor(totalFees * 0.5), feeToMiner: totalFees - Math.floor(totalFees * 0.5) };
+  }, [txs]);
+  const pricePairs = useMemo(() => Array.from(new Set(prices.map((p) => p.pair))), [prices]);
+  const pricesByPair = useMemo(() => {
+    const m = new Map<string, PriceEntry[]>();
+    for (const p of prices) {
+      const arr = m.get(p.pair) ?? [];
+      arr.push(p);
+      m.set(p.pair, arr);
+    }
+    return m;
+  }, [prices]);
+
+  const isOnChain = tipHeight > 0 && full.height < tipHeight - 100;
+  const priceSourceLabel = isOnChain ? "on-chain" : "live";
+  const priceSourceClass = isOnChain
+    ? "bg-mempool-blue/20 text-mempool-blue"
+    : "bg-mempool-green/20 text-mempool-green";
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -166,7 +146,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             <div>
               <p className="text-[10px] text-mempool-text-dim uppercase">Reward</p>
               <p className="text-xs font-mono text-mempool-green">
-                {((full.rewardSAT || 0) / 1e9).toFixed(8)} OMNI ({full.rewardSAT?.toLocaleString()} SAT)
+                {((full.rewardSAT || 0) / SAT_PER_OMNI).toFixed(8)} OMNI ({full.rewardSAT?.toLocaleString()} SAT)
               </p>
             </div>
             <div>
@@ -191,8 +171,8 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
               <span className="text-mempool-text-dim uppercase tracking-wider">pricesRoot:</span>
               <span className="text-mempool-blue truncate">
                 {full.pricesRoot
-                  ? `0x${full.pricesRoot.slice(0, 4)}...${full.pricesRoot.slice(-4)}`
-                  : "0x0000...0000"}
+                  ? `0x${midTrunc(full.pricesRoot, 4, 4)}`
+                  : "0x0000…0000"}
               </span>
               {full.pricesValidated ? (
                 <span className="text-mempool-green">✓ verified</span>
@@ -207,21 +187,39 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
               ("live") or read from the on-chain block ("on-chain"). The
               legacy cache trims after ~100 blocks behind tip, so anything
               older is almost certainly chain-sourced. */}
-          {prices.length > 0 && (() => {
-            const isOnChain = tipHeight > 0 && full.height < tipHeight - 100;
-            const sourceLabel = isOnChain ? "on-chain" : "live";
-            const sourceClass = isOnChain
-              ? "bg-mempool-blue/20 text-mempool-blue"
-              : "bg-mempool-green/20 text-mempool-green";
-            return (
+          {prices.length > 0 && (
               <div className="bg-mempool-bg rounded-lg p-3 border border-mempool-border/50">
-                <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider mb-2">
-                  Oracle Prices @ Mining ({prices.length} entries)
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider">
+                    Oracle Prices @ Mining ({prices.length} entries)
+                  </p>
+                  <button
+                    onClick={() => {
+                      const csvRows = [
+                        ["pair","exchange","bid_usd","ask_usd","timestamp_ms","source"].join(","),
+                        ...prices.filter(p => p.success).map((p) => [
+                          p.pair,
+                          p.exchange,
+                          (p.bidMicroUsd / MICRO_PER_USD).toFixed(6),
+                          (p.askMicroUsd / MICRO_PER_USD).toFixed(6),
+                          p.timestampMs,
+                          priceSourceLabel,
+                        ].join(",")),
+                      ].join("\n");
+                      const blob = new Blob([csvRows], { type: "text/csv" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url; a.download = `omnibus-block-${full.height}-prices.csv`;
+                      a.click(); URL.revokeObjectURL(url);
+                    }}
+                    className="px-2 py-0.5 text-[9px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+                  >
+                    ⬇ CSV
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
-                  {(["BTC/USD", "LCX/USD"] as const).map((pair) => {
-                    const isLcx = pair === "LCX/USD";
-                    const rows = prices.filter((p) => p.pair === pair);
+                  {pricePairs.map((pair) => {
+                    const rows = pricesByPair.get(pair) ?? [];
                     if (rows.length === 0) return null;
                     return (
                       <div key={pair}>
@@ -246,17 +244,17 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                               >
                                 <td className="text-mempool-text-dim pr-1">{p.exchange}</td>
                                 <td className="text-right font-mono text-mempool-green">
-                                  {p.success ? fmtUsd(p.bidMicroUsd, isLcx) : "n/a"}
+                                  {p.success ? fmtUsd(p.bidMicroUsd) : "n/a"}
                                 </td>
                                 <td className="text-right font-mono text-mempool-orange">
-                                  {p.success ? fmtUsd(p.askMicroUsd, isLcx) : "n/a"}
+                                  {p.success ? fmtUsd(p.askMicroUsd) : "n/a"}
                                 </td>
                                 <td className="text-right font-mono text-mempool-text-dim pl-1">
                                   {p.success ? fmtTs(p.timestampMs) : "—"}
                                 </td>
                                 <td className="text-right pl-1">
-                                  <span className={`text-[9px] px-1 py-0.5 rounded ${sourceClass}`}>
-                                    {sourceLabel}
+                                  <span className={`text-[9px] px-1 py-0.5 rounded ${priceSourceClass}`}>
+                                    {priceSourceLabel}
                                   </span>
                                 </td>
                               </tr>
@@ -268,8 +266,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                   })}
                 </div>
               </div>
-            );
-          })()}
+          )}
 
           {/* Fee Summary */}
           {txs.length > 0 && (
@@ -291,9 +288,37 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
 
           {/* Transactions */}
           <div className="pt-3 border-t border-mempool-border/50">
-            <h4 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider mb-2">
-              Transactions ({(full.txCount ?? 0) + 1})
-            </h4>
+            <div className="flex items-center gap-2 mb-2">
+              <h4 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+                Transactions ({(full.txCount ?? 0) + 1})
+              </h4>
+              {txs.length > 0 && (
+                <button
+                  onClick={() => {
+                    const rows = [
+                      ["txid","from","to","amount_omni","fee_sat","kind","status"].join(","),
+                      ...txs.map((tx: any) => [
+                        `"${tx.txid ?? ""}"`,
+                        `"${tx.from ?? ""}"`,
+                        `"${tx.to ?? ""}"`,
+                        ((tx.amount || 0) / SAT_PER_OMNI).toFixed(8),
+                        tx.fee || 0,
+                        tx.kind ?? "transfer",
+                        tx.status ?? "",
+                      ].join(",")),
+                    ].join("\n");
+                    const blob = new Blob([rows], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url; a.download = `omnibus-block-${full.height}-txs.csv`;
+                    a.click(); URL.revokeObjectURL(url);
+                  }}
+                  className="ml-auto px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+                >
+                  ⬇ CSV
+                </button>
+              )}
+            </div>
 
             {/* Block Reward (coinbase TX). Show the real miner address,
                 not the literal word 'miner...' from before. */}
@@ -302,7 +327,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                 <div className="w-2 h-2 rounded-full bg-mempool-green flex-shrink-0" />
                 <span className="text-xs font-mono text-mempool-green font-bold">Block Reward</span>
                 <span className="text-mempool-green ml-auto font-mono text-xs">
-                  +{((full.rewardSAT || 0) / 1e9).toFixed(8)} OMNI
+                  +{((full.rewardSAT || 0) / SAT_PER_OMNI).toFixed(8)} OMNI
                 </span>
               </div>
               {full.miner && (
@@ -315,6 +340,8 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             {/* User TXs */}
             {loading ? (
               <p className="text-xs text-mempool-text-dim text-center py-4">Loading transactions...</p>
+            ) : loadErr ? (
+              <p className="text-xs text-red-400 text-center py-4 font-mono">{loadErr}</p>
             ) : txs.length === 0 ? (
               <p className="text-xs text-mempool-text-dim text-center py-2">
                 No user transactions in this block (coinbase only)
@@ -322,9 +349,20 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             ) : (
               txs.map((tx: any, i: number) => (
                 <div key={tx.txid || i} className="bg-mempool-bg rounded-lg p-3 mb-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <div className="w-2 h-2 rounded-full bg-mempool-blue flex-shrink-0" />
-                    <span className="text-xs font-mono text-mempool-text truncate">{tx.txid?.slice(0, 24)}...</span>
+                    <button
+                      onClick={() => { window.location.hash = `#/tx/${tx.txid}`; }}
+                      className="text-xs font-mono text-mempool-blue hover:underline truncate"
+                      title={tx.txid}
+                    >
+                      {tx.txid ? midTrunc(tx.txid, 16, 6) : ""}
+                    </button>
+                    {tx.kind && (
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider ${KIND_STYLE[tx.kind] ?? KIND_STYLE.transfer}`}>
+                        {tx.kind}
+                      </span>
+                    )}
                     <span className={`text-[10px] px-1.5 py-0.5 rounded ml-auto ${
                       tx.status === "confirmed"
                         ? "bg-mempool-green/20 text-mempool-green"
@@ -332,13 +370,25 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                     }`}>{tx.status}</span>
                   </div>
                   <div className="mt-1 text-[10px] text-mempool-text-dim flex items-center gap-2 flex-wrap">
-                    <span>
-                      <span className="font-mono">{tx.from?.slice(0, 20)}</span>
-                      <span className="text-mempool-text-dim"> -&gt; </span>
-                      <span className="font-mono">{tx.to?.slice(0, 20)}</span>
+                    <span className="flex items-center gap-1 min-w-0">
+                      {tx.from && tx.from !== "coinbase" ? (
+                        <button onClick={() => { window.location.hash = `#/address/${tx.from}`; }}
+                          className="font-mono text-mempool-blue hover:underline truncate" title={tx.from}>
+                          {midTrunc(tx.from, 14, 6)}
+                        </button>
+                      ) : (
+                        <span className="font-mono italic text-mempool-text-dim">(coinbase)</span>
+                      )}
+                      <span className="text-mempool-text-dim flex-shrink-0">→</span>
+                      {tx.to ? (
+                        <button onClick={() => { window.location.hash = `#/address/${tx.to}`; }}
+                          className="font-mono text-mempool-blue hover:underline truncate" title={tx.to}>
+                          {midTrunc(tx.to, 14, 6)}
+                        </button>
+                      ) : null}
                     </span>
                     <span className="text-mempool-orange">
-                      {((tx.amount || 0) / 1e9).toFixed(8)} OMNI
+                      {((tx.amount || 0) / SAT_PER_OMNI).toFixed(8)} OMNI
                     </span>
                     {tx.fee > 0 && (
                       <span className="text-mempool-text-dim">

@@ -1,0 +1,297 @@
+\doxysection{protocol-\/fuzzer.py}
+\hypertarget{protocol-fuzzer_8py_source}{}\label{protocol-fuzzer_8py_source}\index{tools/REVERSE/protocol-\/fuzzer.py@{tools/REVERSE/protocol-\/fuzzer.py}}
+\doxymbox{\hyperlink{protocol-fuzzer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00001}\doxymbox{\hyperlink{namespaceprotocol-fuzzer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00002}\doxymbox{\hyperlink{namespaceprotocol}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00003}00003\ \textcolor{stringliteral}{protocol-\/fuzzer.py}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00005}00005\ \textcolor{stringliteral}{Fuzz\ the\ P2P\ protocol\ of\ a\ BlockChainCore\ node\ over\ TCP.}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00006}00006\ \textcolor{stringliteral}{Sends\ malformed\ messages:}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ oversized\ payloads}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ invalid\ headers\ /\ magic\ bytes}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ truncated\ data}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ random\ garbage}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00011}00011\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00012}00012\ \textcolor{stringliteral}{Detects\ crashes,\ hangs,\ and\ unexpected\ responses.}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00013}00013\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00014}00014\ \textcolor{stringliteral}{Outputs:\ fuzz-\/results.json}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00015}00015\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00017}00017\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00018}00018\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00020}00020\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00021}00021\ \textcolor{keyword}{import}\ socket}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00022}00022\ \textcolor{keyword}{import}\ struct}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00023}00023\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00024}00024\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00025}00025\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00026}00026\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00028}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a555aeb3fb0ac3046f43adaff6346dfde}{00028}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00029}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a41fce64dd50dfcb2dad3155168458c90}{00029}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00030}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a4dfbb5d2d67f2ea2bf2308516d18e0db}{00030}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00031}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a5841981de5e5a8a010ff130d2047d6f2}{00031}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00032}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a01e2772fe8b4c0a45870ce605a0085cc}{00032}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00035}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00035}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00036}00036\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00039}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00040}00040\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00043}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_abf994b8269849d29e07697ea8a840f74}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00044}00044\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00047}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00048}00048\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00051}00051\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00052}00052\ \textcolor{comment}{\#\ Message\ construction\ helpers}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00053}00053\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00054}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_aef45d1c71b69fd7eb07cac09e600e1c8}{00054}}\ MAGIC\ =\ b\textcolor{stringliteral}{"{}\(\backslash\)x4f\(\backslash\)x4d\(\backslash\)x4e\(\backslash\)x49"{}}\ \ \textcolor{comment}{\#\ "{}OMNI"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00055}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_af782472870ab06274879b57a5ba3b6a0}{00055}}\ COMMANDS\ =\ [b\textcolor{stringliteral}{"{}version"{}},\ b\textcolor{stringliteral}{"{}verack"{}},\ b\textcolor{stringliteral}{"{}ping"{}},\ b\textcolor{stringliteral}{"{}pong"{}},\ b\textcolor{stringliteral}{"{}getblocks"{}},\ b\textcolor{stringliteral}{"{}inv"{}},\ b\textcolor{stringliteral}{"{}tx"{}},\ b\textcolor{stringliteral}{"{}block"{}}]}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00058}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}{00058}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}{make\_valid\_header}}(command:\ bytes,\ payload\_len:\ int)\ -\/>\ bytes:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00059}00059\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Build\ a\ minimal\ valid\ P2P\ header."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00060}00060\ \ \ \ \ cmd\ =\ command.ljust(12,\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00061}00061\ \ \ \ \ checksum\ =\ b\textcolor{stringliteral}{"{}\(\backslash\)x00\(\backslash\)x00\(\backslash\)x00\(\backslash\)x00"{}}\ \ \textcolor{comment}{\#\ simplified}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{return}\ MAGIC\ +\ cmd\ +\ struct.pack(\textcolor{stringliteral}{"{}<I"{}},\ payload\_len)\ +\ checksum}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00065}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{00065}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{make\_message}}(command:\ bytes,\ payload:\ bytes)\ -\/>\ bytes:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}{make\_valid\_header}}(command,\ len(payload))\ +\ payload}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00069}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0}{00069}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0}{random\_payload}}(min\_size:\ int\ =\ 0,\ max\_size:\ int\ =\ 4096)\ -\/>\ bytes:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00070}00070\ \ \ \ \ size\ =\ random.randint(min\_size,\ max\_size)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{return}\ bytes(random.randint(0,\ 255)\ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(size))}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00074}00074\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00075}00075\ \textcolor{comment}{\#\ Fuzz\ cases}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00076}00076\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00077}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{00077}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{fuzz\_cases}}()\ -\/>\ list[dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00078}00078\ \ \ \ \ cases:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00080}00080\ \ \ \ \ \textcolor{comment}{\#\ 1.\ Valid\ handshake\ baseline}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00081}00081\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}valid\_version"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{make\_message}}(b\textcolor{stringliteral}{"{}version"{}},\ b\textcolor{stringliteral}{"{}\(\backslash\)x7f\(\backslash\)x11\(\backslash\)x01\(\backslash\)x00"{}}\ +\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}}\ *\ 80),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00087}00087\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00089}00089\ \ \ \ \ \textcolor{comment}{\#\ 2.\ Oversized\ message}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00090}00090\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}oversized\_payload"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}{make\_valid\_header}}(b\textcolor{stringliteral}{"{}version"{}},\ 0x02000000)\ +\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0}{random\_payload}}(1024\ *\ 1024,\ 1024\ *\ 1024),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00096}00096\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00098}00098\ \ \ \ \ \textcolor{comment}{\#\ 3.\ Invalid\ magic\ bytes}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00099}00099\ \ \ \ \ bad\_magic\ =\ b\textcolor{stringliteral}{"{}\(\backslash\)xDE\(\backslash\)xAD\(\backslash\)xBE\(\backslash\)xEF"{}}\ +\ b\textcolor{stringliteral}{"{}version"{}}.ljust(12,\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}})\ +\ struct.pack(\textcolor{stringliteral}{"{}<I"{}},\ 0)\ +\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}}\ *\ 4}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00100}00100\ \ \ \ \ cases.append(\{\textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}bad\_magic"{}},\ \textcolor{stringliteral}{"{}data"{}}:\ bad\_magic,\ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{True}\})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00102}00102\ \ \ \ \ \textcolor{comment}{\#\ 4.\ Truncated\ header}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00103}00103\ \ \ \ \ cases.append(\{\textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}truncated\_header"{}},\ \textcolor{stringliteral}{"{}data"{}}:\ MAGIC\ +\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}}\ *\ 10,\ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{True}\})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00105}00105\ \ \ \ \ \textcolor{comment}{\#\ 5.\ Truncated\ payload\ (header\ says\ 1000,\ send\ 10\ bytes)}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00106}00106\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}truncated\_payload"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}{make\_valid\_header}}(b\textcolor{stringliteral}{"{}version"{}},\ 1000)\ +\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}}\ *\ 10,}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00112}00112\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00114}00114\ \ \ \ \ \textcolor{comment}{\#\ 6.\ Unknown\ command}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00115}00115\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}unknown\_command"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{make\_message}}(b\textcolor{stringliteral}{"{}\(\backslash\)x00evil\(\backslash\)x00"{}},\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}}\ *\ 20),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00121}00121\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00123}00123\ \ \ \ \ \textcolor{comment}{\#\ 7.\ Null-\/byte\ injection\ in\ command}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00124}00124\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}null\_command"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{make\_message}}(b\textcolor{stringliteral}{"{}\(\backslash\)x00\(\backslash\)x00\(\backslash\)x00\(\backslash\)x00\(\backslash\)x00\(\backslash\)x00\(\backslash\)x00\(\backslash\)x00"{}},\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}}\ *\ 4),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00130}00130\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00132}00132\ \ \ \ \ \textcolor{comment}{\#\ 8.\ Random\ garbage}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00133}00133\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}random\_garbage"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0}{random\_payload}}(64,\ 512),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00139}00139\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00141}00141\ \ \ \ \ \textcolor{comment}{\#\ 9.\ Very\ small\ payload}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00142}00142\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}zero\_payload\_valid\_header"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{make\_message}}(b\textcolor{stringliteral}{"{}verack"{}},\ b\textcolor{stringliteral}{"{}"{}}),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00148}00148\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00150}00150\ \ \ \ \ \textcolor{comment}{\#\ 10.\ Negative-\/length-\/like\ header\ (uint32\ max)}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00151}00151\ \ \ \ \ cases.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}max\_uint32\_length"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}data"{}}:\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}{make\_valid\_header}}(b\textcolor{stringliteral}{"{}version"{}},\ 0xFFFFFFFF)\ +\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}}\ *\ 16,}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00157}00157\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00158}00158\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00159}00159\ \ \ \ \ \textcolor{comment}{\#\ 11.\ Flood\ of\ small\ messages}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00160}00160\ \ \ \ \ flood\ =\ b\textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00161}00161\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(100):}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ flood\ +=\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{make\_message}}(random.choice(COMMANDS),\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0}{random\_payload}}(8,\ 64))}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00163}00163\ \ \ \ \ cases.append(\{\textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}message\_flood"{}},\ \textcolor{stringliteral}{"{}data"{}}:\ flood,\ \textcolor{stringliteral}{"{}expect\_disconnect"{}}:\ \textcolor{keyword}{False}\})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00165}00165\ \ \ \ \ \textcolor{keywordflow}{return}\ cases}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00168}00168\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00169}00169\ \textcolor{comment}{\#\ Network\ interaction}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00170}00170\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00171}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a3b9d2201b09914f48e77c4ea93dc905e}{00171}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a3b9d2201b09914f48e77c4ea93dc905e}{send\_and\_probe}}(host:\ str,\ port:\ int,\ data:\ bytes,\ timeout:\ float\ =\ 5.0)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00172}00172\ \ \ \ \ result:\ dict[str,\ Any]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}connected"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sent\_bytes"{}}:\ len(data),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}response\_bytes"{}}:\ 0,}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}response\_hex"{}}:\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hang"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crash\_guess"{}}:\ \textcolor{keyword}{False},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}elapsed\_ms"{}}:\ 0.0,}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00180}00180\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00181}00181\ \ \ \ \ start\ =\ time.perf\_counter()}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00182}00182\ \ \ \ \ sock:\ socket.socket\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00183}00183\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ sock.settimeout(timeout)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ sock.connect((host,\ port))}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}connected"{}}]\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ sock.sendall(data)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Try\ to\ read\ response}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ resp\ =\ sock.recv(8192)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}response\_bytes"{}}]\ =\ len(resp)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}response\_hex"{}}]\ =\ resp[:256].hex()}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ socket.timeout:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}hang"{}}]\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ ConnectionResetError:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}crash\_guess"{}}]\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00199}00199\ \ \ \ \ \textcolor{keywordflow}{except}\ ConnectionRefusedError:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}connected"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00201}00201\ \ \ \ \ \textcolor{keywordflow}{except}\ socket.timeout:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}hang"{}}]\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00203}00203\ \ \ \ \ \textcolor{keywordflow}{except}\ OSError:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}crash\_guess"{}}]\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00205}00205\ \ \ \ \ \textcolor{keywordflow}{finally}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ sock:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00211}00211\ \ \ \ \ result[\textcolor{stringliteral}{"{}elapsed\_ms"{}}]\ =\ round((time.perf\_counter()\ -\/\ start)\ *\ 1000,\ 2)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00212}00212\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00215}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae7bf8691239dea8e2128bc30e44da55a}{00215}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae7bf8691239dea8e2128bc30e44da55a}{is\_node\_alive}}(host:\ str,\ port:\ int,\ timeout:\ float\ =\ 3.0)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00216}00216\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ socket.create\_connection((host,\ port),\ timeout=timeout):}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00223}00223\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00224}00224\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00225}00225\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00226}\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a7431cb90017e54fe695b23d4190db046}{00226}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00227}00227\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Fuzz\ BlockChainCore\ P2P\ protocol."{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00228}00228\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}Target\ node\ host"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00229}00229\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=9333,\ help=\textcolor{stringliteral}{"{}Target\ P2P\ port"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00230}00230\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/timeout"{}},\ type=float,\ default=5.0,\ help=\textcolor{stringliteral}{"{}Socket\ timeout"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00231}00231\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}tools/REVERSE/fuzz-\/results.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00232}00232\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/cooldown"{}},\ type=float,\ default=0.5,\ help=\textcolor{stringliteral}{"{}Seconds\ between\ cases"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00233}00233\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00235}00235\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae7bf8691239dea8e2128bc30e44da55a}{is\_node\_alive}}(args.host,\ args.port):}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Node\ \{args.host\}:\{args.port\}\ is\ not\ responding\ to\ TCP\ probe."{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Continue\ anyway\ —\ node\ might\ accept\ later}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00239}00239\ \ \ \ \ cases\ =\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{fuzz\_cases}}()}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00240}00240\ \ \ \ \ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Running\ \{len(cases)\}\ fuzz\ cases\ against\ \{args.host\}:\{args.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00241}00241\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00242}00242\ \ \ \ \ results:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00243}00243\ \ \ \ \ \textcolor{keywordflow}{for}\ case\ \textcolor{keywordflow}{in}\ cases:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Case:\ \{case['name']\}\ (\{case['sent\_bytes']\}\ bytes)"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ probe\ =\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a3b9d2201b09914f48e77c4ea93dc905e}{send\_and\_probe}}(args.host,\ args.port,\ case[\textcolor{stringliteral}{"{}data"{}}],\ args.timeout)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Determine\ if\ node\ is\ still\ alive\ after\ case}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ time.sleep(0.2)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ alive\_after\ =\ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae7bf8691239dea8e2128bc30e44da55a}{is\_node\_alive}}(args.host,\ args.port,\ timeout=2.0)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ issue\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ probe[\textcolor{stringliteral}{"{}crash\_guess"{}}]\ \textcolor{keywordflow}{or}\ \textcolor{keywordflow}{not}\ alive\_after:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ issue\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}\ \ Possible\ crash\ /\ disconnect\ on\ \{case['name']\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ probe[\textcolor{stringliteral}{"{}hang"{}}]:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ issue\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}\ \ Hang\ detected\ on\ \{case['name']\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}\ \ Completed\ in\ \{probe['elapsed\_ms']\}\ ms"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00260}00260\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ results.append(}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ case[\textcolor{stringliteral}{"{}name"{}}],}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_disconnect"{}}:\ case[\textcolor{stringliteral}{"{}expect\_disconnect"{}}],}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}probe"{}}:\ probe,}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}alive\_after"{}}:\ alive\_after,}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}issue"{}}:\ issue,}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ time.sleep(args.cooldown)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00272}00272\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target"{}}:\ f\textcolor{stringliteral}{"{}\{args.host\}:\{args.port\}"{}},}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cases\_run"{}}:\ len(cases),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}issues\_found"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}issue"{}}]),}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}results"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00278}00278\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00280}00280\ \ \ \ \ out\_path\ =\ os.path.abspath(args.output)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00281}00281\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00282}00282\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00285}00285\ \ \ \ \ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Fuzz\ report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00286}00286\ \ \ \ \ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Issues\ found:\ \{report['issues\_found']\}"{}})}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00287}00287\ \ \ \ \ \textcolor{keywordflow}{return}\ 0\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}issues\_found"{}}]\ ==\ 0\ \textcolor{keywordflow}{else}\ 1}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00290}00290\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{protocol-fuzzer_8py_source_l00291}00291\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespaceprotocol-fuzzer_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

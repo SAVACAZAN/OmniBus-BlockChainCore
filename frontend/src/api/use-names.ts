@@ -17,12 +17,19 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "./rpc-client";
+import { rpc } from "./rpc-client";
+import { subscribe as wsSubscribe } from "./ws-bus";
 
-const rpc = new OmniBusRpcClient();
 
 const PRIMARY_LS_PREFIX = "omnibus:primary-name:";
 const MAX_NAMES_PER_WALLET = 10;
+
+const TLD_PRIORITY: Record<string, number> = {
+  gov: 0, mil: 1, bank: 2, fin: 3,
+  quantum: 4, omnibus: 5,
+  edu: 6, org: 7, dev: 8,
+  arbitraje: 9,
+};
 
 export type DnsEntry = {
   name: string;
@@ -73,7 +80,7 @@ async function loadAllEntries(): Promise<DnsEntry[]> {
   if (allEntriesPromise) return allEntriesPromise;
   allEntriesPromise = (async () => {
     try {
-      const r = (await rpc.request_raw("listnames", [])) as { entries?: DnsEntry[] };
+      const r = (await rpc.listNames()) as { entries?: DnsEntry[] } | null;
       const entries = r?.entries ?? [];
       // Re-bucket by address so subsequent useNamesOwnedBy() calls are O(1).
       namesByAddress.clear();
@@ -100,6 +107,10 @@ export function refreshNameCache() {
   inflight.clear();
   loadAllEntries();
 }
+
+// Auto-refresh when node broadcasts a name_registered or name_renewed WS event
+wsSubscribe("name_registered", () => { refreshNameCache(); });
+wsSubscribe("name_renewed",    () => { refreshNameCache(); });
 
 /** What the user picked as their public-facing name for `addr`. */
 export function getPrimaryName(addr: string): string | null {
@@ -144,12 +155,6 @@ export function useNameForAddress(addr: string | null | undefined): string | nul
   // Stable default: institutional categories first (gov/mil/bank/fin pin
   // identity to a regulated entity), then quantum (premium personal),
   // then omnibus (default), then niche (edu/org/dev), then arbitraje last.
-  const TLD_PRIORITY: Record<string, number> = {
-    gov: 0, mil: 1, bank: 2, fin: 3,
-    quantum: 4, omnibus: 5,
-    edu: 6, org: 7, dev: 8,
-    arbitraje: 9,
-  };
   const sorted = [...list].sort((a, b) => {
     const pa = TLD_PRIORITY[a.tld] ?? 99;
     const pb = TLD_PRIORITY[b.tld] ?? 99;
@@ -204,12 +209,6 @@ export function useEntryForAddress(addr: string | null | undefined): DnsEntry | 
     const found = list.find((e) => e.fullLabel === primaryLabel);
     if (found) return found;
   }
-  const TLD_PRIORITY: Record<string, number> = {
-    gov: 0, mil: 1, bank: 2, fin: 3,
-    quantum: 4, omnibus: 5,
-    edu: 6, org: 7, dev: 8,
-    arbitraje: 9,
-  };
   const sorted = [...list].sort((a, b) => {
     const pa = TLD_PRIORITY[a.tld] ?? 99;
     const pb = TLD_PRIORITY[b.tld] ?? 99;
@@ -264,12 +263,7 @@ export function useExpiringNames(
     let cancelled = false;
     const tick = async () => {
       try {
-        const params: any[] = blocksThreshold == null
-          ? [addr]
-          : [addr, blocksThreshold];
-        const r = (await rpc.request_raw("ns_expiringSoon", params)) as {
-          entries?: ExpiringNameEntry[];
-        };
+        const r = (await rpc.nsExpiringSoon(addr, blocksThreshold)) as { entries?: ExpiringNameEntry[] } | null;
         if (!cancelled) setList(r?.entries ?? []);
       } catch {
         // Older nodes without ns_expiringSoon — silently treat as "nothing

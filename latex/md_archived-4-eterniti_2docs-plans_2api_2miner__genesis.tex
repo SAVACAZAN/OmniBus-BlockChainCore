@@ -1,0 +1,387 @@
+\chapter{Module:\+ {\ttfamily miner\+\_\+genesis} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis}{}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis}\index{Module: $<$tt$>$miner\_genesis$<$/tt$>$@{Module: $<$tt$>$miner\_genesis$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2046}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2046}%
+
+
+\begin{quote}
+Genesis miner allocation — initial miner addresses, pre-\/mine distribution for bootstrap. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+miner\+\_\+genesis.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 208 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 13 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 6
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2048}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2048}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2049}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2049}
+
+\begin{DoxyItemize}
+\item \`{}\+Miner\+Wallet\`{}{\ttfamily Miner\+Wallet}
+\end{DoxyItemize}— Wallet simplu pentru geneza (adresa + balance, fara cheie privata completa)
+\begin{DoxyItemize}
+\item \`{}\+Genesis\+Allocation\`{}{\ttfamily Genesis\+Allocation}
+\end{DoxyItemize}— Genesis Block Token Distribution\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2050}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2050}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}get\+Primary\+Address()\`{}{\ttfamily get\+Primary\+Address()}
+\end{DoxyItemize}— Returns the current primary address.
+\begin{DoxyItemize}
+\item \`{}get\+Balance()\`{}{\ttfamily get\+Balance()}
+\end{DoxyItemize}— Returns the current balance.
+\begin{DoxyItemize}
+\item \`{}add\+Mining\+Reward()\`{}{\ttfamily add\+Mining\+Reward()}
+\end{DoxyItemize}— Adds a new mining reward to the collection.
+\begin{DoxyItemize}
+\item \`{}record\+Block\+Found()\`{}{\ttfamily record\+Block\+Found()}
+\end{DoxyItemize}— Performs the record block found operation on the miner\+\_\+genesis module.
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the miner\+\_\+genesis module.
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}generate\+Miner\+Wallets()\`{}{\ttfamily generate\+Miner\+Wallets()}
+\end{DoxyItemize}— Executes mining operation — finds valid nonce for the next block.
+\begin{DoxyItemize}
+\item \`{}get\+Wallet()\`{}{\ttfamily get\+Wallet()}
+\end{DoxyItemize}— Returns the wallet for the given miner\+\_\+id.
+\begin{DoxyItemize}
+\item \`{}get\+Total\+Allocated()\`{}{\ttfamily get\+Total\+Allocated()}
+\end{DoxyItemize}— Returns the current total allocated.
+\begin{DoxyItemize}
+\item \`{}print\+Summary()\`{}{\ttfamily print\+Summary()}
+\end{DoxyItemize}— Performs the print summary operation on the miner\+\_\+genesis module.
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2052}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2052}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2053}{}\doxysubsection{\texorpdfstring{{\ttfamily Miner\+Wallet}}{{\ttfamily Miner\+Wallet}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2053}
+Wallet simplu pentru geneza (adresa + balance, fara cheie privata completa)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily u32}  &Miner\+\_\+id  \\
+{\ttfamily miner\+\_\+name}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+name  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily balance}  &{\ttfamily u64}  &Balance  \\
+{\ttfamily mining\+\_\+reward}  &{\ttfamily u64}  &Mining\+\_\+reward  \\
+{\ttfamily block\+\_\+contribution}  &{\ttfamily u32}  &Block\+\_\+contribution  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 8}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2055}{}\doxysubsection{\texorpdfstring{{\ttfamily Genesis\+Allocation}}{{\ttfamily Genesis\+Allocation}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2055}
+Genesis Block Token Distribution
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily miner\+\_\+wallets}  &{\ttfamily array\+\_\+list.\+Managed(\+Miner\+Wallet)}  &Miner\+\_\+wallets  \\
+{\ttfamily total\+\_\+supply}  &{\ttfamily u64}  &Total\+\_\+supply  \\
+{\ttfamily miners\+\_\+count}  &{\ttfamily u32}  &Miners\+\_\+count  \\
+{\ttfamily allocation\+\_\+per\+\_\+miner}  &{\ttfamily u64}  &Allocation\+\_\+per\+\_\+miner  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 71}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2057}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2057}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2058}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2058}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ miner\_id:\ u32,\ allocated\_tokens:\ u64)\ !MinerWallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily u32}  &Miner\+\_\+id  \\
+{\ttfamily allocated\+\_\+tokens}  &{\ttfamily u64}  &Allocated\+\_\+tokens  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Miner\+Wallet}
+
+{\itshape Defined at line 17}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2060}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Primary\+Address()}}{{\ttfamily get\+Primary\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2060}
+Returns the current primary address.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getPrimaryAddress(self:\ *const\ MinerWallet)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Miner\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 34}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2062}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance()}}{{\ttfamily get\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2062}
+Returns the current balance.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalance(self:\ *const\ MinerWallet)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Miner\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 38}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2064}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Mining\+Reward()}}{{\ttfamily add\+Mining\+Reward()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2064}
+Adds a new mining reward to the collection.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addMiningReward(self:\ *MinerWallet,\ reward:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet}  &The instance  \\
+{\ttfamily reward}  &{\ttfamily u64}  &Reward  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 42}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2066}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+Block\+Found()}}{{\ttfamily record\+Block\+Found()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2066}
+Performs the record block found operation on the miner\+\_\+genesis module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordBlockFound(self:\ *MinerWallet)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 47}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2068}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2068}
+Performs the print operation on the miner\+\_\+genesis module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ MinerWallet)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Miner\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 51}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2070}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2070}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *MinerWallet)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Miner\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 64}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2072}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2072}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ miners\_count:\ u32)\ !GenesisAllocation\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily miners\+\_\+count}  &{\ttfamily u32}  &Miners\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Genesis\+Allocation}
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2074}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Miner\+Wallets()}}{{\ttfamily generate\+Miner\+Wallets()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2074}
+Executes mining operation — finds valid nonce for the next block.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateMinerWallets(self:\ *GenesisAllocation)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Genesis\+Allocation}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 92}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2076}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Wallet()}}{{\ttfamily get\+Wallet()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2076}
+Returns the wallet for the given miner\+\_\+id.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getWallet(self:\ *const\ GenesisAllocation,\ miner\_id:\ u32)\ ?*const\ MinerWallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Genesis\+Allocation}  &The instance  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily u32}  &Miner\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const Miner\+Wallet}
+
+{\itshape Defined at line 115}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2078}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Total\+Allocated()}}{{\ttfamily get\+Total\+Allocated()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2078}
+Returns the current total allocated.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getTotalAllocated(self:\ *const\ GenesisAllocation)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Genesis\+Allocation}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 122}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2080}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Summary()}}{{\ttfamily print\+Summary()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2080}
+Performs the print summary operation on the miner\+\_\+genesis module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printSummary(self:\ *const\ GenesisAllocation)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Genesis\+Allocation}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 128}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2082}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2miner__genesis_autotoc_md2082}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *GenesisAllocation)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Genesis\+Allocation}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 147}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

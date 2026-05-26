@@ -26,18 +26,18 @@ import {
   AlertTriangle,
   RefreshCw,
 } from "lucide-react";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, midTrunc, fmtOmni, fmtInt } from "../../utils/fmt";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
 import { useGlobalBalance, refreshGlobalBalance } from "../../api/use-global-balance";
+import { useBlockHeight } from "../../api/use-block-height";
 
-const rpc = new OmniBusRpcClient();
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const SAT_PER_OMNI = 1_000_000_000;
+
 const BLOCK_TIME_S = 1; // chain block time used for day math (1s/block)
 const BLOCKS_PER_DAY = 86_400 / BLOCK_TIME_S;
 const UNBONDING_BLOCKS = 7 * BLOCKS_PER_DAY; // 7-day cooling-off after unstake
@@ -54,6 +54,12 @@ const BASE_RENT_PER_OMNI_PER_DAY = 0.10; // baseline RENT/day before tier mult.
 // ── Types (no `any` for RPC results) ──────────────────────────────────────
 
 type StakeStatus = "active" | "unbonding" | "completed";
+
+const STAKE_STATUS_BADGE: Record<StakeStatus, string> = {
+  active:    "bg-mempool-green/15 text-mempool-green border-mempool-green/40",
+  unbonding: "bg-mempool-orange/15 text-mempool-orange border-mempool-orange/40",
+  completed: "bg-mempool-border/30 text-mempool-text-dim border-mempool-border",
+};
 
 interface StakeEntry {
   id: number;
@@ -82,6 +88,13 @@ interface UnstakeResp { status: string; txid: string; unbonding_until_block: num
 
 type SubTab = "mine" | "new" | "top" | "activity";
 
+const STAKE_TABS: { id: SubTab; label: string }[] = [
+  { id: "mine",     label: "My Stakes" },
+  { id: "new",      label: "Stake new" },
+  { id: "top",      label: "Top Stakers" },
+  { id: "activity", label: "Activity" },
+];
+
 // ── Activity tab — stake / unstake history pulled from getaddresshistory ──
 
 interface AddressHistoryTx {
@@ -108,25 +121,13 @@ type SortBy = "amount" | "rent" | "days";
 
 // ── Format helpers ────────────────────────────────────────────────────────
 
-const omniFmt = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 4,
-});
-const intFmt = new Intl.NumberFormat("en-US");
 const repFmt = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-function fmtOmni(sat: number): string {
-  return omniFmt.format(sat / SAT_PER_OMNI);
-}
 function fmtRent(rentX100: number): string {
   return repFmt.format(rentX100 / 100);
-}
-function shortAddr(addr: string): string {
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-4)}`;
 }
 function tierMultiplier(amountOmni: number): number {
   if (amountOmni >= 10_000) return 3.0;
@@ -136,15 +137,6 @@ function tierMultiplier(amountOmni: number): number {
 }
 
 // ── Signing (canonical messages — must match rpc_server.zig) ──────────────
-
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
 
 function signStakePayload(args: {
   privateKeyHex: string; from: string; amountSat: number; lockBlocks: number; nonce: number;
@@ -163,20 +155,7 @@ function signUnstakePayload(args: {
 
 export function StakePage() {
   const [tab, setTab] = useState<SubTab>("mine");
-  const [blockHeight, setBlockHeight] = useState<number>(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    const tick = async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    };
-    tick();
-    const id = window.setInterval(tick, 5000);
-    return () => { cancelled = true; window.clearInterval(id); };
-  }, []);
+  const blockHeight = useBlockHeight();
 
   return (
     <section className="bg-mempool-bg-elev rounded-lg p-3 sm:p-4 border border-mempool-border backdrop-blur-sm">
@@ -187,18 +166,13 @@ export function StakePage() {
         </h2>
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-[10px] sm:text-xs text-mempool-text-dim font-mono whitespace-nowrap">
-          height {intFmt.format(blockHeight)}
+          height {fmtInt(blockHeight)}
         </span>
       </div>
 
       {/* Sub-tab bar (matches App.tsx tab styling) */}
       <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
-        {([
-          { id: "mine",     label: "My Stakes" },
-          { id: "new",      label: "Stake new" },
-          { id: "top",      label: "Top Stakers" },
-          { id: "activity", label: "Activity" },
-        ] as { id: SubTab; label: string }[]).map((t) => {
+        {STAKE_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button
@@ -251,7 +225,7 @@ function MyStakesTab({ blockHeight }: { blockHeight: number }) {
     setLoading(true);
     setErr(null);
     try {
-      const r = (await rpc.request_raw("getstake", [{ address: effectiveAddress }])) as GetStakeResp | null;
+      const r = (await rpc.getStake(effectiveAddress)) as GetStakeResp | null;
       setStakes(r?.stakes ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -279,9 +253,7 @@ function MyStakesTab({ blockHeight }: { blockHeight: number }) {
     setUnstakeBusy(stakeId);
     try {
       // Fetch sequential nonce from chain (see doStake for why).
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address).catch(() => 0);
       const { signature, publicKey } = signUnstakePayload({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -384,7 +356,7 @@ function MyStakesTab({ blockHeight }: { blockHeight: number }) {
             </div>
             <p className="text-xs text-mempool-text-dim leading-relaxed">
               Unstaking starts a <span className="text-mempool-orange font-mono">7-day unbonding</span>
-              {" "}period ({intFmt.format(UNBONDING_BLOCKS)} blocks). During unbonding the funds
+              {" "}period ({fmtInt(UNBONDING_BLOCKS)} blocks). During unbonding the funds
               are locked but accrue no further RENT. Funds become spendable after unbonding ends.
             </p>
             <div className="flex justify-end gap-2 pt-2">
@@ -426,17 +398,7 @@ function StakeCard({
   );
   const daysRemaining = Math.ceil(blocksRemaining / BLOCKS_PER_DAY);
 
-  const statusBadge = (() => {
-    switch (stake.status) {
-      case "active":
-        return "bg-mempool-green/15 text-mempool-green border-mempool-green/40";
-      case "unbonding":
-        return "bg-mempool-orange/15 text-mempool-orange border-mempool-orange/40";
-      case "completed":
-      default:
-        return "bg-mempool-border/30 text-mempool-text-dim border-mempool-border";
-    }
-  })();
+  const statusBadge = STAKE_STATUS_BADGE[stake.status] ?? STAKE_STATUS_BADGE.completed;
 
   return (
     <div className="bg-mempool-bg border border-mempool-border rounded p-3">
@@ -450,7 +412,7 @@ function StakeCard({
           <span className="text-xs text-mempool-text-dim ml-1">OMNI</span>
         </div>
         <div className="text-xs text-mempool-text-dim font-mono">
-          lock {intFmt.format(stake.lock_blocks)} blk · {stake.days_locked}d
+          lock {fmtInt(stake.lock_blocks)} blk · {stake.days_locked}d
         </div>
         <div className="text-xs font-mono">
           <span className="text-mempool-text-dim">RENT</span>{" "}
@@ -471,13 +433,13 @@ function StakeCard({
         )}
       </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-mempool-text-dim font-mono">
-        <span>started @ block {intFmt.format(stake.started_at_block)}</span>
+        <span>started @ block {fmtInt(stake.started_at_block)}</span>
         {stake.status === "active" && (
-          <span>unlocks in ~{daysRemaining}d ({intFmt.format(blocksRemaining)} blk)</span>
+          <span>unlocks in ~{daysRemaining}d ({fmtInt(blocksRemaining)} blk)</span>
         )}
         {stake.status === "unbonding" && stake.unbonding_until !== undefined && (
           <span className="text-mempool-orange">
-            unbonding until block {intFmt.format(stake.unbonding_until)}
+            unbonding until block {fmtInt(stake.unbonding_until)}
           </span>
         )}
       </div>
@@ -532,9 +494,7 @@ function StakeNewTab({ blockHeight }: { blockHeight: number }) {
       // by validateTransaction (`nonce {d} != expected {d}`). Fetch from
       // chain via `getnonce` so each stake submission gets the real next
       // expected nonce.
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number; chainNonce?: number; pendingCount?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address).catch(() => 0);
       const { signature, publicKey } = signStakePayload({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -662,7 +622,7 @@ function StakeNewTab({ blockHeight }: { blockHeight: number }) {
         <Row label="RENT over lock" value={
           <span className="text-mempool-green">{repFmt.format(estRentTotal)} RENT</span>
         } />
-        <Row label="lock_blocks" value={`${intFmt.format(lockBlocks)} blk · unlocks @ ${intFmt.format(blockHeight + lockBlocks)}`} />
+        <Row label="lock_blocks" value={`${fmtInt(lockBlocks)} blk · unlocks @ ${fmtInt(blockHeight + lockBlocks)}`} />
       </div>
 
       {availableSat !== null && amountSat > availableSat && (
@@ -746,6 +706,30 @@ function TopStakersTab() {
           );
         })}
         <div className="flex-1" />
+        {rows && rows.length > 0 && (
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["rank", "address", "amount_omni", "days_locked", "rent_earned"].join(","),
+                ...rows.map((r, i) => [
+                  i + 1,
+                  `"${r.address}"`,
+                  (r.amount_sat / SAT_PER_OMNI).toFixed(8),
+                  r.days_locked,
+                  (r.rent_earned / 100).toFixed(2),
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-top-stakers.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
@@ -779,16 +763,16 @@ function TopStakersTab() {
                 <tr key={r.address + i} className="border-t border-mempool-border/40">
                   <td className="py-2 px-2 text-mempool-text-dim">{i + 1}</td>
                   <td className="py-2 px-2">
-                    <a
-                      href={`/blocks/${r.address}`}
+                    <button
+                      onClick={() => { window.location.hash = `#/address/${r.address}`; }}
                       className="text-mempool-blue hover:underline"
                       title={r.address}
                     >
-                      {shortAddr(r.address)}
-                    </a>
+                      <AddressLabel address={r.address} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </button>
                   </td>
                   <td className="py-2 px-2 text-right text-mempool-text">{fmtOmni(r.amount_sat)}</td>
-                  <td className="py-2 px-2 text-right text-mempool-text-dim">{intFmt.format(r.days_locked)}</td>
+                  <td className="py-2 px-2 text-right text-mempool-text-dim">{fmtInt(r.days_locked)}</td>
                   <td className="py-2 px-2 text-right text-mempool-green">{fmtRent(r.rent_earned)}</td>
                 </tr>
               ))}
@@ -830,12 +814,11 @@ function StakeActivityTab() {
       // Fire both in parallel so the running total + chain truth come from
       // the same snapshot of chain state, minimising drift between "what the
       // history says" and "what getstake reports".
-      const [histRaw, stakeRaw] = await Promise.all([
-        rpc.request_raw("getaddresshistory", [effectiveAddress]),
-        rpc.request_raw("getstake", [{ address: effectiveAddress }]),
+      const [histRaw, stakeResp] = await Promise.all([
+        rpc.getAddressHistory(effectiveAddress),
+        rpc.getStake(effectiveAddress),
       ]);
       const hist = histRaw as AddressHistoryResp | null;
-      const stakeResp = stakeRaw as { stakes?: StakeEntry[] } | null;
 
       // Filter to stake / unstake TXs only. The backend tags these via
       // `inferTxKind` (kind === "stake") for op_return-prefixed sends.
@@ -908,6 +891,30 @@ function StakeActivityTab() {
             className="flex-1 min-w-0 sm:min-w-[280px] w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
           />
         )}
+        {rows.length > 0 && (
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["block", "type", "txid", "amount_omni", "running_stake_omni"].join(","),
+                ...rows.map((r) => [
+                  r.tx.blockHeight === null ? "pending" : r.tx.blockHeight,
+                  r.type,
+                  r.tx.txid,
+                  (r.delta / SAT_PER_OMNI).toFixed(8),
+                  (r.running / SAT_PER_OMNI).toFixed(8),
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-stake-activity.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
@@ -970,7 +977,7 @@ function StakeActivityTab() {
               {rows.map((r, i) => (
                 <tr key={r.tx.txid + i} className="border-t border-mempool-border/40">
                   <td className="py-2 px-2 text-mempool-text-dim">
-                    {r.tx.blockHeight === null ? "pending" : intFmt.format(r.tx.blockHeight)}
+                    {r.tx.blockHeight === null ? "pending" : fmtInt(r.tx.blockHeight)}
                   </td>
                   <td className="py-2 px-2">
                     <span
@@ -990,7 +997,7 @@ function StakeActivityTab() {
                       className="text-mempool-blue hover:underline"
                       title={r.tx.txid}
                     >
-                      {r.tx.txid.slice(0, 10)}…{r.tx.txid.slice(-6)}
+                      {midTrunc(r.tx.txid, 10, 6)}
                     </a>
                   </td>
                   <td

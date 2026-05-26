@@ -1,0 +1,115 @@
+\chapter{Prompt for Kimi — alternative architectures for Omni\+Bus block-\/rate problem }
+\hypertarget{md__k_i_m_i___p_r_o_m_p_t}{}\label{md__k_i_m_i___p_r_o_m_p_t}\index{Prompt for Kimi — alternative architectures for OmniBus block-\/rate problem@{Prompt for Kimi — alternative architectures for OmniBus block-\/rate problem}}
+\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md55}%
+\Hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md55}%
+
+
+Copy-\/paste the section below into Kimi (or any external LLM). Asks for 2-\/3 alternative designs we could swap into the chain to hit our timing target without throwing away the existing codebase.
+
+\DoxyHorRuler{0}
+\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md57}{}\doxysection{\texorpdfstring{CONTEXT}{CONTEXT}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md57}
+I\textquotesingle{}m building {\bfseries{Omni\+Bus}}, a Layer-\/1 blockchain written in {\bfseries{Zig 0.\+15.\+2}} on Linux (testnet seed runs on a shared-\/\+CPU VPS, \texorpdfstring{$\sim$}{\string~}2 GHz invariant TSC, 2 cores, 1 GB RAM). The repo has \texorpdfstring{$\sim$}{\string~}80k LoC of Zig across {\ttfamily core/\+\texorpdfstring{$\ast$}{*}.zig}.\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md58}{}\doxysubsection{\texorpdfstring{Architecture (current, working)}{Architecture (current, working)}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md58}
+
+\begin{DoxyItemize}
+\item {\bfseries{Block model}}:\+ Bitcoin-\/style PoW with difficulty=1 on testnet. Each block targets {\bfseries{1 second}} wall-\/clock. Inside each block we run a 10-\/tick {\bfseries{sub-\/block}} loop (was 75ms × 10 = 750ms, now 0ms — sub-\/blocks are pure TX-\/batching, no real-\/time pacing).
+\item {\bfseries{Slot leader rotation}}:\+ deterministic via {\ttfamily leader\+For\+Slot(slot\+\_\+id, prev\+\_\+block\+\_\+hash, validators)} — SHA-\/256 of (slot\+\_\+id \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} prev\+\_\+hash) mod weighted-\/validator-\/set.
+\item {\bfseries{Liveness fallback}}:\+ if leader is silent past {\ttfamily SLOT\+\_\+\+TIMEOUT\+\_\+\+MS} (300 ms by default, 50 ms when peer offline), the lex-\/smallest validator takes the slot.
+\item {\bfseries{Single source of time}}:\+ {\ttfamily core/\+orchestrator.\+zig} exposes {\ttfamily Atomic\+Clock} (real or fake backend), {\ttfamily now\+Cycles()} (rdtscp inline asm on x86\+\_\+64), {\ttfamily binary\+Spectrum} (bit-\/level visualisation), {\ttfamily clock\+Score60s} (0-\/100 health metric for a 60s span), {\ttfamily calibrate\+Tsc\+Per\+Sec} (one-\/shot at startup → \texorpdfstring{$\sim$}{\string~}2 GHz on the VPS), {\ttfamily Time\+Orchestrator} (5 named timers:\+ slot, sub\+\_\+block, shard, ws\+\_\+exchange, stabilizer; with skip-\/when-\/late semantics so a 500ms GC pause produces 1 firing, not 12 catch-\/up firings).
+\item {\bfseries{Slot\+Calendar}}:\+ ring of next 60 slots, deterministic leader per slot, refreshed states (future /\+ in\+\_\+flight /\+ finalized /\+ missed). Rebuilt every 10 blocks for amortised cost.
+\item {\bfseries{Stabilizer}}:\+ per-\/block ring buffer of the last 3600 arrival timestamps. Reports 1-\/min and 60-\/min rolling rates every 60s and tunes a {\ttfamily timeout\+\_\+mult} ∈ \+[0.\+2, 2.\+0]\+ proportional to (observed/\+target).
+\item {\bfseries{TCP\+\_\+\+NODELAY}} is now set on all P2P sockets (inbound + outbound).
+\item {\bfseries{Burst smoothing}}:\+ minimum 100 ms between consecutive blocks produced by us, {\bfseries{only when we\textquotesingle{}re at-\/or-\/above target rate}}. Below target → free burst, no smoothing (lets the chain catch up after VPS scheduler pauses).
+\item {\bfseries{DB persistence}}:\+ removed from the hot path entirely. The blockchain itself is the database; balances/\+nonces/\+pubkey-\/registry are deterministically replayed from chain on startup. Restart resyncs from peers.
+\end{DoxyItemize}\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md59}{}\doxysubsection{\texorpdfstring{Cryptographic stack}{Cryptographic stack}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md59}
+
+\begin{DoxyItemize}
+\item secp256k1 ECDSA (pure Zig, \texorpdfstring{$\sim$}{\string~}80 KB), bech32 ({\ttfamily ob1q…} addresses)
+\item BIP-\/32 HD wallets, BIP-\/39 mnemonic, optional 25th-\/word passphrase
+\item liboqs PQ wrappers (ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA-\/256s, ML-\/\+KEM-\/768) for future migration
+\item SHA-\/256 for block hashes + merkle roots; software impl, no Intel SHA-\/\+NI yet
+\item Schnorr + BLS aggregation also implemented but unused at consensus level today
+\end{DoxyItemize}\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md60}{}\doxysubsection{\texorpdfstring{Performance, measured}{Performance, measured}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md60}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metric  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}This session start  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Now  \\
+Block rate  &15 blocks/\+min  &42–50 blocks/\+min  \\
+Best-\/case latency  &unknown  &76 ms  \\
+Median (p50) latency  &unknown  &231 ms  \\
+Sub-\/1 s blocks  &0\%  &88\%  \\
+Sub-\/100 ms blocks  &0\%  &\texorpdfstring{$\sim$}{\string~}5\%  \\
+Clock health (60s span)  &unknown  &47–100 /\+ 100  \\
+\end{DoxyTable}
+
+
+The {\bfseries{target is 60 blocks per minute exactly}} — clock-\/precise:\+ every 60 seconds we want exactly 60 blocks, every block exactly 1 second apart, with 10 sub-\/blocks per block. Like an atomic clock dripping into a ledger.\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md61}{}\doxysubsection{\texorpdfstring{Recent commit history (newest first)}{Recent commit history (newest first)}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md61}
+The block-\/rate work happened in this exact order. The measurements column is what each change moved the rate to in 60-\/second windows on the same VPS (jitter band ±10 blocks, sometimes ±20 during bad VPS windows).
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Commit  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Summary  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Rate after  \\
+{\ttfamily aab28fa}  &slot-\/leader fixes + stabilizer (timeout 3s→0.3s, lex-\/min tiebreak)  &33–35/\+min  \\
+{\ttfamily 162131a}  &orchestrator integration (single Atomic\+Clock, 5 timers)  &32–35/\+min  \\
+{\ttfamily b363095}  &sub-\/block sleep removed + clock\+Score60s + burst smoothing 100ms  &34–48/\+min  \\
+{\ttfamily 0606de8}  &RDTSC cycle counter + binary spectrum + ws-\/feed wired to clock  &45–48/\+min (best!)  \\
+{\ttfamily 9872951}  &docs only (NEXT\+\_\+\+SESSION\+\_\+\+PLAN)  &n/\+a  \\
+{\ttfamily e2e5a2a}  &slot calendar + 3 RPC endpoints + future-\/block pool  &36/\+min ← regression  \\
+{\ttfamily 3104f5b}  &calendar throttle (rebuild every 10 blocks) + adaptive smoothing  &50/\+min  \\
+{\ttfamily d0138be}  &UI tab "{}\+Roadmap"{} (iframe to pyramid+hourglass)  &n/\+a (frontend)  \\
+{\ttfamily e78a525}  &fix RPC URL in roadmap-\/flow  &n/\+a  \\
+{\ttfamily 61ea4da}  &wooden hourglass model 2 + legend + log-\/scaled pyramid  &n/\+a (frontend)  \\
+{\ttfamily 261c5d6}  &TCP\+\_\+\+NODELAY on P2P sockets + TSC calibration at startup  &42–50/\+min  \\
+\end{DoxyTable}
+\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md62}{}\doxysubsection{\texorpdfstring{Best ever observed (and lost)}{Best ever observed (and lost)}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md62}
+The user reports having seen up to {\bfseries{58 blocks/\+min}} at one point, but they don\textquotesingle{}t remember exactly which commit. Looking at the history, the candidate window is between {\ttfamily 0606de8} (RDTSC + ws-\/feed-\/to-\/clock, 45-\/48/\+min observed) and {\ttfamily e2e5a2a} (calendar regression to 36/\+min).
+
+The slot calendar in {\ttfamily e2e5a2a} cost \texorpdfstring{$\sim$}{\string~}12 blocks/\+min because it was calling {\ttfamily leader\+For\+Slot} (a SHA-\/256 hash) 60 times per block. The follow-\/up {\ttfamily 3104f5b} recovered most of that loss by throttling rebuild to every 10 blocks. \doxylink{namespace_we}{We} may still be a few blocks/\+min below the peak because the calendar rebuild is now amortised but still on the hot path.\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md63}{}\doxysubsection{\texorpdfstring{Best vs worst observed in a single run}{Best vs worst observed in a single run}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md63}
+
+\begin{DoxyItemize}
+\item {\bfseries{Best block latency}}:\+ 76 ms (from 0606de8 onward)
+\item {\bfseries{Median latency}}:\+ 231 ms in the best windows
+\item {\bfseries{Worst single-\/block latency}}:\+ 18,775 ms (one of the bad VPS scheduler pause spikes — process literally suspended for 18 seconds)
+\item {\bfseries{Best 1-\/min window}}:\+ \texorpdfstring{$\sim$}{\string~}50 blocks
+\item {\bfseries{Worst 1-\/min window during the same hour}}:\+ \texorpdfstring{$\sim$}{\string~}15 blocks
+\item {\bfseries{Worst "{}60 minutes total"{}}}:\+ as low as 480 blocks, vs. target of 3600
+\end{DoxyItemize}\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md64}{}\doxysubsection{\texorpdfstring{Persistent problem}{Persistent problem}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md64}
+Even with all the above, on the shared VPS the rate is {\bfseries{42–50/\+min, not 60}}. Inspection of the logs shows the cause is exclusively {\bfseries{hypervisor scheduler starvation}} — every few minutes the process is suspended for 5–18 seconds, during which no block can be produced. {\ttfamily clock\+\_\+score} drops to 47–60/\+100 in those windows; bursts fire as soon as we resume but the smoothing ceiling caps them.
+
+This is {\bfseries{not a code problem}}. On dedicated hardware (e.\+g. a baremetal Linux machine or our planned Omni\+Bus OS) we expect to hit 60/\+min comfortably and the architecture supports much higher (the sub-\/block loop is 0 ms per tick now; each block is bounded by PoW at diff=1 plus state apply, \texorpdfstring{$\sim$}{\string~}50–200 µs typical).
+
+But I want to validate the architecture itself. The current model is roughly:\+
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{PoW + slot-\/leader rotation}} (deterministic per slot, with liveness fallback to lex-\/min validator on timeout).
+\item {\bfseries{Sub-\/blocks as pure TX batching}} (10 batches per slot, aggregate merkle root, no individual broadcast).
+\item {\bfseries{Best-\/effort gossip with TCP\+\_\+\+NODELAY}} for low-\/latency block announces.
+\item {\bfseries{Self-\/tuning timeout multiplier}} based on observed-\/vs-\/target rate.
+\item {\bfseries{JSON-\/\+RPC 2.\+0}} + a Kraken-\/compatible REST surface for exchange semantics.
+\end{DoxyEnumerate}\hypertarget{md__k_i_m_i___p_r_o_m_p_t_autotoc_md65}{}\doxysubsection{\texorpdfstring{What I want from you}{What I want from you}}\label{md__k_i_m_i___p_r_o_m_p_t_autotoc_md65}
+Please give me {\bfseries{2–3 concrete alternative architectures}} I could adopt, each with:\+
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Name + 1-\/line summary}} (e.\+g. "{}\+Tendermint-\/style BFT with 1s   rounds"{}, "{}\+Hot\+Stuff with pipelined commits"{}, "{}\+Solana Po\+H with   rotating leaders"{}, "{}\+Aptos Aptos\+BFT with parallel execution"{}, "{}\+Narwhal/\+\+Bullshark mempool-\/\+DAG"{}, etc.)
+\item {\bfseries{Why it would (or wouldn\textquotesingle{}t) hit 60 blocks/\+min on shared CPU}}
+\item {\bfseries{What I\textquotesingle{}d have to throw away}} from the current codebase
+\item {\bfseries{What I\textquotesingle{}d have to add}}, in concrete Zig modules, with rough LoC estimate and difficulty
+\item {\bfseries{Real-\/world chains that ship this design}} today
+\item {\bfseries{Specific weak spots}} the design has that ours doesn\textquotesingle{}t, so I can weigh the trade-\/off honestly
+\end{DoxyItemize}
+
+Then a final {\bfseries{comparison table}} with columns:\+ {\itshape Design /\+ Throughput ceiling /\+ Latency floor /\+ Code reuse from current /\+ Maintenance burden /\+ Production-\/readiness}
+
+I am NOT looking for:\+
+
+
+\begin{DoxyItemize}
+\item Generic "{}write everything in Rust /\+ Go"{} advice — Zig is a chosen constraint.
+\item Framework-\/level recommendations (no "{}use Substrate"{}, no "{}use   Cosmos SDK"{}) — we\textquotesingle{}re staying L1-\/from-\/scratch.
+\item "{}\+Add a dashboard"{} — we have one.
+\item "{}\+Use C++/\+\+Ada/\+\+SPARK for the timer"{} — we already use rdtscp inline asm in Zig; this is not a language problem.
+\end{DoxyItemize}
+
+I AM looking for designs where the {\bfseries{consensus + slot model itself}} is different, and where the trade-\/off makes sense for our use case (small validator set 2–10 nodes, 1 s target, JSON-\/\+RPC compatibility, PQ-\/ready signatures, eventual baremetal port).
+
+Be blunt about which option you\textquotesingle{}d actually pick if it were your project. 

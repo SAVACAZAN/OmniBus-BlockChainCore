@@ -10,16 +10,12 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient, {
-  type MicaAttestation,
-  type MicaDisclosure,
-} from "../../api/rpc-client";
+import { rpc, type MicaAttestation, type MicaDisclosure } from "../../api/rpc-client";
 import {
   signMicaAttestPayload,
 } from "../../api/exchange-sign";
 import { nextNonce } from "../../api/wallet-keystore";
 
-const rpc = new OmniBusRpcClient();
 
 function fmtDate(ts?: number): string {
   if (!ts) return "—";

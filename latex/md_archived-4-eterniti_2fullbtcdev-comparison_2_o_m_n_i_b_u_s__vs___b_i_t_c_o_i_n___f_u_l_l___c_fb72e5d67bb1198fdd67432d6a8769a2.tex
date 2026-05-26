@@ -1,0 +1,47 @@
+\chapter{
+\begin{DoxyEnumerate}
+\item Software \& Interfaces 
+\end{DoxyEnumerate}}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_fb72e5d67bb1198fdd67432d6a8769a2}{}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_fb72e5d67bb1198fdd67432d6a8769a2}\index{1. Software \& Interfaces@{1. Software \& Interfaces}}
+\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_fb72e5d67bb1198fdd67432d6a8769a2_autotoc_md3912}%
+\Hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_fb72e5d67bb1198fdd67432d6a8769a2_autotoc_md3912}%
+
+
+\begin{quote}
+Omni\+Bus vs Bitcoin — Category 1/\+10 Generated:\+ 2026-\/03-\/31 19:\+42 \end{quote}
+
+
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}BTC  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}OMNI  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}1  &bitcoind (daemon)  &\SetCell{c}Y  &\SetCell{c}Y  &main.\+zig  &Entry point, single-\/instance lock  \\
+\SetCell{c}2  &Bitcoin-\/\+Qt (GUI)  &\SetCell{c}Y  &\SetCell{c}P  &frontend/\+  &\doxylink{namespace_we}{We} have React frontend instead  \\
+\SetCell{c}3  &bitcoin-\/cli (CLI)  &\SetCell{c}Y  &\SetCell{c}Y  &cli.\+zig  &--mode, --node-\/id, --port  \\
+\SetCell{c}4  &RPC Server (JSON-\/\+RPC)  &\SetCell{c}Y  &\SetCell{c}Y  &rpc\+\_\+server.\+zig  &Port 8332, HTTP  \\
+\SetCell{c}5  &REST Interface  &\SetCell{c}Y  &\SetCell{c}Y  &rpc\+\_\+server.\+zig  &Combined with RPC  \\
+\SetCell{c}6  &Web\+Socket Server  &\SetCell{c}N  &\SetCell{c}+  &ws\+\_\+server.\+zig  &Push events, port 8334 \+[EXTRA]\+  \\
+\SetCell{c}7  &Mempool  &\SetCell{c}Y  &\SetCell{c}Y  &mempool.\+zig  &FIFO, size/\+time limits  \\
+\SetCell{c}8  &Database /\+ Level\+DB  &\SetCell{c}Y  &\SetCell{c}Y  &database.\+zig  &Custom binary, not Level\+DB  \\
+\SetCell{c}9  &Validation Engine  &\SetCell{c}Y  &\SetCell{c}Y  &consensus.\+zig  &PoW + Casper FFG  \\
+\SetCell{c}10  &Full Node  &\SetCell{c}Y  &\SetCell{c}Y  &main.\+zig  &Seed + Miner mode  \\
+\SetCell{c}11  &Pruned Node  &\SetCell{c}Y  &\SetCell{c}Y  &prune\+\_\+config.\+zig  &Configurable pruning  \\
+\SetCell{c}12  &Light Client (SPV)  &\SetCell{c}Y  &\SetCell{c}Y  &light\+\_\+client.\+zig  &Header-\/only verification  \\
+\SetCell{c}13  &Blockchain Explorer  &\SetCell{c}Y  &\SetCell{c}P  &frontend/\+  &React Block\+Explorer component  \\
+\SetCell{c}14  &Mainnet Config  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &Magic:\+ "{}\+OMNI"{}  \\
+\SetCell{c}15  &Testnet Config  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &Magic:\+ "{}\+TEST"{}  \\
+\SetCell{c}16  &Regtest Config  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &Magic:\+ "{}\+REGT"{}  \\
+\SetCell{c}17  &Signet /\+ Devnet  &\SetCell{c}Y  &\SetCell{c}Y  &chain\+\_\+config.\+zig  &Magic:\+ "{}\+DEVN"{}  \\
+\SetCell{c}18  &Wallet.\+dat /\+ DB file  &\SetCell{c}Y  &\SetCell{c}Y  &database.\+zig  &omnibus-\/chain.\+dat  \\
+\SetCell{c}19  &Chainstate (UTXO/\+\+State)  &\SetCell{c}Y  &\SetCell{c}Y  &state\+\_\+trie.\+zig  &State trie (hybrid)  \\
+\SetCell{c}20  &Peer Discovery  &\SetCell{c}Y  &\SetCell{c}Y  &bootstrap.\+zig  &DHT + DNS seeds  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{BTC has:\+ 19 items}} {\bfseries{Omni\+Bus:\+ 18 implemented, 2 partial, 0 missing, 1 extras}} {\bfseries{Score:\+ 94\%}} (18/\+19 BTC features + 1 unique extras)\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_fb72e5d67bb1198fdd67432d6a8769a2_autotoc_md3914}{}\doxysubsection{\texorpdfstring{Extras (Omni\+Bus-\/only):\+}{Extras (Omni\+Bus-\/only):\+}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_fb72e5d67bb1198fdd67432d6a8769a2_autotoc_md3914}
+
+\begin{DoxyItemize}
+\item Web\+Socket Server — Push events, port 8334 \+[EXTRA]\+ 
+\end{DoxyItemize}

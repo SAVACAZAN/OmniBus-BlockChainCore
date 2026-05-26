@@ -1,0 +1,123 @@
+\doxysection{frontend/\+node\+\_\+modules/\+tiny-\/invariant Directory Reference}
+\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985}{}\label{dir_22976f0b8cae04f90c88fcb43c123985}\index{frontend/node\_modules/tiny-\/invariant Directory Reference@{frontend/node\_modules/tiny-\/invariant Directory Reference}}
+Directory dependency graph for tiny-\/invariant:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9177}{}\doxysubsection{\texorpdfstring{tiny-\/invariant 🔬💥}{tiny-\/invariant 🔬💥}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9177}
+\href{https://travis-ci.org/alexreardon/tiny-invariant}{\texttt{}} \href{https://www.npmjs.com/package/tiny-invariant}{\texttt{}} \href{https://david-dm.org/alexreardon/tiny-invariant}{\texttt{}}  \href{https://www.npmjs.com/package/tiny-invariant}{\texttt{}} \href{https://www.npmjs.com/package/tiny-invariant}{\texttt{}}
+
+A tiny \href{https://www.npmjs.com/package/invariant}{\texttt{{\ttfamily invariant}}} alternative.\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9178}{}\doxysubsection{\texorpdfstring{What is {\ttfamily invariant}?}{What is {\ttfamily invariant}?}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9178}
+An {\ttfamily invariant} function takes a value, and if the value is \href{https://github.com/getify/You-Dont-Know-JS/blob/bdbe570600d4e1107d0b131787903ca1c9ec8140/up\%20\%26\%20going/ch2.md\#truthy--falsy}{\texttt{falsy}} then the {\ttfamily invariant} function will throw. If the value is \href{https://github.com/getify/You-Dont-Know-JS/blob/bdbe570600d4e1107d0b131787903ca1c9ec8140/up\%20\%26\%20going/ch2.md\#truthy--falsy}{\texttt{truthy}}, then the function will not throw.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ invariant\ from\ 'tiny-\/invariant';}
+\DoxyCodeLine{}
+\DoxyCodeLine{invariant(truthyValue,\ 'This\ should\ not\ throw!');}
+\DoxyCodeLine{}
+\DoxyCodeLine{invariant(falsyValue,\ 'This\ will\ throw!');}
+\DoxyCodeLine{//\ Error('Invariant\ violation:\ This\ will\ throw!');}
+
+\end{DoxyCode}
+
+
+You can also provide a function to generate your message, for when your message is expensive to create
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ invariant\ from\ 'tiny-\/invariant';}
+\DoxyCodeLine{}
+\DoxyCodeLine{invariant(value,\ ()\ =>\ getExpensiveMessage());}
+
+\end{DoxyCode}
+\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9179}{}\doxysubsection{\texorpdfstring{Why {\ttfamily tiny-\/invariant}?}{Why {\ttfamily tiny-\/invariant}?}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9179}
+The \href{https://www.npmjs.com/package/invariant}{\texttt{{\ttfamily library:\+ invariant}}} supports passing in arguments to the {\ttfamily invariant} function in a sprintf style {\ttfamily (condition, format, a, b, c, d, e, f)}. It has internal logic to execute the sprintf substitutions. The sprintf logic is not removed in production builds. {\ttfamily tiny-\/invariant} has dropped all of the sprintf logic. {\ttfamily tiny-\/invariant} allows you to pass a single string message. With \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals}{\texttt{template literals}} there is really no need for a custom message formatter to be built into the library. If you need a multi part message you can just do this:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{invariant(condition,\ \`{}Hello,\ \$\{name\}\ -\/\ how\ are\ you\ today?`);}
+
+\end{DoxyCode}
+\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9180}{}\doxysubsection{\texorpdfstring{Type narrowing}{Type narrowing}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9180}
+{\ttfamily tiny-\/invariant} is useful for correctly narrowing types for {\ttfamily flow} and {\ttfamily typescript}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ value:\ Person\ |\ null\ =\ \{\ name:\ 'Alex'\ \};\ //\ type\ of\ value\ ==\ 'Person\ |\ null'}
+\DoxyCodeLine{invariant(value,\ 'Expected\ value\ to\ be\ a\ person');}
+\DoxyCodeLine{//\ type\ of\ value\ has\ been\ narrowed\ to\ 'Person'}
+
+\end{DoxyCode}
+\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9181}{}\doxysubsection{\texorpdfstring{API:\+ {\ttfamily (condition:\+ any, message?:\+ string \texorpdfstring{$\vert$}{|} (() =\texorpdfstring{$>$}{>} string)) =\texorpdfstring{$>$}{>} void}}{API:\+ {\ttfamily (condition:\+ any, message?:\+ string \texorpdfstring{$\vert$}{|} (() =\texorpdfstring{$>$}{>} string)) =\texorpdfstring{$>$}{>} void}}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9181}
+
+\begin{DoxyItemize}
+\item {\ttfamily condition} is required and can be anything
+\item {\ttfamily message} optional {\ttfamily string} or a function that returns a {\ttfamily string} ({\ttfamily () =\texorpdfstring{$>$}{>} string})
+\end{DoxyItemize}\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9182}{}\doxysubsection{\texorpdfstring{Installation}{Installation}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9182}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ yarn}
+\DoxyCodeLine{yarn\ add\ tiny-\/invariant}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ npm}
+\DoxyCodeLine{npm\ install\ tiny-\/invariant\ -\/-\/save}
+
+\end{DoxyCode}
+\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9183}{}\doxysubsection{\texorpdfstring{Dropping your {\ttfamily message} for kb savings!}{Dropping your {\ttfamily message} for kb savings!}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9183}
+Big idea:\+ you will want your compiler to convert this code:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{invariant(condition,\ 'My\ cool\ message\ that\ takes\ up\ a\ lot\ of\ kbs');}
+
+\end{DoxyCode}
+
+
+Into this:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{if\ (!condition)\ \{}
+\DoxyCodeLine{\ \ if\ ('production'\ !==\ process.env.NODE\_ENV)\ \{}
+\DoxyCodeLine{\ \ \ \ invariant(false,\ 'My\ cool\ message\ that\ takes\ up\ a\ lot\ of\ kbs');}
+\DoxyCodeLine{\ \ \}\ else\ \{}
+\DoxyCodeLine{\ \ \ \ invariant(false);}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Babel}}:\+ recommend \href{https://www.npmjs.com/package/babel-plugin-dev-expression}{\texttt{{\ttfamily babel-\/plugin-\/dev-\/expression}}}
+\item {\bfseries{Type\+Script}}:\+ recommend \href{https://github.com/jaredpalmer/tsdx\#invariant}{\texttt{{\ttfamily tsdx}}} (or you can run {\ttfamily babel-\/plugin-\/dev-\/expression} after Type\+Script compiling)
+\end{DoxyItemize}
+
+Your bundler can then drop the code in the {\ttfamily "{}production"{} !== process.\+env.\+NODE\+\_\+\+ENV} block for your production builds to end up with this:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{if\ (!condition)\ \{}
+\DoxyCodeLine{\ \ invariant(false);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item rollup:\+ use \href{https://github.com/rollup/rollup-plugin-replace}{\texttt{rollup-\/plugin-\/replace}} and set {\ttfamily NODE\+\_\+\+ENV} to {\ttfamily production} and then {\ttfamily rollup} will treeshake out the unused code
+\item Webpack:\+ \href{https://webpack.js.org/guides/production/\#specify-the-mode}{\texttt{instructions}}
+\end{DoxyItemize}\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9184}{}\doxysubsection{\texorpdfstring{Builds}{Builds}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9184}
+
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} have a {\ttfamily es} (Ecma\+Script module) build
+\item \doxylink{namespace_we}{We} have a {\ttfamily cjs} (Common\+JS) build
+\item \doxylink{namespace_we}{We} have a {\ttfamily umd} (Universal module definition) build in case you needed it
+\end{DoxyItemize}
+
+\doxylink{namespace_we}{We} expect {\ttfamily process.\+env.\+NODE\+\_\+\+ENV} to be available at module compilation. \doxylink{namespace_we}{We} cache this value\hypertarget{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9185}{}\doxysubsection{\texorpdfstring{That\textquotesingle{}s it!}{That\textquotesingle{}s it!}}\label{dir_22976f0b8cae04f90c88fcb43c123985_autotoc_md9185}
+🤘 

@@ -1,0 +1,37 @@
+\doxysection{dependency Namespace Reference}
+\hypertarget{namespacedependency}{}\label{namespacedependency}\index{dependency@{dependency}}
+
+
+-\/mapper  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/mapper 
+
+-\/graph
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Dependency Mapper
+===========================================
+Scans core/*.zig files for @import statements and builds a dependency
+graph between modules.  Detects circular dependencies.
+
+Output formats:
+  - Adjacency list (text table)
+  - DOT format (for Graphviz: dot -Tpng deps.dot -o deps.png)
+  - JSON graph
+
+Usage:
+    python dependency-mapper.py
+    python dependency-mapper.py --source-dir ../../core
+    python dependency-mapper.py --dot-output deps.dot --json-output deps.json
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Dependency Graph Generator
+
+Generates dependency graph between core/*.zig modules.
+Outputs: dependency-graph.json + optional .dot for Graphviz.
+\end{DoxyVerb}
+ 

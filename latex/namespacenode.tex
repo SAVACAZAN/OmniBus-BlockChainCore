@@ -1,0 +1,35 @@
+\doxysection{node Namespace Reference}
+\hypertarget{namespacenode}{}\label{namespacenode}\index{node@{node}}
+
+
+-\/health-\/monitor  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/health-\/monitor 
+
+-\/status-\/monitor
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Node Health Monitor Daemon
+
+Every 30s pings RPC port with getblockcount (JSON-RPC 2.0).
+Alerts if node appears stuck (same block height for 3+ consecutive checks).
+Takes --host and --port args.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Node Status Monitor
+=============================================
+Polls the OmniBus node JSON-RPC endpoint every N seconds and displays
+a live terminal dashboard showing block height, peer count, mempool
+size, mining status, and uptime.
+
+Uses only Python stdlib (http.client for JSON-RPC 2.0 over HTTP).
+
+Usage:
+    python node-status-monitor.py
+    python node-status-monitor.py --host 192.168.1.50 --port 8332 --interval 5
+\end{DoxyVerb}
+ 

@@ -1,0 +1,298 @@
+\doxysection{traffic-\/analysis-\/resistance.py}
+\hypertarget{traffic-analysis-resistance_8py_source}{}\label{traffic-analysis-resistance_8py_source}\index{tools/NETWORK/traffic-\/analysis-\/resistance.py@{tools/NETWORK/traffic-\/analysis-\/resistance.py}}
+\doxymbox{\hyperlink{traffic-analysis-resistance_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00001}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00002}\doxymbox{\hyperlink{namespacetraffic}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ Traffic\ Analysis\ Resistance\ Test.}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00004}00004\ \textcolor{stringliteral}{Connects\ to\ P2P\ port\ 9000\ directly.\ \ Sends\ 100\ messages\ at\ random\ intervals.}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00005}00005\ \textcolor{stringliteral}{Records\ exact\ send/receive\ timestamps.\ \ Calculates:}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Timing\ correlation\ coefficient}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Packet\ size\ variance}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00008}00008\ \textcolor{stringliteral}{Reports\ if\ messages\ are\ padded\ (good)\ or\ have\ predictable\ sizes\ (bad\ for\ privacy).}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00009}00009\ \textcolor{stringliteral}{Heuristic\ analysis\ only.}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00010}00010\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00012}00012\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00013}00013\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00014}00014\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00015}00015\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00016}00016\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00017}00017\ \textcolor{keyword}{import}\ secrets}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00018}00018\ \textcolor{keyword}{import}\ socket}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00019}00019\ \textcolor{keyword}{import}\ struct}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00021}00021\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00023}00023\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00024}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a2b0c57821bf3e11ec0748b74bc0db82c}{00024}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00025}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a2d988d2618452b038fc92f4968ab44a8}{00025}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00026}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_ad212ae79900a03913cfc23d9a733736a}{00026}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00027}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a51e7f911fd8b5a377f38ee1a8a7b533c}{00027}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00028}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_ab830510d3670fe49642d16dba569ba98}{00028}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00029}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a492c2e4993b9841e528cd66231cf96b0}{00029}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00031}00031\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00032}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a1469a33d8899e11f4022e4d640d29265}{00032}}\ P2P\_PORT\ =\ 9000}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00033}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a0731453942b47131e63f7f0df48ce1ea}{00033}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00034}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_abc96d14713921d26c87aab19490333e9}{00034}}\ WS\_PORT\ =\ 8334}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00035}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_ac11a7ea4a974203bc83e29e6c2ad2c99}{00035}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00036}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_aad68521569b128467fa3fb25a61f466e}{00036}}\ SUB\_BLOCKS\ =\ 10}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00037}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a8df6b7b3ad0392cbbeee27b42bfbd001}{00037}}\ OMNIBUS\_MAGIC\ =\ b\textcolor{stringliteral}{"{}\(\backslash\)x4f\(\backslash\)x4d\(\backslash\)x4e\(\backslash\)x49"{}}\ \ \textcolor{comment}{\#\ "{}OMNI"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00040}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a71932d0443b13e9bedca5f1ac4878e7b}{00040}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a71932d0443b13e9bedca5f1ac4878e7b}{build\_p2p\_message}}(msg\_type:\ str,\ payload\_size:\ int)\ -\/>\ bytes:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00041}00041\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Build\ an\ OmniBus-\/format\ P2P\ message."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00042}00042\ \ \ \ \ magic\ =\ OMNIBUS\_MAGIC}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00043}00043\ \ \ \ \ command\ =\ msg\_type.encode().ljust(12,\ b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}})[:12]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00044}00044\ \ \ \ \ payload\ =\ secrets.token\_bytes(payload\_size)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00045}00045\ \ \ \ \ length\ =\ struct.pack(\textcolor{stringliteral}{"{}<I"{}},\ len(payload))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00046}00046\ \ \ \ \ \textcolor{comment}{\#\ Fake\ checksum\ (first\ 4\ bytes\ of\ double-\/SHA256)}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00047}00047\ \ \ \ \ \textcolor{keyword}{import}\ hashlib}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00048}00048\ \ \ \ \ checksum\ =\ hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{return}\ magic\ +\ command\ +\ length\ +\ checksum\ +\ payload}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00052}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a5597e64af623997b05363db897703e88}{00052}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a5597e64af623997b05363db897703e88}{pearson\_correlation}}(x:\ list,\ y:\ list)\ -\/>\ float:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00053}00053\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Compute\ Pearson\ correlation\ coefficient."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00054}00054\ \ \ \ \ n\ =\ len(x)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{if}\ n\ <\ 2:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00058}00058\ \ \ \ \ mean\_x\ =\ sum(x)\ /\ n}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00059}00059\ \ \ \ \ mean\_y\ =\ sum(y)\ /\ n}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00061}00061\ \ \ \ \ cov\ =\ sum((x[i]\ -\/\ mean\_x)\ *\ (y[i]\ -\/\ mean\_y)\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(n))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00062}00062\ \ \ \ \ std\_x\ =\ math.sqrt(sum((xi\ -\/\ mean\_x)\ **\ 2\ \textcolor{keywordflow}{for}\ xi\ \textcolor{keywordflow}{in}\ x))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00063}00063\ \ \ \ \ std\_y\ =\ math.sqrt(sum((yi\ -\/\ mean\_y)\ **\ 2\ \textcolor{keywordflow}{for}\ yi\ \textcolor{keywordflow}{in}\ y))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{if}\ std\_x\ ==\ 0\ \textcolor{keywordflow}{or}\ std\_y\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{return}\ cov\ /\ (std\_x\ *\ std\_y)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00071}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a469276787fddf78133cefc565879aedd}{00071}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a469276787fddf78133cefc565879aedd}{coefficient\_of\_variation}}(values:\ list)\ -\/>\ float:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00072}00072\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}CV\ =\ std\_dev\ /\ mean.\ High\ CV\ =\ high\ variance\ (good\ for\ privacy)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ values:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00075}00075\ \ \ \ \ mean\ =\ sum(values)\ /\ len(values)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{if}\ mean\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00078}00078\ \ \ \ \ variance\ =\ sum((v\ -\/\ mean)\ **\ 2\ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ values)\ /\ len(values)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00079}00079\ \ \ \ \ \textcolor{keywordflow}{return}\ math.sqrt(variance)\ /\ mean}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00082}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_ace6a2c65730fd7b9d8818ec72d522fa8}{00082}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_ace6a2c65730fd7b9d8818ec72d522fa8}{analyze\_padding}}(sizes:\ list)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00083}00083\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Analyze\ if\ message\ sizes\ show\ padding\ patterns."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00084}00084\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ sizes:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}padded"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}note"{}}:\ \textcolor{stringliteral}{"{}no\ data"{}}\}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00087}00087\ \ \ \ \ unique\_sizes\ =\ set(sizes)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00088}00088\ \ \ \ \ \textcolor{comment}{\#\ Good\ padding:\ few\ distinct\ sizes\ (messages\ padded\ to\ fixed\ blocks)}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00089}00089\ \ \ \ \ \textcolor{comment}{\#\ Bad:\ many\ distinct\ sizes\ correlating\ with\ content}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00091}00091\ \ \ \ \ \textcolor{comment}{\#\ Check\ if\ sizes\ are\ multiples\ of\ common\ block\ sizes}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00092}00092\ \ \ \ \ block\_sizes\ =\ [16,\ 32,\ 64,\ 128,\ 256,\ 512,\ 1024]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00093}00093\ \ \ \ \ alignment\_scores\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00094}00094\ \ \ \ \ \textcolor{keywordflow}{for}\ bs\ \textcolor{keywordflow}{in}\ block\_sizes:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ aligned\ =\ sum(1\ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ sizes\ \textcolor{keywordflow}{if}\ s\ \%\ bs\ ==\ 0)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ alignment\_scores[bs]\ =\ aligned\ /\ len(sizes)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00098}00098\ \ \ \ \ best\_alignment\ =\ max(alignment\_scores.items(),\ key=\textcolor{keyword}{lambda}\ x:\ x[1])}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00100}00100\ \ \ \ \ is\_padded\ =\ best\_alignment[1]\ >\ 0.8\ \textcolor{keywordflow}{or}\ len(unique\_sizes)\ <=\ 5}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00102}00102\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}unique\_sizes"{}}:\ len(unique\_sizes),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_messages"{}}:\ len(sizes),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}size\_min"{}}:\ min(sizes),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}size\_max"{}}:\ max(sizes),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}size\_mean"{}}:\ round(sum(sizes)\ /\ len(sizes),\ 1),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cv"{}}:\ round(\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a469276787fddf78133cefc565879aedd}{coefficient\_of\_variation}}(sizes),\ 4),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}best\_alignment\_block"{}}:\ best\_alignment[0],}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}alignment\_ratio"{}}:\ round(best\_alignment[1],\ 3),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}padded"{}}:\ is\_padded,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}privacy\_assessment"{}}:\ \textcolor{stringliteral}{"{}GOOD\ —\ sizes\ appear\ padded"{}}\ \textcolor{keywordflow}{if}\ is\_padded}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}WEAK\ —\ predictable\ size\ distribution"{}},}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00114}00114\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00117}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a84bb239bd89dbe203086ee98cd76c501}{00117}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a84bb239bd89dbe203086ee98cd76c501}{run\_traffic\_analysis}}(host:\ str,\ port:\ int,\ message\_count:\ int)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00118}00118\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ messages\ and\ record\ timing/size\ data."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00119}00119\ \ \ \ \ send\_times\ =\ []}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00120}00120\ \ \ \ \ recv\_times\ =\ []}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00121}00121\ \ \ \ \ send\_sizes\ =\ []}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00122}00122\ \ \ \ \ recv\_sizes\ =\ []}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00123}00123\ \ \ \ \ errors\ =\ 0}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00125}00125\ \ \ \ \ \textcolor{comment}{\#\ Message\ types\ to\ send}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00126}00126\ \ \ \ \ msg\_types\ =\ [\textcolor{stringliteral}{"{}ping"{}},\ \textcolor{stringliteral}{"{}getaddr"{}},\ \textcolor{stringliteral}{"{}inv"{}},\ \textcolor{stringliteral}{"{}getdata"{}},\ \textcolor{stringliteral}{"{}getblocks"{}},\ \textcolor{stringliteral}{"{}version"{}}]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00128}00128\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(message\_count):}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ sock.settimeout(5)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ sock.connect((host,\ port))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Random\ message}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ msg\_type\ =\ random.choice(msg\_types)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ payload\_size\ =\ random.randint(20,\ 500)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ message\ =\ \doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a71932d0443b13e9bedca5f1ac4878e7b}{build\_p2p\_message}}(msg\_type,\ payload\_size)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00138}00138\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Random\ delay\ (0-\/200ms)}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ delay\ =\ random.uniform(0.001,\ 0.200)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(delay)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Send}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ t\_send\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ sock.sendall(message)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ send\_times.append(t\_send)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ send\_sizes.append(len(message))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Receive\ (with\ timeout)}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sock.settimeout(2)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ response\ =\ sock.recv(4096)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ t\_recv\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ recv\_times.append(t\_recv)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ recv\_sizes.append(len(response))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ socket.timeout:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ recv\_times.append(time.time())}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ recv\_sizes.append(0)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00159}00159\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ errors\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ send\_times.append(time.time())}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ recv\_times.append(time.time())}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ send\_sizes.append(0)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ recv\_sizes.append(0)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ +\ 1)\ \%\ 25\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{CYAN\}Sent\ \{i+1\}/\{message\_count\}\ messages\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00172}00172\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}send\_times"{}}:\ send\_times,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}recv\_times"{}}:\ recv\_times,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}send\_sizes"{}}:\ send\_sizes,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}recv\_sizes"{}}:\ recv\_sizes,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}errors"{}}:\ errors,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00178}00178\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00181}\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a51af30a60f9f02777c6396b8247e356f}{00181}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00182}00182\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ Traffic\ Analysis\ Resistance\ Test"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00184}00184\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00185}00185\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}Node\ host"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00186}00186\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=P2P\_PORT,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}P2P\ port\ (default:\ \{P2P\_PORT\})"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00188}00188\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/messages"{}},\ \textcolor{stringliteral}{"{}-\/n"{}},\ type=int,\ default=100,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Messages\ to\ send\ (default:\ 100)"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00190}00190\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00191}00191\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00193}00193\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00194}00194\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ Traffic\ Analysis\ Resistance"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00195}00195\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Target:\ \{args.host\}:\{args.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00196}00196\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Messages:\ \{args.messages\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00197}00197\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Shards:\ \{SHARDS\}\ |\ Sub-\/blocks:\ \{SUB\_BLOCKS\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00198}00198\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00200}00200\ \ \ \ \ \textcolor{comment}{\#\ Check\ connectivity}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00201}00201\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PREFLIGHT]\ Checking\ P2P\ port\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00202}00202\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ sock.settimeout(3)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ sock.connect((args.host,\ args.port))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Connected\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00208}00208\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}Cannot\ connect\ to\ \{args.host\}:\{args.port\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.json:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00213}00213\ \ \ \ \ \textcolor{comment}{\#\ Run\ analysis}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00214}00214\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[ANALYSIS]\ Sending\ \{args.messages\}\ messages\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00215}00215\ \ \ \ \ data\ =\ \doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a84bb239bd89dbe203086ee98cd76c501}{run\_traffic\_analysis}}(args.host,\ args.port,\ args.messages)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00217}00217\ \ \ \ \ \textcolor{comment}{\#\ Compute\ timing\ analysis}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00218}00218\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[COMPUTING]\ Analyzing\ traffic\ patterns\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00220}00220\ \ \ \ \ \textcolor{comment}{\#\ Inter-\/message\ timing}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00221}00221\ \ \ \ \ send\_intervals\ =\ [data[\textcolor{stringliteral}{"{}send\_times"{}}][i+1]\ -\/\ data[\textcolor{stringliteral}{"{}send\_times"{}}][i]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(len(data[\textcolor{stringliteral}{"{}send\_times"{}}])\ -\/\ 1)]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00223}00223\ \ \ \ \ recv\_intervals\ =\ [data[\textcolor{stringliteral}{"{}recv\_times"{}}][i+1]\ -\/\ data[\textcolor{stringliteral}{"{}recv\_times"{}}][i]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(len(data[\textcolor{stringliteral}{"{}recv\_times"{}}])\ -\/\ 1)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ data[\textcolor{stringliteral}{"{}recv\_sizes"{}}][i]\ >\ 0\ \textcolor{keywordflow}{and}\ data[\textcolor{stringliteral}{"{}recv\_sizes"{}}][i+1]\ >\ 0]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00227}00227\ \ \ \ \ \textcolor{comment}{\#\ Timing\ correlation}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00228}00228\ \ \ \ \ min\_len\ =\ min(len(send\_intervals),\ len(recv\_intervals))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00229}00229\ \ \ \ \ \textcolor{keywordflow}{if}\ min\_len\ >\ 2:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ timing\_corr\ =\ \doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a5597e64af623997b05363db897703e88}{pearson\_correlation}}(send\_intervals[:min\_len],}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ recv\_intervals[:min\_len])}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00232}00232\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ timing\_corr\ =\ 0.0}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00235}00235\ \ \ \ \ \textcolor{comment}{\#\ Size\ analysis}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00236}00236\ \ \ \ \ non\_zero\_recv\ =\ [s\ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ data[\textcolor{stringliteral}{"{}recv\_sizes"{}}]\ \textcolor{keywordflow}{if}\ s\ >\ 0]}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00237}00237\ \ \ \ \ padding\_analysis\ =\ \doxymbox{\hyperlink{namespacetraffic-analysis-resistance_ace6a2c65730fd7b9d8818ec72d522fa8}{analyze\_padding}}(non\_zero\_recv)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00238}00238\ \ \ \ \ send\_padding\ =\ \doxymbox{\hyperlink{namespacetraffic-analysis-resistance_ace6a2c65730fd7b9d8818ec72d522fa8}{analyze\_padding}}([s\ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ data[\textcolor{stringliteral}{"{}send\_sizes"{}}]\ \textcolor{keywordflow}{if}\ s\ >\ 0])}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00240}00240\ \ \ \ \ \textcolor{comment}{\#\ Timing\ predictability}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00241}00241\ \ \ \ \ timing\_cv\ =\ \doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a469276787fddf78133cefc565879aedd}{coefficient\_of\_variation}}(send\_intervals)\ \textcolor{keywordflow}{if}\ send\_intervals\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00242}00242\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00243}00243\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target"{}}:\ f\textcolor{stringliteral}{"{}\{args.host\}:\{args.port\}"{}},}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}messages\_sent"{}}:\ args.messages,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}messages\_received"{}}:\ len(non\_zero\_recv),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}errors"{}}:\ data[\textcolor{stringliteral}{"{}errors"{}}],}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timing"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}correlation\_coefficient"{}}:\ round(timing\_corr,\ 4),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timing\_cv"{}}:\ round(timing\_cv,\ 4),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}assessment"{}}:\ (}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}GOOD\ —\ low\ timing\ correlation"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ abs(timing\_corr)\ <\ 0.3}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}WEAK\ —\ high\ timing\ correlation\ (predictable)"{}}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}send\_sizes"{}}:\ send\_padding,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}recv\_sizes"{}}:\ padding\_analysis,}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}overall\_privacy"{}}:\ \textcolor{stringliteral}{"{}GOOD"{}}\ \textcolor{keywordflow}{if}\ (abs(timing\_corr)\ <\ 0.3\ \textcolor{keywordflow}{and}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ padding\_analysis.get(\textcolor{stringliteral}{"{}padded"{}},\ \textcolor{keyword}{False}))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}NEEDS\ IMPROVEMENT"{}},}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00262}00262\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00263}00263\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00264}00264\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00266}00266\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ TRAFFIC\ ANALYSIS\ RESULTS"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Messages\ sent:\ \ \ \ \ \{report['messages\_sent']\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Messages\ received:\ \{report['messages\_received']\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Errors:\ \ \ \ \ \ \ \ \ \ \ \ \{report['errors']\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Timing\ Analysis:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ tc\ =\ abs(timing\_corr)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ tc\ <\ 0.3\ \textcolor{keywordflow}{else}\ (YELLOW\ \textcolor{keywordflow}{if}\ tc\ <\ 0.6\ \textcolor{keywordflow}{else}\ RED)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Correlation:\ \ \ \ \ \{color\}\{timing\_corr:.4f\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ CV:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \{timing\_cv:.4f\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Assessment:\ \ \ \ \ \ \{report['timing']['assessment']\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{BOLD\}Size\ Analysis\ (responses):\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ pc\ =\ GREEN\ \textcolor{keywordflow}{if}\ padding\_analysis.get(\textcolor{stringliteral}{"{}padded"{}})\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Unique\ sizes:\ \ \ \ \{padding\_analysis.get('unique\_sizes',\ 0)\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Size\ range:\ \ \ \ \ \ \{padding\_analysis.get('size\_min',\ 0)\}-\/\{padding\_analysis.get('size\_max',\ 0)\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Padded:\ \ \ \ \ \ \ \ \ \ \{pc\}\{padding\_analysis.get('padded',\ False)\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Assessment:\ \ \ \ \ \ \{padding\_analysis.get('privacy\_assessment',\ 'N/A')\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ oc\ =\ GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}overall\_privacy"{}}]\ ==\ \textcolor{stringliteral}{"{}GOOD"{}}\ \textcolor{keywordflow}{else}\ YELLOW}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Overall:\ \ \ \ \ \ \ \ \ \ \ \{oc\}\{BOLD\}\{report['overall\_privacy']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00287}00287\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00288}00288\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}overall\_privacy"{}}]\ ==\ \textcolor{stringliteral}{"{}GOOD"{}}\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00290}00290\ }
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00291}00291\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{traffic-analysis-resistance_8py_source_l00292}00292\ \ \ \ \ \doxymbox{\hyperlink{namespacetraffic-analysis-resistance_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

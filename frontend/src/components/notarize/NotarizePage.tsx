@@ -16,51 +16,26 @@
  * Canonical message strings must stay in sync with rpc_server.zig verifiers.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useBlockHeight } from "../../api/use-block-height";
 import {
   FileText,
   Shield,
-  Search,
-  List,
-  Plus,
   Unlock,
   RefreshCw,
-  Copy,
-  Check,
   AlertTriangle,
   Lock,
-  ChevronDown,
 } from "lucide-react";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, midTrunc, fmtOmni, fmtInt } from "../../utils/fmt";
+import { AddressLabel } from "../common/AddressLabel";
+import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
 
-const rpc = new OmniBusRpcClient();
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const SAT_PER_OMNI = 1_000_000_000;
-
-const intFmt = new Intl.NumberFormat("en-US");
-const omniFmt = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 4,
-});
-
-function fmtOmni(sat: number): string {
-  return omniFmt.format(sat / SAT_PER_OMNI);
-}
-
-function shortHash(h: string, head = 10, tail = 6): string {
-  if (h.length <= head + tail + 3) return h;
-  return `${h.slice(0, head)}…${h.slice(-tail)}`;
-}
-function shortAddr(addr: string): string {
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-4)}`;
-}
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -125,15 +100,30 @@ interface EscrowCreateResp {
   condition_hash: string;
 }
 
-type TopTab = "notarize" | "escrow";
+type TopTab = "notarize" | "escrow" | "opreturn";
 type NotarizeSubTab = "notarize-doc" | "verify-doc" | "my-docs";
 type EscrowSubTab = "my-escrows" | "create-escrow" | "release-escrow";
+
+const NOTARIZE_TOP_TABS: { id: TopTab; label: string }[] = [
+  { id: "notarize", label: "Notarize" },
+  { id: "escrow",   label: "Escrow" },
+  { id: "opreturn", label: "OP_RETURN" },
+];
+const NOTARIZE_SUB_TABS: { id: NotarizeSubTab; label: string }[] = [
+  { id: "notarize-doc", label: "Notarize" },
+  { id: "verify-doc",   label: "Verify" },
+  { id: "my-docs",      label: "My Docs" },
+];
+const ESCROW_SUB_TABS: { id: EscrowSubTab; label: string }[] = [
+  { id: "my-escrows",     label: "My Escrows" },
+  { id: "create-escrow",  label: "Create" },
+  { id: "release-escrow", label: "Release" },
+];
 
 // ── SHA-256 helpers ───────────────────────────────────────────────────────
 
 async function sha256Hex(data: Uint8Array | ArrayBuffer): Promise<string> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hashBuf = await crypto.subtle.digest("SHA-256", data as any);
+  const hashBuf = await crypto.subtle.digest("SHA-256", data as BufferSource);
   return Array.from(new Uint8Array(hashBuf))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -145,15 +135,6 @@ async function sha256HexFromText(text: string): Promise<string> {
 }
 
 // ── ECDSA signing (same convention as StakePage / exchange-sign.ts) ───────
-
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
 
 function signNotarize(args: {
   privateKeyHex: string; from: string; docHash: string; docType: string;
@@ -194,23 +175,6 @@ function signEscrowRefund(args: {
 
 // ── Shared UI helpers ─────────────────────────────────────────────────────
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    void navigator.clipboard.writeText(text);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1500);
-  };
-  return (
-    <button
-      onClick={copy}
-      title="Copy"
-      className="ml-1 text-mempool-text-dim hover:text-mempool-blue transition-colors"
-    >
-      {copied ? <Check className="w-3 h-3 text-mempool-green" /> : <Copy className="w-3 h-3" />}
-    </button>
-  );
-}
 
 function WalletRequired() {
   return (
@@ -234,7 +198,6 @@ function Spinner() {
   return <RefreshCw className="inline w-3.5 h-3.5 animate-spin" />;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SubTabBar({
   tabs,
   active,
@@ -242,7 +205,7 @@ function SubTabBar({
 }: {
   tabs: { id: string; label: string }[];
   active: string;
-  onChange: (t: any) => void;
+  onChange: (t: string) => void;
 }) {
   return (
     <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
@@ -270,33 +233,35 @@ function SubTabBar({
   );
 }
 
+const STATUS_BADGE_MAP: Record<string, string> = {
+  valid:     "bg-green-500/20 text-green-400 border-green-500/40",
+  released:  "bg-green-500/20 text-green-400 border-green-500/40",
+  expired:   "bg-yellow-500/20 text-yellow-400 border-yellow-500/40",
+  disputed:  "bg-orange-500/20 text-orange-400 border-orange-500/40",
+  revoked:   "bg-red-500/20 text-red-400 border-red-500/40",
+  not_found: "bg-red-500/20 text-red-400 border-red-500/40",
+  open:      "bg-blue-500/20 text-blue-400 border-blue-500/40",
+  refunded:  "bg-mempool-border/30 text-mempool-text-dim border-mempool-border",
+};
+
+const VERIFY_STATUS_COLOR: Record<string, string> = {
+  valid:     "border-green-500/40 bg-green-500/5",
+  expired:   "border-yellow-500/40 bg-yellow-500/5",
+  revoked:   "border-red-500/40 bg-red-500/5",
+  not_found: "border-red-500/40 bg-red-500/5",
+};
+
 function StatusBadge({ status }: { status: "valid" | "expired" | "revoked" | "not_found" | EscrowStatus }) {
-  const map: Record<string, string> = {
-    valid:      "bg-green-500/20 text-green-400 border-green-500/40",
-    released:   "bg-green-500/20 text-green-400 border-green-500/40",
-    expired:    "bg-yellow-500/20 text-yellow-400 border-yellow-500/40",
-    disputed:   "bg-orange-500/20 text-orange-400 border-orange-500/40",
-    revoked:    "bg-red-500/20 text-red-400 border-red-500/40",
-    not_found:  "bg-red-500/20 text-red-400 border-red-500/40",
-    open:       "bg-blue-500/20 text-blue-400 border-blue-500/40",
-    refunded:   "bg-mempool-border/30 text-mempool-text-dim border-mempool-border",
-  };
   return (
     <span
       className={
         "text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-medium " +
-        (map[status] ?? map.refunded)
+        (STATUS_BADGE_MAP[status] ?? STATUS_BADGE_MAP.refunded)
       }
     >
       {status.replace("_", " ")}
     </span>
   );
-}
-
-async function fetchNonce(address: string): Promise<number> {
-  const r = await rpc.request_raw("getnonce", [address]) as
-    { nonce?: number; chainNonce?: number } | number | null;
-  return typeof r === "number" ? r : (r?.nonce ?? 0);
 }
 
 // ── File / text hash input ────────────────────────────────────────────────
@@ -426,14 +391,10 @@ const DOC_TYPES: { value: DocType; label: string }[] = [
 
 function NotarizeSection() {
   const [subTab, setSubTab] = useState<NotarizeSubTab>("notarize-doc");
-  const subTabs: { id: NotarizeSubTab; label: string }[] = [
-    { id: "notarize-doc", label: "Notarize" },
-    { id: "verify-doc",   label: "Verify" },
-    { id: "my-docs",      label: "My Docs" },
-  ];
+  const subTabs = NOTARIZE_SUB_TABS;
   return (
     <div>
-      <SubTabBar tabs={subTabs} active={subTab} onChange={setSubTab} />
+      <SubTabBar tabs={subTabs} active={subTab} onChange={(t) => setSubTab(t as typeof subTab)} />
       {subTab === "notarize-doc" && <NotarizeDocTab />}
       {subTab === "verify-doc"   && <VerifyDocTab />}
       {subTab === "my-docs"      && <MyDocsTab />}
@@ -467,7 +428,7 @@ function NotarizeDocTab() {
     if (!hash || hash.length !== 64) { showToast("No valid 64-char hash. Select a file or enter text."); return; }
     setBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signNotarize({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -594,20 +555,13 @@ function VerifyDocTab() {
     setErr(null);
     setResult(null);
     try {
-      const r = await rpc.request_raw("verifynotarize", [{ doc_hash: hash }]) as VerifyResp;
+      const r = await rpc.verifyNotarize(hash) as VerifyResp;
       setResult(r);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
-  };
-
-  const statusColor: Record<string, string> = {
-    valid:     "border-green-500/40 bg-green-500/5",
-    expired:   "border-yellow-500/40 bg-yellow-500/5",
-    revoked:   "border-red-500/40 bg-red-500/5",
-    not_found: "border-red-500/40 bg-red-500/5",
   };
 
   return (
@@ -625,7 +579,7 @@ function VerifyDocTab() {
       {err && <p className="text-xs text-mempool-orange font-mono">{err}</p>}
 
       {result && (
-        <div className={`rounded border p-3 space-y-2 text-xs font-mono ${statusColor[result.status] ?? ""}`}>
+        <div className={`rounded border p-3 space-y-2 text-xs font-mono ${VERIFY_STATUS_COLOR[result.status] ?? ""}`}>
           <div className="flex items-center gap-2">
             <StatusBadge status={result.status} />
             {result.status === "valid" && <span className="text-green-400 font-semibold">Verified on chain</span>}
@@ -656,14 +610,14 @@ function VerifyDocTab() {
               {result.block_height !== undefined && (
                 <div className="flex justify-between">
                   <span>block</span>
-                  <span className="text-mempool-text">{intFmt.format(result.block_height)}</span>
+                  <span className="text-mempool-text">{fmtInt(result.block_height)}</span>
                 </div>
               )}
               {result.tx_hash && (
                 <div className="flex justify-between gap-2">
                   <span className="flex-shrink-0">txid</span>
                   <span className="flex items-center gap-1">
-                    <span className="text-mempool-blue">{shortHash(result.tx_hash)}</span>
+                    <span className="text-mempool-blue">{midTrunc(result.tx_hash)}</span>
                     <CopyButton text={result.tx_hash} />
                   </span>
                 </div>
@@ -672,7 +626,7 @@ function VerifyDocTab() {
                 <div className="flex justify-between">
                   <span>expiry block</span>
                   <span className="text-mempool-text">
-                    {result.expiry_block === 0 ? "never" : intFmt.format(result.expiry_block)}
+                    {result.expiry_block === 0 ? "never" : fmtInt(result.expiry_block)}
                   </span>
                 </div>
               )}
@@ -709,7 +663,7 @@ function MyDocsTab() {
     setLoading(true);
     setErr(null);
     try {
-      const r = await rpc.request_raw("getnotarizations", [{ address: wallet.address }]) as GetNotarizationsResp | null;
+      const r = await rpc.getNotarizations(wallet.address) as GetNotarizationsResp | null;
       setRows(r?.notarizations ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -725,7 +679,7 @@ function MyDocsTab() {
     if (!wallet) return;
     setRevokeBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signNotarizeRevoke({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -775,6 +729,36 @@ function MyDocsTab() {
       )}
 
       {rows && rows.length > 0 && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["notarize_id","doc_hash","doc_type","block_height","tx_hash","expiry_block","status","note"].join(","),
+                ...rows.map((r) => [
+                  r.notarize_id,
+                  `"${r.doc_hash}"`,
+                  r.doc_type,
+                  r.block_height,
+                  `"${r.tx_hash}"`,
+                  r.expiry_block,
+                  r.status,
+                  `"${(r.note ?? "").replace(/"/g, '""')}"`,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-notarizations.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        </div>
+      )}
+
+      {rows && rows.length > 0 && (
         <div className="overflow-x-auto -mx-3 sm:mx-0">
           <table className="w-full min-w-[600px] text-xs font-mono">
             <thead className="sticky top-0 bg-mempool-bg-elev">
@@ -793,13 +777,13 @@ function MyDocsTab() {
                   <td className="py-2 px-2 text-mempool-text-dim">#{row.notarize_id}</td>
                   <td className="py-2 px-2">
                     <span className="flex items-center gap-1">
-                      <span className="text-mempool-blue">{shortHash(row.doc_hash)}</span>
+                      <span className="text-mempool-blue">{midTrunc(row.doc_hash)}</span>
                       <CopyButton text={row.doc_hash} />
                     </span>
                   </td>
                   <td className="py-2 px-2 text-mempool-text">{row.doc_type}</td>
                   <td className="py-2 px-2 text-right text-mempool-text-dim">
-                    {intFmt.format(row.block_height)}
+                    {fmtInt(row.block_height)}
                   </td>
                   <td className="py-2 px-2">
                     <StatusBadge status={row.status} />
@@ -868,14 +852,10 @@ const TIMEOUT_PRESETS = [
 
 function EscrowSection({ blockHeight }: { blockHeight: number }) {
   const [subTab, setSubTab] = useState<EscrowSubTab>("my-escrows");
-  const subTabs: { id: EscrowSubTab; label: string }[] = [
-    { id: "my-escrows",      label: "My Escrows" },
-    { id: "create-escrow",   label: "Create" },
-    { id: "release-escrow",  label: "Release" },
-  ];
+  const subTabs = ESCROW_SUB_TABS;
   return (
     <div>
-      <SubTabBar tabs={subTabs} active={subTab} onChange={setSubTab} />
+      <SubTabBar tabs={subTabs} active={subTab} onChange={(t) => setSubTab(t as typeof subTab)} />
       {subTab === "my-escrows"     && <MyEscrowsTab blockHeight={blockHeight} />}
       {subTab === "create-escrow"  && <CreateEscrowTab blockHeight={blockHeight} />}
       {subTab === "release-escrow" && <ReleaseEscrowTab />}
@@ -905,7 +885,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
     setLoading(true);
     setErr(null);
     try {
-      const r = await rpc.request_raw("getescrows", [{ address: wallet.address }]) as GetEscrowsResp | null;
+      const r = await rpc.getEscrows(wallet.address) as GetEscrowsResp | null;
       setRows(r?.escrows ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -920,7 +900,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
   // Live-hash proof text
   useEffect(() => {
     if (proofMode !== "text" || !proofInput) { if (proofMode === "text") setProofHash(""); return; }
-    void sha256HexFromText(proofInput).then(setProofHash);
+    void sha256HexFromText(proofInput).then(setProofHash).catch(() => setProofHash(""));
   }, [proofInput, proofMode]);
 
   const doRelease = async (escrowId: number) => {
@@ -929,7 +909,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
     if (!ph || ph.length !== 64) { showToast("Provide a valid 64-char proof hash or secret phrase."); return; }
     setActionBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signEscrowRelease({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -960,7 +940,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
     if (!wallet) return;
     setActionBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signEscrowRefund({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -987,7 +967,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
     if (!wallet) return;
     setActionBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const disputeHash = await sha256HexFromText(`dispute:${escrowId}:${wallet.address}:${nonce}`);
       const { signature, publicKey } = signMessage(
         wallet.privateKey,
@@ -1036,6 +1016,38 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
       )}
 
       {rows && rows.length > 0 && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["escrow_id","creator","recipient","amount_omni","condition_hash","timeout_block","created_block","status","role","note"].join(","),
+                ...rows.map((r) => [
+                  r.escrow_id,
+                  `"${r.creator}"`,
+                  `"${r.recipient}"`,
+                  (r.amount_sat / SAT_PER_OMNI).toFixed(8),
+                  `"${r.condition_hash}"`,
+                  r.timeout_block,
+                  r.created_block,
+                  r.status,
+                  r.role,
+                  `"${(r.note ?? "").replace(/"/g, '""')}"`,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-escrows.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        </div>
+      )}
+
+      {rows && rows.length > 0 && (
         <div className="overflow-x-auto -mx-3 sm:mx-0">
           <table className="w-full min-w-[680px] text-xs font-mono">
             <thead className="sticky top-0 bg-mempool-bg-elev">
@@ -1066,10 +1078,12 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
                       {fmtOmni(row.amount_sat)} <span className="text-mempool-text-dim">OMNI</span>
                     </td>
                     <td className="py-2 px-2 text-mempool-blue" title={counterparty}>
-                      {shortAddr(counterparty)}
+                      <button onClick={() => { if (counterparty) window.location.hash = `#/address/${counterparty}`; }} className="hover:underline">
+                        <AddressLabel address={counterparty ?? ""} showEmoji truncate={{ left: 8, right: 6 }} />
+                      </button>
                     </td>
                     <td className="py-2 px-2 text-right text-mempool-text-dim">
-                      {intFmt.format(row.timeout_block)}
+                      {fmtInt(row.timeout_block)}
                       {pastTimeout && row.status === "open" && (
                         <span className="ml-1 text-mempool-orange">(elapsed)</span>
                       )}
@@ -1214,7 +1228,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
   // Live hash from secret text
   useEffect(() => {
     if (condMode !== "text" || !condText) { if (condMode === "text") setCondHash(""); return; }
-    void sha256HexFromText(condText).then(setCondHash);
+    void sha256HexFromText(condText).then(setCondHash).catch(() => setCondHash(""));
   }, [condText, condMode]);
 
   const showToast = (msg: string) => {
@@ -1241,7 +1255,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
     setBusy(true);
     setSuccess(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signEscrowCreate({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -1300,7 +1314,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
         />
         {amountSat > 0 && (
           <div className="text-[11px] text-mempool-text-dim font-mono">
-            = {intFmt.format(amountSat)} SAT
+            = {fmtInt(amountSat)} SAT
           </div>
         )}
       </div>
@@ -1387,7 +1401,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
         )}
         {blockHeight > 0 && timeoutBlocks > 0 && (
           <div className="text-[11px] text-mempool-text-dim font-mono">
-            timeout block: ~{intFmt.format(timeoutBlock)} (in {intFmt.format(timeoutBlocks)} blocks)
+            timeout block: ~{fmtInt(timeoutBlock)} (in {fmtInt(timeoutBlocks)} blocks)
           </div>
         )}
       </div>
@@ -1427,13 +1441,13 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
           <div className="flex justify-between text-mempool-text-dim">
             <span>txid</span>
             <span className="flex items-center gap-1">
-              <span className="text-mempool-blue">{shortHash(success.txid)}</span>
+              <span className="text-mempool-blue">{midTrunc(success.txid)}</span>
               <CopyButton text={success.txid} />
             </span>
           </div>
           <div className="flex justify-between text-mempool-text-dim">
             <span>timeout block</span>
-            <span className="text-mempool-text">{intFmt.format(success.timeout_block)}</span>
+            <span className="text-mempool-text">{fmtInt(success.timeout_block)}</span>
           </div>
           <div className="border-t border-mempool-border/60 pt-2 text-mempool-orange text-[11px] leading-relaxed">
             IMPORTANT: Save the condition_hash and/or secret phrase. The recipient needs it to
@@ -1473,7 +1487,7 @@ function ReleaseEscrowTab() {
   // Live hash from proof text
   useEffect(() => {
     if (proofMode !== "text" || !proofText) { if (proofMode === "text") setProofHash(""); return; }
-    void sha256HexFromText(proofText).then(setProofHash);
+    void sha256HexFromText(proofText).then(setProofHash).catch(() => setProofHash(""));
   }, [proofText, proofMode]);
 
   const loadEscrow = async () => {
@@ -1483,7 +1497,7 @@ function ReleaseEscrowTab() {
     setErrLoad(null);
     setEscrow(null);
     try {
-      const r = await rpc.request_raw("getescrow", [{ escrow_id: id }]) as EscrowRow | null;
+      const r = await rpc.getEscrow(id) as EscrowRow | null;
       setEscrow(r);
     } catch (e) {
       setErrLoad(e instanceof Error ? e.message : String(e));
@@ -1499,7 +1513,7 @@ function ReleaseEscrowTab() {
     if (effectiveProofHash.length !== 64) { showToast("Provide a valid 64-char proof hash."); return; }
     setBusy(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signEscrowRelease({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -1565,8 +1579,8 @@ function ReleaseEscrowTab() {
             ["creator",  escrow.creator],
             ["recipient", escrow.recipient],
             ["amount",   `${fmtOmni(escrow.amount_sat)} OMNI`],
-            ["timeout block", intFmt.format(escrow.timeout_block)],
-            ["condition_hash", shortHash(escrow.condition_hash)],
+            ["timeout block", fmtInt(escrow.timeout_block)],
+            ["condition_hash", midTrunc(escrow.condition_hash)],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between gap-2">
               <span className="text-mempool-text-dim flex-shrink-0">{k}</span>
@@ -1656,25 +1670,9 @@ function ReleaseEscrowTab() {
 
 export function NotarizePage() {
   const [topTab, setTopTab]     = useState<TopTab>("notarize");
-  const [blockHeight, setBlockHeight] = useState(0);
+  const blockHeight = useBlockHeight();
 
-  useEffect(() => {
-    let cancelled = false;
-    const tick = async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    };
-    void tick();
-    const id = window.setInterval(() => void tick(), 5000);
-    return () => { cancelled = true; window.clearInterval(id); };
-  }, []);
-
-  const topTabs: { id: TopTab; label: string }[] = [
-    { id: "notarize", label: "Notarize" },
-    { id: "escrow",   label: "Escrow" },
-  ];
+  const topTabs = NOTARIZE_TOP_TABS;
 
   return (
     <section className="bg-mempool-bg-elev rounded-lg p-3 sm:p-4 border border-mempool-border backdrop-blur-sm">
@@ -1686,7 +1684,7 @@ export function NotarizePage() {
         </h2>
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-[10px] sm:text-xs text-mempool-text-dim font-mono whitespace-nowrap">
-          height {intFmt.format(blockHeight)}
+          height {fmtInt(blockHeight)}
         </span>
       </div>
 
@@ -1707,6 +1705,8 @@ export function NotarizePage() {
             >
               {t.id === "notarize" ? (
                 <><FileText className="inline w-3.5 h-3.5 mr-1 -mt-0.5" />{t.label}</>
+              ) : t.id === "opreturn" ? (
+                <><span className="mr-1 font-mono text-[9px]">OP</span>{t.label}</>
               ) : (
                 <><Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5" />{t.label}</>
               )}
@@ -1720,7 +1720,165 @@ export function NotarizePage() {
 
       {topTab === "notarize" && <NotarizeSection />}
       {topTab === "escrow"   && <EscrowSection blockHeight={blockHeight} />}
+      {topTab === "opreturn" && <OpReturnSection />}
     </section>
+  );
+}
+
+// ── OP_RETURN Section (sendopreturn + sendrawtransaction) ─────────────────────
+
+function OpReturnSection() {
+  const wallet = useWallet();
+
+  // sendopreturn
+  const [opData, setOpData] = useState("");
+  const [opFee, setOpFee] = useState("1000");
+  const [opLoading, setOpLoading] = useState(false);
+  const [opResult, setOpResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const sendOpReturn = async () => {
+    if (!opData.trim()) return;
+    setOpLoading(true); setOpResult(null);
+    try {
+      const r = await rpc.request_raw("sendopreturn", [opData.trim(), parseInt(opFee, 10) || 1000]) as { txid?: string; tx_hash?: string; error?: string };
+      if (r && (r.txid || r.tx_hash)) {
+        setOpResult({ ok: true, msg: `TX: ${(r.txid ?? r.tx_hash ?? "").slice(0, 32)}…` });
+      } else {
+        setOpResult({ ok: false, msg: r?.error ?? JSON.stringify(r) });
+      }
+    } catch (e) { setOpResult({ ok: false, msg: String(e) }); }
+    finally { setOpLoading(false); }
+  };
+
+  // sendrawtransaction
+  const [rawFrom, setRawFrom] = useState("");
+  const [rawTo, setRawTo] = useState("");
+  const [rawAmount, setRawAmount] = useState("");
+  const [rawFee, setRawFee] = useState("1000");
+  const [rawSig, setRawSig] = useState("");
+  const [rawHash, setRawHash] = useState("");
+  const [rawPubkey, setRawPubkey] = useState("");
+  const [rawNonce, setRawNonce] = useState("0");
+  const [rawLoading, setRawLoading] = useState(false);
+  const [rawResult, setRawResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const sendRaw = async () => {
+    setRawLoading(true); setRawResult(null);
+    try {
+      const r = await rpc.request_raw("sendrawtransaction", [{
+        from: rawFrom.trim(),
+        to: rawTo.trim(),
+        amount: parseInt(rawAmount, 10),
+        fee: parseInt(rawFee, 10) || 1000,
+        signature: rawSig.trim(),
+        hash: rawHash.trim(),
+        publicKey: rawPubkey.trim(),
+        nonce: parseInt(rawNonce, 10) || 0,
+        timestamp: Math.floor(Date.now() / 1000),
+      }]) as { txid?: string; tx_hash?: string; error?: string };
+      if (r && (r.txid || r.tx_hash)) {
+        setRawResult({ ok: true, msg: `TX: ${(r.txid ?? r.tx_hash ?? "").slice(0, 32)}…` });
+      } else {
+        setRawResult({ ok: false, msg: r?.error ?? JSON.stringify(r) });
+      }
+    } catch (e) { setRawResult({ ok: false, msg: String(e) }); }
+    finally { setRawLoading(false); }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* sendopreturn */}
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg p-4 space-y-3">
+        <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+          Send OP_RETURN (sendopreturn)
+        </h3>
+        <p className="text-[11px] text-mempool-text-dim">
+          Embed up to 80 bytes of arbitrary data on-chain. Amount = 0, uses node wallet. Commonly used for notarization, name registration receipts, or protocol messages.
+        </p>
+        {!wallet?.address && (
+          <p className="text-xs text-yellow-400">Unlock wallet first — node must be running with your mnemonic.</p>
+        )}
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <label className="text-[10px] text-mempool-text-dim uppercase">Data (≤80 bytes UTF-8)</label>
+            <input
+              value={opData}
+              onChange={(e) => setOpData(e.target.value)}
+              placeholder="ns:alice.omnibus:ob1q…"
+              maxLength={80}
+              className="w-full bg-mempool-bg-elev border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text"
+            />
+            <p className="text-[9px] text-mempool-text-dim">{opData.length}/80 chars</p>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] text-mempool-text-dim uppercase">Fee (SAT)</label>
+            <input
+              type="number"
+              min="0"
+              value={opFee}
+              onChange={(e) => setOpFee(e.target.value)}
+              className="w-full bg-mempool-bg-elev border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text"
+            />
+          </div>
+          <button
+            onClick={sendOpReturn}
+            disabled={opLoading || !opData.trim()}
+            className="w-full py-2 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+          >
+            {opLoading ? "Broadcasting…" : "Send OP_RETURN TX"}
+          </button>
+          {opResult && (
+            <div className={`rounded px-3 py-2 text-xs border ${opResult.ok ? "bg-green-500/10 border-green-500/30 text-green-300" : "bg-red-500/10 border-red-500/30 text-red-300"}`}>
+              {opResult.msg}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* sendrawtransaction */}
+      <div className="rounded-xl border border-mempool-border bg-mempool-bg p-4 space-y-3">
+        <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+          Broadcast Raw TX (sendrawtransaction)
+        </h3>
+        <p className="text-[11px] text-mempool-text-dim">
+          Broadcast a pre-signed transaction directly to the mempool. All fields must be pre-computed (signature, hash, nonce). For advanced use only.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {[
+            ["From", rawFrom, setRawFrom, "ob1q…"],
+            ["To", rawTo, setRawTo, "ob1q…"],
+            ["Amount (SAT)", rawAmount, setRawAmount, "100000000"],
+            ["Fee (SAT)", rawFee, setRawFee, "1000"],
+            ["Signature (128 hex)", rawSig, setRawSig, "aabbcc…"],
+            ["TX Hash (64 hex)", rawHash, setRawHash, "deadbeef…"],
+            ["Public key (66 hex)", rawPubkey, setRawPubkey, "02aabb…"],
+            ["Nonce", rawNonce, setRawNonce, "0"],
+          ].map(([label, val, setter, ph]) => (
+            <div key={label as string} className="space-y-0.5">
+              <label className="text-[9px] text-mempool-text-dim uppercase">{label as string}</label>
+              <input
+                value={val as string}
+                onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)}
+                placeholder={ph as string}
+                className="w-full bg-mempool-bg-elev border border-mempool-border rounded px-2 py-1.5 text-[11px] font-mono text-mempool-text"
+              />
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={sendRaw}
+          disabled={rawLoading || !rawFrom || !rawTo || !rawAmount || !rawSig || !rawHash || !rawPubkey}
+          className="w-full py-2 text-xs font-medium bg-orange-500/20 hover:bg-orange-500/40 text-orange-300 border border-orange-500/30 rounded disabled:opacity-50"
+        >
+          {rawLoading ? "Broadcasting…" : "Broadcast Raw TX"}
+        </button>
+        {rawResult && (
+          <div className={`rounded px-3 py-2 text-xs border ${rawResult.ok ? "bg-green-500/10 border-green-500/30 text-green-300" : "bg-red-500/10 border-red-500/30 text-red-300"}`}>
+            {rawResult.msg}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

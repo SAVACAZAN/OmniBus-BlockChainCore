@@ -1065,10 +1065,6 @@ fn randomHex(out: []u8, n_bytes: usize) void {
 
 // ─── PHASE 2E.4 — Funding helpers ──────────────────────────────────────
 
-/// Phase 2F bridge vault placeholder. Per-chain TSS-controlled deposit
-/// addresses replace this once bridge_native.zig is wired to RPC.
-pub const BRIDGE_VAULT_PLACEHOLDER: []const u8 = "BRIDGE_VAULT_PHASE_2F_PENDING";
-
 fn fundingFeeStr(asset: []const u8) []const u8 {
     if (std.mem.eql(u8, asset, "OMNI")) return "0.00050000";
     if (std.mem.eql(u8, asset, "BTC"))  return "0.00010000";
@@ -2456,14 +2452,19 @@ fn dispatchRest(alloc: std.mem.Allocator, stream: std.net.Stream, header: []cons
                 writeJsonResponse(stream, "{\"error\":[\"EFunding:Unknown asset\"],\"result\":[]}");
                 return true;
             }
-            const addr_slice: []const u8 = if (std.mem.eql(u8, asset, "OMNI"))
-                ctx.wallet.address
-            else
-                BRIDGE_VAULT_PLACEHOLDER;
+            // Native OMNI deposits land on the wallet address. Cross-chain
+            // assets require the Phase 2F TSS-controlled bridge vault, which
+            // is not yet deployed — return a clear error instead of a magic
+            // placeholder string the client would treat as a real address.
+            if (!std.mem.eql(u8, asset, "OMNI")) {
+                writeJsonResponse(stream,
+                    "{\"error\":[\"EFunding:BridgeVaultNotDeployed\"],\"result\":[]}");
+                return true;
+            }
             const body_json = std.fmt.allocPrint(alloc,
                 "{{\"error\":[],\"result\":[{{\"address\":\"{s}\"," ++
                 "\"expiretm\":0,\"newtag\":null}}]}}",
-                .{ addr_slice }) catch {
+                .{ ctx.wallet.address }) catch {
                     writeJsonResponse(stream, "{\"error\":[\"EFunding:Alloc\"],\"result\":[]}");
                     return true;
                 };
@@ -3088,6 +3089,10 @@ fn handleListUnspent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     var total: u64 = 0;
     var count: usize = 0;
 
+    // Lock UTXOSet for the whole walk — see utxo.zig RwLock note.
+    ctx.bc.utxo_set.lock.lockShared();
+    defer ctx.bc.utxo_set.lock.unlockShared();
+
     if (ctx.bc.utxo_set.address_index.get(req_addr)) |list| {
         for (list.items) |outpoint_key| {
             const utxo = ctx.bc.utxo_set.utxos.get(outpoint_key) orelse continue;
@@ -3135,11 +3140,12 @@ fn handleGetStatus(ctx: *ServerCtx, id: u64) ![]u8 {
 //
 // These do NOT touch ctx.bridge / ctx.bc state — they read/write the
 // process-global oracle protected by g_xchain_oracle_mutex. Wire
-// validation (PQ quorum 3-of-4 sigs on `oracle_recordHeader`) is left
-// for the caller of this RPC; right now we only check that the request
-// includes a `quorum_ok=true` flag so the gating point is explicit and
-// auditable. TODO: replace with real PQ quorum verification once
-// validator key set is exposed via ServerCtx.
+// validation on oracle_recordHeader: ≥ ORACLE_QUORUM_MIN distinct
+// secp256k1 sigs over SHA256("OMNI_ORACLE_v1\n" + chain + "\n" + height +
+// "\n" + header_hash_hex), signers must be in setOracleQuorumPubkeys().
+// The legacy `quorum_ok=true` flag is honored ONLY when zero pubkeys are
+// registered (dev/testnet bring-up); production operators install the
+// validator key set via oracle_quorum.json and the flag is ignored.
 
 fn handleOracleBtcHeight(ctx: *ServerCtx, id: u64) ![]u8 {
     ensureOracleLoaded();
@@ -3996,11 +4002,14 @@ fn handleGetAgents(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!first) try w.writeAll(",");
         first = false;
         const owner = if (slot.canSign()) slot.wallet.?.getAddress() else "";
-        const strategy_str: []const u8 = "custom";
         try w.print(
-            "{{\"id\":{d},\"owner\":\"{s}\",\"name\":\"{s}\",\"strategy\":\"{s}\",\"fee_bps\":0,\"registered_at_block\":0,\"decisions_made\":{d},\"decisions_ok\":{d},\"profit_omni_total\":{d},\"followers\":0,\"status\":\"active\",\"reputation_total\":0}}",
-            .{ slot.config.wallet_index, owner, slot.config.getName(), strategy_str,
-               slot.stats.decisions_emitted, slot.stats.txs_submitted, slot.stats.total_mined_sat },
+            "{{\"id\":{d},\"owner\":\"{s}\",\"name\":\"",
+            .{ slot.config.wallet_index, owner },
+        );
+        try writeJsonSafeStr(w, slot.config.getName());
+        try w.print(
+            "\",\"strategy\":\"custom\",\"fee_bps\":0,\"registered_at_block\":0,\"decisions_made\":{d},\"decisions_ok\":{d},\"profit_omni_total\":{d},\"followers\":0,\"status\":\"active\",\"reputation_total\":0}}",
+            .{ slot.stats.decisions_emitted, slot.stats.txs_submitted, slot.stats.total_mined_sat },
         );
     }
     try w.writeAll("]}}");
@@ -4039,6 +4048,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getpoolstats"))     return handlePoolStats(ctx, id);
     if (std.mem.eql(u8, method, "getaddressbalance"))return handleAddrBal(body, ctx, id);
     if (std.mem.eql(u8, method, "getmempoolstats"))  return handleMpStats(ctx, id);
+    if (std.mem.eql(u8, method, "getpendingtxs"))   return handleGetPendingTxs(body, ctx, id);
     if (std.mem.eql(u8, method, "getpeers"))         return handlePeers(ctx, id);
     if (std.mem.eql(u8, method, "getsyncstatus"))    return handleSyncSt(ctx, id);
     if (std.mem.eql(u8, method, "getnetworkinfo"))   return handleNetInfo(ctx, id);
@@ -4063,6 +4073,7 @@ fn dispatch(body: []const u8, ctx: *ServerCtx) ![]u8 {
     if (std.mem.eql(u8, method, "getfaucetstatus"))  return handleFaucetStatus(ctx, id);
     if (std.mem.eql(u8, method, "getrichlist"))      return handleRichList(body, ctx, id);
     if (std.mem.eql(u8, method, "getchainmetrics"))  return handleChainMetrics(ctx, id);
+    if (std.mem.eql(u8, method, "getschemestats"))   return handleSchemeStats(body, ctx, id);
     if (std.mem.eql(u8, method, "registername"))     return handleRegisterName(body, ctx, id);
     if (std.mem.eql(u8, method, "transfername"))     return handleTransferName(body, ctx, id);
     if (std.mem.eql(u8, method, "updatename"))       return handleUpdateName(body, ctx, id);
@@ -4403,13 +4414,33 @@ fn handleGetNonce(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const addr = extractArrayStr(body, 0) orelse extractStr(body, "address") orelse
         return errorJson(-32602, "Missing param: address", id, alloc);
 
+    ctx.bc.mutex.lock();
     const chain_nonce = ctx.bc.getNextNonce(addr);
     const next_available = ctx.bc.getNextAvailableNonce(addr);
+    ctx.bc.mutex.unlock();
     const pending = next_available - chain_nonce;
 
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"nonce\":{d},\"chainNonce\":{d},\"pendingCount\":{d}}}}}",
         .{ id, addr, next_available, chain_nonce, pending });
+}
+
+fn txSchemeLabel(scheme: transaction_mod.Scheme) []const u8 {
+    return switch (scheme) {
+        .omni_ecdsa       => "ECDSA (secp256k1)",
+        .love_dilithium   => "ML-DSA-87 (LOVE soulbound)",
+        .food_falcon      => "Falcon-512 (FOOD soulbound)",
+        .rent_ml_dsa      => "ML-DSA-87 (RENT soulbound)",
+        .vacation_slh_dsa => "SLH-DSA-256s (VACATION soulbound)",
+        .pq_omni_ml_dsa   => "ML-DSA-87",
+        .pq_omni_falcon   => "Falcon-512",
+        .pq_omni_dilithium=> "ML-DSA-87 (Dilithium-5)",
+        .pq_omni_slh_dsa  => "SLH-DSA-256s",
+        .hybrid_q1        => "Hybrid ECDSA+ML-DSA-87",
+        .hybrid_q2        => "Hybrid ECDSA+Falcon-512",
+        .hybrid_q3        => "Hybrid ECDSA+Dilithium-5",
+        .hybrid_q4        => "Hybrid ECDSA+SLH-DSA",
+    };
 }
 
 /// RPC "gettransaction" — returns a single TX by hash with confirmation count.
@@ -4426,9 +4457,13 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // 1. Check mempool (pending TXs — 0 confirmations)
     for (ctx.bc.mempool.items) |tx| {
         if (std.mem.eql(u8, tx.hash, tx_hash)) {
+            const scheme_label = txSchemeLabel(tx.scheme);
+            const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+            defer alloc.free(op_ret);
+            const kind = inferTxKind(tx);
             return std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"status\":\"pending\"}}}}",
-                .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee });
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":0,\"blockHeight\":null,\"status\":\"pending\"}}}}",
+                .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret });
         }
     }
 
@@ -4440,9 +4475,13 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             const blk = ctx.bc.chain.items[block_height];
             for (blk.transactions.items) |tx| {
                 if (std.mem.eql(u8, tx.hash, tx_hash)) {
+                    const scheme_label = txSchemeLabel(tx.scheme);
+                    const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+                    defer alloc.free(op_ret);
+                    const kind = inferTxKind(tx);
                     return std.fmt.allocPrint(alloc,
-                        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-                        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height });
+                        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
+                        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret, confirmations, block_height });
                 }
             }
         }
@@ -4459,9 +4498,13 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 const current_height: u64 = @intCast(ctx.bc.chain.items.len);
                 const bh: u64 = @intCast(blk.index);
                 const confirmations = if (current_height > bh) current_height - bh else 0;
+                const scheme_label = txSchemeLabel(tx.scheme);
+                const op_ret = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+                defer alloc.free(op_ret);
+                const kind = inferTxKind(tx);
                 return std.fmt.allocPrint(alloc,
-                    "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-                    .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, blk.index });
+                    "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
+                    .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret, confirmations, blk.index });
             }
         }
     }
@@ -4548,9 +4591,13 @@ fn handleSendOpReturn(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     if (!tx.isValid()) return errorJson(-32000, "Invalid OP_RETURN transaction", id, alloc);
     ctx.bc.registerPubkey(ctx.wallet.address, ctx.wallet.addresses[0].public_key_hex) catch {};
     ctx.bc.addTransaction(tx) catch return errorJson(-32000, "Mempool error", id, alloc);
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"op_return\":\"{s}\",\"fee\":{d},\"status\":\"accepted\"}}}}",
-        .{ id, tx.hash, tx.from_address, tx.op_return, tx.fee });
+    {
+        const opr_safe = try jsonSanitize(alloc, tx.op_return);
+        defer alloc.free(opr_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"op_return\":\"{s}\",\"fee\":{d},\"status\":\"accepted\"}}}}",
+            .{ id, tx.hash, tx.from_address, opr_safe, tx.fee });
+    }
 }
 
 /// RPC "minersendtx" — send TX from a registered miner's wallet.
@@ -4781,11 +4828,24 @@ fn inferTxKind(tx: transaction_mod.Transaction) []const u8 {
 
     // op_return-tagged operations (extensible: add new prefixes here)
     if (tx.op_return.len > 0) {
-        if (std.mem.startsWith(u8, tx.op_return, "exchange:")) return "exchange";
-        if (std.mem.startsWith(u8, tx.op_return, "fill:")) return "exchange";
-        if (std.mem.startsWith(u8, tx.op_return, "stake:")) return "stake";
-        if (std.mem.startsWith(u8, tx.op_return, "unstake:")) return "stake";
-        if (std.mem.startsWith(u8, tx.op_return, "demo:")) return "demo_grant";
+        if (std.mem.startsWith(u8, tx.op_return, "exchange:"))     return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "fill:"))         return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "open_order:"))   return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "place_order:"))  return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "close_order:"))  return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "cancel_order:")) return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "deposit:"))      return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "withdraw:"))     return "exchange";
+        if (std.mem.startsWith(u8, tx.op_return, "stake:"))        return "stake";
+        if (std.mem.startsWith(u8, tx.op_return, "unstake:"))      return "unstake";
+        if (std.mem.startsWith(u8, tx.op_return, "delegate:"))     return "stake";
+        if (std.mem.startsWith(u8, tx.op_return, "undelegate:"))   return "unstake";
+        if (std.mem.startsWith(u8, tx.op_return, "ns_claim:"))     return "ns_claim";
+        if (std.mem.startsWith(u8, tx.op_return, "agent:register"))   return "agent_register";
+        if (std.mem.startsWith(u8, tx.op_return, "agent:unregister")) return "agent_register";
+        if (std.mem.startsWith(u8, tx.op_return, "notarize:"))     return "notarize";
+        if (std.mem.startsWith(u8, tx.op_return, "notarize_revoke:")) return "notarize";
+        if (std.mem.startsWith(u8, tx.op_return, "demo:"))         return "demo_grant";
     }
 
     return "transfer";
@@ -4816,10 +4876,18 @@ fn handleRichList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // Collect (address, balance) pairs from the UTXO set (PHASE-B source of truth).
     var entries = std.array_list.Managed(RichEntry).init(alloc);
     defer entries.deinit();
+    // Lock UTXOSet for the iteration — getBalance() takes a recursive shared lock.
+    ctx.bc.utxo_set.lock.lockShared();
+    defer ctx.bc.utxo_set.lock.unlockShared();
     var ait = ctx.bc.utxo_set.address_index.iterator();
     while (ait.next()) |kv| {
         const addr = kv.key_ptr.*;
-        const bal = ctx.bc.utxo_set.getBalance(addr);
+        // Inline tally to avoid re-locking (getBalance would try to lockShared again).
+        const list = kv.value_ptr.*;
+        var bal: u64 = 0;
+        for (list.items) |op| {
+            if (ctx.bc.utxo_set.utxos.get(op)) |u| bal += u.amount;
+        }
         if (bal == 0) continue; // skip dust/zero balances
         try entries.append(.{ .address = addr, .balance = bal });
     }
@@ -4966,10 +5034,17 @@ fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
     var addresses_with_balance: u64 = 0;
     var validators: u64 = 0;
     var total_supply: u64 = 0;
+    ctx.bc.utxo_set.lock.lockShared();
+    defer ctx.bc.utxo_set.lock.unlockShared();
     var ait = ctx.bc.utxo_set.address_index.iterator();
     while (ait.next()) |kv| {
-        const addr = kv.key_ptr.*;
-        const bal = ctx.bc.utxo_set.getBalance(addr);
+        _ = kv.key_ptr.*;
+        // Inline tally — re-entering getBalance() would deadlock on the same RwLock.
+        const list = kv.value_ptr.*;
+        var bal: u64 = 0;
+        for (list.items) |op| {
+            if (ctx.bc.utxo_set.utxos.get(op)) |u| bal += u.amount;
+        }
         if (bal == 0) continue;
         addresses_with_balance += 1;
         total_supply += bal;
@@ -4985,6 +5060,19 @@ fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
     // Current block reward (uses blockchain.zig blockRewardAt — handles halvings).
     const current_reward = blockchain_mod.blockRewardAt(@intCast(height));
 
+    // Latest block quick stats (tx count + fees) for dashboard — avoids extra getblock call.
+    var latest_tx_count: usize = 0;
+    var latest_fees: u64 = 0;
+    var latest_timestamp: i64 = 0;
+    if (height > 0) {
+        const tip = ctx.bc.chain.items[height - 1];
+        latest_tx_count = tip.transactions.items.len;
+        latest_timestamp = tip.timestamp;
+        for (tip.transactions.items) |tx| {
+            if (tx.fee > 0) latest_fees += @as(u64, @intCast(tx.fee));
+        }
+    }
+
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
             "\"height\":{d}," ++
@@ -4997,13 +5085,82 @@ fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
             "\"mempoolSize\":{d}," ++
             "\"peerCount\":{d}," ++
             "\"currentBlockReward\":{d}," ++
+            "\"latestBlockTxCount\":{d}," ++
+            "\"latestBlockFees\":{d}," ++
+            "\"latestBlockTimestamp\":{d}," ++
             "\"satPerOmni\":1000000000" ++
             "}}}}",
         .{
             id, height, tip_hash, total_supply, addresses_with_balance,
             validators, validator_set_size, validator_mod.MIN_VALIDATOR_BALANCE,
             mempool_size, peer_count, current_reward,
+            latest_tx_count, latest_fees, latest_timestamp,
         });
+}
+
+/// RPC "getschemestats" — signing-scheme distribution across last N blocks.
+/// Params: [blocks_count]  (default 100, max 1000)
+/// Returns: { totalTxs, blocks, schemes: [{scheme, count, pct}] }
+fn handleSchemeStats(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const req_blocks = extractArrayNum(body, 0);
+    const scan: u64 = if (req_blocks > 0 and req_blocks <= 1000) req_blocks else 100;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    const chain_len: u64 = @intCast(ctx.bc.chain.items.len);
+    const start: u64 = if (chain_len > scan) chain_len - scan else 0;
+
+    // Counters for 13 schemes (indices match transaction.Scheme enum order)
+    var counts: [13]u64 = .{0} ** 13;
+    var total: u64 = 0;
+
+    var hi: u64 = start;
+    while (hi < chain_len) : (hi += 1) {
+        const blk = ctx.bc.chain.items[@intCast(hi)];
+        for (blk.transactions.items) |tx| {
+            const idx: usize = @intFromEnum(tx.scheme);
+            if (idx < 13) counts[idx] += 1;
+            total += 1;
+        }
+    }
+
+    const scanned = chain_len - start;
+    const scheme_labels = [13][]const u8{
+        "ECDSA (secp256k1)",
+        "ML-DSA-87 (LOVE soulbound)",
+        "Falcon-512 (FOOD soulbound)",
+        "ML-DSA-87 (RENT soulbound)",
+        "SLH-DSA-256s (VACATION soulbound)",
+        "ML-DSA-87",
+        "Falcon-512",
+        "ML-DSA-87 (Dilithium-5)",
+        "SLH-DSA-256s",
+        "Hybrid ECDSA+ML-DSA-87",
+        "Hybrid ECDSA+Falcon-512",
+        "Hybrid ECDSA+Dilithium-5",
+        "Hybrid ECDSA+SLH-DSA",
+    };
+
+    var entries: []u8 = try alloc.dupe(u8, "");
+    var written: usize = 0;
+    for (scheme_labels, 0..) |label, i| {
+        if (counts[i] == 0) continue;
+        const pct_x100: u64 = if (total > 0) counts[i] * 10000 / total else 0;
+        const sep: []const u8 = if (written == 0) "" else ",";
+        const e = try std.fmt.allocPrint(alloc,
+            "{s}{{\"scheme\":\"{s}\",\"count\":{d},\"pct\":{d}}}",
+            .{ sep, label, counts[i], pct_x100 });
+        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
+        alloc.free(entries); alloc.free(e); entries = m;
+        written += 1;
+    }
+    defer alloc.free(entries);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"totalTxs\":{d},\"blocks\":{d},\"schemes\":[{s}]}}}}",
+        .{ id, total, scanned, entries });
 }
 
 // ─── DNS / ENS handlers ─────────────────────────────────────────────────────
@@ -5145,9 +5302,13 @@ fn handleRegisterName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         ws.broadcastNameRegistered(name, tld, address, @intCast(@min(years, 255)));
     }
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"}}}}",
-        .{ id, name, tld, name, tld, address, current_block, fee_paid_sat, fee_txid_esc });
+    {
+        const rn_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(rn_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":\"{s}\",\"registeredAtBlock\":{d},\"fee_paid_sat\":{d},\"fee_txid\":\"{s}\"}}}}",
+            .{ id, rn_safe, tld, rn_safe, tld, address, current_block, fee_paid_sat, fee_txid_esc });
+    }
 }
 
 fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -5177,6 +5338,8 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const current_block: u64 = @intCast(ctx.bc.chain.items.len);
     // Phase 2: lookup the full entry (not just the address) so we can
     // surface category, PQ slots, preferred slot, and registered_years.
+    const name_safe = try jsonSanitize(alloc, name);
+    defer alloc.free(name_safe);
     const entry = dns.lookupEntry(name, tld);
     if (entry) |e| {
         if (e.active and !e.isExpired(current_block)) {
@@ -5206,7 +5369,7 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                     "\"found\":true" ++
                 "}}}}",
                 .{
-                    id, name, tld, name, tld,
+                    id, name_safe, tld, name_safe, tld,
                     e.getAddress(),
                     e.getAddress(),
                     pq_k, e.addr_pq_lens[0] > 0,
@@ -5223,7 +5386,7 @@ fn handleResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"address\":null,\"found\":false}}}}",
-        .{ id, name, tld, name, tld });
+        .{ id, name_safe, tld, name_safe, tld });
 }
 
 /// Phase 2 send-routing helper — closes the loop on `preferred_slot`.
@@ -5302,6 +5465,8 @@ fn handleResolveForSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 }
             }
 
+            const rfs_safe = try jsonSanitize(alloc, name);
+            defer alloc.free(rfs_safe);
             return std.fmt.allocPrint(alloc,
                 "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
                     "\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
@@ -5314,7 +5479,7 @@ fn handleResolveForSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                     "\"found\":true" ++
                 "}}}}",
                 .{
-                    id, name, tld, name, tld,
+                    id, rfs_safe, tld, rfs_safe, tld,
                     primary,
                     route_slot,
                     route_addr,
@@ -5324,12 +5489,16 @@ fn handleResolveForSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 });
         }
     }
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
-            "\"primary_address\":null,\"route_slot\":0,\"route_address\":null," ++
-            "\"route_address_kind\":\"ecdsa\",\"preferred_slot\":0," ++
-            "\"fell_back_to_primary\":false,\"found\":false}}}}",
-        .{ id, name, tld, name, tld });
+    {
+        const rfs_nf = try jsonSanitize(alloc, name);
+        defer alloc.free(rfs_nf);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
+                "\"primary_address\":null,\"route_slot\":0,\"route_address\":null," ++
+                "\"route_address_kind\":\"ecdsa\",\"preferred_slot\":0," ++
+                "\"fell_back_to_primary\":false,\"found\":false}}}}",
+            .{ id, rfs_nf, tld, rfs_nf, tld });
+    }
 }
 
 fn handleReverseResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -5344,9 +5513,11 @@ fn handleReverseResolveName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const found = dns.reverseResolve(address, current_block);
 
     if (found) |name| {
+        const rr_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(rr_safe);
         return std.fmt.allocPrint(alloc,
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"name\":\"{s}\",\"found\":true}}}}",
-            .{ id, address, name });
+            .{ id, address, rr_safe });
     }
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"name\":null,\"found\":false}}}}",
@@ -5373,15 +5544,19 @@ fn handleListNames(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!e.active or e.isExpired(current_block)) continue;
         if (!first) try w.writeAll(",");
         first = false;
+        try w.writeAll("{\"name\":\"");
+        try writeJsonSafeStr(w, e.getName());
         try w.print(
-            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\"," ++
-                "\"address\":\"{s}\"," ++
-                "\"category\":\"{s}\"," ++
-                "\"preferred_slot\":{d}," ++
-                "\"registered_years\":{d}," ++
+            "\",\"tld\":\"{s}\",\"fullLabel\":\"",
+            .{e.getTld()},
+        );
+        try writeJsonSafeStr(w, e.getName());
+        try w.print(
+            ".{s}\",\"address\":\"{s}\",\"category\":\"{s}\"," ++
+                "\"preferred_slot\":{d},\"registered_years\":{d}," ++
                 "\"registeredAtBlock\":{d},\"expiresAtBlock\":{d}}}",
             .{
-                e.getName(), e.getTld(), e.getName(), e.getTld(), e.getAddress(),
+                e.getTld(), e.getAddress(),
                 e.category.toString(), e.preferred_slot, e.registered_years,
                 e.registered_block, e.expires_block,
             },
@@ -5606,9 +5781,13 @@ fn handleSetCategory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         };
         return errorJson(-32030, msg, id, alloc);
     };
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"category\":\"{s}\",\"updated\":true}}}}",
-        .{ id, name, tld, cat.toString() });
+    {
+        const scat_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(scat_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"category\":\"{s}\",\"updated\":true}}}}",
+            .{ id, scat_safe, tld, cat.toString() });
+    }
 }
 
 /// setpreferredslot — owner sets which scheme they want funds delivered to by default.
@@ -5635,9 +5814,13 @@ fn handleSetPreferredSlot(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         };
         return errorJson(-32030, msg, id, alloc);
     };
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"preferred_slot\":{d},\"updated\":true}}}}",
-        .{ id, name, tld, slot_idx });
+    {
+        const sps_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(sps_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"preferred_slot\":{d},\"updated\":true}}}}",
+            .{ id, sps_safe, tld, slot_idx });
+    }
 }
 
 /// getnamesbycategory — list all names with a given category badge.
@@ -5671,22 +5854,21 @@ fn handleGetNamesByCategory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     var out = std.ArrayList(u8){};
     defer out.deinit(alloc);
-    var hdr: [128]u8 = undefined;
-    const hdr_str = try std.fmt.bufPrint(&hdr,
+    const gncw = out.writer(alloc);
+    try std.fmt.format(gncw,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"category\":\"{s}\",\"total\":{d},\"entries\":[",
         .{ id, cat.toString(), found });
-    try out.appendSlice(alloc, hdr_str);
     var i: usize = 0;
     while (i < found) : (i += 1) {
         const e = slice[i];
-        if (i > 0) try out.appendSlice(alloc, ",");
-        var row: [256]u8 = undefined;
-        const row_str = try std.fmt.bufPrint(&row,
-            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"address\":\"{s}\",\"preferred_slot\":{d},\"registeredAtBlock\":{d}}}",
-            .{ e.getName(), e.getTld(), e.getAddress(), e.preferred_slot, e.registered_block });
-        try out.appendSlice(alloc, row_str);
+        if (i > 0) try gncw.writeByte(',');
+        try gncw.writeAll("{\"name\":\"");
+        try writeJsonSafeStr(gncw, e.getName());
+        try std.fmt.format(gncw,
+            "\",\"tld\":\"{s}\",\"address\":\"{s}\",\"preferred_slot\":{d},\"registeredAtBlock\":{d}}}",
+            .{ e.getTld(), e.getAddress(), e.preferred_slot, e.registered_block });
     }
-    try out.appendSlice(alloc, "]}}");
+    try gncw.writeAll("]}}");
     return alloc.dupe(u8, out.items);
 }
 
@@ -5746,9 +5928,13 @@ fn handleTransferName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ name, tld, owner, new_owner, nonce, pubkey_hex, sig_hex }) catch "";
     if (audit_fields.len > 0) dnsAuditAppend(ctx, "transfer", audit_fields);
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_owner\":\"{s}\",\"new_owner\":\"{s}\",\"transferredAtBlock\":{d}}}}}",
-        .{ id, name, tld, owner, new_owner, current_block });
+    {
+        const tn_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(tn_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_owner\":\"{s}\",\"new_owner\":\"{s}\",\"transferredAtBlock\":{d}}}}}",
+            .{ id, tn_safe, tld, owner, new_owner, current_block });
+    }
 }
 
 // ─── Phase 1: updatename ────────────────────────────────────────────────────
@@ -5804,9 +5990,13 @@ fn handleUpdateName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ name, tld, old_address, new_address, nonce, pubkey_hex, sig_hex }) catch "";
     if (audit_fields.len > 0) dnsAuditAppend(ctx, "update", audit_fields);
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_address\":\"{s}\",\"new_address\":\"{s}\",\"updatedAtBlock\":{d}}}}}",
-        .{ id, name, tld, old_address, new_address, current_block });
+    {
+        const un_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(un_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"old_address\":\"{s}\",\"new_address\":\"{s}\",\"updatedAtBlock\":{d}}}}}",
+            .{ id, un_safe, tld, old_address, new_address, current_block });
+    }
 }
 
 // ─── Phase 1+2: renewname ───────────────────────────────────────────────────
@@ -5941,9 +6131,13 @@ fn handleRenewName(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         ws.broadcastNameRenewed(name, tld, owner, @intCast(@min(years, 255)));
     }
 
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"added_years\":{d},\"registered_years\":{d},\"old_expires_block\":{d},\"new_expires_block\":{d},\"fee_paid_sat\":{d}}}}}",
-        .{ id, name, tld, years, entry.registered_years, old_expires, entry.expires_block, fee_paid_sat });
+    {
+        const ren_safe = try jsonSanitize(alloc, name);
+        defer alloc.free(ren_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"tld\":\"{s}\",\"added_years\":{d},\"registered_years\":{d},\"old_expires_block\":{d},\"new_expires_block\":{d},\"fee_paid_sat\":{d}}}}}",
+            .{ id, ren_safe, tld, years, entry.registered_years, old_expires, entry.expires_block, fee_paid_sat });
+    }
 }
 
 // ─── Phase 2: ns_expiringSoon ───────────────────────────────────────────────
@@ -5994,7 +6188,6 @@ fn handleNsExpiringSoon(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, address, current_block, blocks_threshold });
     for (buf[0..n], 0..) |e, i| {
         if (i > 0) try w.writeAll(",");
-        const name = e.getName();
         const tld_s = e.getTld();
         const in_grace = e.isInGrace(current_block);
         const remaining: u64 = if (in_grace or e.expires_block <= current_block)
@@ -6003,9 +6196,13 @@ fn handleNsExpiringSoon(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             e.expires_block - current_block;
         // 10s/block, so days = remaining / (86400/10) = remaining / 8640
         const est_days: u64 = remaining / 8640;
+        try w.writeAll("{\"name\":\"");
+        try writeJsonSafeStr(w, e.getName());
+        try std.fmt.format(w, "\",\"tld\":\"{s}\",\"fullLabel\":\"", .{tld_s});
+        try writeJsonSafeStr(w, e.getName());
         try std.fmt.format(w,
-            "{{\"name\":\"{s}\",\"tld\":\"{s}\",\"fullLabel\":\"{s}.{s}\",\"expiresAtBlock\":{d},\"blocks_remaining\":{d},\"estimated_days_remaining\":{d},\"registered_years\":{d},\"in_grace\":{}}}",
-            .{ name, tld_s, name, tld_s, e.expires_block, remaining, est_days, e.registered_years, in_grace });
+            ".{s}\",\"expiresAtBlock\":{d},\"blocks_remaining\":{d},\"estimated_days_remaining\":{d},\"registered_years\":{d},\"in_grace\":{}}}",
+            .{ tld_s, e.expires_block, remaining, est_days, e.registered_years, in_grace });
     }
     try w.writeAll("]}}");
     return out.toOwnedSlice();
@@ -6263,9 +6460,11 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (is_from) total_sent += tx.amount else total_received += tx.amount;
         const kind = inferTxKind(tx);
         const sep: []const u8 = if (count == 0) "" else ",";
+        const memo = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+        defer alloc.free(memo);
         const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"pending\"}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind });
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d},\"status\":\"pending\",\"memo\":\"{s}\"}}",
+            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp, memo });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m; count += 1;
     }
@@ -6284,9 +6483,11 @@ fn handleGetAddrHistory(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 if (is_from) total_sent += tx.amount else total_received += tx.amount;
                 const kind = inferTxKind(tx);
                 const sep: []const u8 = if (count == 0) "" else ",";
+                const memo2 = try jsonSanitize(alloc, if (tx.op_return.len > 0) tx.op_return else "");
+                defer alloc.free(memo2);
                 const e = try std.fmt.allocPrint(alloc,
-                    "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"confirmed\"}}",
-                    .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind });
+                    "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d},\"status\":\"confirmed\",\"memo\":\"{s}\"}}",
+                    .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp, memo2 });
                 const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
                 alloc.free(entries); alloc.free(e); entries = m; count += 1;
                 break;
@@ -6486,9 +6687,10 @@ fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!is_from and !is_to) continue;
         const dir: []const u8 = if (is_from) "sent" else "received";
         const sep: []const u8 = if (count == 0) "" else ",";
+        const kind = inferTxKind(tx);
         const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"status\":\"pending\"}}",
-            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir });
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":0,\"blockHeight\":null,\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"pending\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
+            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, dir, kind, txSchemeLabel(tx.scheme), tx.timestamp });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m; count += 1;
     }
@@ -6533,9 +6735,10 @@ fn handleListTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                     const is_from = std.mem.eql(u8, tx.from_address, wallet_addr);
                     const dir: []const u8 = if (is_from) "sent" else "received";
                     const sep: []const u8 = if (count == 0) "" else ",";
+                    const kind = inferTxKind(tx);
                     const e = try std.fmt.allocPrint(alloc,
-                        "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"status\":\"confirmed\"}}",
-                        .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir });
+                        "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"confirmations\":{d},\"blockHeight\":{d},\"direction\":\"{s}\",\"kind\":\"{s}\",\"status\":\"confirmed\",\"scheme\":\"{s}\",\"timestamp\":{d}}}",
+                        .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, confirmations, block_height, dir, kind, txSchemeLabel(tx.scheme), tx.timestamp });
                     const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
                     alloc.free(entries); alloc.free(e); entries = m; count += 1;
                     break;
@@ -6560,7 +6763,9 @@ fn handleGetTxs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (filter.len > 0 and !std.mem.eql(u8, tx.from_address, filter) and !std.mem.eql(u8, tx.to_address, filter)) continue;
         const dir: []const u8 = if (filter.len > 0 and std.mem.eql(u8, tx.from_address, filter)) "sent" else "received";
         const sep: []const u8 = if (count == 0) "" else ",";
-        const e = try std.fmt.allocPrint(alloc, "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"locktime\":{d},\"op_return\":\"{s}\",\"confirmations\":0,\"status\":\"pending\",\"direction\":\"{s}\"}}", .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.locktime, tx.op_return, dir });
+        const op_ret = try jsonSanitize(alloc, tx.op_return);
+        defer alloc.free(op_ret);
+        const e = try std.fmt.allocPrint(alloc, "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"locktime\":{d},\"op_return\":\"{s}\",\"confirmations\":0,\"status\":\"pending\",\"direction\":\"{s}\"}}", .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.locktime, op_ret, dir });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m; count += 1;
     }
@@ -6571,7 +6776,9 @@ fn handleGetTxs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             const sep: []const u8 = if (count == 0) "" else ",";
             const bh: u64 = @intCast(blk.index);
             const confirmations = if (current_height > bh) current_height - bh else 0;
-            const e = try std.fmt.allocPrint(alloc, "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"locktime\":{d},\"op_return\":\"{s}\",\"confirmations\":{d},\"status\":\"confirmed\",\"direction\":\"{s}\",\"blockHeight\":{d}}}", .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.locktime, tx.op_return, confirmations, dir, blk.index });
+            const op_ret2 = try jsonSanitize(alloc, tx.op_return);
+            defer alloc.free(op_ret2);
+            const e = try std.fmt.allocPrint(alloc, "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"locktime\":{d},\"op_return\":\"{s}\",\"confirmations\":{d},\"status\":\"confirmed\",\"direction\":\"{s}\",\"blockHeight\":{d}}}", .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.locktime, op_ret2, confirmations, dir, blk.index });
             const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
             alloc.free(entries); alloc.free(e); entries = m; count += 1;
         }
@@ -6672,8 +6879,48 @@ fn handleMpStats(ctx: *ServerCtx, id: u64) ![]u8 {
     }
     ctx.bc.mutex.lock();
     const mp_len = ctx.bc.mempool.items.len;
+    var mp_bytes: u64 = 0;
+    for (ctx.bc.mempool.items) |tx| mp_bytes += estimateTxBytes(tx.scheme);
     ctx.bc.mutex.unlock();
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":0}}}}", .{ id, mp_len, mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES });
+    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":{d}}}}}", .{ id, mp_len, mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES, mp_bytes });
+}
+
+/// RPC "getpendingtxs" — returns all TXs currently in the mempool with scheme info.
+/// Params: [limit]  (default 100, max 500)
+/// Returns: { count, transactions: [{txid,from,to,amount,fee,scheme,nonce,timestamp}] }
+fn handleGetPendingTxs(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
+    const alloc = ctx.allocator;
+    const req_limit = extractArrayNum(body, 0);
+    const limit: usize = if (req_limit > 0 and req_limit <= 500) @intCast(req_limit) else 100;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
+    const items = ctx.bc.mempool.items;
+    const take = @min(limit, items.len);
+
+    var entries: []u8 = try alloc.dupe(u8, "");
+    var n: usize = 0;
+    // Return newest first (reverse order)
+    var i: usize = if (items.len > 0) items.len - 1 else 0;
+    while (n < take) : (n += 1) {
+        const tx = items[i];
+        const sep: []const u8 = if (n == 0) "" else ",";
+        const kind = inferTxKind(tx);
+        const e = try std.fmt.allocPrint(alloc,
+            "{s}{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"kind\":\"{s}\",\"scheme\":\"{s}\",\"nonce\":{d},\"timestamp\":{d}}}",
+            .{ sep, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee,
+               kind, txSchemeLabel(tx.scheme), tx.nonce, tx.timestamp });
+        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
+        alloc.free(entries); alloc.free(e); entries = m;
+        if (i == 0) break;
+        i -= 1;
+    }
+    defer alloc.free(entries);
+
+    return std.fmt.allocPrint(alloc,
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"transactions\":[{s}]}}}}",
+        .{ id, n, entries });
 }
 
 // SEGFAULT-FIX [scan-2026-04-25]: hold p2p.peers_mutex for entire iteration.
@@ -6923,6 +7170,12 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const tx_count = blk.transactions.items.len;
     const approx_size: u64 = 80 + @as(u64, @intCast(tx_count)) * 200;
 
+    // Sum fees for all non-coinbase TXs in this block
+    var total_fees: u64 = 0;
+    for (blk.transactions.items) |tx| {
+        if (tx.fee > 0) total_fees += @as(u64, @intCast(tx.fee));
+    }
+
     // Build optional prices array. Strategy:
     //   1) FAST path — read the in-memory `block_prices` map (legacy 6-slot
     //      snapshot, populated at mining time). This avoids touching the
@@ -6988,9 +7241,20 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     const prices_validated = blk.validatePrices();
 
+    // Build transactions array: array of txid strings so BlockPage can
+    // load individual TX details via gettransaction.
+    var tx_arr: []u8 = try alloc.dupe(u8, "");
+    for (blk.transactions.items, 0..) |tx, ti| {
+        const sep: []const u8 = if (ti == 0) "" else ",";
+        const e = try std.fmt.allocPrint(alloc, "{s}\"{s}\"", .{ sep, tx.hash });
+        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ tx_arr, e });
+        alloc.free(tx_arr); alloc.free(e); tx_arr = m;
+    }
+    defer alloc.free(tx_arr);
+
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"prices\":{s},\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
-        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, prices_buf[0..prices_len], pr_hex, if (prices_validated) "true" else "false" });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d},\"transactions\":[{s}],\"prices\":{s},\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
+        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, total_fees, tx_arr, prices_buf[0..prices_len], pr_hex, if (prices_validated) "true" else "false" });
 }
 
 fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -6998,13 +7262,19 @@ fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const from: u32 = std.math.cast(u32, extractArrayNum(body, 0)) orelse 0;
     const rc = extractArrayNum(body, 1);
     const mc: u32 = if (rc == 0 or rc > 100) 100 else std.math.cast(u32, rc) orelse 100;
+
+    ctx.bc.mutex.lock();
+    defer ctx.bc.mutex.unlock();
+
     var entries: []u8 = try alloc.dupe(u8, "");
     var n: u32 = 0;
     var h: u32 = from;
     while (n < mc) : ({ h += 1; n += 1; }) {
         const blk = ctx.bc.getBlock(h) orelse break;
         const sep: []const u8 = if (n == 0) "" else ",";
-        const e = try std.fmt.allocPrint(alloc, "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"nonce\":{d},\"txCount\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d}}}", .{ sep, blk.index, blk.timestamp, blk.hash, blk.nonce, blk.transactions.items.len, blk.miner_address, blk.reward_sat });
+        var blk_fees: u64 = 0;
+        for (blk.transactions.items) |tx| { if (tx.fee > 0) blk_fees += @as(u64, @intCast(tx.fee)); }
+        const e = try std.fmt.allocPrint(alloc, "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"nonce\":{d},\"txCount\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d},\"difficulty\":{d}}}", .{ sep, blk.index, blk.timestamp, blk.hash, blk.nonce, blk.transactions.items.len, blk.miner_address, blk.reward_sat, blk_fees, ctx.bc.difficulty });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m;
     }
@@ -7051,7 +7321,7 @@ fn handleGetHeaders(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
         const e = try std.fmt.allocPrint(alloc,
             "{s}{{\"height\":{d},\"timestamp\":{d},\"hash\":\"{s}\",\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"nonce\":{d},\"difficulty\":{d},\"txCount\":{d}}}",
-            .{ sep, blk.index, blk.timestamp, blk.hash, blk.previous_hash, mr_hex, blk.nonce, 4, blk.transactions.items.len });
+            .{ sep, blk.index, blk.timestamp, blk.hash, blk.previous_hash, mr_hex, blk.nonce, ctx.bc.difficulty, blk.transactions.items.len });
         const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
         alloc.free(entries); alloc.free(e); entries = m;
     }
@@ -7275,13 +7545,28 @@ fn handleNodeList(ctx: *ServerCtx, id: u64) ![]u8 {
 // ─── Staking Slashing RPC Handlers ──────────────────────────────────────────
 
 /// RPC "submitslashevidence" — submit proof that a validator cheated.
-/// Usage: {"method":"submitslashevidence","params":["validator_addr","double_sign","block_hash1_hex","block_hash2_hex",block_height,"reporter_addr"],"id":1}
+/// Usage (double_sign / invalid_block — requires real proof):
+///   {"method":"submitslashevidence","params":[
+///     "validator_addr", "double_sign",
+///     "block_hash1_64hex", "block_hash2_64hex",
+///     block_height,
+///     "reporter_addr",
+///     "signature1_128hex", "signature2_128hex"
+///   ],"id":1}
+/// Usage (downtime — no cryptographic proof needed, just height window):
+///   {"method":"submitslashevidence","params":[
+///     "validator_addr", "downtime", "", "", block_height, "reporter_addr"
+///   ],"id":1}
+///
+/// double_sign / invalid_block evidence MUST include:
+///   - two distinct block hashes (different blocks at same height)
+///   - two valid secp256k1 signatures from the validator over those hashes
+/// Anything else is rejected with -32602 BEFORE reaching the staking engine.
 fn handleSubmitSlashEvidence(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const staking = ctx.staking orelse
         return errorJson(-32000, "Staking engine not available", id, alloc);
 
-    // Parse params
     const validator_addr = extractArrayStr(body, 0) orelse
         return errorJson(-32602, "Missing param: validator_address", id, alloc);
     const reason_str = extractArrayStr(body, 1) orelse
@@ -7290,7 +7575,6 @@ fn handleSubmitSlashEvidence(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32602, "Missing param: reporter_address", id, alloc);
     const block_height = extractArrayNum(body, 4);
 
-    // Parse reason
     const reason: staking_mod.SlashReason = if (std.mem.eql(u8, reason_str, "double_sign"))
         .double_sign
     else if (std.mem.eql(u8, reason_str, "invalid_block"))
@@ -7300,16 +7584,65 @@ fn handleSubmitSlashEvidence(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     else
         return errorJson(-32602, "Invalid reason: use double_sign, invalid_block, or downtime", id, alloc);
 
-    // Build evidence with non-zero placeholder hashes/sigs for RPC submission
-    // (full cryptographic verification happens at the consensus layer)
+    var hash_1: [32]u8 = @splat(0);
+    var hash_2: [32]u8 = @splat(0);
+    var sig_1: [64]u8 = @splat(0);
+    var sig_2: [64]u8 = @splat(0);
+
+    if (reason == .double_sign or reason == .invalid_block) {
+        // Cryptographic evidence required.
+        const h1_hex = extractArrayStr(body, 2) orelse
+            return errorJson(-32602, "Missing block_hash_1 (64-char hex) for crypto-evidence reason", id, alloc);
+        const h2_hex = extractArrayStr(body, 3) orelse
+            return errorJson(-32602, "Missing block_hash_2 (64-char hex) for crypto-evidence reason", id, alloc);
+        if (h1_hex.len != 64) return errorJson(-32602, "block_hash_1 must be 64-char hex", id, alloc);
+        if (h2_hex.len != 64) return errorJson(-32602, "block_hash_2 must be 64-char hex", id, alloc);
+        hash_1 = hexDecode32(h1_hex) orelse return errorJson(-32602, "Invalid block_hash_1 hex", id, alloc);
+        hash_2 = hexDecode32(h2_hex) orelse return errorJson(-32602, "Invalid block_hash_2 hex", id, alloc);
+
+        // Two different blocks at the same height is the whole point — if
+        // they match, the reporter is either confused or trying to spam.
+        if (std.mem.eql(u8, &hash_1, &hash_2)) {
+            return errorJson(-32602, "block_hash_1 and block_hash_2 must differ", id, alloc);
+        }
+
+        const s1_hex = extractArrayStr(body, 6) orelse
+            return errorJson(-32602, "Missing signature_1 (128-char hex) — must be validator's sig over block_hash_1", id, alloc);
+        const s2_hex = extractArrayStr(body, 7) orelse
+            return errorJson(-32602, "Missing signature_2 (128-char hex) — must be validator's sig over block_hash_2", id, alloc);
+        if (s1_hex.len != 128) return errorJson(-32602, "signature_1 must be 128-char hex", id, alloc);
+        if (s2_hex.len != 128) return errorJson(-32602, "signature_2 must be 128-char hex", id, alloc);
+        sig_1 = hexDecode64(s1_hex) orelse return errorJson(-32602, "Invalid signature_1 hex", id, alloc);
+        sig_2 = hexDecode64(s2_hex) orelse return errorJson(-32602, "Invalid signature_2 hex", id, alloc);
+
+        // Verify each sig against the validator's registered pubkey over its
+        // corresponding block hash. We look up the pubkey from bc.pubkey_registry —
+        // every validator must have registered a pubkey TX before they can be
+        // slashed (otherwise we'd accept evidence with no way to validate it).
+        const pk_slice = ctx.bc.pubkey_registry.get(validator_addr) orelse
+            return errorJson(-32000, "Validator pubkey not registered — cannot verify evidence", id, alloc);
+        if (pk_slice.len != 33) return errorJson(-32000, "Registered validator pubkey is not 33 bytes (compressed secp256k1 expected)", id, alloc);
+        var pk: [33]u8 = undefined;
+        @memcpy(&pk, pk_slice[0..33]);
+
+        if (!secp256k1_mod.Secp256k1Crypto.verify(pk, &hash_1, sig_1)) {
+            return errorJson(-32000, "signature_1 does not verify against validator's registered pubkey over block_hash_1", id, alloc);
+        }
+        if (!secp256k1_mod.Secp256k1Crypto.verify(pk, &hash_2, sig_2)) {
+            return errorJson(-32000, "signature_2 does not verify against validator's registered pubkey over block_hash_2", id, alloc);
+        }
+    }
+    // downtime path: no crypto evidence; staking engine just checks the
+    // height window against the validator's last-seen timestamp.
+
     const evidence = staking_mod.SlashEvidence.init(
         validator_addr,
         reason,
-        [_]u8{0xAA} ** 32, // block_hash_1 placeholder
-        [_]u8{0xBB} ** 32, // block_hash_2 placeholder
+        hash_1,
+        hash_2,
         block_height,
-        [_]u8{0x11} ** 64, // signature_1 placeholder
-        [_]u8{0x22} ** 64, // signature_2 placeholder
+        sig_1,
+        sig_2,
         reporter_addr,
         std.time.timestamp(),
     );
@@ -7745,6 +8078,22 @@ fn writeUnauthorized(stream: std.net.Stream) void {
         "Connection: close\r\n\r\n" ++
         "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32001,\"message\":\"Unauthorized\"}}";
     _ = stream.write(resp) catch {};
+}
+
+/// Sanitize a string for safe embedding in a JSON string value.
+/// Replaces `"` → `'`, `\` → `/`, and strips control chars (< 0x20).
+/// Returns an allocated slice that must be freed by the caller.
+/// Used to safely include op_return / memo content in RPC JSON responses.
+fn jsonSanitize(alloc: std.mem.Allocator, s: []const u8) ![]u8 {
+    var out = try alloc.alloc(u8, s.len);
+    var j: usize = 0;
+    for (s) |c| {
+        if (c == '"')       { out[j] = '\''; j += 1; }
+        else if (c == '\\') { out[j] = '/';  j += 1; }
+        else if (c < 0x20)  {}  // strip control chars
+        else                { out[j] = c;   j += 1; }
+    }
+    return out[0..j];
 }
 
 /// Extrage valoarea unui string field din JSON.
@@ -8768,7 +9117,7 @@ fn handleGenWallet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
 /// RPC "openchannel" — open a new payment channel between two parties.
 /// Usage: {"method":"openchannel","params":["party_a_hex","party_b_hex",amount_a,amount_b],"id":1}
-/// party_a_hex / party_b_hex: 33-byte compressed pubkeys as 66-char hex strings
+/// party_a_hex / party_b_hex: 33-byte compressed pubkeys as 66-char hex strings (REQUIRED)
 /// amount_a / amount_b: deposits in SAT
 fn handleOpenChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
@@ -8778,25 +9127,18 @@ fn handleOpenChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const amount_b = extractArrayNum(body, 3);
     if (amount_a == 0 and amount_b == 0) return errorJson(-32602, "Both amounts cannot be zero", id, alloc);
 
-    // Parse pubkeys from hex (or use placeholder if not provided)
-    var pk_a: [33]u8 = undefined;
-    var pk_b: [33]u8 = undefined;
-    if (extractArrayStr(body, 0)) |hex_a| {
-        if (hex_a.len == 66) {
-            pk_a = hexDecode33(hex_a) orelse return errorJson(-32602, "Invalid party_a hex", id, alloc);
-        } else return errorJson(-32602, "party_a must be 66-char hex", id, alloc);
-    } else {
-        pk_a[0] = 0x02;
-        @memset(pk_a[1..], 0xAA);
-    }
-    if (extractArrayStr(body, 1)) |hex_b| {
-        if (hex_b.len == 66) {
-            pk_b = hexDecode33(hex_b) orelse return errorJson(-32602, "Invalid party_b hex", id, alloc);
-        } else return errorJson(-32602, "party_b must be 66-char hex", id, alloc);
-    } else {
-        pk_b[0] = 0x03;
-        @memset(pk_b[1..], 0xBB);
-    }
+    // Pubkeys are mandatory. The placeholder fallback that filled them with
+    // 0xAA/0xBB used to silently produce a channel whose verify() rejects every
+    // payment — caller confusion guaranteed. Reject up-front instead.
+    const hex_a = extractArrayStr(body, 0) orelse
+        return errorJson(-32602, "Missing party_a: 66-char compressed pubkey hex required", id, alloc);
+    if (hex_a.len != 66) return errorJson(-32602, "party_a must be 66-char hex", id, alloc);
+    const pk_a = hexDecode33(hex_a) orelse return errorJson(-32602, "Invalid party_a hex", id, alloc);
+
+    const hex_b = extractArrayStr(body, 1) orelse
+        return errorJson(-32602, "Missing party_b: 66-char compressed pubkey hex required", id, alloc);
+    if (hex_b.len != 66) return errorJson(-32602, "party_b must be 66-char hex", id, alloc);
+    const pk_b = hexDecode33(hex_b) orelse return errorJson(-32602, "Invalid party_b hex", id, alloc);
 
     const ch = mgr.openChannel(pk_a, pk_b, amount_a, amount_b) catch |e| {
         return switch (e) {
@@ -8815,8 +9157,11 @@ fn handleOpenChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 }
 
 /// RPC "channelpay" — off-chain payment within a channel.
-/// Usage: {"method":"channelpay","params":["channel_id_hex","a_to_b",amount],"id":1}
+/// Usage: {"method":"channelpay","params":["channel_id_hex","a_to_b",amount,"sig_a_hex","sig_b_hex"],"id":1}
 /// direction: "a_to_b" or "b_to_a"
+/// sig_a_hex / sig_b_hex: 128-char hex (64-byte secp256k1 ECDSA sigs over the
+///                       canonical hash of the new ChannelUpdate). REQUIRED —
+///                       channel state is only advanced if both verify.
 fn handleChannelPay(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
     const mgr = ctx.channel_mgr orelse return errorJson(-32000, "Payment channels not initialized", id, alloc);
@@ -8831,19 +9176,24 @@ fn handleChannelPay(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const amount = extractArrayNum(body, 2);
     if (amount == 0) return errorJson(-32602, "Amount must be > 0", id, alloc);
 
-    const ch = mgr.findChannel(channel_id) orelse return errorJson(-32000, "Channel not found", id, alloc);
+    // Mandatory ECDSA signatures from both parties over the NEW state hash.
+    const sig_a_hex = extractArrayStr(body, 3) orelse
+        return errorJson(-32602, "Missing sig_a: 128-char hex ECDSA signature required", id, alloc);
+    const sig_b_hex = extractArrayStr(body, 4) orelse
+        return errorJson(-32602, "Missing sig_b: 128-char hex ECDSA signature required", id, alloc);
+    if (sig_a_hex.len != 128) return errorJson(-32602, "sig_a must be 128-char hex", id, alloc);
+    if (sig_b_hex.len != 128) return errorJson(-32602, "sig_b must be 128-char hex", id, alloc);
+    const sig_a = hexDecode64(sig_a_hex) orelse return errorJson(-32602, "Invalid sig_a hex", id, alloc);
+    const sig_b = hexDecode64(sig_b_hex) orelse return errorJson(-32602, "Invalid sig_b hex", id, alloc);
 
-    // Use placeholder signatures (in production, client provides real sigs)
-    var sig_a: [64]u8 = undefined;
-    @memset(&sig_a, 0x11);
-    var sig_b: [64]u8 = undefined;
-    @memset(&sig_b, 0x22);
+    const ch = mgr.findChannel(channel_id) orelse return errorJson(-32000, "Channel not found", id, alloc);
 
     _ = ch.pay(from_a, amount, sig_a, sig_b) catch |e| {
         return switch (e) {
             error.ChannelNotOpen => errorJson(-32000, "Channel not open", id, alloc),
             error.InsufficientBalance => errorJson(-32000, "Insufficient balance", id, alloc),
             error.BalanceMismatch => errorJson(-32000, "Balance mismatch", id, alloc),
+            error.InvalidSignature => errorJson(-32000, "Invalid signature — sig_a or sig_b does not verify", id, alloc),
         };
     };
 
@@ -8862,16 +9212,22 @@ fn handleCloseChannel(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     if (cid_hex.len != 64) return errorJson(-32602, "channel_id must be 64-char hex", id, alloc);
     const channel_id = hexDecode32(cid_hex) orelse return errorJson(-32602, "Invalid channel_id hex", id, alloc);
 
-    // Use placeholder signatures
-    var sig_a: [64]u8 = undefined;
-    @memset(&sig_a, 0x33);
-    var sig_b: [64]u8 = undefined;
-    @memset(&sig_b, 0x44);
+    // Both parties must sign the final state. Sigs are ECDSA over the
+    // canonical hash of the final ChannelUpdate (see ChannelUpdate.hash).
+    const sig_a_hex = extractArrayStr(body, 1) orelse
+        return errorJson(-32602, "Missing sig_a: 128-char hex ECDSA signature required", id, alloc);
+    const sig_b_hex = extractArrayStr(body, 2) orelse
+        return errorJson(-32602, "Missing sig_b: 128-char hex ECDSA signature required", id, alloc);
+    if (sig_a_hex.len != 128) return errorJson(-32602, "sig_a must be 128-char hex", id, alloc);
+    if (sig_b_hex.len != 128) return errorJson(-32602, "sig_b must be 128-char hex", id, alloc);
+    const sig_a = hexDecode64(sig_a_hex) orelse return errorJson(-32602, "Invalid sig_a hex", id, alloc);
+    const sig_b = hexDecode64(sig_b_hex) orelse return errorJson(-32602, "Invalid sig_b hex", id, alloc);
 
     const settle = mgr.closeChannel(channel_id, sig_a, sig_b) catch |e| {
         return switch (e) {
             error.ChannelNotFound => errorJson(-32000, "Channel not found", id, alloc),
             error.ChannelNotOpen => errorJson(-32000, "Channel not open", id, alloc),
+            error.InvalidSignature => errorJson(-32000, "Invalid signature — sig_a or sig_b does not verify", id, alloc),
         };
     };
 
@@ -8991,6 +9347,18 @@ fn hexDecode32(hex: []const u8) ?[32]u8 {
     if (hex.len != 64) return null;
     var out: [32]u8 = undefined;
     for (0..32) |i| {
+        const hi = hexVal(hex[i * 2]) orelse return null;
+        const lo = hexVal(hex[i * 2 + 1]) orelse return null;
+        out[i] = (@as(u8, hi) << 4) | @as(u8, lo);
+    }
+    return out;
+}
+
+/// Decode 128-char hex string to [64]u8 (secp256k1 ECDSA signature: r||s)
+fn hexDecode64(hex: []const u8) ?[64]u8 {
+    if (hex.len != 128) return null;
+    var out: [64]u8 = undefined;
+    for (0..64) |i| {
         const hi = hexVal(hex[i * 2]) orelse return null;
         const lo = hexVal(hex[i * 2 + 1]) orelse return null;
         out[i] = (@as(u8, hi) << 4) | @as(u8, lo);
@@ -10360,13 +10728,40 @@ fn extractParamArrayFloats(json: []const u8) ?ParamArrayFloats {
     return out;
 }
 
+/// Approximate on-wire bytes per TX scheme (base overhead ~220 bytes fixed fields).
+fn estimateTxBytes(scheme: transaction_mod.Scheme) u64 {
+    const base: u64 = 220; // txid+from+to+amount+fee+nonce+timestamp overhead
+    const extra: u64 = switch (scheme) {
+        .omni_ecdsa        => @as(u64, 97),    // sig(64) + pubkey(33)
+        .love_dilithium,
+        .rent_ml_dsa,
+        .pq_omni_ml_dsa,
+        .pq_omni_dilithium => @as(u64, 5245),  // ML-DSA-87: sig(3293) + pubkey(1952)
+        .food_falcon,
+        .pq_omni_falcon    => @as(u64, 1563),  // Falcon-512: sig(666) + pubkey(897)
+        .vacation_slh_dsa,
+        .pq_omni_slh_dsa   => @as(u64, 49984), // SLH-DSA-256s: sig(49856) + pubkey(64) + overhead
+        .hybrid_q1,
+        .hybrid_q3         => @as(u64, 5342),  // ECDSA(97) + ML-DSA-87(5245)
+        .hybrid_q2         => @as(u64, 1660),  // ECDSA(97) + Falcon-512(1563)
+        .hybrid_q4         => @as(u64, 50081), // ECDSA(97) + SLH-DSA(49984)
+    };
+    return base + extra;
+}
+
 /// getmempoolinfo — mempool stats (matches Bitcoin RPC)
 fn handleMempoolInfo(ctx: *ServerCtx, id: u64) ![]u8 {
     const alloc = ctx.allocator;
-    const size: u64 = if (ctx.mempool) |mp| @intCast(mp.size()) else @intCast(ctx.bc.mempool.items.len);
+    ctx.bc.mutex.lock();
+    const size: u64 = @intCast(ctx.bc.mempool.items.len);
+    var bytes: u64 = 0;
+    for (ctx.bc.mempool.items) |tx| {
+        bytes += estimateTxBytes(tx.scheme);
+    }
+    ctx.bc.mutex.unlock();
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"bytes\":0}}}}",
-        .{ id, size },
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"bytes\":{d}}}}}",
+        .{ id, size, bytes },
     );
 }
 
@@ -10437,17 +10832,20 @@ fn handleGetPeerInfo(ctx: *ServerCtx, id: u64) ![]u8 {
 
     var entries: []u8 = try alloc.dupe(u8, "");
     var n: usize = 0;
-    for (p2p.peers.items) |peer| {
-        const sep: []const u8 = if (n == 0) "" else ",";
-        // last_seen: not tracked on PeerConnection — placeholder 0. TODO: actual timestamp tracking.
-        const e = try std.fmt.allocPrint(alloc,
-            "{s}{{\"id\":\"{s}\",\"addr\":\"{s}:{d}\",\"host\":\"{s}\",\"port\":{d},\"height\":{d},\"version\":{d},\"alive\":{s},\"last_seen\":0}}",
-            .{ sep, peer.node_id, peer.host, peer.port, peer.host, peer.port, peer.height, p2p_mod.P2P_VERSION, if (peer.connected) "true" else "false" });
-        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
-        alloc.free(entries);
-        alloc.free(e);
-        entries = m;
-        n += 1;
+    {
+        p2p.peers_mutex.lock();
+        defer p2p.peers_mutex.unlock();
+        for (p2p.peers.items) |peer| {
+            const sep: []const u8 = if (n == 0) "" else ",";
+            const e = try std.fmt.allocPrint(alloc,
+                "{s}{{\"id\":\"{s}\",\"addr\":\"{s}:{d}\",\"host\":\"{s}\",\"port\":{d},\"height\":{d},\"version\":{d},\"alive\":{s},\"last_seen\":0}}",
+                .{ sep, peer.node_id, peer.host, peer.port, peer.host, peer.port, peer.height, p2p_mod.P2P_VERSION, if (peer.connected) "true" else "false" });
+            const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ entries, e });
+            alloc.free(entries);
+            alloc.free(e);
+            entries = m;
+            n += 1;
+        }
     }
     defer alloc.free(entries);
     return std.fmt.allocPrint(alloc,
@@ -11499,10 +11897,11 @@ fn handleAgentList(ctx: *ServerCtx, id: u64) ![]u8 {
     try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"count\":{d},\"agents\":[", .{ id, n });
     for (snap_buf[0..n], 0..) |a, i| {
         if (i > 0) try w.writeByte(',');
+        try w.writeAll("{\"name\":\"");
+        try writeJsonSafeStr(w, a.getName());
         try w.print(
-            "{{\"name\":\"{s}\",\"wallet_index\":{d},\"address\":\"{s}\",\"strategy\":\"{s}\",\"tier\":\"{s}\",\"balance_sat\":{d},\"staked_sat\":{d},\"lp_locked_sat\":{d},\"pnl_session_sat\":{d},\"halted\":{},\"stats\":{{\"ticks\":{d},\"decisions_emitted\":{d},\"decisions_queued\":{d},\"exec_success\":{d},\"exec_failed\":{d},\"tier_transitions\":{d},\"total_mined_sat\":{d}}}}}",
+            "\",\"wallet_index\":{d},\"address\":\"{s}\",\"strategy\":\"{s}\",\"tier\":\"{s}\",\"balance_sat\":{d},\"staked_sat\":{d},\"lp_locked_sat\":{d},\"pnl_session_sat\":{d},\"halted\":{},\"stats\":{{\"ticks\":{d},\"decisions_emitted\":{d},\"decisions_queued\":{d},\"exec_success\":{d},\"exec_failed\":{d},\"tier_transitions\":{d},\"total_mined_sat\":{d}}}}}",
             .{
-                a.getName(),
                 a.wallet_index,
                 a.getAddress(),
                 a.strategy.name(),
@@ -11533,11 +11932,13 @@ fn handleAgentStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const wi = extractU32Param(body, "\"wallet_index\"") orelse return errorJson(-32602, "missing wallet_index", id, alloc);
     const slot = main_mod.g_agent_manager.findByWalletIndex(wi) orelse return errorJson(-32000, "agent not found", id, alloc);
 
+    const name_safe = try jsonSanitize(alloc, slot.config.getName());
+    defer alloc.free(name_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"name\":\"{s}\",\"wallet_index\":{d},\"address\":\"{s}\",\"strategy\":\"{s}\",\"tier\":\"{s}\",\"balance_sat\":{d},\"staked_sat\":{d},\"lp_locked_sat\":{d},\"pnl_session_sat\":{d},\"halted\":{},\"stats\":{{\"ticks\":{d},\"decisions_emitted\":{d},\"decisions_queued\":{d},\"exec_success\":{d},\"exec_failed\":{d},\"tier_transitions\":{d},\"total_mined_sat\":{d}}}}}}}",
         .{
             id,
-            slot.config.getName(),
+            name_safe,
             slot.config.wallet_index,
             slot.getAddress(),
             slot.config.strategy.name(),
@@ -11577,7 +11978,7 @@ fn handleAgentPendingDecisions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8
     for (pend_buf[0..n], 0..) |p, i| {
         if (i > 0) try w.writeByte(',');
         try w.print(
-            "{{\"id\":{d},\"wallet_index\":{d},\"block_height\":{d},\"emitted_ms\":{d},\"venue\":\"{s}\",\"kind\":\"{s}\",\"pair\":\"{s}\",\"amount_sat\":{d},\"reason\":\"{s}\"}}",
+            "{{\"id\":{d},\"wallet_index\":{d},\"block_height\":{d},\"emitted_ms\":{d},\"venue\":\"{s}\",\"kind\":\"{s}\",\"pair\":\"{s}\",\"amount_sat\":{d},\"reason\":\"",
             .{
                 p.id,
                 p.wallet_index,
@@ -11587,9 +11988,10 @@ fn handleAgentPendingDecisions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8
                 @tagName(p.decision.kind),
                 p.decision.getPair(),
                 p.decision.amount_sat,
-                p.decision.getReason(),
             },
         );
+        try writeJsonSafeStr(w, p.decision.getReason());
+        try w.writeAll("\"}");
     }
     try w.writeAll("]}}");
     return buf.toOwnedSlice();
@@ -12773,10 +13175,13 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // (cf. testnet fill #10 2026-05-15 — buyer paid nothing, seller lost
     // 95 OMNI). Refuse unbacked orders up front.
     //
-    // pair_id 0 = OMNI/USDC, 6 = OMNI/ETH — both settle on Sepolia (and any
-    // other EVM chain where OmnibusDEX is deployed). Add more pair_ids
-    // here when LCX Liberty / Base / etc come online.
-    const omni_evm_pair = (pair_id == 0 or pair_id == 6);
+    // pair_id 0 = OMNI/USDC, 6 = OMNI/ETH, 7 = OMNI/LINK — all settle on
+    // an EVM chain via OmnibusDEX. Add more pair_ids here when new
+    // OMNI/<EVM-asset> pairs come online (LCX, EURC, etc.). Without this
+    // guard a SELL with no sellerEvm crosses fine on OmniBus but the
+    // settler skips it silently — buyer's escrow stays locked forever
+    // (cf. testnet LINK fill #13 2026-05-16).
+    const omni_evm_pair = (pair_id == 0 or pair_id == 6 or pair_id == 7);
     if (omni_evm_pair) {
         if (side == .sell) {
             const evm_str_raw = extractStr(body, "sellerEvm") orelse
@@ -12802,12 +13207,40 @@ fn handleExchangePlaceOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                         "No open OmnibusDEX escrow with this evmOrderId on Sepolia — did your placeBuyOrderNative tx mine?",
                         id, alloc);
                 };
-                // Amount sanity: the escrow amount must equal price * amount
-                // (in token's smallest unit). For OMNI/ETH price is micro-USD
-                // but on-chain ETH is 18-dec. Crude check: escrow > 0.
-                // Tighter check is a TODO; for now we just require non-zero.
+                // Amount sanity: the escrow amount must cover price * amount
+                // in the quote token's smallest unit.
+                //
+                // For OMNI/USDC (pair_id 0): both micro-USD and USDC use 1e-6,
+                // so expected_smallest = price_micro_usd * amount_sat / 1e9.
+                // We enforce that exactly (with a 1-wei tolerance for rounding).
+                //
+                // For OMNI/ETH (6) and OMNI/LINK (7): the quote is an 18-dec
+                // token whose USD value floats, so we can't compute the exact
+                // expected amount without an oracle price for ETH/LINK. We
+                // fall back to "non-zero" here; the EVM contract's own
+                // settle() enforces the per-fill amount against the buyer's
+                // signed intent, so an under-funded escrow won't actually pay
+                // the seller. TODO when an oracle quote is wired here, swap
+                // this branch for the same exact-match logic as USDC.
                 if (esc.amount == 0) {
                     return errorJson(-32000, "Escrow amount is zero", id, alloc);
+                }
+                if (pair_id == 0) {
+                    // price (micro-USD) * amount (SAT) / 1e9 = micro-USD owed
+                    // = USDC smallest-unit owed (since 1 micro-USD = 1e-6 USDC
+                    // and USDC has 6 decimals). u128 is wide enough: max
+                    // 21M OMNI × $1e9 ≈ 2e25.
+                    const expected_u128: u128 =
+                        @as(u128, price) * @as(u128, amount) / 1_000_000_000;
+                    if (esc.amount >> 128 != 0) {
+                        return errorJson(-32000, "Escrow amount > 2^128 micro-USD — refusing", id, alloc);
+                    }
+                    const escrow_u128: u128 = @intCast(esc.amount & ((@as(u256, 1) << 128) - 1));
+                    if (escrow_u128 < expected_u128) {
+                        return errorJson(-32000,
+                            "Escrow underfunded — locked amount is less than price * size in USDC smallest units",
+                            id, alloc);
+                    }
                 }
                 // SECURITY: refuse escrows that lock a token not on the
                 // hard-coded whitelist for this pair_id + chain. Without
@@ -13070,8 +13503,9 @@ fn handleExchangeCancelOrder(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const engine = pickEngine(ctx, is_paper) orelse
         return errorJson(-32601, if (is_paper) "Paper trader not enabled" else "Exchange not enabled on this node", id, alloc);
 
-    const order_id = extractArrayNumByKey(body, "orderId");
-    if (order_id == 0) return errorJson(-32602, "Missing param: orderId", id, alloc);
+    var order_id = extractArrayNumByKey(body, "orderId");
+    if (order_id == 0) order_id = extractArrayNumByKey(body, "order_id");
+    if (order_id == 0) return errorJson(-32602, "Missing param: orderId (or order_id)", id, alloc);
     const trader = extractStr(body, "trader") orelse
         return errorJson(-32602, "Missing param: trader", id, alloc);
     const sig_hex = extractStr(body, "signature") orelse
@@ -14036,9 +14470,11 @@ fn handleExchangeCreateApiKey(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 
     ) catch "";
     if (jline.len > 0) usersAppendJournal(ctx, "apikey", jline);
 
+    const apikey_name_safe = try jsonSanitize(alloc, name);
+    defer alloc.free(apikey_name_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"keyId\":\"{s}\",\"secret\":\"{s}\",\"secretB64\":\"{s}\",\"name\":\"{s}\",\"warning\":\"Save the secret — it is only shown once. Use secretB64 for HMAC-SHA512 signing.\",\"createdMs\":{d}}}}}",
-        .{ id, key_id, secret_str, secret_b64, name, now_ms });
+        .{ id, key_id, secret_str, secret_b64, apikey_name_safe, now_ms });
 }
 
 /// exchange_listApiKeys — list keys owned by an address. Secrets are
@@ -14064,9 +14500,11 @@ fn handleExchangeListApiKeys(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!std.mem.eql(u8, k.owner[0..k.owner_len], owner)) continue;
         if (!first) try out.appendSlice(alloc, ",");
         first = false;
+        const kname_safe = try jsonSanitize(alloc, k.name[0..k.name_len]);
+        defer alloc.free(kname_safe);
         try std.fmt.format(out.writer(alloc),
             "{{\"keyId\":\"{s}\",\"name\":\"{s}\",\"createdMs\":{d},\"lastUsedMs\":{d},\"revoked\":{s}}}",
-            .{ k.key_id[0..k.key_id_len], k.name[0..k.name_len], k.created_ms, k.last_used_ms,
+            .{ k.key_id[0..k.key_id_len], kname_safe, k.created_ms, k.last_used_ms,
                if (k.revoked) "true" else "false" });
     }
     try out.appendSlice(alloc, "]}");
@@ -14530,22 +14968,27 @@ fn handleGridStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // buy_levels/sell_levels INSIDE the same result object.
     // We do NOT call writeGridJson here because that emits a complete {...} object
     // and appending after its closing brace produces invalid JSON.
-    try std.fmt.format(out.writer(alloc),
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"grid_id\":{d},\"pair_id\":{d},\"owner\":\"{s}\"," ++
-        "\"price_low\":{d},\"price_high\":{d},\"levels\":{d}," ++
-        "\"total_base\":{d},\"total_quote\":{d}," ++
-        "\"filled_count\":{d},\"profit_quote\":{d},\"active\":{s}," ++
-        "\"created_block\":{d}",
-        .{
-            id,
-            g.id, g.pair_id, g.owner[0..g.owner_len],
-            g.price_low, g.price_high, g.levels,
-            g.total_base, g.total_quote,
-            g.filled_count, g.profit_quote,
-            if (g.active) "true" else "false",
-            g.created_block,
-        });
+    {
+        const w = out.writer(alloc);
+        try std.fmt.format(w,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"grid_id\":{d},\"pair_id\":{d},\"owner\":\"",
+            .{ id, g.id, g.pair_id });
+        try writeJsonSafeStr(w, g.owner[0..g.owner_len]);
+        try std.fmt.format(w,
+            "\"," ++
+            "\"price_low\":{d},\"price_high\":{d},\"levels\":{d}," ++
+            "\"total_base\":{d},\"total_quote\":{d}," ++
+            "\"filled_count\":{d},\"profit_quote\":{d},\"active\":{s}," ++
+            "\"created_block\":{d}",
+            .{
+                g.price_low, g.price_high, g.levels,
+                g.total_base, g.total_quote,
+                g.filled_count, g.profit_quote,
+                if (g.active) "true" else "false",
+                g.created_block,
+            });
+    }
 
     // Adaugă levels calculate (still inside the result object)
     try out.appendSlice(alloc, ",\"buy_levels\":[");
@@ -14906,9 +15349,13 @@ fn handleIdentityGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     // For ens_only visibility, blank the nickname so the UI doesn't even
     // see it. Address is already public on chain anyway.
     const nick: []const u8 = if (it.visibility == .ens_only) "" else it.getNickname();
+    const nick_safe = try jsonSanitize(alloc, nick);
+    defer alloc.free(nick_safe);
+    const ens_safe = try jsonSanitize(alloc, it.getEns());
+    defer alloc.free(ens_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\",\"updated\":{d}}}}}",
-        .{ id, it.getAddress(), nick, it.getEns(), it.visibility.toStr(), it.updated_ms });
+        .{ id, it.getAddress(), nick_safe, ens_safe, it.visibility.toStr(), it.updated_ms });
 }
 
 fn handleIdentitySearch(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
@@ -14942,9 +15389,13 @@ fn handleIdentitySearch(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (!first) try out.appendSlice(alloc, ",");
         first = false;
         const visible_nick: []const u8 = if (it.visibility == .ens_only) "" else nick;
+        const vnick_safe = try jsonSanitize(alloc, visible_nick);
+        defer alloc.free(vnick_safe);
+        const vens_safe = try jsonSanitize(alloc, it.getEns());
+        defer alloc.free(vens_safe);
         try std.fmt.format(out.writer(alloc),
             "{{\"address\":\"{s}\",\"nickname\":\"{s}\",\"ens\":\"{s}\",\"visibility\":\"{s}\"}}",
-            .{ it.getAddress(), visible_nick, it.getEns(), it.visibility.toStr() });
+            .{ it.getAddress(), vnick_safe, vens_safe, it.visibility.toStr() });
         emitted += 1;
     }
     try out.appendSlice(alloc, "]}");
@@ -15057,8 +15508,8 @@ fn handleKycListIssuers(ctx: *ServerCtx, id: u64) ![]u8 {
 //    0 = omni_ecdsa     (secp256k1 ECDSA, prefix ob1q)
 //    1 = love_dilithium (ML-DSA-87, prefix ob_k1_)
 //    2 = food_falcon    (Falcon-512, prefix ob_f5_)
-//    3 = rent_slh_dsa   (SLH-DSA-256s, prefix ob_d5_)
-//    4 = vacation_kem   (ML-KEM-768, prefix ob_s3_) — encapsulation only,
+//    3 = rent_ml_dsa   (SLH-DSA-256s, prefix ob_d5_)
+//    4 = vacation_slh_dsa   (ML-KEM-768, prefix ob_s3_) — encapsulation only,
 //                       nu suporta semnaturi (verifySignature returneaza false)
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -15078,8 +15529,8 @@ fn handlePqListSchemes(ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"scheme\":\"omni_ecdsa\",\"code\":0,\"address_prefix\":\"ob1q\",\"transferable\":true}}," ++
             "{{\"scheme\":\"love_dilithium\",\"code\":1,\"address_prefix\":\"ob_k1_\",\"transferable\":false}}," ++
             "{{\"scheme\":\"food_falcon\",\"code\":2,\"address_prefix\":\"ob_f5_\",\"transferable\":false}}," ++
-            "{{\"scheme\":\"rent_slh_dsa\",\"code\":3,\"address_prefix\":\"ob_d5_\",\"transferable\":false}}," ++
-            "{{\"scheme\":\"vacation_kem\",\"code\":4,\"address_prefix\":\"ob_s3_\",\"transferable\":false}}," ++
+            "{{\"scheme\":\"rent_ml_dsa\",\"code\":3,\"address_prefix\":\"ob_d5_\",\"transferable\":false}}," ++
+            "{{\"scheme\":\"vacation_slh_dsa\",\"code\":4,\"address_prefix\":\"ob_s3_\",\"transferable\":false}}," ++
             // Canon transferable PQ-OMNI prefixes — must match
             // core/transaction.zig:prefix() and STATUS/MASTER_RULES_PQ_OMNI.md.
             "{{\"scheme\":\"pq_omni_ml_dsa\",\"code\":5,\"address_prefix\":\"obk1_\",\"transferable\":true}}," ++
@@ -15209,8 +15660,8 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             if (std.mem.eql(u8, s, "omni_ecdsa") or std.mem.eql(u8, s, "omni")) break :blk .omni_ecdsa;
             if (std.mem.eql(u8, s, "love_dilithium") or std.mem.eql(u8, s, "love")) break :blk .love_dilithium;
             if (std.mem.eql(u8, s, "food_falcon") or std.mem.eql(u8, s, "food")) break :blk .food_falcon;
-            if (std.mem.eql(u8, s, "rent_slh_dsa") or std.mem.eql(u8, s, "rent")) break :blk .rent_slh_dsa;
-            if (std.mem.eql(u8, s, "vacation_kem") or std.mem.eql(u8, s, "vacation")) break :blk .vacation_kem;
+            if (std.mem.eql(u8, s, "rent_ml_dsa") or std.mem.eql(u8, s, "rent")) break :blk .rent_ml_dsa;
+            if (std.mem.eql(u8, s, "vacation_slh_dsa") or std.mem.eql(u8, s, "vacation")) break :blk .vacation_slh_dsa;
             if (std.mem.eql(u8, s, "pq_omni_ml_dsa")) break :blk .pq_omni_ml_dsa;
             if (std.mem.eql(u8, s, "pq_omni_falcon")) break :blk .pq_omni_falcon;
             if (std.mem.eql(u8, s, "pq_omni_dilithium")) break :blk .pq_omni_dilithium;
@@ -15226,8 +15677,8 @@ fn handlePqSend(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     };
 
     // 3. VACATION (KEM) nu poate semna
-    if (scheme == .vacation_kem) {
-        return errorJson(-32602, "vacation_kem cannot sign transactions (KEM is encapsulation-only)", id, alloc);
+    if (scheme == .vacation_slh_dsa) {
+        return errorJson(-32602, "vacation_slh_dsa cannot sign transactions (KEM is encapsulation-only)", id, alloc);
     }
 
     // 4. Verifica prefix adresa from corespunde scheme-ului
@@ -15628,10 +16079,12 @@ fn handleGetLabels(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const n = ctx.bc.label_registry.listActive(address, &entries);
     for (entries[0..n], 0..) |e, i| {
         if (i > 0) try w.writeByte(',');
+        const label_note = try jsonSanitize(alloc, e.noteSlice());
+        defer alloc.free(label_note);
         try w.print(
             "{{\"id\":{d},\"reporter\":\"{s}\",\"tag\":\"{s}\",\"note\":\"{s}\"," ++
             "\"weight\":{d},\"block\":{d}}}",
-            .{ e.id, e.reporterSlice(), e.tag.toStr(), e.noteSlice(), e.weight, e.block_height },
+            .{ e.id, e.reporterSlice(), e.tag.toStr(), label_note, e.weight, e.block_height },
         );
     }
 
@@ -15856,9 +16309,11 @@ fn handlePoapCreateEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
     ctx.bc.mutex.unlock();
 
+    const eid_safe = try jsonSanitize(alloc, event_id);
+    defer alloc.free(eid_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"event_id\":\"{s}\",\"fee_sat\":{d}}}}}",
-        .{ id, canonical, event_id, poap_mod.POAP_EVENT_FEE_SAT });
+        .{ id, canonical, eid_safe, poap_mod.POAP_EVENT_FEE_SAT });
 }
 
 // ── poap_claim ────────────────────────────────────────────────────────────────
@@ -15903,9 +16358,11 @@ fn handlePoapClaim(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     ctx.bc.mempool.append(tx) catch { ctx.bc.mutex.unlock(); return errorJson(-32603, "Mempool full", id, alloc); };
     ctx.bc.mutex.unlock();
 
+    const eid2_safe = try jsonSanitize(alloc, event_id);
+    defer alloc.free(eid2_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"status\":\"queued\",\"txid\":\"{s}\",\"event_id\":\"{s}\"}}}}",
-        .{ id, canonical, event_id });
+        .{ id, canonical, eid2_safe });
 }
 
 // ── poap_close ────────────────────────────────────────────────────────────────
@@ -15962,8 +16419,9 @@ fn handleGetPoaps(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     try w.print("{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"poaps\":[", .{id});
     for (claims[0..n], 0..) |c, i| {
         if (i > 0) try w.writeByte(',');
-        try w.print("{{\"event_id\":\"{s}\",\"claim_block\":{d},\"tx_hash\":\"{s}\"}}",
-            .{ c.eventIdSlice(), c.claim_block, c.txHashSlice() });
+        try w.writeAll("{\"event_id\":\"");
+        try writeJsonSafeStr(w, c.eventIdSlice());
+        try w.print("\",\"claim_block\":{d},\"tx_hash\":\"{s}\"}}", .{ c.claim_block, c.txHashSlice() });
     }
     try w.writeAll("]}}");
     return buf.toOwnedSlice();
@@ -15979,15 +16437,21 @@ fn handleGetPoapEvent(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const ev = ctx.bc.poap_registry.getEvent(event_id) orelse
         return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
 
+    const pev_id   = try jsonSanitize(alloc, ev.eventIdSlice());
+    defer alloc.free(pev_id);
+    const pev_name = try jsonSanitize(alloc, ev.nameSlice());
+    defer alloc.free(pev_name);
+    const pev_note = try jsonSanitize(alloc, ev.noteSlice());
+    defer alloc.free(pev_note);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"event_id\":\"{s}\",\"name\":\"{s}\"," ++
         "\"organizer\":\"{s}\",\"max_claims\":{d}," ++
         "\"claims_count\":{d},\"create_block\":{d}," ++
         "\"closed\":{s},\"note\":\"{s}\"}}}}",
-        .{ id, ev.eventIdSlice(), ev.nameSlice(), ev.organizerSlice(),
+        .{ id, pev_id, pev_name, ev.organizerSlice(),
            ev.max_claims, ev.claims_count, ev.create_block,
-           if (ev.closed) "true" else "false", ev.noteSlice() });
+           if (ev.closed) "true" else "false", pev_note });
 }
 
 // ── gov_propose ───────────────────────────────────────────────────────────────
@@ -16136,6 +16600,8 @@ fn handleGetProposal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const p = ctx.bc.gov_registry.getProposal(proposal_id) orelse
         return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
 
+    const note_safe = try jsonSanitize(alloc, p.getNote());
+    defer alloc.free(note_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"id\":{d},\"proposer\":\"{s}\",\"title_hash\":\"{s}\"," ++
@@ -16145,7 +16611,7 @@ fn handleGetProposal(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         "\"create_block\":{d},\"vote_count\":{d}," ++
         "\"executed\":{},\"executed_block\":{d}," ++
         "\"action_kind\":{d},\"action_u64\":{d},\"action_bool\":{}}}}}",
-        .{ id, p.id, p.getProposer(), p.getTitleHash(), p.getNote(),
+        .{ id, p.id, p.getProposer(), p.getTitleHash(), note_safe,
            p.statusStr(), p.yes_weight, p.no_weight,
            p.quorum_weight, p.voting_end_block, p.create_block, p.vote_count,
            p.executed, p.executed_block,
@@ -16548,6 +17014,8 @@ fn handleGetEscrow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":null}}", .{id});
 
     const current_block: u64 = @intCast(ctx.bc.getBlockCount());
+    const note_safe = try jsonSanitize(alloc, e.noteSlice());
+    defer alloc.free(note_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"id\":{d}," ++
@@ -16565,7 +17033,7 @@ fn handleGetEscrow(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
            e.amount_sat, e.conditionSlice(),
            e.timeout_block, e.create_block, e.statusStr(),
            if (e.isTimedOut(current_block)) "true" else "false",
-           e.noteSlice() });
+           note_safe });
 }
 
 // ── getescrows ────────────────────────────────────────────────────────────────
@@ -16595,13 +17063,15 @@ fn handleGetEscrows(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             "{{\"id\":{d},\"from\":\"{s}\",\"to\":\"{s}\"," ++
             "\"amount_sat\":{d},\"status\":\"{s}\"," ++
             "\"timeout_block\":{d},\"timed_out\":{s}," ++
-            "\"condition_hash\":\"{s}\",\"note\":\"{s}\"}}",
+            "\"condition_hash\":\"{s}\",\"note\":\"",
             .{ e.id, e.fromSlice(), e.toSlice(),
                e.amount_sat, e.statusStr(),
                e.timeout_block,
                if (e.isTimedOut(current_block)) "true" else "false",
-               e.conditionSlice(), e.noteSlice() },
+               e.conditionSlice() },
         );
+        try writeJsonSafeStr(w, e.noteSlice());
+        try w.writeAll("\"}");
     }
     try w.writeAll("]}}");
     return buf.toOwnedSlice();
@@ -16665,6 +17135,8 @@ fn handleNotarizeDoc(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     };
     ctx.bc.mutex.unlock();
 
+    const ndoc_type_safe = try jsonSanitize(alloc, doc_type_s);
+    defer alloc.free(ndoc_type_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
         "\"status\":\"queued\"," ++
@@ -16674,7 +17146,7 @@ fn handleNotarizeDoc(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         "\"doc_type\":\"{s}\"," ++
         "\"fee_sat\":{d}" ++
         "}}}}",
-        .{ id, canonical, note_id, doc_hash, doc_type_s, notarize_mod.NOTARIZE_FEE_SAT });
+        .{ id, canonical, note_id, doc_hash, ndoc_type_safe, notarize_mod.NOTARIZE_FEE_SAT });
 }
 
 // ── verifynotarize ────────────────────────────────────────────────────────────
@@ -16698,20 +17170,24 @@ fn handleVerifyNotarize(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
 
     const e = result.entry.?;
-    return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
-        "\"status\":\"{s}\"," ++
-        "\"notarize_id\":{d}," ++
-        "\"doc_hash\":\"{s}\"," ++
-        "\"doc_type\":\"{s}\"," ++
-        "\"owner\":\"{s}\"," ++
-        "\"block_height\":{d}," ++
-        "\"tx_hash\":\"{s}\"," ++
-        "\"expiry_block\":{d}," ++
-        "\"note\":\"{s}\"" ++
-        "}}}}",
-        .{ id, result.statusStr(), e.id, e.docHashSlice(), e.doc_type.toStr(),
-           e.ownerSlice(), e.block_height, e.txHashSlice(), e.expiry_block, e.noteSlice() });
+    {
+        const vnote_safe = try jsonSanitize(alloc, e.noteSlice());
+        defer alloc.free(vnote_safe);
+        return std.fmt.allocPrint(alloc,
+            "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
+            "\"status\":\"{s}\"," ++
+            "\"notarize_id\":{d}," ++
+            "\"doc_hash\":\"{s}\"," ++
+            "\"doc_type\":\"{s}\"," ++
+            "\"owner\":\"{s}\"," ++
+            "\"block_height\":{d}," ++
+            "\"tx_hash\":\"{s}\"," ++
+            "\"expiry_block\":{d}," ++
+            "\"note\":\"{s}\"" ++
+            "}}}}",
+            .{ id, result.statusStr(), e.id, e.docHashSlice(), e.doc_type.toStr(),
+               e.ownerSlice(), e.block_height, e.txHashSlice(), e.expiry_block, vnote_safe });
+    }
 }
 
 // ── revokenotarize ────────────────────────────────────────────────────────────
@@ -16787,13 +17263,15 @@ fn handleGetNotarizations(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         const status = if (e.revoked) "revoked"
             else if (e.expiry_block > 0 and current_block > e.expiry_block) "expired"
             else "valid";
+        const note_safe = try jsonSanitize(alloc, e.noteSlice());
+        defer alloc.free(note_safe);
         try w.print(
             "{{\"id\":{d},\"doc_hash\":\"{s}\",\"doc_type\":\"{s}\"," ++
             "\"block_height\":{d},\"tx_hash\":\"{s}\"," ++
             "\"expiry_block\":{d},\"status\":\"{s}\",\"note\":\"{s}\"}}",
             .{ e.id, e.docHashSlice(), e.doc_type.toStr(),
                e.block_height, e.txHashSlice(),
-               e.expiry_block, status, e.noteSlice() },
+               e.expiry_block, status, note_safe },
         );
     }
     try w.writeAll("]}}");
@@ -16937,6 +17415,8 @@ fn handleGetSubscriptions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             .cancelled => "cancelled",
             .completed => "completed",
         };
+        const sub_note = try jsonSanitize(alloc, sub.noteSlice());
+        defer alloc.free(sub_note);
         try w.print(
             "{{\"id\":{d},\"from\":\"{s}\",\"to\":\"{s}\"," ++
             "\"amount_sat\":{d},\"interval_blocks\":{d}," ++
@@ -16945,7 +17425,7 @@ fn handleGetSubscriptions(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
             .{ sub.id, sub.fromSlice(), sub.toSlice(),
                sub.amount_sat, sub.interval_blocks,
                sub.max_payments, sub.payments_done,
-               sub.next_block, status_str, sub.noteSlice() },
+               sub.next_block, status_str, sub_note },
         );
     }
     try w.writeAll("]}}");
@@ -17354,6 +17834,16 @@ fn handleProfileUpdate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         .{ id, facet_name, root_hex });
 }
 
+/// Write a JSON-safe string: escapes `"` → `'`, `\` → `/`, strips ctrl chars.
+fn writeJsonSafeStr(w: anytype, s: []const u8) !void {
+    for (s) |c| {
+        if (c == '"')       { try w.writeByte('\''); }
+        else if (c == '\\') { try w.writeByte('/');  }
+        else if (c < 0x20)  {}
+        else                { try w.writeByte(c);    }
+    }
+}
+
 /// Emit a facet as a JSON object containing only fields with is_public=true.
 fn writeFacetPublicJson(w: anytype, facet: *const FacetStore) !void {
     try w.writeByte('{');
@@ -17363,7 +17853,11 @@ fn writeFacetPublicJson(w: anytype, facet: *const FacetStore) !void {
         if (!kv.value_ptr.is_public) continue;
         if (!first) try w.writeByte(',');
         first = false;
-        try w.print("\"{s}\":\"{s}\"", .{ kv.key_ptr.*, kv.value_ptr.value });
+        try w.writeByte('"');
+        try writeJsonSafeStr(w, kv.key_ptr.*);
+        try w.writeAll("\":\"");
+        try writeJsonSafeStr(w, kv.value_ptr.value);
+        try w.writeByte('"');
     }
     try w.writeByte('}');
 }
@@ -17570,9 +18064,11 @@ fn handleDisclosePost(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     const ts_num = std.fmt.parseInt(u64, ts_val, 10) catch 0;
 
+    const phash_safe = try jsonSanitize(alloc, hash_val);
+    defer alloc.free(phash_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"post_hash\":\"{s}\",\"timestamp\":{d},\"is_public\":{},\"proof\":[\"{s}\"]}}}}",
-        .{ id, hash_val, ts_num, is_pub, root_hex });
+        .{ id, phash_safe, ts_num, is_pub, root_hex });
 }
 
 /// RPC `disclose_cert` — prove a specific professional certification from facet[1].
@@ -17629,9 +18125,15 @@ fn handleDiscloseCert(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     const from_num  = std.fmt.parseInt(u64, from_val,  10) catch 0;
     const until_num = std.fmt.parseInt(u64, until_val, 10) catch 0;
 
+    const issuer_safe = try jsonSanitize(alloc, issuer_val);
+    defer alloc.free(issuer_safe);
+    const ckind_safe = try jsonSanitize(alloc, kind_val);
+    defer alloc.free(ckind_safe);
+    const chash_safe = try jsonSanitize(alloc, hash_val);
+    defer alloc.free(chash_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"issuer_did\":\"{s}\",\"credential_kind\":\"{s}\",\"valid_from\":{d},\"valid_until\":{d},\"hash\":\"{s}\",\"proof\":[\"{s}\"]}}}}",
-        .{ id, issuer_val, kind_val, from_num, until_num, hash_val, root_hex });
+        .{ id, issuer_safe, ckind_safe, from_num, until_num, chash_safe, root_hex });
 }
 
 /// RPC `disclose_work` — prove a specific notarized work from facet[2] (cultural).
@@ -17683,9 +18185,13 @@ fn handleDiscloseWork(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
 
     const ts_num = std.fmt.parseInt(u64, ts_val, 10) catch 0;
 
+    const whash_safe = try jsonSanitize(alloc, hash_val);
+    defer alloc.free(whash_safe);
+    const wkind_safe = try jsonSanitize(alloc, kind_val);
+    defer alloc.free(wkind_safe);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"content_hash\":\"{s}\",\"work_kind\":\"{s}\",\"notarized_at\":{d},\"is_public\":{},\"proof\":[\"{s}\"]}}}}",
-        .{ id, hash_val, kind_val, ts_num, is_pub, root_hex });
+        .{ id, whash_safe, wkind_safe, ts_num, is_pub, root_hex });
 }
 
 // ── errorJson ────────────────────────────────────────────────────────────────
@@ -17720,7 +18226,9 @@ fn handleColdWalletAdd(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32602, "Invalid address", id, alloc);
     const ok = ctx.bc.cold_wallet_store.add(address, label);
     if (!ok)
-        return errorJson(-32000, "Address already watched or store full", id, alloc);
+        return errorJson(-32000,
+            "Add failed: address already watched, store full, or label has forbidden chars (printable ASCII only, no quotes or backslashes)",
+            id, alloc);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"label\":\"{s}\",\"status\":\"added\"}}}}",
         .{ id, address, label });
@@ -17970,9 +18478,11 @@ fn handleCovenantCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Failed to create covenant", id, alloc);
     };
 
+    const cov_label = try jsonSanitize(alloc, label);
+    defer alloc.free(cov_label);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"whitelist_count\":{d},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\",\"status\":\"created\"}}}}",
-        .{ id, address, wl_count, max_per_tx, expires_block, label });
+        .{ id, address, wl_count, max_per_tx, expires_block, cov_label });
 }
 
 /// covenant_list {} — lists all active covenants
@@ -17988,9 +18498,11 @@ fn handleCovenantList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     try out.appendSlice(alloc, "[");
     for (buf[0..n], 0..) |c, i| {
         if (i > 0) try out.appendSlice(alloc, ",");
+        const cl_safe = try jsonSanitize(alloc, c.labelSlice());
+        defer alloc.free(cl_safe);
         const entry = try std.fmt.allocPrint(alloc,
             "{{\"address\":\"{s}\",\"whitelist_count\":{d},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\"}}",
-            .{ c.addressSlice(), c.whitelist_count, c.max_amount_per_tx_sat, c.expires_block, c.labelSlice() });
+            .{ c.addressSlice(), c.whitelist_count, c.max_amount_per_tx_sat, c.expires_block, cl_safe });
         defer alloc.free(entry);
         try out.appendSlice(alloc, entry);
     }
@@ -18021,9 +18533,11 @@ fn handleCovenantGet(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     try wl_json.appendSlice(alloc, "]");
 
+    const cget_label = try jsonSanitize(alloc, cov.labelSlice());
+    defer alloc.free(cget_label);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"address\":\"{s}\",\"whitelist\":{s},\"max_per_tx_sat\":{d},\"expires_block\":{d},\"label\":\"{s}\"}}}}",
-        .{ id, cov.addressSlice(), wl_json.items, cov.max_amount_per_tx_sat, cov.expires_block, cov.labelSlice() });
+        .{ id, cov.addressSlice(), wl_json.items, cov.max_amount_per_tx_sat, cov.expires_block, cget_label });
 }
 
 /// covenant_remove {"address":"ob1q..."}
@@ -18099,9 +18613,11 @@ fn handleTreasuryCreate(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Failed to create treasury (check share_bps sum = 10000)", id, alloc);
     };
 
+    const treas_label = try jsonSanitize(alloc, label);
+    defer alloc.free(treas_label);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"dest_count\":{d},\"trigger_amount_sat\":{d},\"label\":\"{s}\",\"status\":\"created\"}}}}",
-        .{ id, id_hex, treasury_addr, dest_count, trigger, label });
+        .{ id, id_hex, treasury_addr, dest_count, trigger, treas_label });
 }
 
 /// treasury_list {} — list all active treasuries
@@ -18117,10 +18633,12 @@ fn handleTreasuryList(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     for (buf[0..n], 0..) |t, i| {
         if (i > 0) try out.appendSlice(alloc, ",");
         const live_bal = ctx.bc.getAddressBalance(t.treasurySlice());
+        const tl_safe = try jsonSanitize(alloc, t.labelSlice());
+        defer alloc.free(tl_safe);
         const entry = try std.fmt.allocPrint(alloc,
             "{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"balance_sat\":{d},\"trigger_amount_sat\":{d},\"last_distribute_block\":{d},\"total_distributed_sat\":{d},\"dest_count\":{d},\"label\":\"{s}\"}}",
             .{ t.idSlice(), t.treasurySlice(), live_bal, t.trigger_amount_sat,
-               t.last_distribute_block, t.total_distributed_sat, t.dest_count, t.labelSlice() });
+               t.last_distribute_block, t.total_distributed_sat, t.dest_count, tl_safe });
         defer alloc.free(entry);
         try out.appendSlice(alloc, entry);
     }
@@ -18174,8 +18692,10 @@ fn handleTreasuryStatus(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         return errorJson(-32000, "Treasury not found", id, alloc);
     const live_bal = ctx.bc.getAddressBalance(treas.treasurySlice());
     const pending: u64 = if (live_bal >= treas.trigger_amount_sat and treas.trigger_amount_sat > 0) live_bal else 0;
+    const ts_label = try jsonSanitize(alloc, treas.labelSlice());
+    defer alloc.free(ts_label);
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"treasury_id\":\"{s}\",\"address\":\"{s}\",\"balance_sat\":{d},\"pending_distribute_sat\":{d},\"trigger_amount_sat\":{d},\"last_distribute_block\":{d},\"total_distributed_sat\":{d},\"label\":\"{s}\"}}}}",
         .{ id, treas.idSlice(), treas.treasurySlice(), live_bal, pending,
-           treas.trigger_amount_sat, treas.last_distribute_block, treas.total_distributed_sat, treas.labelSlice() });
+           treas.trigger_amount_sat, treas.last_distribute_block, treas.total_distributed_sat, ts_label });
 }

@@ -1,0 +1,907 @@
+\chapter{Changelog }
+\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g}{}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g}\index{Changelog@{Changelog}}
+\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8882}%
+\Hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8882}%
+\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8883}{}\doxysection{\texorpdfstring{v5.\+46.\+1}{v5.\+46.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8883}
+
+\begin{DoxyItemize}
+\item Fix extremely slow (seemed like a freeze) {\ttfamily evaluate} of method chains
+\item Parse extremely large floating-\/point number literals as {\ttfamily Infinity}
+\item Remove parens from comma expressions in computed property access ({\ttfamily foo\+[(1, 2)]\+})
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8884}{}\doxysection{\texorpdfstring{v5.\+46.\+0}{v5.\+46.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8884}
+
+\begin{DoxyItemize}
+\item Add "{}observed\+Attributes"{} domprop (\#1652)
+\item More domprops (mostly {\ttfamily Temporal} related) suggested in \#1652
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8885}{}\doxysection{\texorpdfstring{v5.\+45.\+0}{v5.\+45.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8885}
+
+\begin{DoxyItemize}
+\item Produce {\ttfamily void 0} instead of {\ttfamily undefined}, which is more safe
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8886}{}\doxysection{\texorpdfstring{v5.\+44.\+1}{v5.\+44.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8886}
+
+\begin{DoxyItemize}
+\item fix bitwise optimization changing the result of {\ttfamily \&\&}, {\ttfamily \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}}
+\item switches:\+ make sure {\ttfamily var} is extracted from a deleted default case
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8887}{}\doxysection{\texorpdfstring{v5.\+44.\+0}{v5.\+44.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8887}
+
+\begin{DoxyItemize}
+\item Support {\ttfamily using} and {\ttfamily await using} declarations (\#1635)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8888}{}\doxysection{\texorpdfstring{v5.\+43.\+1}{v5.\+43.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8888}
+
+\begin{DoxyItemize}
+\item Prevent niche optimizations that would move around block declarations
+\item Add {\ttfamily lhs\+\_\+constants} to {\ttfamily Compress\+Options} type (\#1621)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8889}{}\doxysection{\texorpdfstring{v5.\+43.\+0}{v5.\+43.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8889}
+
+\begin{DoxyItemize}
+\item Do not wrap callbacks in parentheses ({\ttfamily wrap\+\_\+func\+\_\+args} format option is now false by default)
+\item Do not inline functions into for loops (for performance reasons)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8890}{}\doxysection{\texorpdfstring{v5.\+42.\+0}{v5.\+42.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8890}
+
+\begin{DoxyItemize}
+\item Improved performance in the parse step by adding a fast path for simple identifiers.
+\item Improved ESTree conversion
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8891}{}\doxysection{\texorpdfstring{v5.\+41.\+0}{v5.\+41.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8891}
+
+\begin{DoxyItemize}
+\item fixed semicolon insertion between class fields, when the field names are number literals
+\item {\ttfamily keep\+\_\+numbers} format option now works for bigint
+\item internal:\+ correctly mark accessors\textquotesingle{} is\+\_\+generator property
+\item internal:\+ do not read or assign quote properties without need
+\item internal:\+ add missing equivalent\+\_\+to comparison
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8892}{}\doxysection{\texorpdfstring{v5.\+40.\+0}{v5.\+40.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8892}
+
+\begin{DoxyItemize}
+\item Fix exporting Assignment\+Expression (default assign pattern) to ESTree
+\item Fix ESTree output of object keys with quotes
+\item Fix handling of an ESTree empty {\ttfamily export \{\}} (\#1601)
+\item Fix some {\ttfamily const} and {\ttfamily let} resulting from ESTree input (\#1599)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8893}{}\doxysection{\texorpdfstring{v5.\+39.\+2}{v5.\+39.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8893}
+
+\begin{DoxyItemize}
+\item Fix crash when parsing bare {\ttfamily yield} inside a template string.
+\item Update internally used acorn version requirement
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8894}{}\doxysection{\texorpdfstring{v5.\+39.\+1}{v5.\+39.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8894}
+
+\begin{DoxyItemize}
+\item Fix bitwise operations that could mix {\ttfamily Big\+Int} and {\ttfamily number}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8895}{}\doxysection{\texorpdfstring{v5.\+39.\+0}{v5.\+39.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8895}
+
+\begin{DoxyItemize}
+\item Remove unnecessary {\ttfamily console.\+assert} calls (\#1590)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8896}{}\doxysection{\texorpdfstring{v5.\+38.\+2}{v5.\+38.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8896}
+
+\begin{DoxyItemize}
+\item internal:\+ Flatten inheritance tree for object/\+class members
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8897}{}\doxysection{\texorpdfstring{v5.\+38.\+1}{v5.\+38.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8897}
+
+\begin{DoxyItemize}
+\item Fix inlining non-\/call expressions into an {\ttfamily optional\+\_\+call?.()}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8898}{}\doxysection{\texorpdfstring{v5.\+38.\+0}{v5.\+38.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8898}
+
+\begin{DoxyItemize}
+\item Remove {\ttfamily console} method-\/of-\/method calls (eg {\ttfamily console.\+log.\+apply()}) when {\ttfamily drop\+\_\+console} option is used (\#1585)
+\item Remove more object spreads, such as {\ttfamily \{ ...void !0 \}} (\#1142)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8899}{}\doxysection{\texorpdfstring{v5.\+37.\+0}{v5.\+37.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8899}
+
+\begin{DoxyItemize}
+\item Reserved object properties from chrome extensions (domprops)
+\item Fix semicolon insertion between a class property without a semicolon {\ttfamily a} and a computed class property {\ttfamily \+["{}prop"{}]\+}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8900}{}\doxysection{\texorpdfstring{v5.\+36.\+0}{v5.\+36.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8900}
+
+\begin{DoxyItemize}
+\item Support import attributes {\ttfamily with} syntax
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8901}{}\doxysection{\texorpdfstring{v5.\+35.\+0}{v5.\+35.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8901}
+
+\begin{DoxyItemize}
+\item Ensure parent directory exists when using --output on CLI (\#1530)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8902}{}\doxysection{\texorpdfstring{v5.\+34.\+1}{v5.\+34.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8902}
+
+\begin{DoxyItemize}
+\item bump the rollup dev\+Dependency to disable CVE warnings (Terser was not affected)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8903}{}\doxysection{\texorpdfstring{v5.\+34.\+0}{v5.\+34.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8903}
+
+\begin{DoxyItemize}
+\item internal:\+ stop assigning properties to objects they don\textquotesingle{}t belong in
+\item internal:\+ run compress tests in parallel
+\item {\ttfamily drop\+\_\+console}:\+ emit an empty function if the return value of {\ttfamily console.\+METHOD(...)} may be called.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8904}{}\doxysection{\texorpdfstring{v5.\+33.\+0}{v5.\+33.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8904}
+
+\begin{DoxyItemize}
+\item {\ttfamily reduce\+\_\+vars} improved when dealing with hoisted function definitions (\#1544)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8905}{}\doxysection{\texorpdfstring{v5.\+32.\+0}{v5.\+32.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8905}
+
+\begin{DoxyItemize}
+\item {\ttfamily import("{}\doxylink{namespacemodule}{module}"{})} can now be input and output from ESTree AST (\#1557)
+\item {\ttfamily Big\+Int} literals can now be input and output from ESTree AST (\#1555)
+\item {\ttfamily typeof} an object or array ({\ttfamily typeof \{\}} and {\ttfamily typeof \+[]\+}) can now be statically evaluated. (\#1546)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8906}{}\doxysection{\texorpdfstring{v5.\+31.\+6}{v5.\+31.\+6}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8906}
+
+\begin{DoxyItemize}
+\item Retain side effects in a {\ttfamily case} when the expression is a sequence (comma) expression
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8907}{}\doxysection{\texorpdfstring{v5.\+31.\+5}{v5.\+31.\+5}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8907}
+
+\begin{DoxyItemize}
+\item Revert v5.\+31.\+4, which created mysterious issues \#1548, \#1549
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8908}{}\doxysection{\texorpdfstring{v5.\+31.\+4 (reverted)}{v5.\+31.\+4 (reverted)}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8908}
+
+\begin{DoxyItemize}
+\item drop\+\_\+unused:\+ drop classes which only have side effects in the {\ttfamily extends} part
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8909}{}\doxysection{\texorpdfstring{v5.\+31.\+3}{v5.\+31.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8909}
+
+\begin{DoxyItemize}
+\item drop\+\_\+unused:\+ drop unused parameters from IIFEs in some more situations.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8910}{}\doxysection{\texorpdfstring{v5.\+31.\+2}{v5.\+31.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8910}
+
+\begin{DoxyItemize}
+\item drop\+\_\+unused:\+ scan variables in self-\/referential class declarations that contain side effects.
+\item Don\textquotesingle{}t add parens to arrow function when it\textquotesingle{}s the default for an argument (\#1540)
+\item Update domprops (\#1538)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8911}{}\doxysection{\texorpdfstring{v5.\+31.\+1}{v5.\+31.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8911}
+
+\begin{DoxyItemize}
+\item Allow drop-\/unused to drop the whole assignment (not just the assigned name) in more situations, in order to avoid duplication of long strings.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8912}{}\doxysection{\texorpdfstring{v5.\+31.\+0}{v5.\+31.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8912}
+
+\begin{DoxyItemize}
+\item Sync up property mangler exceptions with current contents of Firefox and Chrome environments
+\item Add more webcomponent properties to property mangler exceptions (\#1525)
+\item Drop non-\/nullish constants in {\ttfamily ...spreads} in objects (\#1141)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8913}{}\doxysection{\texorpdfstring{v5.\+30.\+4}{v5.\+30.\+4}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8913}
+
+\begin{DoxyItemize}
+\item Fix parsing {\ttfamily \#private in ...} when next to other operators
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8914}{}\doxysection{\texorpdfstring{v5.\+30.\+3}{v5.\+30.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8914}
+
+\begin{DoxyItemize}
+\item Fix precedence of {\ttfamily \#private in ...} operator
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8915}{}\doxysection{\texorpdfstring{v5.\+30.\+2}{v5.\+30.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8915}
+
+\begin{DoxyItemize}
+\item Avoid optimizations inside computed keys, because they can cause js-\/engine-\/specific bugs.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8916}{}\doxysection{\texorpdfstring{v5.\+30.\+1}{v5.\+30.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8916}
+
+\begin{DoxyItemize}
+\item Removed useless {\ttfamily \textbackslash{}} escapes for non-\/ascii characters
+\item Make modern identifier characters quoted for older environments (\#1512)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8917}{}\doxysection{\texorpdfstring{v5.\+30.\+0}{v5.\+30.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8917}
+
+\begin{DoxyItemize}
+\item Improve removal of classes referring to themselves
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8918}{}\doxysection{\texorpdfstring{v5.\+29.\+2}{v5.\+29.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8918}
+
+\begin{DoxyItemize}
+\item Make sure \textquotesingle{}computed\+\_\+props\textquotesingle{} creates string keys
+\item Take into account the evaluated size when inlining
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8919}{}\doxysection{\texorpdfstring{v5.\+29.\+1}{v5.\+29.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8919}
+
+\begin{DoxyItemize}
+\item fix optimisation of all-\/bits mask check
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8920}{}\doxysection{\texorpdfstring{v5.\+29.\+0}{v5.\+29.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8920}
+
+\begin{DoxyItemize}
+\item Re-\/releases previously reverted 5.\+28.\+0
+\item Fix crash while optimizing some bitwise ops
+\item (internal) Remove needless wrapper for from\+\_\+moz (\#1499)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8921}{}\doxysection{\texorpdfstring{v5.\+28.\+1}{v5.\+28.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8921}
+(hotfix release)
+\begin{DoxyItemize}
+\item Reverts v5.\+28.\+0
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8922}{}\doxysection{\texorpdfstring{v5.\+28.\+0}{v5.\+28.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8922}
+
+\begin{DoxyItemize}
+\item Optimise redundant or shrinkable bitwise operations ({\ttfamily \texorpdfstring{$\vert$}{|}}, {\ttfamily \texorpdfstring{$^\wedge$}{\string^}}, {\ttfamily \&}, {\ttfamily \texorpdfstring{$>$}{>}\texorpdfstring{$>$}{>}}, {\ttfamily \texorpdfstring{$<$}{<}\texorpdfstring{$<$}{<}})
+\item Evaluate some {\ttfamily Big\+Int} math operations
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8923}{}\doxysection{\texorpdfstring{v5.\+27.\+2}{v5.\+27.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8923}
+
+\begin{DoxyItemize}
+\item Recognise {\ttfamily this} as a reference to the surrounding class in {\ttfamily drop\+\_\+unused}. Closes \#1472
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8924}{}\doxysection{\texorpdfstring{v5.\+27.\+1}{v5.\+27.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8924}
+
+\begin{DoxyItemize}
+\item Fixed case where {\ttfamily collapse\+\_\+vars} inlines {\ttfamily await} expressions into non-\/async functions.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8925}{}\doxysection{\texorpdfstring{v5.\+27.\+0}{v5.\+27.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8925}
+
+\begin{DoxyItemize}
+\item Created {\ttfamily minify\+\_\+sync()} alternative to {\ttfamily minify()} since there\textquotesingle{}s no async code left.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8926}{}\doxysection{\texorpdfstring{v5.\+26.\+0}{v5.\+26.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8926}
+
+\begin{DoxyItemize}
+\item Do not take the {\ttfamily /\+\texorpdfstring{$\ast$}{*}\#\+\_\+\+\_\+\+PURE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} annotation into account when the {\ttfamily side\+\_\+effects} compress option is off.
+\item The {\ttfamily preserve\+\_\+annotations} option now automatically opts annotation comments in, instead of requiring the {\ttfamily comments} option to be configured for this.
+\item Refuse to parse empty parenthesized expressions ({\ttfamily ()})
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8927}{}\doxysection{\texorpdfstring{v5.\+25.\+0}{v5.\+25.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8927}
+
+\begin{DoxyItemize}
+\item Regex properties added to reserved property mangler (\#1471)
+\item {\ttfamily pure\+\_\+new} option added to drop unused {\ttfamily new} expressions.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8928}{}\doxysection{\texorpdfstring{v5.\+24.\+0}{v5.\+24.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8928}
+
+\begin{DoxyItemize}
+\item Improve formatting performance in V8 by keeping a small work string and a large output string
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8929}{}\doxysection{\texorpdfstring{v5.\+23.\+0}{v5.\+23.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8929}
+
+\begin{DoxyItemize}
+\item When top\+\_\+retain will keep a variable assignment around, inline the assignee when it\textquotesingle{}s shorter than the name (\#1434)
+\item Remove empty class {\ttfamily static \{\}} blocks.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8930}{}\doxysection{\texorpdfstring{v5.\+22.\+0}{v5.\+22.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8930}
+
+\begin{DoxyItemize}
+\item Do not {\ttfamily unsafe}ly shorten expressions like a?.to\+String() when they\textquotesingle{}re conditional.
+\item Avoid running drop\+\_\+unused in nodes that aren\textquotesingle{}t scopes. Fixes a rare crash.
+\item When \textquotesingle{}module\textquotesingle{} is enabled, assume strict mode when figuring out scopes.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8931}{}\doxysection{\texorpdfstring{v5.\+21.\+0}{v5.\+21.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8931}
+
+\begin{DoxyItemize}
+\item Do not inline functions that would be retained in the toplevel (as this would cause code duplication).
+\item Fix precedence of arrow function and ternary operator when formatting output.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8932}{}\doxysection{\texorpdfstring{v5.\+20.\+0}{v5.\+20.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8932}
+
+\begin{DoxyItemize}
+\item Passing {\ttfamily minify()} zero files will now throw a clean exception (\#1450)
+\item {\ttfamily drop\+\_\+console} supports passing in an array of {\ttfamily console.\texorpdfstring{$\ast$}{*}} method names (\#1445)
+\item New DOM properties from the Web\+GPU API have been added for use in the property mangler (\#1436)
+\item Internal code simplification (\#1437)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8933}{}\doxysection{\texorpdfstring{v5.\+19.\+4}{v5.\+19.\+4}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8933}
+
+\begin{DoxyItemize}
+\item Prevent creating very deeply nested ternaries from a long list of {\ttfamily if..return}
+\item Prevent inlining classes into other functions, to avoid constructors being compared.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8934}{}\doxysection{\texorpdfstring{v5.\+19.\+3}{v5.\+19.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8934}
+
+\begin{DoxyItemize}
+\item Fix side effect detection of {\ttfamily optional?.chains}.
+\item Add round\+Rect to domprops.\+js (\#1426)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8935}{}\doxysection{\texorpdfstring{v5.\+19.\+2}{v5.\+19.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8935}
+
+\begin{DoxyItemize}
+\item fix performance hit from avoiding HTML comments in the output
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8936}{}\doxysection{\texorpdfstring{v5.\+19.\+1}{v5.\+19.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8936}
+
+\begin{DoxyItemize}
+\item Better avoid outputting {\ttfamily \texorpdfstring{$<$}{<}/\+script\texorpdfstring{$>$}{>}} and HTML comments.
+\item Fix unused variables in class static blocks not being dropped correctly.
+\item Fix sourcemap names of methods that are {\ttfamily async} or {\ttfamily static}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8937}{}\doxysection{\texorpdfstring{v5.\+19.\+0}{v5.\+19.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8937}
+
+\begin{DoxyItemize}
+\item Allow {\ttfamily /\+\texorpdfstring{$\ast$}{*}@\+\_\+\+\_\+\+MANGLE\+\_\+\+PROP\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} annotation in {\ttfamily object.\+property}, in addition to property declarations.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8938}{}\doxysection{\texorpdfstring{v5.\+18.\+2}{v5.\+18.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8938}
+
+\begin{DoxyItemize}
+\item Stop using recursion in hoisted defuns fix.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8939}{}\doxysection{\texorpdfstring{v5.\+18.\+1}{v5.\+18.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8939}
+
+\begin{DoxyItemize}
+\item Fix major performance issue caused by hoisted defuns\textquotesingle{} scopes bugfix.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8940}{}\doxysection{\texorpdfstring{v5.\+18.\+0}{v5.\+18.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8940}
+
+\begin{DoxyItemize}
+\item Add new {\ttfamily /\+\texorpdfstring{$\ast$}{*}@\+\_\+\+\_\+\+MANGLE\+\_\+\+PROP\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} annotation, to mark properties that should be mangled.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8941}{}\doxysection{\texorpdfstring{v5.\+17.\+7}{v5.\+17.\+7}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8941}
+
+\begin{DoxyItemize}
+\item Update some dependencies
+\item Add consistent sorting for {\ttfamily v} Reg\+Exp flag
+\item Add {\ttfamily inert} DOM attribute to domprops
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8942}{}\doxysection{\texorpdfstring{v5.\+17.\+6}{v5.\+17.\+6}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8942}
+
+\begin{DoxyItemize}
+\item Fixes to mozilla AST input and output, for class properties, private properties and static blocks
+\item Fix outputting a shorthand property in quotes when safari10 and ecma=2015 options are enabled
+\item {\ttfamily configurable} and {\ttfamily enumerable}, used in Object.\+define\+Property, added to domprops (\#1393)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8943}{}\doxysection{\texorpdfstring{v5.\+17.\+5}{v5.\+17.\+5}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8943}
+
+\begin{DoxyItemize}
+\item Take into account the non-\/deferred bits of a class, such as static properties, while dropping unused code.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8944}{}\doxysection{\texorpdfstring{v5.\+17.\+4}{v5.\+17.\+4}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8944}
+
+\begin{DoxyItemize}
+\item Fix crash when trying to negate a class ({\ttfamily !class\{\}})
+\item Avoid outputting comments between {\ttfamily yield}/\+{\ttfamily await} and its argument
+\item Fix detection of left-\/hand-\/side of assignment, to avoid optimizing it like any other expression in some edge cases
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8945}{}\doxysection{\texorpdfstring{v5.\+17.\+3}{v5.\+17.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8945}
+
+\begin{DoxyItemize}
+\item Fix issue with trimming a static class property\textquotesingle{}s contents accessing the class as {\ttfamily this}.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8946}{}\doxysection{\texorpdfstring{v5.\+17.\+2}{v5.\+17.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8946}
+
+\begin{DoxyItemize}
+\item Be less conservative when detecting use-\/before-\/definition of {\ttfamily var} in hoisted functions.
+\item Support unusual (but perfectly valid) initializers of for-\/in and for-\/of loops.
+\item Fix issue where hoisted function would be dropped if it was after a {\ttfamily continue} statement
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8947}{}\doxysection{\texorpdfstring{v5.\+17.\+1}{v5.\+17.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8947}
+
+\begin{DoxyItemize}
+\item Fix evaluating {\ttfamily .length} when the source array might\textquotesingle{}ve been mutated
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8948}{}\doxysection{\texorpdfstring{v5.\+17.\+0}{v5.\+17.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8948}
+
+\begin{DoxyItemize}
+\item Drop vestigial {\ttfamily = undefined} default argument in IIFE calls (\#1366)
+\item Evaluate known arrays\textquotesingle{} {\ttfamily .length} property when statically determinable
+\item Add {\ttfamily @\+\_\+\+\_\+\+KEY\+\_\+\+\_\+} annotation to mangle string literals (\#1365)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8949}{}\doxysection{\texorpdfstring{v5.\+16.\+9}{v5.\+16.\+9}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8949}
+
+\begin{DoxyItemize}
+\item Fix parentheses in output of optional chains ({\ttfamily a?.b}) (\#1374)
+\item More documentation on source maps (\#1368)
+\item New {\ttfamily lhs\+\_\+constants} option, allowing to stop Terser from swapping comparison operands (\#1361)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8950}{}\doxysection{\texorpdfstring{v5.\+16.\+8}{v5.\+16.\+8}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8950}
+
+\begin{DoxyItemize}
+\item Become even less conservative around function definitions for {\ttfamily reduce\+\_\+vars}
+\item Fix parsing context of {\ttfamily import.\+meta} expressions such that method calls are allowed
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8951}{}\doxysection{\texorpdfstring{v5.\+16.\+6}{v5.\+16.\+6}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8951}
+
+\begin{DoxyItemize}
+\item Become less conservative with analyzing function definitions for {\ttfamily reduce\+\_\+vars}
+\item Parse {\ttfamily import.\+meta} as a real AST node and not an {\ttfamily object.\+property}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8952}{}\doxysection{\texorpdfstring{v5.\+16.\+5}{v5.\+16.\+5}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8952}
+
+\begin{DoxyItemize}
+\item Correctly handle AST transform functions that mutate children arrays
+\item Don\textquotesingle{}t mutate the options object passed to Terser (\#1342)
+\item Do not treat Big\+Int like a number
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8953}{}\doxysection{\texorpdfstring{v5.\+16.\+4}{v5.\+16.\+4}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8953}
+
+\begin{DoxyItemize}
+\item Keep {\ttfamily (default\+Arg = undefined) =\texorpdfstring{$>$}{>} ...}, because default args don\textquotesingle{}t count for function length
+\item Prevent inlining variables into {\ttfamily ?.} optional chains
+\item Avoid removing unused arguments while transforming
+\item Optimize iterating AST node lists
+\item Make sure {\ttfamily catch} and {\ttfamily finally} aren\textquotesingle{}t children of {\ttfamily try} in the AST
+\item Use modern unicode property escapes ({\ttfamily \textbackslash{}p\{...\}}) to parse identifiers when available
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8954}{}\doxysection{\texorpdfstring{v5.\+16.\+3}{v5.\+16.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8954}
+
+\begin{DoxyItemize}
+\item Ensure function definitions, don\textquotesingle{}t assume the values of variables defined after them.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8955}{}\doxysection{\texorpdfstring{v5.\+16.\+2}{v5.\+16.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8955}
+
+\begin{DoxyItemize}
+\item Fix sourcemaps with non-\/ascii characters (\#1318)
+\item Support string module name and export \texorpdfstring{$\ast$}{*} as (\#1336)
+\item Do not move {\ttfamily let} out of {\ttfamily for} initializers, as it can change scoping
+\item Fix a corner case that would generate the invalid syntax {\ttfamily if (something) let x} ("{}let"{} in braceless if body)
+\item Knowledge of more native object properties (\#1330)
+\item Got rid of Travis (\#1323)
+\item Added semi-\/secret {\ttfamily as\+Object} sourcemap option to typescript defs (\#1321)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8956}{}\doxysection{\texorpdfstring{v5.\+16.\+1}{v5.\+16.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8956}
+
+\begin{DoxyItemize}
+\item Properly handle references in destructurings ({\ttfamily const \{ \+[reference]\+:\+ val \} = ...})
+\item Allow parsing of {\ttfamily .\#privatefield} in nested classes
+\item Do not evaluate operations that return large strings if that would make the output code larger
+\item Make {\ttfamily collapse\+\_\+vars} handle block scope correctly
+\item Internal improvements:\+ Typos (\#1311), more tests, small-\/scale refactoring
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8957}{}\doxysection{\texorpdfstring{v5.\+16.\+0}{v5.\+16.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8957}
+
+\begin{DoxyItemize}
+\item Disallow private fields in object bodies (\#1011)
+\item Parse {\ttfamily \#privatefield in object} (\#1279)
+\item Compress {\ttfamily \#privatefield in object}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8958}{}\doxysection{\texorpdfstring{v5.\+15.\+1}{v5.\+15.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8958}
+
+\begin{DoxyItemize}
+\item Fixed missing parentheses around optional chains
+\item Avoid bare {\ttfamily let} or {\ttfamily const} as the bodies of {\ttfamily if} statements (\#1253)
+\item Small internal fixes (\#1271)
+\item Avoid inlining a class twice and creating two equivalent but {\ttfamily !==} classes.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8959}{}\doxysection{\texorpdfstring{v5.\+15.\+0}{v5.\+15.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8959}
+
+\begin{DoxyItemize}
+\item Basic support for ES2022 class static initializer blocks.
+\item Add {\ttfamily Audio\+Worklet\+Node} constructor options to domprops list (\#1230)
+\item Make identity function inliner not inline {\ttfamily id(...\+expanded\+Args)}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8960}{}\doxysection{\texorpdfstring{v5.\+14.\+2}{v5.\+14.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8960}
+
+\begin{DoxyItemize}
+\item Security fix for Reg\+Exps that should not be evaluated (regexp DDOS)
+\item Source maps improvements (\#1211)
+\item Performance improvements in long property access evaluation (\#1213)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8961}{}\doxysection{\texorpdfstring{v5.\+14.\+1}{v5.\+14.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8961}
+
+\begin{DoxyItemize}
+\item keep\+\_\+numbers option added to Type\+Script defs (\#1208)
+\item Fixed parsing of nested template strings (\#1204)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8962}{}\doxysection{\texorpdfstring{v5.\+14.\+0}{v5.\+14.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8962}
+
+\begin{DoxyItemize}
+\item Switched to @jridgewell/\+source-\/map for sourcemap generation (\#1190, \#1181)
+\item Fixed source maps with non-\/terminated segments (\#1106)
+\item Enabled typescript types to be imported from the package (\#1194)
+\item Extra DOM props have been added (\#1191)
+\item Delete the AST while generating code, as a means to save RAM
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8963}{}\doxysection{\texorpdfstring{v5.\+13.\+1}{v5.\+13.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8963}
+
+\begin{DoxyItemize}
+\item Removed self-\/assignments ({\ttfamily varname=varname}) (closes \#1081)
+\item Separated inlining code (for inlining things into references, or removing IIFEs)
+\item Allow multiple identifiers with the same name in {\ttfamily var} destructuring (eg {\ttfamily var \{ a, a \} = x}) (\#1176)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8964}{}\doxysection{\texorpdfstring{v5.\+13.\+0}{v5.\+13.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8964}
+
+\begin{DoxyItemize}
+\item All calls to eval() were removed (\#1171, \#1184)
+\item {\ttfamily source-\/map} was updated to 0.\+8.\+0-\/beta.\+0 (\#1164)
+\item Navigator\+UAData was added to domprops to avoid property mangling (\#1166)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8965}{}\doxysection{\texorpdfstring{v5.\+12.\+1}{v5.\+12.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8965}
+
+\begin{DoxyItemize}
+\item Fixed an issue with function definitions inside blocks (\#1155)
+\item Fixed parens of {\ttfamily new} in some situations (closes \#1159)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8966}{}\doxysection{\texorpdfstring{v5.\+12.\+0}{v5.\+12.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8966}
+
+\begin{DoxyItemize}
+\item {\ttfamily TERSER\+\_\+\+DEBUG\+\_\+\+DIR} environment variable
+\item \begin{DoxyCopyright}{Copyright}
+comments are now preserved with the comments="{}some"{} option (\#1153)
+\end{DoxyCopyright}
+
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8967}{}\doxysection{\texorpdfstring{v5.\+11.\+0}{v5.\+11.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8967}
+
+\begin{DoxyItemize}
+\item Unicode code point escapes ({\ttfamily \textbackslash{}u\{abcde\}}) are not emitted inside Reg\+Exp literals anymore (\#1147)
+\item acorn is now a regular dependency
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8968}{}\doxysection{\texorpdfstring{v5.\+10.\+0}{v5.\+10.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8968}
+
+\begin{DoxyItemize}
+\item Massive optimization to max\+\_\+line\+\_\+len (\#1109)
+\item Basic support for import assertions
+\item Marked ES2022 Object.\+has\+Own as a pure function
+\item Fix {\ttfamily delete optional?.\doxylink{namespaceproperty}{property}}
+\item New CI/\+\+CD pipeline with github actions (\#1057)
+\item Fix reordering of switch branches (\#1092), (\#1084)
+\item Fix error when creating a class property called {\ttfamily get}
+\item Acorn dependency is now an optional peer\+Dependency
+\item Fix mangling collision with exported variables (\#1072)
+\item Fix an issue with {\ttfamily return some\+Variable = (async () =\texorpdfstring{$>$}{>} \{ ... \})()} (\#1073)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8969}{}\doxysection{\texorpdfstring{v5.\+9.\+0}{v5.\+9.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8969}
+
+\begin{DoxyItemize}
+\item Collapsing switch cases with the same bodies (even if they\textquotesingle{}re not next to each other) (\#1070).
+\item Fix evaluation of optional chain expressions (\#1062)
+\item Fix mangling collision in ESM exports (\#1063)
+\item Fix issue with mutating function objects after a second pass (\#1047)
+\item Fix for inlining object spread {\ttfamily \{ ...obj \}} (\#1071)
+\item Typescript typings fix (\#1069)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8970}{}\doxysection{\texorpdfstring{v5.\+8.\+0}{v5.\+8.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8970}
+
+\begin{DoxyItemize}
+\item Fixed shadowing variables while moving code in some cases (\#1065)
+\item Stop mangling computed \& quoted properties when keep\+\_\+quoted is enabled.
+\item Fix for mangling private getter/\+setter and .\+\#private access (\#1060, \#1068)
+\item Array.\+from has a new optimization when the unsafe option is set (\#737)
+\item Mangle/\+propmangle let you generate your own identifiers through the nth\+\_\+identifier option (\#1061)
+\item More optimizations to switch statements (\#1044)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8971}{}\doxysection{\texorpdfstring{v5.\+7.\+2}{v5.\+7.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8971}
+
+\begin{DoxyItemize}
+\item Fixed issues with compressing functions defined in {\ttfamily global\+\_\+defs} option (\#1036)
+\item New recipe for using Terser in gulp was added to RECIPES.\+md (\#1035)
+\item Fixed issues with {\ttfamily ??} and {\ttfamily ?.} (\#1045)
+\item Future reserved words such as {\ttfamily package} no longer require you to disable strict mode to be used as names.
+\item Refactored huge compressor file into multiple more focused files.
+\item Avoided unparenthesized {\ttfamily in} operator in some for loops (it breaks parsing because of for..in loops)
+\item Improved documentation (\#1021, \#1025)
+\item More type definitions (\#1021)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8972}{}\doxysection{\texorpdfstring{v5.\+7.\+1}{v5.\+7.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8972}
+
+\begin{DoxyItemize}
+\item Avoided collapsing assignments together if it would place a chain assignment on the left hand side, which is invalid syntax ({\ttfamily a?.b = c})
+\item Removed undefined from object expansions ({\ttfamily \{ ...void 0 \}} -\/\texorpdfstring{$>$}{>} {\ttfamily \{\}})
+\item Fix crash when checking if something is nullish or undefined (\#1009)
+\item Fixed comparison of private class properties (\#1015)
+\item Minor performance improvements (\#993)
+\item Fixed scope of function defs in strict mode (they are block scoped)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8973}{}\doxysection{\texorpdfstring{v5.\+7.\+0}{v5.\+7.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8973}
+
+\begin{DoxyItemize}
+\item Several compile-\/time evaluation and inlining fixes
+\item Allow {\ttfamily reduce\+\_\+funcs} to be disabled again.
+\item Add {\ttfamily spidermonkey} options to parse and format (\#974)
+\item Accept {\ttfamily \{get = "{}default val"{}\}} and {\ttfamily \{set = "{}default val"{}\}} in destructuring arguments.
+\item Change package.\+json export map to help require.\+resolve (\#971)
+\item Improve docs
+\item Fix {\ttfamily export default} of an anonymous class with {\ttfamily extends}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8974}{}\doxysection{\texorpdfstring{v5.\+6.\+1}{v5.\+6.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8974}
+
+\begin{DoxyItemize}
+\item Mark assignments to the {\ttfamily .prototype} of a class as pure
+\item Parenthesize {\ttfamily await} on the left of {\ttfamily \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}} (while accepting legacy non-\/parenthesised input)
+\item Avoided outputting NUL bytes in optimized Reg\+Exps, to stop the output from breaking other tools
+\item Added {\ttfamily exports} to domprops (\#939)
+\item Fixed a crash when spreading {\ttfamily ...this}
+\item Fixed the computed size of arrow functions, which improves their inlining
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8975}{}\doxysection{\texorpdfstring{v5.\+6.\+0}{v5.\+6.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8975}
+
+\begin{DoxyItemize}
+\item Added top-\/level await
+\item Beautify option has been removed in \#895
+\item Private properties, getters and setters have been added in \#913 and some more commits
+\item Docs improvements:\+ \#896, \#903, \#916
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8976}{}\doxysection{\texorpdfstring{v5.\+5.\+1}{v5.\+5.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8976}
+
+\begin{DoxyItemize}
+\item Fixed object properties with unicode surrogates on safari.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8977}{}\doxysection{\texorpdfstring{v5.\+5.\+0}{v5.\+5.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8977}
+
+\begin{DoxyItemize}
+\item Fixed crash when inlining uninitialized variable into template string.
+\item The sourcemap for dist was removed for being too large.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8978}{}\doxysection{\texorpdfstring{v5.\+4.\+0}{v5.\+4.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8978}
+
+\begin{DoxyItemize}
+\item Logical assignment
+\item Change {\ttfamily let x = undefined} to just {\ttfamily let x}
+\item Removed some optimizations for template strings, placing them behind {\ttfamily unsafe} options. Reason:\+ adding strings is not equivalent to template strings, due to value\+Of differences.
+\item The AST\+\_\+\+Token class was slimmed down in order to use less memory.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8979}{}\doxysection{\texorpdfstring{v5.\+3.\+8}{v5.\+3.\+8}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8979}
+
+\begin{DoxyItemize}
+\item Restore node 13 support
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8980}{}\doxysection{\texorpdfstring{v5.\+3.\+7}{v5.\+3.\+7}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8980}
+Hotfix release, fixes package.\+json "{}engines"{} syntax\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8981}{}\doxysection{\texorpdfstring{v5.\+3.\+6}{v5.\+3.\+6}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8981}
+
+\begin{DoxyItemize}
+\item Fixed parentheses when outputting {\ttfamily ??} mixed with {\ttfamily \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}} and {\ttfamily \&\&}
+\item Improved hygiene of the symbol generator
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8982}{}\doxysection{\texorpdfstring{v5.\+3.\+5}{v5.\+3.\+5}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8982}
+
+\begin{DoxyItemize}
+\item Avoid moving named functions into default exports.
+\item Enabled transform() for chain expressions. This allows AST transformers to reach inside chain expressions.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8983}{}\doxysection{\texorpdfstring{v5.\+3.\+4}{v5.\+3.\+4}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8983}
+
+\begin{DoxyItemize}
+\item Fixed a crash when hoisting (with {\ttfamily hoist\+\_\+vars}) a destructuring variable declaration
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8984}{}\doxysection{\texorpdfstring{v5.\+3.\+3}{v5.\+3.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8984}
+
+\begin{DoxyItemize}
+\item {\ttfamily source-\/map} library has been updated, bringing memory usage and CPU time improvements when reading input source maps (the Source\+Map\+Consumer is now WASM based).
+\item The {\ttfamily wrap\+\_\+func\+\_\+args} option now also wraps arrow functions, as opposed to only function expressions.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8985}{}\doxysection{\texorpdfstring{v5.\+3.\+2}{v5.\+3.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8985}
+
+\begin{DoxyItemize}
+\item Prevented spread operations from being expanded when the expanded array/\+object contains getters, setters, or array holes.
+\item Fixed {\itshape very} slow self-\/recursion in some cases of removing extraneous parentheses from {\ttfamily +} operations.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8986}{}\doxysection{\texorpdfstring{v5.\+3.\+1}{v5.\+3.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8986}
+
+\begin{DoxyItemize}
+\item An issue with destructuring declarations when {\ttfamily pure\+\_\+getters} is enabled has been fixed
+\item Fixed a crash when chain expressions need to be shallowly compared
+\item Made inlining functions more conservative to make sure a function that contains a reference to itself isn\textquotesingle{}t moved into a place that can create multiple instances of itself.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8987}{}\doxysection{\texorpdfstring{v5.\+3.\+0}{v5.\+3.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8987}
+
+\begin{DoxyItemize}
+\item Fixed a crash when compressing object spreads in some cases
+\item Fixed compiletime evaluation of optional chains (caused typeof a?.b to always return "{}object"{})
+\item domprops has been updated to contain every single possible prop
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8988}{}\doxysection{\texorpdfstring{v5.\+2.\+1}{v5.\+2.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8988}
+
+\begin{DoxyItemize}
+\item The parse step now doesn\textquotesingle{}t accept an {\ttfamily ecma} option, so that all ES code is accepted.
+\item Optional dotted chains now accept keywords, just like dotted expressions ({\ttfamily foo?.default})
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8989}{}\doxysection{\texorpdfstring{v5.\+2.\+0}{v5.\+2.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8989}
+
+\begin{DoxyItemize}
+\item Optional chaining syntax is now supported.
+\item Consecutive await expressions don\textquotesingle{}t have unnecessary parens
+\item Taking the variable name\textquotesingle{}s length (after mangling) into consideration when deciding to inline
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8990}{}\doxysection{\texorpdfstring{v5.\+1.\+0}{v5.\+1.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8990}
+
+\begin{DoxyItemize}
+\item {\ttfamily import.\+meta} is now supported
+\item Typescript typings have been improved
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8991}{}\doxysection{\texorpdfstring{v5.\+0.\+0}{v5.\+0.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8991}
+
+\begin{DoxyItemize}
+\item {\ttfamily in} operator now taken into account during property mangle.
+\item Fixed infinite loop in face of a reference loop in some situations.
+\item Kept exports and imports around even if there\textquotesingle{}s something which will throw before them.
+\item The main exported bundle for commonjs, dist/\+bundle.\+min.\+js is no longer minified.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8992}{}\doxysection{\texorpdfstring{v5.\+0.\+0-\/beta.\+0}{v5.\+0.\+0-\/beta.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8992}
+
+\begin{DoxyItemize}
+\item BREAKING:\+ {\ttfamily minify()} is now async and rejects a promise instead of returning an error.
+\item BREAKING:\+ Internal AST is no longer exposed, so that it can be improved without releasing breaking changes.
+\item BREAKING:\+ Lowest supported node version is 10
+\item BREAKING:\+ There are no more warnings being emitted
+\item Module is now distributed as a dual package -\/ You can {\ttfamily import} and {\ttfamily require()} too.
+\item Inline improvements were made
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8994}{}\doxysection{\texorpdfstring{v4.\+8.\+1 (backport)}{v4.\+8.\+1 (backport)}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8994}
+
+\begin{DoxyItemize}
+\item Security fix for Reg\+Exps that should not be evaluated (regexp DDOS)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8995}{}\doxysection{\texorpdfstring{v4.\+8.\+0}{v4.\+8.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8995}
+
+\begin{DoxyItemize}
+\item Support for numeric separators ({\ttfamily million = 1\+\_\+000\+\_\+000}) was added.
+\item Assigning properties to a class is now assumed to be pure.
+\item Fixed bug where {\ttfamily yield} wasn\textquotesingle{}t considered a valid property key in generators.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8996}{}\doxysection{\texorpdfstring{v4.\+7.\+0}{v4.\+7.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8996}
+
+\begin{DoxyItemize}
+\item A bug was fixed where an arrow function would have the wrong size
+\item {\ttfamily arguments} object is now considered safe to retrieve properties from (useful for {\ttfamily length}, or {\ttfamily 0}) even when {\ttfamily pure\+\_\+getters} is not set.
+\item Fixed erroneous {\ttfamily const} declarations without value (which is invalid) in some corner cases when using {\ttfamily collapse\+\_\+vars}.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8997}{}\doxysection{\texorpdfstring{v4.\+6.\+13}{v4.\+6.\+13}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8997}
+
+\begin{DoxyItemize}
+\item Fixed issue where ES5 object properties were being turned into ES6 object properties due to more lax unicode rules.
+\item Fixed parsing of Big\+Int with lowercase {\ttfamily e} in them.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8998}{}\doxysection{\texorpdfstring{v4.\+6.\+12}{v4.\+6.\+12}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8998}
+
+\begin{DoxyItemize}
+\item Fixed subtree comparison code, making it see that {\ttfamily \+[1,\+[2, 3]\+]\+} is different from {\ttfamily \+[1, 2, \+[3]\+]\+}
+\item Printing of unicode identifiers has been improved
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8999}{}\doxysection{\texorpdfstring{v4.\+6.\+11}{v4.\+6.\+11}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md8999}
+
+\begin{DoxyItemize}
+\item Read unused classes\textquotesingle{} properties and method keys, to figure out if they use other variables.
+\item Prevent inlining into block scopes when there are name collisions
+\item Functions are no longer inlined into parameter defaults, because they live in their own special scope.
+\item When inlining identity functions, take into account the fact they may be used to drop {\ttfamily this} in function calls.
+\item Nullish coalescing operator ({\ttfamily x ?? y}), plus basic optimization for it.
+\item Template literals in binary expressions such as {\ttfamily +} have been further optimized
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9000}{}\doxysection{\texorpdfstring{v4.\+6.\+10}{v4.\+6.\+10}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9000}
+
+\begin{DoxyItemize}
+\item Do not use reduce\+\_\+vars when classes are present
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9001}{}\doxysection{\texorpdfstring{v4.\+6.\+9}{v4.\+6.\+9}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9001}
+
+\begin{DoxyItemize}
+\item Check if block scopes actually exist in blocks
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9002}{}\doxysection{\texorpdfstring{v4.\+6.\+8}{v4.\+6.\+8}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9002}
+
+\begin{DoxyItemize}
+\item Take into account "{}executed bits"{} of classes like static properties or computed keys, when checking if a class evaluation might throw or have side effects.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9003}{}\doxysection{\texorpdfstring{v4.\+6.\+7}{v4.\+6.\+7}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9003}
+
+\begin{DoxyItemize}
+\item Some new performance gains through a {\ttfamily AST\+\_\+\+Node.\+size()} method which measures a node\textquotesingle{}s source code length without printing it to a string first.
+\item An issue with setting {\ttfamily -\/-\/comments} to {\ttfamily false} in the CLI has been fixed.
+\item Fixed some issues with inlining
+\item {\ttfamily unsafe\+\_\+symbols} compress option was added, which turns {\ttfamily Symbol("{}name"{})} into just {\ttfamily Symbol()}
+\item Brought back compress performance improvement through the {\ttfamily AST\+\_\+\+Node.\+equivalent\+\_\+to(other)} method (which was reverted in v4.\+6.\+6).
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9004}{}\doxysection{\texorpdfstring{v4.\+6.\+6}{v4.\+6.\+6}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9004}
+(hotfix release)
+
+
+\begin{DoxyItemize}
+\item Reverted code to 4.\+6.\+4 to allow for more time to investigate an issue.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9005}{}\doxysection{\texorpdfstring{v4.\+6.\+5 (REVERTED)}{v4.\+6.\+5 (REVERTED)}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9005}
+
+\begin{DoxyItemize}
+\item Improved compress performance through using a new method to see if two nodes are equivalent, instead of printing them to a string.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9006}{}\doxysection{\texorpdfstring{v4.\+6.\+4}{v4.\+6.\+4}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9006}
+
+\begin{DoxyItemize}
+\item The {\ttfamily "{}some"{}} value in the {\ttfamily comments} output option now preserves {\ttfamily @lic} and other important comments when using {\ttfamily /\+/\+}
+\item {\ttfamily \texorpdfstring{$<$}{<}/\+script\texorpdfstring{$>$}{>}} is now better escaped in regex, and in comments, when using the {\ttfamily inline\+\_\+script} output option
+\item Fixed an issue when transforming {\ttfamily new Reg\+Exp} into {\ttfamily /\+.../\+} when slashes are included in the source
+\item {\ttfamily AST\+\_\+\+Node.\+prototype.\+constructor} now exists, allowing for easier debugging of crashes
+\item Multiple if statements with the same consequents are now collapsed
+\item Typescript typings improvements
+\item Optimizations while looking for surrogate pairs in strings
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9007}{}\doxysection{\texorpdfstring{v4.\+6.\+3}{v4.\+6.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9007}
+
+\begin{DoxyItemize}
+\item Annotations such as {\ttfamily /\+\texorpdfstring{$\ast$}{*}\#\+\_\+\+\_\+\+NOINLINE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} and {\ttfamily /\+\texorpdfstring{$\ast$}{*}\#\+\_\+\+\_\+\+PURE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} may now be preserved using the {\ttfamily preserve\+\_\+annotations} output option
+\item A Type\+Script definition update for the {\ttfamily keep\+\_\+quoted} output option.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9008}{}\doxysection{\texorpdfstring{v4.\+6.\+2}{v4.\+6.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9008}
+
+\begin{DoxyItemize}
+\item A bug where functions were inlined into other functions with scope conflicts has been fixed.
+\item {\ttfamily /\+\texorpdfstring{$\ast$}{*}\#\+\_\+\+\_\+\+NOINLINE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} annotation fixed for more use cases where inlining happens.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9009}{}\doxysection{\texorpdfstring{v4.\+6.\+1}{v4.\+6.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9009}
+
+\begin{DoxyItemize}
+\item Fixed an issue where a class is duplicated by reduce\+\_\+vars when there\textquotesingle{}s a recursive reference to the class.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9010}{}\doxysection{\texorpdfstring{v4.\+6.\+0}{v4.\+6.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9010}
+
+\begin{DoxyItemize}
+\item Fixed issues with recursive class references.
+\item Big\+Int evaluation has been prevented, stopping Terser from evaluating Big\+Ints like it would do regular numbers.
+\item Class property support has been added
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9011}{}\doxysection{\texorpdfstring{v4.\+5.\+1}{v4.\+5.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9011}
+(hotfix release)
+
+
+\begin{DoxyItemize}
+\item Fixed issue where {\ttfamily () =\texorpdfstring{$>$}{>} (\{\})\+[something]\+} was not parenthesised correctly.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9012}{}\doxysection{\texorpdfstring{v4.\+5.\+0}{v4.\+5.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9012}
+
+\begin{DoxyItemize}
+\item Inlining has been improved
+\item An issue where keep\+\_\+fnames combined with functions declared through variables was causing name shadowing has been fixed
+\item You can now set the ES version through their year
+\item The output option {\ttfamily keep\+\_\+numbers} has been added, which prevents Terser from turning {\ttfamily 1000} into {\ttfamily 1e3} and such
+\item Internal small optimisations and refactors
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9013}{}\doxysection{\texorpdfstring{v4.\+4.\+3}{v4.\+4.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9013}
+
+\begin{DoxyItemize}
+\item Number and Big\+Int parsing has been fixed
+\item {\ttfamily /\+\texorpdfstring{$\ast$}{*}\#\+\_\+\+\_\+\+INLINE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} annotation fixed for arrow functions with non-\/block bodies.
+\item Functional tests have been added, using \href{https://github.com/terser/terser-functional-tests}{\texttt{this repository}}.
+\item A memory leak, where the entire AST lives on after compression, has been plugged.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9014}{}\doxysection{\texorpdfstring{v4.\+4.\+2}{v4.\+4.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9014}
+
+\begin{DoxyItemize}
+\item Fixed a problem with inlining identity functions
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9015}{}\doxysection{\texorpdfstring{v4.\+4.\+1}{v4.\+4.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9015}
+{\itshape note:\+} This introduced a feature, therefore it should have been a minor release.
+
+
+\begin{DoxyItemize}
+\item Fixed a crash when {\ttfamily unsafe} was enabled.
+\item An issue has been fixed where {\ttfamily let} statements might be collapsed out of their scope.
+\item Some error messages have been improved by adding quotes around variable names.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9016}{}\doxysection{\texorpdfstring{v4.\+4.\+0}{v4.\+4.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9016}
+
+\begin{DoxyItemize}
+\item Added {\ttfamily /\+\texorpdfstring{$\ast$}{*}\#\+\_\+\+\_\+\+INLINE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} and {\ttfamily /\+\texorpdfstring{$\ast$}{*}\#\+\_\+\+\_\+\+NOINLINE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} annotations for calls. If a call has one of these, it either forces or forbids inlining.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9017}{}\doxysection{\texorpdfstring{v4.\+3.\+11}{v4.\+3.\+11}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9017}
+
+\begin{DoxyItemize}
+\item Fixed a problem where {\ttfamily window} was considered safe to access, even though there are situations where it isn\textquotesingle{}t (Node.\+js, workers...)
+\item Fixed an error where {\ttfamily ++} and {\ttfamily -\/-\/} were considered side-\/effect free
+\item {\ttfamily Number(x)} now needs both {\ttfamily unsafe} and and {\ttfamily unsafe\+\_\+math} to be compressed into {\ttfamily +x} because {\ttfamily x} might be a {\ttfamily Big\+Int}
+\item {\ttfamily keep\+\_\+fnames} now correctly supports regexes when the function is in a variable declaration
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9018}{}\doxysection{\texorpdfstring{v4.\+3.\+10}{v4.\+3.\+10}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9018}
+
+\begin{DoxyItemize}
+\item Fixed syntax error when repeated semicolons were encountered in classes
+\item Fixed invalid output caused by the creation of empty sequences internally
+\item Scopes are now updated when scopes are inlined into them
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9019}{}\doxysection{\texorpdfstring{v4.\+3.\+9}{v4.\+3.\+9}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9019}
+
+\begin{DoxyItemize}
+\item Fixed issue with mangle\textquotesingle{}s {\ttfamily keep\+\_\+fnames} option, introduced when adding code to keep variable names of anonymous functions
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9020}{}\doxysection{\texorpdfstring{v4.\+3.\+8}{v4.\+3.\+8}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9020}
+
+\begin{DoxyItemize}
+\item Typescript typings fix
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9021}{}\doxysection{\texorpdfstring{v4.\+3.\+7}{v4.\+3.\+7}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9021}
+
+\begin{DoxyItemize}
+\item Parsing of regex options in the CLI (which broke in v4.\+3.\+5) was fixed.
+\item typescript definition updates
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9022}{}\doxysection{\texorpdfstring{v4.\+3.\+6}{v4.\+3.\+6}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9022}
+(crash hotfix)\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9023}{}\doxysection{\texorpdfstring{v4.\+3.\+5}{v4.\+3.\+5}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9023}
+
+\begin{DoxyItemize}
+\item Fixed an issue with DOS line endings strings separated by {\ttfamily \textbackslash{}} and a new line.
+\item Improved fix for the output size regression related to unused references within the extends section of a class.
+\item Variable names of anonymous functions (eg:\+ {\ttfamily const x = () =\texorpdfstring{$>$}{>} \{ ... \}} or {\ttfamily var func = function () \{...\}}) are now preserved when keep\+\_\+fnames is true.
+\item Fixed performance degradation introduced for large payloads in v4.\+2.\+0
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9024}{}\doxysection{\texorpdfstring{v4.\+3.\+4}{v4.\+3.\+4}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9024}
+
+\begin{DoxyItemize}
+\item Fixed a regression where the output size was increased when unused classes were referred to in the extends clause of a class.
+\item Small typescript typings fixes.
+\item Comments with {\ttfamily @preserve}, {\ttfamily @license}, {\ttfamily @cc\+\_\+on} as well as comments starting with {\ttfamily /\+\texorpdfstring{$\ast$}{*}!} and {\ttfamily /\+\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}!} are now preserved by default.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9025}{}\doxysection{\texorpdfstring{v4.\+3.\+3}{v4.\+3.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9025}
+
+\begin{DoxyItemize}
+\item Fixed a problem where parsing template strings would mix up octal notation and a slash followed by a zero representing a null character.
+\item Started accepting the name {\ttfamily async} in destructuring arguments with default value.
+\item Now Terser takes into account side effects inside class {\ttfamily extends} clauses.
+\item Added parens whenever there\textquotesingle{}s a comment between a return statement and the returned value, to prevent issues with ASI.
+\item Stopped using raw Reg\+Exp objects, since the spec is going to continue to evolve. This ensures Terser is able to process new, unknown Reg\+Exp flags and features. This is a breaking change in the AST node AST\+\_\+\+Reg\+Exp.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9026}{}\doxysection{\texorpdfstring{v4.\+3.\+2}{v4.\+3.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9026}
+
+\begin{DoxyItemize}
+\item Typescript typing fix
+\item Ensure that functions can\textquotesingle{}t be inlined, by reduce\+\_\+vars, into places where they\textquotesingle{}re accessing variables with the same name, but from somewhere else.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9027}{}\doxysection{\texorpdfstring{v4.\+3.\+1}{v4.\+3.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9027}
+
+\begin{DoxyItemize}
+\item Fixed an issue from 4.\+3.\+0 where any block scope within a for loop erroneously had its parent set to the function scopee
+\item Fixed an issue where compressing IIFEs with argument expansions would result in some parameters becoming undefined
+\item add\+Event\+Listener options argument\textquotesingle{}s properties are now part of the DOM properties list.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9028}{}\doxysection{\texorpdfstring{v4.\+3.\+0}{v4.\+3.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9028}
+
+\begin{DoxyItemize}
+\item Do not drop computed object keys with side effects
+\item Functions passed to other functions in calls are now wrapped in parentheses by default, which speeds up loading most modules
+\item Objects with computed properties are now less likely to be hoisted
+\item Speed and memory efficiency optimizations
+\item Fixed scoping issues with {\ttfamily try} and {\ttfamily switch}
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9029}{}\doxysection{\texorpdfstring{v4.\+2.\+1}{v4.\+2.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9029}
+
+\begin{DoxyItemize}
+\item Minor refactors
+\item Fixed a bug similar to \#369 in collapse\+\_\+vars
+\item Functions can no longer be inlined into a place where they\textquotesingle{}re going to be compared with themselves.
+\item reduce\+\_\+funcs option is now legacy, as using reduce\+\_\+vars without reduce\+\_\+funcs caused some weird corner cases. As a result, it is now implied in reduce\+\_\+vars and can\textquotesingle{}t be turned off without turning off reduce\+\_\+vars.
+\item Bug which would cause a random stack overflow has now been fixed.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9030}{}\doxysection{\texorpdfstring{v4.\+2.\+0}{v4.\+2.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9030}
+
+\begin{DoxyItemize}
+\item When the source map URL is {\ttfamily inline}, don\textquotesingle{}t write it to a file.
+\item Fixed output parens when a lambda literal is the tag on a tagged template string.
+\item The {\ttfamily mangle.\+properties.\+undeclared} option was added. This enables the property mangler to mangle properties of variables which can be found in the name cache, but whose properties are not known to this Terser run.
+\item The v8 bug where the to\+String and source representations of regexes like {\ttfamily Reg\+Exp("{}\textbackslash{}\textbackslash{}\textbackslash{}n"{})} includes an actual newline is now fixed.
+\item Now we\textquotesingle{}re guaranteed to not have duplicate comments in the output
+\item Domprops updates
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9031}{}\doxysection{\texorpdfstring{v4.\+1.\+4}{v4.\+1.\+4}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9031}
+
+\begin{DoxyItemize}
+\item Fixed a crash when inlining a function into somewhere else when it has interdependent, non-\/removable variables.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9032}{}\doxysection{\texorpdfstring{v4.\+1.\+3}{v4.\+1.\+3}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9032}
+
+\begin{DoxyItemize}
+\item Several issues with the {\ttfamily reduce\+\_\+vars} option were fixed.
+\item Starting this version, we only have a dist/\+bundle.\+min.\+js
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9033}{}\doxysection{\texorpdfstring{v4.\+1.\+2}{v4.\+1.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9033}
+
+\begin{DoxyItemize}
+\item The hotfix was hotfixed
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9034}{}\doxysection{\texorpdfstring{v4.\+1.\+1}{v4.\+1.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9034}
+
+\begin{DoxyItemize}
+\item Fixed a bug where toplevel scopes were being mixed up with lambda scopes
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9035}{}\doxysection{\texorpdfstring{v4.\+1.\+0}{v4.\+1.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9035}
+
+\begin{DoxyItemize}
+\item Internal functions were replaced by {\ttfamily Object.\+assign}, {\ttfamily Array.\+prototype.\+some}, {\ttfamily Array.\+prototype.\+find} and {\ttfamily Array.\+prototype.\+every}.
+\item A serious issue where some ESM-\/native code was broken was fixed.
+\item Performance improvements were made.
+\item Support for Big\+Int was added.
+\item Inline efficiency was improved. Functions are now being inlined more proactively instead of being inlined only after another Compressor pass.
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9036}{}\doxysection{\texorpdfstring{v4.\+0.\+2}{v4.\+0.\+2}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9036}
+(Hotfix release. Reverts unmapped segments PR \href{https://github.com/terser/terser/pull/342}{\texttt{\#342}}, which will be put back on Terser when the upstream issue is resolved)\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9037}{}\doxysection{\texorpdfstring{v4.\+0.\+1}{v4.\+0.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9037}
+
+\begin{DoxyItemize}
+\item Collisions between the arguments of inlined functions and names in the outer scope are now being avoided while inlining
+\item Unmapped segments are now preserved when compressing a file which has source maps
+\item Default values of functions are now correctly converted from Mozilla AST to Terser AST
+\item JSON ⊂ ECMAScript spec (if you don\textquotesingle{}t know what this is you don\textquotesingle{}t need to)
+\item Export AST\+\_\+\texorpdfstring{$\ast$}{*} classes to library users
+\item Fixed issue with {\ttfamily collapse\+\_\+vars} when functions are created with the same name as a variable which already exists
+\item Added {\ttfamily Mutation\+Observer\+Init} (Object with options for initialising a mutation observer) properties to the DOM property list
+\item Custom {\ttfamily Error} subclasses are now internally used instead of old-\/school Error inheritance hacks.
+\item Documentation fixes
+\item Performance optimizations
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9038}{}\doxysection{\texorpdfstring{v4.\+0.\+0}{v4.\+0.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9038}
+
+\begin{DoxyItemize}
+\item {\bfseries{breaking change}}:\+ The {\ttfamily variables} property of all scopes has become a standard Java\+Script {\ttfamily Map} as opposed to the old bespoke {\ttfamily Dictionary} object.
+\item Typescript definitions were fixed
+\item {\ttfamily terser -\/-\/help} was fixed
+\item The public interface was cleaned up
+\item Fixed optimisation of {\ttfamily Array} and {\ttfamily new Array}
+\item Added the {\ttfamily keep\+\_\+quoted=strict} mode to mangle\+\_\+props, which behaves more like Google Closure Compiler by mangling all unquoted property names, instead of reserving quoted property names automatically.
+\item Fixed parent functions\textquotesingle{} parameters being shadowed in some cases
+\item Allowed Terser to run in a situation where there are custom functions attached to Object.\+prototype
+\item And more bug fixes, optimisations and internal changes
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9039}{}\doxysection{\texorpdfstring{v3.\+17.\+0}{v3.\+17.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9039}
+
+\begin{DoxyItemize}
+\item More DOM properties added to --mangle-\/properties\textquotesingle{}s DOM property list
+\item Closed issue where if 2 functions had the same argument name, Terser would not inline them together properly
+\item Fixed issue with {\ttfamily has\+Own\+Property.\+call}
+\item You can now list files to minify in a Terser config file
+\item Started replacing {\ttfamily new Array(\texorpdfstring{$<$}{<}number\texorpdfstring{$>$}{>})} with an array literal
+\item Started using ES6 capabilities like {\ttfamily Set} and the {\ttfamily includes} method for strings and arrays
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9040}{}\doxysection{\texorpdfstring{v3.\+16.\+1}{v3.\+16.\+1}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9040}
+
+\begin{DoxyItemize}
+\item Fixed issue where Terser being imported with {\ttfamily import} would cause it not to work due to the {\ttfamily \+\_\+\+\_\+es\+Module} property. (PR \#254 was submitted, which was nice, but since it wasn\textquotesingle{}t a pure common\+JS approach I decided to go with my own solution)
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9041}{}\doxysection{\texorpdfstring{v3.\+16.\+0}{v3.\+16.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9041}
+
+\begin{DoxyItemize}
+\item No longer leaves names like Array or Object or window as a Simple\+Statement (statement which is just a single expression).
+\item Add support for sections sourcemaps (Indexed\+Source\+Map\+Consumer)
+\item Drops node.\+js v4 and starts using common\+JS
+\item Is now built with rollup
+\end{DoxyItemize}\hypertarget{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9042}{}\doxysection{\texorpdfstring{v3.\+15.\+0}{v3.\+15.\+0}}\label{md_frontend_2node__modules_2terser_2_c_h_a_n_g_e_l_o_g_autotoc_md9042}
+
+\begin{DoxyItemize}
+\item Inlined spread syntax ({\ttfamily \+[...\+[1, 2, 3]\+, 4, 5]\+ =\texorpdfstring{$>$}{>} \+[1, 2, 3, 4, 5]\+}) in arrays and objects.
+\item Fixed typo in compressor warning
+\item Fixed inline source map input bug
+\item Fixed parsing of template literals with unnecessary escapes (Like {\ttfamily \textbackslash{}\textbackslash{}a}) 
+\end{DoxyItemize}

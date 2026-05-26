@@ -1,0 +1,148 @@
+\doxysection{Import\+Wallet\+Dialog.\+cpp}
+\hypertarget{_import_wallet_dialog_8cpp_source}{}\label{_import_wallet_dialog_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/ImportWalletDialog.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/ImportWalletDialog.cpp}}
+\doxymbox{\hyperlink{_import_wallet_dialog_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_import_wallet_dialog_8h}{dialogs/ImportWalletDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_local_crypto_8h}{core/LocalCrypto.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QVBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QHBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QFileDialog>}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QMessageBox>}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00009}00009\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00011}\doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_a91e88bc834b0bf5259c31d977192e697}{00011}}\ \doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_a91e88bc834b0bf5259c31d977192e697}{ImportWalletDialog::ImportWalletDialog}}(QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00012}00012\ \ \ \ \ :\ QDialog(parent)}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00013}00013\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00014}00014\ \ \ \ \ setWindowTitle(\textcolor{stringliteral}{"{}Import\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00015}00015\ \ \ \ \ setMinimumSize(500,\ 500);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00017}00017\ \ \ \ \ \textcolor{keyword}{auto}*\ layout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00018}00018\ \ \ \ \ layout-\/>setSpacing(12);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00019}00019\ \ \ \ \ layout-\/>setContentsMargins(30,\ 20,\ 30,\ 20);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00021}00021\ \ \ \ \ \textcolor{keyword}{auto}*\ title\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Import\ Existing\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00022}00022\ \ \ \ \ title-\/>setStyleSheet(\textcolor{stringliteral}{"{}font-\/size:\ 20px;\ font-\/weight:\ bold;\ color:\ \#00b3a4;"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00023}00023\ \ \ \ \ layout-\/>addWidget(title);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00025}00025\ \ \ \ \ \textcolor{keyword}{auto}*\ desc\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Enter\ your\ mnemonic\ phrase\ to\ restore\ your\ wallet."{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00026}00026\ \ \ \ \ desc-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#8888aa;\ margin-\/bottom:\ 10px;"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00027}00027\ \ \ \ \ desc-\/>setWordWrap(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00028}00028\ \ \ \ \ layout-\/>addWidget(desc);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00030}00030\ \ \ \ \ \textcolor{comment}{//\ Mnemonic}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00031}00031\ \ \ \ \ layout-\/>addWidget(\textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Mnemonic\ Phrase\ (12\ or\ 24\ words):"{}}));}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00032}00032\ \ \ \ \ m\_mnemonicEdit\ =\ \textcolor{keyword}{new}\ QTextEdit;}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00033}00033\ \ \ \ \ m\_mnemonicEdit-\/>setPlaceholderText(\textcolor{stringliteral}{"{}Enter\ your\ mnemonic\ words\ separated\ by\ spaces..."{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00034}00034\ \ \ \ \ m\_mnemonicEdit-\/>setMinimumHeight(80);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00035}00035\ \ \ \ \ m\_mnemonicEdit-\/>setMaximumHeight(100);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00036}00036\ \ \ \ \ m\_mnemonicEdit-\/>setStyleSheet(}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}QTextEdit\ \{\ background:\ \#1a1d2e;\ color:\ \#00b3a4;\ font-\/size:\ 14px;\ "{}}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00038}00038\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}font-\/family:\ 'Consolas',\ monospace;\ padding:\ 10px;\ border-\/radius:\ 6px;\ \}"{}}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00039}00039\ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00040}00040\ \ \ \ \ layout-\/>addWidget(m\_mnemonicEdit);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00042}00042\ \ \ \ \ \textcolor{comment}{//\ Load\ from\ file\ button}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00043}00043\ \ \ \ \ \textcolor{keyword}{auto}*\ loadFileBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Load\ from\ File..."{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00044}00044\ \ \ \ \ loadFileBtn-\/>setMaximumWidth(160);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00045}00045\ \ \ \ \ connect(loadFileBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00046}00046\ \ \ \ \ \ \ \ \ QString\ path\ =\ QFileDialog::getOpenFileName(\textcolor{keyword}{this},\ \textcolor{stringliteral}{"{}Load\ Mnemonic"{}},\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}Text\ Files\ (*.txt);;All\ Files\ (*)"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (path.isEmpty())\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00048}00048\ \ \ \ \ \ \ \ \ QFile\ f(path);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (f.open(QIODevice::ReadOnly))\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ m\_mnemonicEdit-\/>setText(QString::fromUtf8(f.readAll()).trimmed());}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00051}00051\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00052}00052\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00053}00053\ \ \ \ \ layout-\/>addWidget(loadFileBtn);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00055}00055\ \ \ \ \ m\_statusLabel\ =\ \textcolor{keyword}{new}\ QLabel;}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00056}00056\ \ \ \ \ m\_statusLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}font-\/size:\ 11px;"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00057}00057\ \ \ \ \ layout-\/>addWidget(m\_statusLabel);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00059}00059\ \ \ \ \ \textcolor{comment}{//\ Validate\ on\ text\ change}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00060}00060\ \ \ \ \ connect(m\_mnemonicEdit,\ \&QTextEdit::textChanged,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00061}00061\ \ \ \ \ \ \ \ \ QString\ text\ =\ m\_mnemonicEdit-\/>toPlainText().simplified();}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00062}00062\ \ \ \ \ \ \ \ \ QStringList\ words\ =\ text.split(\textcolor{charliteral}{'\ '},\ Qt::SkipEmptyParts);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (words.size()\ ==\ 12\ ||\ words.size()\ ==\ 24)\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\doxymbox{\hyperlink{namespaceomni_1_1crypto_a9b799c91888707b20d701e30b0c157ba}{crypto::validateMnemonic}}(text))\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_statusLabel-\/>setText(QString(\textcolor{stringliteral}{"{}Valid\ mnemonic\ (\%1\ words)"{}}).arg(words.size()));}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_statusLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#00b3a4;\ font-\/size:\ 11px;"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_statusLabel-\/>setText(\textcolor{stringliteral}{"{}Invalid\ mnemonic\ (checksum\ failed)"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_statusLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#d94a4a;\ font-\/size:\ 11px;"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00071}00071\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ m\_statusLabel-\/>setText(QString(\textcolor{stringliteral}{"{}\%1\ words\ (need\ 12\ or\ 24)"{}}).arg(words.size()));}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ m\_statusLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#8888aa;\ font-\/size:\ 11px;"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00074}00074\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00075}00075\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00077}00077\ \ \ \ \ \textcolor{comment}{//\ Wallet\ name}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00078}00078\ \ \ \ \ layout-\/>addSpacing(8);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00079}00079\ \ \ \ \ layout-\/>addWidget(\textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Wallet\ Name:"{}}));}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00080}00080\ \ \ \ \ m\_nameEdit\ =\ \textcolor{keyword}{new}\ QLineEdit;}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00081}00081\ \ \ \ \ m\_nameEdit-\/>setPlaceholderText(\textcolor{stringliteral}{"{}Imported\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00082}00082\ \ \ \ \ m\_nameEdit-\/>setMinimumHeight(36);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00083}00083\ \ \ \ \ layout-\/>addWidget(m\_nameEdit);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00085}00085\ \ \ \ \ \textcolor{comment}{//\ Password}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00086}00086\ \ \ \ \ layout-\/>addWidget(\textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Encryption\ Password\ (min\ 8\ characters):"{}}));}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00087}00087\ \ \ \ \ m\_passwordEdit\ =\ \textcolor{keyword}{new}\ QLineEdit;}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00088}00088\ \ \ \ \ m\_passwordEdit-\/>setEchoMode(QLineEdit::Password);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00089}00089\ \ \ \ \ m\_passwordEdit-\/>setPlaceholderText(\textcolor{stringliteral}{"{}Enter\ password"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00090}00090\ \ \ \ \ m\_passwordEdit-\/>setMinimumHeight(36);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00091}00091\ \ \ \ \ layout-\/>addWidget(m\_passwordEdit);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00093}00093\ \ \ \ \ \textcolor{comment}{//\ Confirm}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00094}00094\ \ \ \ \ layout-\/>addWidget(\textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Confirm\ Password:"{}}));}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00095}00095\ \ \ \ \ m\_confirmEdit\ =\ \textcolor{keyword}{new}\ QLineEdit;}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00096}00096\ \ \ \ \ m\_confirmEdit-\/>setEchoMode(QLineEdit::Password);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00097}00097\ \ \ \ \ m\_confirmEdit-\/>setPlaceholderText(\textcolor{stringliteral}{"{}Confirm\ password"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00098}00098\ \ \ \ \ m\_confirmEdit-\/>setMinimumHeight(36);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00099}00099\ \ \ \ \ layout-\/>addWidget(m\_confirmEdit);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00101}00101\ \ \ \ \ layout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00103}00103\ \ \ \ \ \textcolor{comment}{//\ Buttons}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00104}00104\ \ \ \ \ \textcolor{keyword}{auto}*\ btnLayout\ =\ \textcolor{keyword}{new}\ QHBoxLayout;}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00105}00105\ \ \ \ \ \textcolor{keyword}{auto}*\ cancelBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Cancel"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00106}00106\ \ \ \ \ cancelBtn-\/>setMinimumHeight(40);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00107}00107\ \ \ \ \ \textcolor{keyword}{auto}*\ importBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Import\ Wallet"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00108}00108\ \ \ \ \ importBtn-\/>setMinimumHeight(40);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00109}00109\ \ \ \ \ importBtn-\/>setStyleSheet(\textcolor{stringliteral}{"{}background:\ \#4a90d9;\ color:\ white;\ font-\/weight:\ bold;"{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00110}00110\ \ \ \ \ btnLayout-\/>addWidget(cancelBtn);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00111}00111\ \ \ \ \ btnLayout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00112}00112\ \ \ \ \ btnLayout-\/>addWidget(importBtn);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00113}00113\ \ \ \ \ layout-\/>addLayout(btnLayout);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00115}00115\ \ \ \ \ connect(cancelBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ \&QDialog::reject);}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00116}00116\ \ \ \ \ connect(importBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ [\textcolor{keyword}{this}]()\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00117}00117\ \ \ \ \ \ \ \ \ QString\ mn\ =\ m\_mnemonicEdit-\/>toPlainText().simplified();}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!\doxymbox{\hyperlink{namespaceomni_1_1crypto_a9b799c91888707b20d701e30b0c157ba}{crypto::validateMnemonic}}(mn))\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ QMessageBox::warning(\textcolor{keyword}{this},\ \textcolor{stringliteral}{"{}Error"{}},\ \textcolor{stringliteral}{"{}Invalid\ mnemonic\ phrase."{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00121}00121\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_nameEdit-\/>text().trimmed().isEmpty())\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ QMessageBox::warning(\textcolor{keyword}{this},\ \textcolor{stringliteral}{"{}Error"{}},\ \textcolor{stringliteral}{"{}Please\ enter\ a\ wallet\ name."{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00125}00125\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_passwordEdit-\/>text().size()\ <\ 8)\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ QMessageBox::warning(\textcolor{keyword}{this},\ \textcolor{stringliteral}{"{}Error"{}},\ \textcolor{stringliteral}{"{}Password\ must\ be\ at\ least\ 8\ characters."{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00129}00129\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_passwordEdit-\/>text()\ !=\ m\_confirmEdit-\/>text())\ \{}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ QMessageBox::warning(\textcolor{keyword}{this},\ \textcolor{stringliteral}{"{}Error"{}},\ \textcolor{stringliteral}{"{}Passwords\ do\ not\ match."{}});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00133}00133\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00134}00134\ \ \ \ \ \ \ \ \ accept();}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00135}00135\ \ \ \ \ \});}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00136}00136\ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00138}\doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_a3ecc9c89f9ea0755db4585e3a3b06403}{00138}}\ QString\ \doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_a3ecc9c89f9ea0755db4585e3a3b06403}{ImportWalletDialog::walletName}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_nameEdit\ ?\ m\_nameEdit-\/>text().trimmed()\ :\ \textcolor{stringliteral}{"{}"{}};\ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00139}\doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_ac445bdd0ca09873d238950b60e7dbbf8}{00139}}\ QString\ \doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_ac445bdd0ca09873d238950b60e7dbbf8}{ImportWalletDialog::password}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_passwordEdit\ ?\ m\_passwordEdit-\/>text()\ :\ \textcolor{stringliteral}{"{}"{}};\ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00140}\doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_a1a0a7471d92f7d0ca58a778cc89b7d57}{00140}}\ QString\ \doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_a1a0a7471d92f7d0ca58a778cc89b7d57}{ImportWalletDialog::mnemonic}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_mnemonicEdit\ ?\ m\_mnemonicEdit-\/>toPlainText().simplified()\ :\ \textcolor{stringliteral}{"{}"{}};\ \}}
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{_import_wallet_dialog_8cpp_source_l00142}00142\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

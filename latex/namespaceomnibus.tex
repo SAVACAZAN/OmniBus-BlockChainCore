@@ -1,0 +1,26 @@
+\doxysection{omnibus Namespace Reference}
+\hypertarget{namespaceomnibus}{}\label{namespaceomnibus}\index{omnibus@{omnibus}}
+
+
+-\/dashboard  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/dashboard 
+
+\begin{DoxyVerb}omnibus-dashboard.py
+
+Text-based dashboard displaying the status of the entire OmniBus ecosystem:
+  - BlockChainCore node (block height, peers, hashrate, mempool)
+  - aweb3 Liberty (block number, gas price, net version)
+  - Bridge status (last sync height, pending transfers)
+  - Recent alerts
+
+Refreshes every N seconds (default 10) or runs once.
+
+Usage:
+  python omnibus-dashboard.py --refresh 10
+\end{DoxyVerb}
+ 

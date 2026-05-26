@@ -1,0 +1,179 @@
+\doxysection{blockchain\+\_\+master\+\_\+audit Namespace Reference}
+\hypertarget{namespaceblockchain__master__audit}{}\label{namespaceblockchain__master__audit}\index{blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__master__audit_afa5a27ecdd3c50e303532684555ed55d}{run\+\_\+tool}} (dict tool, Path json\+\_\+dir=None, Path html\+\_\+dir=None, Path dot\+\_\+dir=None)
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__master__audit_ac7929b05ccf849b29c0c67bb3396535c}{ordinal}} (int n)
+\item 
+Path \doxymbox{\hyperlink{namespaceblockchain__master__audit_a63f83b111541a1624bee7c01a003f144}{get\+\_\+next\+\_\+report\+\_\+path}} (Path reports\+\_\+dir)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__master__audit_a9c940fd1cce8d1917e0027f774bdcc9a}{generate\+\_\+master\+\_\+report}} (List tool\+\_\+results, Path report\+\_\+path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__master__audit_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__master__audit_ae3b1b46bb62bc9e39bd5bcea6fe43ddf}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__master__audit_a205181db0794a9de9d9b82a90dab8775}{TOOLS}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__master__audit_a9ab13f04eb04445a7bb7bde5e4ff3c61}{REPORTS}} = \doxymbox{\hyperlink{namespaceblockchain__master__audit_ae3b1b46bb62bc9e39bd5bcea6fe43ddf}{ROOT}} /\+ "{}reports"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__master__audit_acae671f282622724bb730191b699226d}{G}} = "{}\textbackslash{}033\+[94m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__master__audit_ad6d464d28ce40dd5f7913a07b89b6445}{C}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__master__audit_a98633b46720901e643719c76e56ad464}{AUDIT\+\_\+\+TOOLS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}blockchain_master_audit.py - Master Audit Orchestrator v1.0
+
+Ruleaza TOATE tool-urile de audit si genereaza un raport consolidat:
+  1. blockchain_analyzer.py  - Module status + quality scores
+  2. test_runner.py          - Test execution results
+  3. blockchain_deep_audit.py - Complexity + security
+  4. blockchain_dependency_graph.py - Dependencies + architecture
+
+Usage:
+  python tools/blockchain_master_audit.py              # Run all + generate report
+  python tools/blockchain_master_audit.py --skip-tests # Skip test execution
+  python tools/blockchain_master_audit.py --json       # Also export all JSON
+  python tools/blockchain_master_audit.py --html       # Also export HTML
+\end{DoxyVerb}
+ 
+
+\label{namespaceblockchain__master__audit_doc-func-members}
+\Hypertarget{namespaceblockchain__master__audit_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceblockchain__master__audit_a9c940fd1cce8d1917e0027f774bdcc9a}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!generate\_master\_report@{generate\_master\_report}}
+\index{generate\_master\_report@{generate\_master\_report}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{generate\_master\_report()}{generate\_master\_report()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_a9c940fd1cce8d1917e0027f774bdcc9a} 
+generate\+\_\+master\+\_\+report (\begin{DoxyParamCaption}\item[{List}]{tool\+\_\+results}{, }\item[{Path}]{report\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate consolidated markdown report.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00140}{140}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceblockchain__master__audit_a63f83b111541a1624bee7c01a003f144}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!get\_next\_report\_path@{get\_next\_report\_path}}
+\index{get\_next\_report\_path@{get\_next\_report\_path}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{get\_next\_report\_path()}{get\_next\_report\_path()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_a63f83b111541a1624bee7c01a003f144} 
+ Path get\+\_\+next\+\_\+report\+\_\+path (\begin{DoxyParamCaption}\item[{Path}]{reports\+\_\+dir}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00131}{131}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceblockchain__master__audit_a51af30a60f9f02777c6396b8247e356f}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!main@{main}}
+\index{main@{main}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00200}{200}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceblockchain__master__audit_ac7929b05ccf849b29c0c67bb3396535c}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!ordinal@{ordinal}}
+\index{ordinal@{ordinal}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{ordinal()}{ordinal()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_ac7929b05ccf849b29c0c67bb3396535c} 
+ str ordinal (\begin{DoxyParamCaption}\item[{int}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00125}{125}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__master__audit_afa5a27ecdd3c50e303532684555ed55d}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!run\_tool@{run\_tool}}
+\index{run\_tool@{run\_tool}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{run\_tool()}{run\_tool()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_afa5a27ecdd3c50e303532684555ed55d} 
+ dict run\+\_\+tool (\begin{DoxyParamCaption}\item[{dict}]{tool}{, }\item[{Path }]{json\+\_\+dir}{ = {\ttfamily None}, }\item[{Path }]{html\+\_\+dir}{ = {\ttfamily None}, }\item[{Path }]{dot\+\_\+dir}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run a single audit tool.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+
+
+\label{namespaceblockchain__master__audit_doc-var-members}
+\Hypertarget{namespaceblockchain__master__audit_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceblockchain__master__audit_a98633b46720901e643719c76e56ad464}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!AUDIT\_TOOLS@{AUDIT\_TOOLS}}
+\index{AUDIT\_TOOLS@{AUDIT\_TOOLS}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{AUDIT\_TOOLS}{AUDIT\_TOOLS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_a98633b46720901e643719c76e56ad464} 
+list blockchain\+\_\+master\+\_\+audit.\+AUDIT\+\_\+\+TOOLS}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__master__audit_ad6d464d28ce40dd5f7913a07b89b6445}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!C@{C}}
+\index{C@{C}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{C}{C}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_ad6d464d28ce40dd5f7913a07b89b6445} 
+str blockchain\+\_\+master\+\_\+audit.\+C = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__master__audit_acae671f282622724bb730191b699226d}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!G@{G}}
+\index{G@{G}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{G}{G}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_acae671f282622724bb730191b699226d} 
+str blockchain\+\_\+master\+\_\+audit.\+G = "{}\textbackslash{}033\+[94m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__master__audit_a9ab13f04eb04445a7bb7bde5e4ff3c61}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!REPORTS@{REPORTS}}
+\index{REPORTS@{REPORTS}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{REPORTS}{REPORTS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_a9ab13f04eb04445a7bb7bde5e4ff3c61} 
+str blockchain\+\_\+master\+\_\+audit.\+REPORTS = \doxymbox{\hyperlink{namespaceblockchain__master__audit_ae3b1b46bb62bc9e39bd5bcea6fe43ddf}{ROOT}} /\+ "{}reports"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__master__audit_ae3b1b46bb62bc9e39bd5bcea6fe43ddf}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_ae3b1b46bb62bc9e39bd5bcea6fe43ddf} 
+blockchain\+\_\+master\+\_\+audit.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__master__audit_a205181db0794a9de9d9b82a90dab8775}\index{blockchain\_master\_audit@{blockchain\_master\_audit}!TOOLS@{TOOLS}}
+\index{TOOLS@{TOOLS}!blockchain\_master\_audit@{blockchain\_master\_audit}}
+\doxysubsubsection{\texorpdfstring{TOOLS}{TOOLS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__master__audit_a205181db0794a9de9d9b82a90dab8775} 
+blockchain\+\_\+master\+\_\+audit.\+TOOLS = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__master__audit_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{blockchain__master__audit_8py_source}{blockchain\+\_\+master\+\_\+audit.\+py}}.
+

@@ -1,0 +1,226 @@
+\chapter{OMNIBUSAIGENAI }
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_o_m_n_i_b_u_s_a_i_g_e_n_a_i}{}\label{md_archived-4-eterniti_2docs-extra_2_o_m_n_i_b_u_s_a_i_g_e_n_a_i}\index{OMNIBUSAIGENAI@{OMNIBUSAIGENAI}}
+\hypertarget{md_archived-4-eterniti_2docs-extra_2_o_m_n_i_b_u_s_a_i_g_e_n_a_i_autotoc_md604}{}\doxysubsection{\texorpdfstring{autotoc\+\_\+md604}{autotoc\+\_\+md604}}\label{md_archived-4-eterniti_2docs-extra_2_o_m_n_i_b_u_s_a_i_g_e_n_a_i_autotoc_md604}
+name:\+ OMNI\+\_\+\+AGENT — Binary Opcode Stream pentru Agenti AI description:\+ Format binar pur pentru agenti. Un singur bloc continuu. Agent citeste de sus in jos, interpreteaza opcode-\/ul, executa semantic. Zero overhead markdown. Maxim info per token. \hypertarget{md_archived-4-eterniti_2docs-extra_2_o_m_n_i_b_u_s_a_i_g_e_n_a_i_autotoc_md605}{}\doxysubsection{\texorpdfstring{type:\+ reference}{type:\+ reference}}\label{md_archived-4-eterniti_2docs-extra_2_o_m_n_i_b_u_s_a_i_g_e_n_a_i_autotoc_md605}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OMNI:AG:v1:SHA=4B3B4CA8}
+\DoxyCodeLine{}
+\DoxyCodeLine{;HDR}
+\DoxyCodeLine{AG00\ SYS\ OMNI\ 8R\ 20M\ 133T\ ZIG015}
+\DoxyCodeLine{AG01\ URL\ R00=gh/SAVACAZAN/OmniBus}
+\DoxyCodeLine{AG02\ URL\ R01=gh/SAVACAZAN/OmniBus-\/BlockChainCore}
+\DoxyCodeLine{AG03\ URL\ R02=gh/OmniBusDSL/HFT-\/MultiExchange}
+\DoxyCodeLine{AG04\ URL\ R03=gh/OmniBusDSL/OmnibusSidebar}
+\DoxyCodeLine{AG05\ URL\ R04=gh/OmniBusDSL/ExoCharts}
+\DoxyCodeLine{AG06\ URL\ R05=gh/OmniBusDSL/OmniBus-\/Connect-\/Multi-\/Exchange-\/EndPointss}
+\DoxyCodeLine{AG07\ URL\ R06=gh/SAVACAZAN/v5-\/CppMono}
+\DoxyCodeLine{AG08\ URL\ R07=gh/SAVACAZAN/Zig-\/toolz-\/Assembly-\/HTMX-\/Pure}
+\DoxyCodeLine{}
+\DoxyCodeLine{;LANG}
+\DoxyCodeLine{AG10\ R00\ Zig+Ada+ASM\ \ 54mod\ 7tier\ <40us\ seL4\ SPARK\ bootISO=15MB\ RAM=0.6\%}
+\DoxyCodeLine{AG11\ R01\ Zig0.15.2\ \ \ \ 40+mod\ :8332\ L1-\/blockchain\ 133test=100\%pass}
+\DoxyCodeLine{AG12\ R02\ Zig+React+TS\ 40Zig+35TS\ :8000/:5173\ 37ep\ arbitrage}
+\DoxyCodeLine{AG13\ R03\ C++17+Py\ \ \ \ \ 18cpp+21py\ 2.3MB\ standalone\ DPAPI\ NamedPipe}
+\DoxyCodeLine{AG14\ R04\ Zig+HTML5\ \ \ \ 25Zig+15TS\ :9090\ WebSocket\ volume-\/grid}
+\DoxyCodeLine{AG15\ R05\ Python\ \ \ \ \ \ \ 7900L\ 9ex\ 300ep\ 85.1\%live\ DSL-\/compiler}
+\DoxyCodeLine{AG16\ R06\ C++20\ \ \ \ \ \ \ \ 250kw\ <50ns\ 92lang\ SWIG\ C-\/ABI\ cross-\/100OS}
+\DoxyCodeLine{AG17\ R07\ Zig+ASM\ \ \ \ \ \ experimental\ utilitare}
+\DoxyCodeLine{}
+\DoxyCodeLine{;BUS\ \ sender→receiver:protocol:addr=payload}
+\DoxyCodeLine{AG20\ R03→R01:WinHTTP:8332=/rpc\ \ \ \ \ \ \ \ wallet-\/balance\ tx-\/broadcast}
+\DoxyCodeLine{AG21\ R00→R01:JSON-\/RPC:8332\ \ \ \ \ \ \ \ \ \ \ \ OS→chain\ interface}
+\DoxyCodeLine{AG22\ R02→R01:REST:8332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HFT\ sync}
+\DoxyCodeLine{AG23\ R03→R03:NamedPipe:\(\backslash\)\(\backslash\).\(\backslash\)pipe\(\backslash\)OmnibusVault\ \ sidebar→vault}
+\DoxyCodeLine{AG24\ R04→EXT:WSS:443=[Coinbase\ Kraken\ LCX]\ \ \ \ real-\/time\ ticks}
+\DoxyCodeLine{AG25\ R05→EXT:REST+WSS:[9ex\ 300ep]\ \ \ \ \ \ \ \ \ \ \ \ \ connect}
+\DoxyCodeLine{AG26\ R06→ANY:C-\/ABI:so/dll\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DSL\ embed}
+\DoxyCodeLine{AG27\ R01→R01:TCP:8333-\/8335=[knock-\/knock\ sync]\ P2P}
+\DoxyCodeLine{AG28\ R00→EXT:SWIFT/ACH\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bank\_os}
+\DoxyCodeLine{AG29\ R00→ANY:seL4-\/IPC\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kernel-\/isolation}
+\DoxyCodeLine{}
+\DoxyCodeLine{;R00\ OmniBus-\/OS\ tiers}
+\DoxyCodeLine{T0\ ExecutionOS\ \ <40us\ trading\_core\ orderbook\ flash\_loan}
+\DoxyCodeLine{T1\ ValidationOS\ Ada-\/SPARK-\/proofs\ seL4\ audit}
+\DoxyCodeLine{T2\ StrategyOS\ \ \ arbitrage\ grid\_bot\ dca\ market\_maker}
+\DoxyCodeLine{T3\ RiskOS\ \ \ \ \ \ \ circuit\_breaker\ position\_limits\ alert}
+\DoxyCodeLine{T4\ InfraOS\ \ \ \ \ \ cassandra\ redis\ AWS|GCP|Azure|Oracle|VMware}
+\DoxyCodeLine{T5\ GovernanceOS\ quorum5/7\ dao\ security×7}
+\DoxyCodeLine{T6\ BlockchainOS\ blockchain\_kernel\ bridge\_os\ wallet\_os}
+\DoxyCodeLine{}
+\DoxyCodeLine{;R01\ BlockChainCore\ modules}
+\DoxyCodeLine{M0101\ spark\_invariants\ \string^MAX\_SUPPLY=21e15\ \string^MICRO/KEY=10\ *SupplyGuard\ *reward-\/monotone\ *ts-\/monotone}
+\DoxyCodeLine{M0102\ shard\_coordinator\ SHA256(addr)[0:2]\%N\ split@80\%\ merge@20\%\ METACHAIN=0xFF}
+\DoxyCodeLine{M0103\ metachain\ MetaBlock/1s\ ShardHeaders\ CrossReceipts\ hash-\/chain\ pending-\/queue}
+\DoxyCodeLine{M0104\ payment\_channel\ HTLC=SHA256\ dispute=100blk\ ChannelRegistry\ open/update/close/dispute}
+\DoxyCodeLine{M0105\ oracle\ BID/ASK-\/per-\/exchange\ bestAsk()\ bestBid()\ getBridgePrice()=median-\/midprice}
+\DoxyCodeLine{M0106\ bridge\_relay\ Lock→Mint\ Burn→Redeem\ 2/3multisig\ fee=0.1\%\ timeout=100blk\ refund}
+\DoxyCodeLine{M0107\ domain\_minter\ SoulBound=[omni\ d5]\ Transfer=[k1\ f5\ s3]\ Level1..100\ mintCost\ QR}
+\DoxyCodeLine{M0108\ vault\_engine\ deposit@lvl100\ NAV-\/track\ 2x→return\ cap\ 10\%fee\ 90\%→UBI}
+\DoxyCodeLine{M0109\ ubi\_distributor\ pool←vault-\/profit\ epoch=126144blk\ per-\/user=min(pool/N,1.46OMNI)}
+\DoxyCodeLine{M0110\ bread\_ledger\ 1OMNI=1bread\ QR-\/voucher\ merchant\ proof-\/delivery\ 30d-\/expiry}
+\DoxyCodeLine{M0111\ os\_mode\ 7modes\ bitmask\ activate/pauseMode\ cycles\_run}
+\DoxyCodeLine{M0112\ synapse\_priority\ P0=realtime\ P4=background\ preempt\ FIFO\ overdue-\/deadline}
+\DoxyCodeLine{M0113\ omni\_brain\ NodeType=[full\ trading\ validator\ light]\ auto-\/detect\ start()\ runCycles()}
+\DoxyCodeLine{M0114\ p2p\ TCP-\/acceptLoop\ broadcastBlock\ knock-\/knock-\/UDP\ requestSync\ applyBlocks}
+\DoxyCodeLine{M0115\ crypto\ SHA256d\ AES256GCM=[nonce12+tag16+ct32=60B]\ HMAC-\/SHA256/512\ hexutils}
+\DoxyCodeLine{M0116\ database\ appendBlock-\/O1=[seek+write+truncate+update-\/count]\ errdefer\ fallback-\/save}
+\DoxyCodeLine{M0117\ rpc\_server\ HTTP-\/JSON-\/RPC2.0\ ws2\_32.recv\ :8332\ 10methods}
+\DoxyCodeLine{M0118\ bip32\_wallet\ PBKDF2-\/HMAC-\/SHA512\ BIP32-\/HD\ 5PQ-\/domains\ fromMnemonic}
+\DoxyCodeLine{M0119\ pq\_crypto\ liboqs-\/FFI=[ML-\/DSA-\/87\ Falcon-\/512\ SLH-\/DSA-\/256s\ ML-\/KEM-\/768]}
+\DoxyCodeLine{M0120\ key\_encryption\ AES256GCM\ PBKDF2-\/100k\ nonce-\/random\ GCM-\/tag-\/auth}
+\DoxyCodeLine{}
+\DoxyCodeLine{;PQ\ domains}
+\DoxyCodeLine{D0\ ob1q\ ML-\/KEM-\/768+Dil5\ SoulBound\ coin=777\ IDENTITY}
+\DoxyCodeLine{D1\ ob\_k1\_\ \ \ Kyber768/MLKEM\ \ Transfer\ \ coin=778\ SIGNING}
+\DoxyCodeLine{D2\ ob\_f5\_\ \ \ Falcon-\/512\ \ \ \ \ \ Transfer\ \ coin=779\ HFT}
+\DoxyCodeLine{D3\ ob\_d5\_\ \ \ Dil5/MLDSA5\ \ \ \ \ SoulBound\ coin=780\ ARCHIVAL}
+\DoxyCodeLine{D4\ ob\_s3\_\ \ \ SPHINCS+/SLHDSA\ Transfer\ \ coin=781\ IOT}
+\DoxyCodeLine{ERC20\ shared-\/all-\/domains\ Ethereum-\/compat}
+\DoxyCodeLine{}
+\DoxyCodeLine{;CONST\ hex}
+\DoxyCodeLine{K\_SUP\ 0x4B3B4CA85A86C47A\ =\ 21\_000\_000\_000\_000\_000\ SAT\ MAX-\/SUPPLY}
+\DoxyCodeLine{K\_RWD\ 0x04F51081\ \ \ \ \ \ \ \ \ =\ 83\_333\_333\ SAT\ initial-\/block-\/reward}
+\DoxyCodeLine{K\_HLV\ 0x07832C00\ \ \ \ \ \ \ \ \ =\ 126\_144\_000\ blocks\ halving-\/interval}
+\DoxyCodeLine{K\_BRD\ 0x3B9ACA00\ \ \ \ \ \ \ \ \ =\ 1\_000\_000\_000\ SAT\ =\ 1\ OMNI\ =\ 1\ BREAD}
+\DoxyCodeLine{K\_DSP\ 0x0064\ \ \ \ \ \ \ \ \ \ \ \ \ =\ 100\ blocks\ dispute-\/window}
+\DoxyCodeLine{K\_EPC\ 0x0001EC80\ \ \ \ \ \ \ \ \ =\ 126\_144\ blocks\ UBI-\/epoch}
+\DoxyCodeLine{K\_SH0\ 0x04\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 4\ shards\ start}
+\DoxyCodeLine{K\_SPL\ 0x50\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 80\%\ split-\/threshold}
+\DoxyCodeLine{K\_MRG\ 0x14\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 20\%\ merge-\/threshold}
+\DoxyCodeLine{K\_MET\ 0xFF\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ metachain-\/shard-\/id}
+\DoxyCodeLine{K\_V2X\ 0xC8\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 200\%\ vault-\/double-\/trigger}
+\DoxyCodeLine{K\_VFE\ 0x0A\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 10\%\ vault-\/protocol-\/fee}
+\DoxyCodeLine{K\_BSG\ 0x02\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 2/3\ bridge-\/required-\/sigs}
+\DoxyCodeLine{K\_BTO\ 0x64\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 100\ blocks\ bridge-\/timeout}
+\DoxyCodeLine{K\_VEX\ 0x001D2C00\ \ \ \ \ \ \ \ \ =\ 2\_592\_000\ blocks\ voucher-\/expiry}
+\DoxyCodeLine{}
+\DoxyCodeLine{;INVARIANTS}
+\DoxyCodeLine{I01\string^\ MAX\_SUPPLY\_SAT=21e15\ \ \ \ \ \ \ \ \ compile-\/error-\/if-\/!=}
+\DoxyCodeLine{I02\string^\ MICRO\_BLOCKS\_PER\_KEY=10\ \ \ \ \ \ compile-\/error-\/if-\/!=}
+\DoxyCodeLine{I03\string^\ BLOCK\_TIME\_MS=1000\ MICRO=100\ compile-\/error-\/if-\/block<=micro}
+\DoxyCodeLine{I04\string^\ epoch0\_reward<MAX\_SUPPLY\ \ \ \ \ compile-\/error-\/if-\/>}
+\DoxyCodeLine{I05*\ SupplyGuard.emit\ \ \ \ \ \ \ \ \ \ \ \ \ error.SupplyCapExceeded\ runtime}
+\DoxyCodeLine{I06*\ getBlockReward(h)>=h+1\ \ \ \ \ \ \ @panic\ monotone\ violated}
+\DoxyCodeLine{I07*\ timestamp[n]>timestamp[n-\/1]\ \ @panic\ monotone\ violated}
+\DoxyCodeLine{I08*\ checkedAdd\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ error.ArithmeticOverflow}
+\DoxyCodeLine{I09*\ checkedSub\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ error.InsufficientBalance}
+\DoxyCodeLine{I10\ \ MAX\_HALVINGS=64\ then\ reward=0}
+\DoxyCodeLine{}
+\DoxyCodeLine{;BOOT\ stream}
+\DoxyCodeLine{B01\ detect\ NodeType\ →\ [full|trading|validator|light]}
+\DoxyCodeLine{B02\ load\ genesis\ hash=0x0000...}
+\DoxyCodeLine{B03\ restore\ omnibus-\/chain.dat\ →\ PersistentBlockchain}
+\DoxyCodeLine{B04\ start\ P2P\ TCP:8333\ UDP:8333-\/8335}
+\DoxyCodeLine{B05\ knock\_knock\ broadcast\ "{}OMNI:we\_are\_here:<id>:<height>"{}}
+\DoxyCodeLine{B06\ start\ rpc\_server\ :8332}
+\DoxyCodeLine{B07\ start\ shard\_coordinator\ N=4}
+\DoxyCodeLine{B08\ start\ metachain\ genesis-\/MetaBlock}
+\DoxyCodeLine{B09\ omni\_brain.start()\ →\ activate\ OS\ modes\ per\ NodeType}
+\DoxyCodeLine{B0A\ mining\_loop:}
+\DoxyCodeLine{\ \ B0B\ getBlockReward(height)\ →\ 0=stop}
+\DoxyCodeLine{\ \ B0C\ SupplyGuard.emit(reward)\ →\ error=halt}
+\DoxyCodeLine{\ \ B0D\ appendBlock\ O(1)\ errdefer-\/close}
+\DoxyCodeLine{\ \ B0E\ broadcastBlock\ TCP\ all-\/peers}
+\DoxyCodeLine{\ \ B0F\ if\ OmniBusOS\ →\ ExecutionOS.tick()}
+\DoxyCodeLine{\ \ goto\ B0A}
+\DoxyCodeLine{}
+\DoxyCodeLine{;BRIDGE\ flow}
+\DoxyCodeLine{E20\ user→bridge-\/addr\ foreign-\/asset=[BTC|ETH|EGLD|SOL|...]}
+\DoxyCodeLine{E21\ oracle.getBridgePrice\ →\ median(CEX-\/mid+DEX-\/mid)}
+\DoxyCodeLine{E22\ omni\_amt\ =\ foreign\ ×\ f\_price\ /\ omni\_price\ \ u128-\/safe}
+\DoxyCodeLine{E23\ fee\ =\ omni\_amt\ ×\ K\_BFE\ /\ 10000}
+\DoxyCodeLine{E24\ initiateLockMint\ →\ op\_id\ status=pending}
+\DoxyCodeLine{E25\ relayer[0..N].confirm(sig)\ →\ sig\_count++}
+\DoxyCodeLine{E26\ sig\_count>=2\ →\ status=confirmed}
+\DoxyCodeLine{E27\ executeOperation\ →\ wrapped.mint(omni\_amt\ -\/\ fee)}
+\DoxyCodeLine{E28\ credit\ ob1q\ addr}
+\DoxyCodeLine{E30\ burn\ reverse\ →\ status=burn\_and\_redeem\ →\ E25..E27\ →\ unlock-\/foreign}
+\DoxyCodeLine{E3F\ block>initiated+100\ →\ refundExpired\ status=refunded}
+\DoxyCodeLine{}
+\DoxyCodeLine{;VAULT+UBI\ flow}
+\DoxyCodeLine{F40\ user.level>=100\ →\ vault.deposit(surplus)\ →\ pos\_id}
+\DoxyCodeLine{F41\ hft.trade\ →\ vault.updateNav(pos\_id,\ new\_nav)}
+\DoxyCodeLine{F42\ nav>=deposit×2\ →\ checkAndProcessDoubling}
+\DoxyCodeLine{F43\ returned=deposit\ →\ back-\/to-\/user}
+\DoxyCodeLine{F44\ profit=nav-\/deposit}
+\DoxyCodeLine{F45\ fee=profit×10/100\ →\ protocol}
+\DoxyCodeLine{F46\ ubi=profit-\/fee\ →\ ubi\_distributor.addToPool}
+\DoxyCodeLine{F47\ every\ K\_EPC\ blocks\ →\ distributeEpoch}
+\DoxyCodeLine{F48\ per\_user\ =\ min(pool/count,\ UBI\_PER\_EPOCH\_SAT=1.46OMNI)}
+\DoxyCodeLine{F49\ beneficiary.total\ +=\ per\_user}
+\DoxyCodeLine{F4A\ user→bread\_ledger.issueVoucher(N×K\_BRD,\ merchant\_addr)}
+\DoxyCodeLine{F4B\ qr\_hash=SHA256(voucher\_id||owner)}
+\DoxyCodeLine{F4C\ merchant.redeemVoucher(qr\_hash)\ →\ proof-\/of-\/delivery\ on-\/chain}
+\DoxyCodeLine{F4D\ 1\ OMNI\ =\ 1\ BREAD\ anywhere\ Iran=USA=Romania}
+\DoxyCodeLine{}
+\DoxyCodeLine{;SYNAPSE\ priority}
+\DoxyCodeLine{G00\ P0=ExecutionOS\ \ \ REALTIME\ \ never-\/preempted\ <40us}
+\DoxyCodeLine{G01\ P1=RiskOS\ \ \ \ \ \ \ \ HIGH\ \ \ \ \ \ can-\/stop-\/P0}
+\DoxyCodeLine{G01\ P1=ValidationOS\ \ HIGH\ \ \ \ \ \ parallel-\/SPARK}
+\DoxyCodeLine{G02\ P2=StrategyOS\ \ \ \ NORMAL\ \ \ \ arbitrage\ grid\ DCA}
+\DoxyCodeLine{G02\ P2=BlockchainOS\ \ NORMAL\ \ \ \ metachain\ sharding\ L2}
+\DoxyCodeLine{G03\ P3=InfraOS\ \ \ \ \ \ \ LOW\ \ \ \ \ \ \ DB\ logs\ cloud}
+\DoxyCodeLine{G04\ P4=GovernanceOS\ \ BG\ \ \ \ \ \ \ \ quorum\ DAO}
+\DoxyCodeLine{G10\ dequeue=lowest-\/P-\/first\ FIFO-\/within-\/P\ preempt-\/counter++}
+\DoxyCodeLine{}
+\DoxyCodeLine{;DEPS\ graph}
+\DoxyCodeLine{J0\ omni\_brain→[os\_mode\ synapse\_priority\ spark\_invariants]}
+\DoxyCodeLine{J1\ metachain→shard\_coordinator}
+\DoxyCodeLine{J2\ bridge\_relay→oracle}
+\DoxyCodeLine{J3\ domain\_minter→spark\_invariants.SupplyGuard}
+\DoxyCodeLine{J4\ vault\_engine←ubi\_distributor→bread\_ledger}
+\DoxyCodeLine{J5\ payment\_channel=standalone-\/L2}
+\DoxyCodeLine{J6\ p2p→network→rpc\_server}
+\DoxyCodeLine{J7\ crypto←[database\ key\_encryption\ bip32\_wallet\ pq\_crypto]}
+\DoxyCodeLine{J8\ main→[p2p\ rpc\_server\ metachain\ omni\_brain\ vault\_engine\ ubi\_distributor]}
+\DoxyCodeLine{}
+\DoxyCodeLine{;TESTS}
+\DoxyCodeLine{K01\ spark\_invariants\ \ \ 17/17}
+\DoxyCodeLine{K02\ shard\_coordinator\ \ 11/11}
+\DoxyCodeLine{K03\ metachain\ \ \ \ \ \ \ \ \ \ \ 8/8}
+\DoxyCodeLine{K04\ payment\_channel\ \ \ \ 10/10}
+\DoxyCodeLine{K05\ oracle\ \ \ \ \ \ \ \ \ \ \ \ \ 10/10}
+\DoxyCodeLine{K06\ bridge\_relay\ \ \ \ \ \ \ \ 8/8}
+\DoxyCodeLine{K07\ domain\_minter\ \ \ \ \ \ 12/12}
+\DoxyCodeLine{K08\ vault\_engine\ \ \ \ \ \ \ 11/11}
+\DoxyCodeLine{K09\ ubi\_distributor\ \ \ \ 10/10}
+\DoxyCodeLine{K10\ bread\_ledger\ \ \ \ \ \ \ 11/11}
+\DoxyCodeLine{K11\ os\_mode\ \ \ \ \ \ \ \ \ \ \ \ \ 7/7}
+\DoxyCodeLine{K12\ synapse\_priority\ \ \ \ 8/8}
+\DoxyCodeLine{K13\ omni\_brain\ \ \ \ \ \ \ \ \ 10/10}
+\DoxyCodeLine{K\#\#\ TOTAL=133/133\ PASS=100\%\ ZIG=0.15.2}
+\DoxyCodeLine{}
+\DoxyCodeLine{;VISION}
+\DoxyCodeLine{V1\ 1OMNI=1BREAD\ fixed-\/21M\ SPARK-\/invariant\ quantum-\/secure\ PQ}
+\DoxyCodeLine{V2\ OmniBusOS[bare-\/metal<40us]+BlockChainCore[ZigL1]=dual-\/brain}
+\DoxyCodeLine{V3\ standalone-\/OR-\/together\ Linux/Win/macOS-\/OR-\/bootISO\ always-\/works}
+\DoxyCodeLine{V4\ trade→Lvl100→Vault→2x→UBI→bread\ cycle1=1bread/day/person}
+\DoxyCodeLine{V5\ cycle2@1Busers\ Lisp-\/AI-\/19chains→UBI-\/lifetime\ anchor-\/addr}
+\DoxyCodeLine{}
+\DoxyCodeLine{;EOF\ OMNI:AG:v1:END}
+
+\end{DoxyCode}
+
+
+203 linii, \texorpdfstring{$\sim$}{\string~}450 tokeni — contine tot:\+
+\begin{DoxyItemize}
+\item AG00-\/\+AG17 — 8 repo-\/uri cu limbaj, port, dimensiune
+\item AG20-\/\+AG29 — protocolul de comunicare inter-\/repo (bus opcodes)
+\item T0-\/\+T6 — Omni\+Bus OS tiers
+\item M0101-\/\+M0120 — toate modulele Block\+Chain\+Core
+\item D0-\/\+D4 — domeniile PQ
+\item K\+\_\+\texorpdfstring{$\ast$}{*} — toate constantele in hex
+\item I01\texorpdfstring{$^\wedge$}{\string^}-\/\+I10 — invariantii comptime + runtime
+\item B01-\/\+B0F — boot sequence opcode stream
+\item E20-\/\+E3F — bridge flow
+\item F40-\/\+F4D — vault+\+UBI+bread flow
+\item G00-\/\+G10 — synapse priority
+\item J0-\/\+J8 — dependency graph
+\item K01-\/K\#\# — 133/\+133 teste
+\item V1-\/\+V5 — viziunea finala
+\end{DoxyItemize}
+
+Un agent AI citeste de sus in jos, interpreteaza prefixul (AG, T, M, K\+\_\+, I, B, E, F, G, J, K, V) si cunoaste complet ecosistemul Omni\+Bus.
+
+✻ Sautéed for 2m 16s 

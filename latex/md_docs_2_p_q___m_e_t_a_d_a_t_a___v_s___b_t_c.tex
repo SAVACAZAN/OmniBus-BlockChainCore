@@ -1,0 +1,222 @@
+\chapter{PQ Metadata Parity — Omni\+Bus vs. Bitcoin }
+\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c}{}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c}\index{PQ Metadata Parity — OmniBus vs. Bitcoin@{PQ Metadata Parity — OmniBus vs. Bitcoin}}
+\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4265}%
+\Hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4265}%
+
+
+{\bfseries{Document version:\+}} 1.\+0 {\bfseries{Audience:\+}} Operators, integrators, auditors, regulators, institutional treasury teams {\bfseries{Source of truth:\+}} {\ttfamily core/\+transaction.\+zig}, {\ttfamily core/\+blockchain.\+zig}, {\ttfamily core/\+finality.\+zig} {\bfseries{Last updated:\+}} 2026-\/04-\/28
+
+\DoxyHorRuler{0}
+\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4267}{}\doxysection{\texorpdfstring{Purpose of this document}{Purpose of this document}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4267}
+Omni\+Bus is often described as "{}\+Bitcoin with post-\/quantum signatures and five isolated wallets."{} This document quantifies how literally that statement is meant. For every metadata-\/related semantic that Bitcoin defines, Omni\+Bus matches it byte-\/for-\/byte where possible, and goes further only where Bitcoin\textquotesingle{}s behavior is universally agreed to be a limitation.
+
+The intended use of this document:\+ operators, auditors, and regulators can paste any row of the table below directly into a memo or compliance note, and the claim will be verifiable against the cited source line.
+
+\DoxyHorRuler{0}
+\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4269}{}\doxysection{\texorpdfstring{Side-\/by-\/side parity table}{Side-\/by-\/side parity table}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4269}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Feature  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Bitcoin  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Identical?  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+Per-\/\+TX {\ttfamily op\+\_\+return} field  &Yes  &Yes ({\ttfamily transaction.\+zig:\+80})  &Yes  &Same name, same role, same semantics.  \\
+Maximum payload size  &80 bytes (consensus standard since BIP 0136 era)  &80 bytes ({\ttfamily transaction.\+zig:\+113}, {\ttfamily MAX\+\_\+\+OP\+\_\+\+RETURN})  &Yes  &Identical hard cap.  \\
+Included in TX hash  &Yes  &Yes ({\ttfamily transaction.\+zig:\+196-\/199})  &Yes  &Tamper-\/evident under the TX signature. Any byte change in op\+\_\+return changes the TX hash.  \\
+{\ttfamily amount \texorpdfstring{$>$}{>} 0} and {\ttfamily op\+\_\+return} allowed in same TX  &NO (Bitcoin\textquotesingle{}s standardness rules forbid value-\/bearing data carriers)  &YES ({\ttfamily transaction.\+zig:\+79}, comment "{}\+Unlike Bitcoin, OP\+\_\+\+RETURN TXs with amount $>$ 0 are allowed"{})  &Omni\+Bus is a strict superset  &Lets a single TX both move value and carry metadata. Useful for receipts, audit trails, and on-\/chain settlement records.  \\
+Confirmations formula  &{\ttfamily chain\+\_\+height -\/ tx\+\_\+block\+\_\+height}  &{\ttfamily chain\+\_\+height -\/ tx\+\_\+block\+\_\+height} ({\ttfamily blockchain.\+zig:\+446-\/451})  &Yes  &Identical integer subtraction. No reorg-\/aware adjustment, no validator-\/vote weighting; pure block depth.  \\
+6-\/confirmation soft finality  &Yes (community convention)  &Yes ({\ttfamily finality.\+zig:\+21}, {\ttfamily SOFT\+\_\+\+FINALITY\+\_\+\+CONFIRMS:\+ u32 = 6})  &Yes  &Same threshold. Omni\+Bus also adds a Casper-\/\+FFG-\/style hard finality on top (see "{}\+Beyond parity"{} below).  \\
+Reorg behavior on metadata  &TX falls back to mempool, op\+\_\+return is preserved with the TX  &Same  &Yes  &Omni\+Bus uses the same UTXO+mempool pattern; a reorged TX returns to the mempool with its op\+\_\+return intact.  \\
+Per-\/scheme verifier  &Only ECDSA secp256k1  &ECDSA + ML-\/\+DSA + Falcon + SLH-\/\+DSA + ML-\/\+KEM ({\ttfamily isolated\+\_\+wallet.\+zig:\+367-\/375})  &Omni\+Bus has 5 independent verifiers  &Each scheme is an independently NIST-\/track or NIST-\/standardized algorithm. The chain\textquotesingle{}s {\ttfamily verify\+Signature} dispatcher routes each TX to the correct verifier by scheme tag.  \\
+Wallet-\/to-\/metadata link  &1 wallet → 80 bytes per TX  &5 wallets × 80 bytes = 400 bytes effective per identity per block  &Omni\+Bus is 5x richer  &Without ever co-\/signing, a user with five isolated wallets can produce up to 400 bytes of authenticated metadata per block, distributed across five independent signature schemes.  \\
+\end{DoxyTable}
+\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4270}{}\doxysubsection{\texorpdfstring{One-\/line summary per row, for memo use}{One-\/line summary per row, for memo use}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4270}
+
+\begin{DoxyItemize}
+\item {\bfseries{op\+\_\+return field exists:\+}} identical.
+\item {\bfseries{max payload 80 bytes:\+}} identical.
+\item {\bfseries{op\+\_\+return in TX hash:\+}} identical.
+\item {\bfseries{amount + op\+\_\+return same TX:\+}} Omni\+Bus allows; Bitcoin forbids.
+\item {\bfseries{confirmations formula:\+}} identical, {\ttfamily current\+\_\+height -\/ tx\+\_\+block\+\_\+height}.
+\item {\bfseries{6-\/confirmation soft finality:\+}} identical.
+\item {\bfseries{reorg returns TX with op\+\_\+return to mempool:\+}} identical.
+\item {\bfseries{per-\/scheme verifier:\+}} Omni\+Bus has five (ECDSA + 4 PQ); Bitcoin has one (ECDSA).
+\item {\bfseries{metadata bandwidth per identity:\+}} Omni\+Bus 400 B per block; Bitcoin 80 B per block.
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4272}{}\doxysection{\texorpdfstring{Where the parity comes from, line by line}{Where the parity comes from, line by line}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4272}
+This section walks each parity claim back to the exact source line, so a reviewer can verify without searching.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4273}{}\doxysubsection{\texorpdfstring{op\+\_\+return field declaration}{op\+\_\+return field declaration}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4273}
+{\ttfamily transaction.\+zig:\+80}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{op\_return:\ []const\ u8\ =\ "{}"{},}
+
+\end{DoxyCode}
+
+
+Same data type as Bitcoin\textquotesingle{}s data-\/carrying output (a byte slice), default empty (no metadata), settable per TX.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4274}{}\doxysubsection{\texorpdfstring{Maximum payload constraint}{Maximum payload constraint}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4274}
+{\ttfamily transaction.\+zig:\+113}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ MAX\_OP\_RETURN:\ usize\ =\ 80;}
+
+\end{DoxyCode}
+
+
+Same numeric limit Bitcoin enforces in its standardness rules. Any TX with op\+\_\+return larger than this is rejected before mempool entry.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4275}{}\doxysubsection{\texorpdfstring{Tamper-\/evidence:\+ op\+\_\+return inside the TX hash}{Tamper-\/evidence:\+ op\+\_\+return inside the TX hash}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4275}
+{\ttfamily transaction.\+zig:\+196-\/199}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{if\ (self.op\_return.len\ >\ 0)\ \{}
+\DoxyCodeLine{\ \ \ \ hasher.update("{}:OP:"{});}
+\DoxyCodeLine{\ \ \ \ hasher.update(self.op\_return);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+The op\+\_\+return bytes feed directly into the SHA-\/256d hasher that produces the TX hash. Any modification to op\+\_\+return after signing changes the TX hash, which invalidates every signature that committed to that hash. This is identical in spirit to Bitcoin\textquotesingle{}s approach:\+ data-\/carrying outputs are part of the serialized TX, and the serialized TX is what gets signed.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4276}{}\doxysubsection{\texorpdfstring{{\ttfamily amount \texorpdfstring{$>$}{>} 0} plus op\+\_\+return:\+ Omni\+Bus diverges, in the user\textquotesingle{}s favor}{{\ttfamily amount \texorpdfstring{$>$}{>} 0} plus op\+\_\+return:\+ Omni\+Bus diverges, in the user\textquotesingle{}s favor}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4276}
+{\ttfamily transaction.\+zig:\+77-\/79}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{///\ OP\_RETURN:\ date\ arbitrare\ embedded\ in\ TX\ (max\ 80\ bytes,\ ca\ Bitcoin)}
+\DoxyCodeLine{///\ Folosit\ pentru:\ timestamping,\ commit\ hashes,\ metadata,\ anchoring}
+\DoxyCodeLine{///\ Unlike\ Bitcoin,\ OP\_RETURN\ TXs\ with\ amount\ >\ 0\ are\ allowed\ (metadata\ on\ normal\ TXs)}
+
+\end{DoxyCode}
+
+
+Bitcoin\textquotesingle{}s standardness rules treat a TX with both a value-\/bearing output and an op\+\_\+return data output as nonstandard, which means most miners will not relay or include it. Omni\+Bus relaxes that rule:\+ a single TX can both transfer value and carry up to 80 bytes of metadata. This is a strict superset of Bitcoin\textquotesingle{}s behavior. A user who wants to mimic Bitcoin\textquotesingle{}s behavior simply avoids combining them; the chain does not force the combination.
+
+Use cases this enables:\+
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Settlement receipts:\+}} A bank-\/to-\/bank transfer of 100 OMNI carries the bilateral settlement reference number in op\+\_\+return.
+\item {\bfseries{Audit-\/traceable invoicing:\+}} A merchant payment of 50 OMNI carries the invoice ID in op\+\_\+return, so the merchant\textquotesingle{}s accounting system can reconcile without an off-\/chain lookup.
+\item {\bfseries{Compliance hooks:\+}} A regulated entity records the regulator\textquotesingle{}s reference code in op\+\_\+return on the same TX that moves the funds.
+\end{DoxyItemize}\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4277}{}\doxysubsection{\texorpdfstring{Confirmations formula}{Confirmations formula}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4277}
+{\ttfamily blockchain.\+zig:\+444-\/451}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{///\ Returns\ the\ number\ of\ confirmations\ for\ a\ TX\ (null\ if\ TX\ not\ found\ in\ any\ block).}
+\DoxyCodeLine{///\ confirmations\ =\ current\_chain\_height\ -\/\ block\_height\_containing\_tx}
+\DoxyCodeLine{pub\ fn\ getConfirmations(self:\ *const\ Blockchain,\ tx\_hash:\ []const\ u8)\ ?u64\ \{}
+\DoxyCodeLine{\ \ \ \ const\ block\_height\ =\ self.tx\_block\_height.get(tx\_hash)\ orelse\ return\ null;}
+\DoxyCodeLine{\ \ \ \ const\ current\_height:\ u64\ =\ @intCast(self.chain.items.len);}
+\DoxyCodeLine{\ \ \ \ if\ (current\_height\ <=\ block\_height)\ return\ 0;}
+\DoxyCodeLine{\ \ \ \ return\ current\_height\ -\/\ block\_height;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Identical to Bitcoin\textquotesingle{}s confirmations integer. The function returns {\ttfamily null} if the TX is unknown (not yet mined and not in the chain index), {\ttfamily 0} for a TX in the very current tip block, and a positive integer for older TXs. There is no validator-\/weighting, no probabilistic adjustment, no reorg-\/aware penalty; Bitcoin behaves the same way.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4278}{}\doxysubsection{\texorpdfstring{Soft finality threshold}{Soft finality threshold}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4278}
+{\ttfamily finality.\+zig:\+20-\/21}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{///\ Minimum\ confirmations\ for\ soft\ finality\ (like\ Bitcoin's\ 6\ confirmations)}
+\DoxyCodeLine{pub\ const\ SOFT\_FINALITY\_CONFIRMS:\ u32\ =\ 6;}
+
+\end{DoxyCode}
+
+
+The comment explicitly cites Bitcoin parity. Six confirmations means the TX is considered settled with overwhelming probability against PoW reorg. Omni\+Bus also exposes {\ttfamily finality.\+zig:\+209-\/213} ({\ttfamily has\+Soft\+Finality}) for callers that want a boolean answer.
+
+\DoxyHorRuler{0}
+\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4280}{}\doxysection{\texorpdfstring{Beyond parity:\+ what Omni\+Bus adds without breaking compatibility}{Beyond parity:\+ what Omni\+Bus adds without breaking compatibility}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4280}
+The parity table above demonstrates that Omni\+Bus does not weaken any Bitcoin guarantee. This section covers the additions, none of which require a Bitcoin user to change their mental model.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4281}{}\doxysubsection{\texorpdfstring{Hard finality (Casper FFG style)}{Hard finality (Casper FFG style)}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4281}
+{\ttfamily finality.\+zig:\+9-\/15}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{///\ Inspired\ by:}
+\DoxyCodeLine{///\ \ \ -\/\ Casper\ FFG\ (Ethereum\ 2.0):\ 2-\/phase\ justify\ -\/>\ finalize}
+\DoxyCodeLine{///\ \ \ -\/\ Tendermint:\ instant\ finality\ via\ 2/3+\ prevotes\ -\/>\ precommits}
+\DoxyCodeLine{///\ \ \ -\/\ Bitcoin:\ 6\ confirmations\ \string~=\ finality\ (probabilistic)}
+\DoxyCodeLine{///}
+\DoxyCodeLine{///\ OmniBus\ approach:\ Checkpoint-\/based\ finality}
+
+\end{DoxyCode}
+
+
+Omni\+Bus operates a Casper FFG-\/style finality gadget on top of the PoW chain. Validators attest to checkpoints every 64 blocks ({\ttfamily finality.\+zig:\+18}, {\ttfamily CHECKPOINT\+\_\+\+INTERVAL:\+ u64 = 64}). When a checkpoint accumulates 2/\+3+ of voting power it is justified; when the next justified checkpoint references it, it becomes finalized and can never be reverted ({\ttfamily finality.\+zig:\+30-\/37}, {\ttfamily Checkpoint\+Status}).
+
+This provides a stronger guarantee than Bitcoin\textquotesingle{}s purely probabilistic finality, {\bfseries{without changing Bitcoin\textquotesingle{}s semantics for op\+\_\+return or confirmations}}. A Bitcoin-\/style operator who only watches the 6-\/confirmation threshold gets the same behavior as on Bitcoin. An Omni\+Bus-\/aware operator who additionally watches the finality gadget gets a hard, never-\/reverted guarantee on top.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4282}{}\doxysubsection{\texorpdfstring{Five independent signature verifiers}{Five independent signature verifiers}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4282}
+{\ttfamily isolated\+\_\+wallet.\+zig:\+367-\/375}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verifySignature(scheme:\ Scheme,\ message:\ []const\ u8,\ signature:\ []const\ u8,\ public\_key:\ []const\ u8)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ return\ switch\ (scheme)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .omni\_ecdsa\ =>\ verifyOmniSignature(message,\ signature,\ public\_key),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .love\_dilithium\ =>\ verifyLoveSignature(message,\ signature,\ public\_key),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .food\_falcon\ =>\ verifyFoodSignature(message,\ signature,\ public\_key),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .rent\_slh\_dsa\ =>\ verifyRentSignature(message,\ signature,\ public\_key),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ .vacation\_kem\ =>\ false,\ //\ KEM\ nu\ semneaza}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+The chain accepts TXs from five independent algorithms and runs the matching verifier for each. The op\+\_\+return semantics are uniform across all five:\+ same 80-\/byte limit, same hash inclusion, same confirmations formula, same finality. A regulator who is concerned with op\+\_\+return tampering on a Falcon TX gets exactly the same guarantees as on an ECDSA TX, because both schemes commit to the op\+\_\+return bytes via their respective signatures over the same TX hash.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4283}{}\doxysubsection{\texorpdfstring{Wallet-\/to-\/metadata bandwidth multiplier}{Wallet-\/to-\/metadata bandwidth multiplier}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4283}
+A Bitcoin user has one wallet (one mnemonic, one secp256k1 key, one address space). They can produce 80 bytes of authenticated metadata per TX. If they want to spread metadata across multiple addresses, those addresses still derive from the same seed, so a chain analyst can correlate them.
+
+An Omni\+Bus user has five wallets (five mnemonics, five algorithms, five address spaces) and the five wallets are {\bfseries{on-\/chain unlinkable by default}} (see \doxylink{_p_q___i_s_o_l_a_t_e_d___w_a_l_l_e_t_s_8md}{PQ\+\_\+\+ISOLATED\+\_\+\+WALLETS.\+md} section 5). They can produce 80 bytes per TX × 5 wallets = 400 bytes effective per identity per block, {\bfseries{distributed across five independent signature schemes}}, without ever co-\/signing a TX and without giving a chain analyst a correlation surface.
+
+For institutional users, this is the difference between a single op\+\_\+return channel and five segregated op\+\_\+return channels:\+ invoicing, settlement, compliance, audit, and archival can each travel on its own scheme, signed under its own algorithm, with no shared secret.
+
+\DoxyHorRuler{0}
+\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4285}{}\doxysection{\texorpdfstring{Why this matters for institutional users}{Why this matters for institutional users}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4285}
+This section addresses the questions a regulated entity or institutional treasury team will ask before deploying Omni\+Bus.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4286}{}\doxysubsection{\texorpdfstring{Auditable per-\/domain trail}{Auditable per-\/domain trail}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4286}
+Each of the five domains carries its own transaction history, its own balance, its own nonce sequence, and its own op\+\_\+return stream. An auditor reviewing the LOVE wallet sees only LOVE transactions; an auditor reviewing the OMNI wallet sees only OMNI transactions. There is no mixing.
+
+Compare to a single-\/mnemonic chain, where every receipt, every settlement, every internal transfer, and every fee payment travels on one address space and must be filtered post-\/hoc. Omni\+Bus pre-\/segregates by design.
+
+For accounting purposes, the five domains map naturally to five general-\/ledger accounts:\+
+
+
+\begin{DoxyItemize}
+\item OMNI:\+ operational treasury, payments out, multi-\/chain bridges.
+\item LOVE:\+ long-\/horizon reserve, signed under FIPS 204 ML-\/\+DSA.
+\item FOOD:\+ low-\/bandwidth IoT or edge-\/device signatures, signed under Falcon.
+\item RENT:\+ archival evidence, hash-\/based signatures under FIPS 205 SLH-\/\+DSA.
+\item VACATION:\+ encrypted-\/payload channel, key encapsulation under FIPS 203 ML-\/\+KEM.
+\end{DoxyItemize}
+
+The per-\/scheme verifier ensures that a TX in the FOOD ledger cannot accidentally be miscategorized as LOVE; the chain itself rejects such mixups at the verifier dispatcher level.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4287}{}\doxysubsection{\texorpdfstring{Quantum-\/resistant subset}{Quantum-\/resistant subset}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4287}
+Of the five domains, four are quantum-\/resistant under current cryptanalytic understanding (LOVE, FOOD, RENT under signatures; VACATION under encryption). Only OMNI (ECDSA secp256k1) is pre-\/quantum.
+
+An institutional user who wants quantum-\/safe long-\/horizon storage parks their reserve in LOVE or RENT. An institutional user who needs current-\/day Bitcoin/\+\+Ethereum bridge compatibility uses OMNI. The five-\/wallet structure lets the institution use both, without picking one and abandoning the other.
+
+If a quantum break occurs and OMNI keys become recoverable from public keys, the institution can perform a hash-\/time-\/locked atomic swap from OMNI to one of its PQ addresses and continue operating. The other four domains are unaffected because they are based on independent algorithms with independent quantum-\/resistance assumptions.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4288}{}\doxysubsection{\texorpdfstring{GDPR-\/compatible:\+ metadata can be encrypted under VACATION ML-\/\+KEM key}{GDPR-\/compatible:\+ metadata can be encrypted under VACATION ML-\/\+KEM key}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4288}
+A common regulatory concern is that on-\/chain op\+\_\+return data is permanent and globally readable. For metadata containing personally identifiable information (PII), this is incompatible with GDPR\textquotesingle{}s right to erasure.
+
+Omni\+Bus offers a mitigation:\+ the sender encrypts the PII under the recipient\textquotesingle{}s VACATION ML-\/\+KEM public key, then writes the resulting ciphertext into the op\+\_\+return field. The ciphertext is permanent and globally visible, but only the recipient (holder of the VACATION secret key) can decrypt it. The recipient can then exercise GDPR rights by destroying their VACATION mnemonic, rendering the on-\/chain ciphertext functionally erased:\+ the data still exists as bytes, but no key exists to decrypt it.
+
+This is a stronger erasure guarantee than most chains can offer, because the cryptographic basis (ML-\/\+KEM, FIPS 203) is a NIST-\/standardized, future-\/proof KEM rather than a pre-\/quantum algorithm whose ciphertext might become decryptable by a future attacker.
+
+The 80-\/byte op\+\_\+return budget limits the size of encryptable PII per TX, but for compact identifiers (customer reference numbers, jurisdiction codes, transaction purpose codes) this is sufficient. For longer payloads, the institution can chain TXs across multiple blocks, each carrying 80 bytes of ciphertext, all encrypted under the same VACATION public key.\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4289}{}\doxysubsection{\texorpdfstring{Auditable for regulators, opaque for the public}{Auditable for regulators, opaque for the public}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4289}
+The final piece of the institutional story is the {\bfseries{opt-\/in {\ttfamily pq\+\_\+attest}}} mechanism (\doxylink{_p_q___i_s_o_l_a_t_e_d___w_a_l_l_e_t_s_8md}{PQ\+\_\+\+ISOLATED\+\_\+\+WALLETS.\+md} section 5). An institution that needs to demonstrate ownership of multiple addresses to a regulator can publish {\ttfamily pq\+\_\+attest} op\+\_\+returns binding their OMNI address to each of their PQ addresses. The regulator verifies the binding via the {\ttfamily pq\+\_\+attestation} RPC. The chain\textquotesingle{}s confirmations counter (Bitcoin parity) gives the regulator a confidence threshold for replay protection.
+
+Meanwhile, an institution that does {\bfseries{not}} publish attestations remains on-\/chain unlinkable across its five wallets. The default is privacy; the opt-\/in is auditability; the institution chooses per use case.
+
+\DoxyHorRuler{0}
+\hypertarget{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4291}{}\doxysection{\texorpdfstring{Reference}{Reference}}\label{md_docs_2_p_q___m_e_t_a_d_a_t_a___v_s___b_t_c_autotoc_md4291}
+
+\begin{DoxyItemize}
+\item Source:\+ {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+core/\+transaction.\+zig:\+64-\/118} (Transaction struct, op\+\_\+return, MAX\+\_\+\+OP\+\_\+\+RETURN, scheme tag, public\+\_\+key field).
+\item Source:\+ {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+core/\+transaction.\+zig:\+141-\/199} (TX hash construction, op\+\_\+return inclusion).
+\item Source:\+ {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+core/\+blockchain.\+zig:\+444-\/451} (get\+Confirmations formula).
+\item Source:\+ {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+core/\+finality.\+zig:\+9-\/21} (Bitcoin parity comment, soft finality threshold).
+\item Source:\+ {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+core/\+finality.\+zig:\+30-\/37, 91-\/235} (Casper FFG hard finality gadget).
+\item Source:\+ {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+core/\+isolated\+\_\+wallet.\+zig:\+23-\/48} (Scheme enum and address prefix mapping).
+\item Source:\+ {\ttfamily 1\+\_\+\+CORE/\+\+Block\+Chain\+Core/\+core/\+isolated\+\_\+wallet.\+zig:\+367-\/375} (verify\+Signature dispatcher).
+\item Companion:\+ {\ttfamily \doxylink{_p_q___i_s_o_l_a_t_e_d___w_a_l_l_e_t_s_8md}{docs/\+\+PQ\+\_\+\+ISOLATED\+\_\+\+WALLETS.\+md}} (user-\/facing 5-\/mnemonics explainer).
+\item Decision record:\+ {\ttfamily memory/\+project\+\_\+omnibus\+\_\+5\+\_\+isolated\+\_\+wallets.\+md}. 
+\end{DoxyItemize}

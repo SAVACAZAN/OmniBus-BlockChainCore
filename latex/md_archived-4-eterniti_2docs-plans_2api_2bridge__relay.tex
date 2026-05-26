@@ -1,0 +1,266 @@
+\chapter{Module:\+ {\ttfamily bridge\+\_\+relay} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay}{}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay}\index{Module: $<$tt$>$bridge\_relay$<$/tt$>$@{Module: $<$tt$>$bridge\_relay$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1207}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1207}%
+
+
+\begin{quote}
+Ethereum bridge relay — lock-\/and-\/mint cross-\/chain transfers, refund on expiry, relay verification. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+bridge\+\_\+relay.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 453 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 6 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 8
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1209}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1209}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1210}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1210}
+
+\begin{DoxyItemize}
+\item \`{}\+Bridge\+Operation\`{}{\ttfamily Bridge\+Operation}
+\end{DoxyItemize}— O operatie de bridge (lock→mint sau burn→redeem)
+\begin{DoxyItemize}
+\item \`{}\+Wrapped\+Asset\`{}{\ttfamily Wrapped\+Asset}
+\end{DoxyItemize}— Wrapped asset pe OMNI chain (ex:\+ w\+BTC, w\+ETH)
+\begin{DoxyItemize}
+\item \`{}\+Bridge\+Relay\`{}{\ttfamily Bridge\+Relay}
+\end{DoxyItemize}— Data structure for bridge relay. Fields include:\+ allocator, operations, next\+\_\+op\+\_\+...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1211}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1211}
+
+\begin{DoxyItemize}
+\item 8 constants defined8 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1212}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1212}
+
+\begin{DoxyItemize}
+\item \`{}is\+Expired()\`{}{\ttfamily is\+Expired()}
+\end{DoxyItemize}— Checks whether the expired condition is true.
+\begin{DoxyItemize}
+\item \`{}has\+Enough\+Sigs()\`{}{\ttfamily has\+Enough\+Sigs()}
+\end{DoxyItemize}— Checks whether the enough sigs condition is true.
+\begin{DoxyItemize}
+\item \`{}calc\+Fee()\`{}{\ttfamily calc\+Fee()}
+\end{DoxyItemize}— Calculeaza fee-\/ul:\+ amount \texorpdfstring{$\ast$}{*} BRIDGE\+\_\+\+FEE\+\_\+\+BPS /\+ 10000
+\begin{DoxyItemize}
+\item \`{}circulating\+Supply()\`{}{\ttfamily circulating\+Supply()}
+\end{DoxyItemize}— Performs the circulating supply operation on the bridge\+\_\+relay module.
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the bridge\+\_\+relay module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1214}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1214}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1215}{}\doxysubsection{\texorpdfstring{{\ttfamily Bridge\+Operation}}{{\ttfamily Bridge\+Operation}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1215}
+O operatie de bridge (lock→mint sau burn→redeem)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily op\+\_\+id}  &{\ttfamily u64}  &Op\+\_\+id  \\
+{\ttfamily op\+\_\+type}  &{\ttfamily Bridge\+Op\+Type}  &Op\+\_\+type  \\
+{\ttfamily status}  &{\ttfamily Bridge\+Op\+Status}  &Status  \\
+{\ttfamily foreign\+\_\+chain}  &{\ttfamily Chain\+Id}  &Foreign\+\_\+chain  \\
+{\ttfamily foreign\+\_\+addr}  &{\ttfamily \+[64]\+u8}  &Foreign\+\_\+addr  \\
+{\ttfamily foreign\+\_\+addr\+\_\+len}  &{\ttfamily u8}  &Foreign\+\_\+addr\+\_\+len  \\
+{\ttfamily omni\+\_\+addr}  &{\ttfamily \+[32]\+u8}  &Omni\+\_\+addr  \\
+{\ttfamily amount\+\_\+foreign}  &{\ttfamily u64}  &Amount\+\_\+foreign  \\
+{\ttfamily amount\+\_\+omni\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+omni\+\_\+sat  \\
+{\ttfamily fee\+\_\+sat}  &{\ttfamily u64}  &Fee\+\_\+sat  \\
+{\ttfamily foreign\+\_\+tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Foreign\+\_\+tx\+\_\+hash  \\
+{\ttfamily initiated\+\_\+block}  &{\ttfamily u64}  &Initiated\+\_\+block  \\
+{\ttfamily relayer\+\_\+sigs}  &{\ttfamily \+[BRIDGE\+\_\+\+MAX\+\_\+\+RELAYERS]\+\+[64]\+u8}  &Relayer\+\_\+sigs  \\
+{\ttfamily sig\+\_\+count}  &{\ttfamily u8}  &Sig\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 49}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1217}{}\doxysubsection{\texorpdfstring{{\ttfamily Wrapped\+Asset}}{{\ttfamily Wrapped\+Asset}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1217}
+Wrapped asset pe OMNI chain (ex:\+ w\+BTC, w\+ETH)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily chain\+\_\+id}  &{\ttfamily Chain\+Id}  &Chain\+\_\+id  \\
+{\ttfamily total\+\_\+minted\+\_\+sat}  &{\ttfamily u64}  &Total\+\_\+minted\+\_\+sat  \\
+{\ttfamily total\+\_\+burned\+\_\+sat}  &{\ttfamily u64}  &Total\+\_\+burned\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 99}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1219}{}\doxysubsection{\texorpdfstring{{\ttfamily Bridge\+Relay}}{{\ttfamily Bridge\+Relay}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1219}
+Data structure for bridge relay. Fields include:\+ allocator, operations, next\+\_\+op\+\_\+id, wrapped, oracle.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily operations}  &{\ttfamily array\+\_\+list.\+Managed(\+Bridge\+Operation)}  &Operations  \\
+{\ttfamily next\+\_\+op\+\_\+id}  &{\ttfamily u64}  &Next\+\_\+op\+\_\+id  \\
+{\ttfamily wrapped}  &{\ttfamily \+[20]\+Wrapped\+Asset}  &Wrapped  \\
+{\ttfamily oracle}  &{\ttfamily \texorpdfstring{$\ast$}{*}oracle\+\_\+mod.Price\+Oracle}  &Oracle  \\
+{\ttfamily foreign\+\_\+chain}  &{\ttfamily Chain\+Id}  &Foreign\+\_\+chain  \\
+{\ttfamily foreign\+\_\+addr}  &{\ttfamily \+[]\+const u8}  &Foreign\+\_\+addr  \\
+{\ttfamily omni\+\_\+addr}  &{\ttfamily \+[32]\+u8}  &Omni\+\_\+addr  \\
+{\ttfamily amount\+\_\+foreign}  &{\ttfamily u64}  &Amount\+\_\+foreign  \\
+{\ttfamily foreign\+\_\+tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Foreign\+\_\+tx\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 112}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1221}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1221}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Chain\+Id}  &{\ttfamily oracle\+\_\+mod.\+Chain\+Id}  &Chain id  \\
+{\ttfamily Exchange\+Id}  &{\ttfamily oracle\+\_\+mod.\+Exchange\+Id}  &Exchange id  \\
+{\ttfamily BRIDGE\+\_\+\+REQUIRED\+\_\+\+SIGS}  &{\ttfamily u8 = 2}  &B r i d g e\+\_\+ r e q u i r e d\+\_\+ s i g s  \\
+{\ttfamily BRIDGE\+\_\+\+MAX\+\_\+\+RELAYERS}  &{\ttfamily u8 = 9}  &B r i d g e\+\_\+ m a x\+\_\+ r e l a y e r s  \\
+{\ttfamily BRIDGE\+\_\+\+TIMEOUT\+\_\+\+BLOCKS}  &{\ttfamily u64 = 100}  &B r i d g e\+\_\+ t i m e o u t\+\_\+ b l o c k s  \\
+{\ttfamily BRIDGE\+\_\+\+FEE\+\_\+\+BPS}  &{\ttfamily u64 = 10}  &B r i d g e\+\_\+ f e e\+\_\+ b p s  \\
+{\ttfamily Bridge\+Op\+Type}  &{\ttfamily enum(u8) \{}  &Bridge op type  \\
+{\ttfamily Bridge\+Op\+Status}  &{\ttfamily enum(u8) \{}  &Bridge op status  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1223}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1223}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1224}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Expired()}}{{\ttfamily is\+Expired()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1224}
+Checks whether the expired condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isExpired(self:\ *const\ BridgeOperation,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bridge\+Operation}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 84}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1226}{}\doxysubsection{\texorpdfstring{{\ttfamily has\+Enough\+Sigs()}}{{\ttfamily has\+Enough\+Sigs()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1226}
+Checks whether the enough sigs condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hasEnoughSigs(self:\ *const\ BridgeOperation)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bridge\+Operation}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 88}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1228}{}\doxysubsection{\texorpdfstring{{\ttfamily calc\+Fee()}}{{\ttfamily calc\+Fee()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1228}
+Calculeaza fee-\/ul:\+ amount \texorpdfstring{$\ast$}{*} BRIDGE\+\_\+\+FEE\+\_\+\+BPS /\+ 10000
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calcFee(amount:\ u64)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 93}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1230}{}\doxysubsection{\texorpdfstring{{\ttfamily circulating\+Supply()}}{{\ttfamily circulating\+Supply()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1230}
+Performs the circulating supply operation on the bridge\+\_\+relay module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ circulatingSupply(self:\ *const\ WrappedAsset)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Wrapped\+Asset}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 104}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1232}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1232}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *BridgeRelay)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bridge\+Relay}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 143}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1234}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bridge__relay_autotoc_md1234}
+Performs the print status operation on the bridge\+\_\+relay module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ BridgeRelay)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bridge\+Relay}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 294}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

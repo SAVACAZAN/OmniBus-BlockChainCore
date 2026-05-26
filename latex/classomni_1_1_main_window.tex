@@ -1,0 +1,131 @@
+\doxysection{omni::\+Main\+Window Class Reference}
+\hypertarget{classomni_1_1_main_window}{}\label{classomni_1_1_main_window}\index{omni::MainWindow@{omni::MainWindow}}
+
+
+{\ttfamily \+\#include $<$Main\+Window.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Main\+Window:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Main\+Window:\+
+% FIG 1
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{App\+Mode}} \{ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330ca9c1cdf8d244b59ea73ddbfee8a94c133}{Wallet\+Mode}}
+, \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330cabe16bd6cfa43495e109b1b0805a427fb}{Node\+Mode}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classomni_1_1_main_window_ace059a4ec2c193d7b11e19d41ef6f1cf}{Main\+Window}} (\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{App\+Mode}} mode, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_main_window_a1ecd100c6eb347b914ed672f8e38a5ce}{set\+App\+Mode}} (\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{App\+Mode}} mode)
+\item 
+\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{App\+Mode}} \doxymbox{\hyperlink{classomni_1_1_main_window_a09e96454ad6acaf4746f16ecba563d9e}{app\+Mode}} () const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_main_window_ad370182fb6f8f2eacaa9c54613ea1172}{close\+Event}} (QClose\+Event \texorpdfstring{$\ast$}{*}event) override
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_main_window_8h_source_l00015}{15}} of file \doxymbox{\hyperlink{_main_window_8h_source}{Main\+Window.\+h}}.
+
+
+
+\label{classomni_1_1_main_window_doc-enum-members}
+\Hypertarget{classomni_1_1_main_window_doc-enum-members}
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}\index{omni::MainWindow@{omni::MainWindow}!AppMode@{AppMode}}
+\index{AppMode@{AppMode}!omni::MainWindow@{omni::MainWindow}}
+\doxysubsubsection{\texorpdfstring{AppMode}{AppMode}}
+{\footnotesize\ttfamily \label{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c} 
+enum \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{omni::\+\+Main\+Window::\+\+App\+Mode}}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{WalletMode@{WalletMode}!omni::MainWindow@{omni::MainWindow}}
+\index{omni::MainWindow@{omni::MainWindow}!WalletMode@{WalletMode}}
+}\Hypertarget{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330ca9c1cdf8d244b59ea73ddbfee8a94c133}\label{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330ca9c1cdf8d244b59ea73ddbfee8a94c133} 
+Wallet\+Mode&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{NodeMode@{NodeMode}!omni::MainWindow@{omni::MainWindow}}
+\index{omni::MainWindow@{omni::MainWindow}!NodeMode@{NodeMode}}
+}\Hypertarget{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330cabe16bd6cfa43495e109b1b0805a427fb}\label{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330cabe16bd6cfa43495e109b1b0805a427fb} 
+Node\+Mode&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+Definition at line \doxymbox{\hyperlink{_main_window_8h_source_l00018}{18}} of file \doxymbox{\hyperlink{_main_window_8h_source}{Main\+Window.\+h}}.
+
+
+
+\label{classomni_1_1_main_window_doc-constructors}
+\Hypertarget{classomni_1_1_main_window_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classomni_1_1_main_window_ace059a4ec2c193d7b11e19d41ef6f1cf}\index{omni::MainWindow@{omni::MainWindow}!MainWindow@{MainWindow}}
+\index{MainWindow@{MainWindow}!omni::MainWindow@{omni::MainWindow}}
+\doxysubsubsection{\texorpdfstring{MainWindow()}{MainWindow()}}
+{\footnotesize\ttfamily \label{classomni_1_1_main_window_ace059a4ec2c193d7b11e19d41ef6f1cf} 
+omni::\+\+Main\+Window::\+\+Main\+Window (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{App\+Mode}}}]{mode}{, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_main_window_8cpp_source_l00032}{32}} of file \doxymbox{\hyperlink{_main_window_8cpp_source}{Main\+Window.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+
+
+\label{classomni_1_1_main_window_doc-func-members}
+\Hypertarget{classomni_1_1_main_window_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_main_window_a09e96454ad6acaf4746f16ecba563d9e}\index{omni::MainWindow@{omni::MainWindow}!appMode@{appMode}}
+\index{appMode@{appMode}!omni::MainWindow@{omni::MainWindow}}
+\doxysubsubsection{\texorpdfstring{appMode()}{appMode()}}
+{\footnotesize\ttfamily \label{classomni_1_1_main_window_a09e96454ad6acaf4746f16ecba563d9e} 
+\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{App\+Mode}} omni::\+\+Main\+Window::\+app\+Mode (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_main_window_8h_source_l00023}{23}} of file \doxymbox{\hyperlink{_main_window_8h_source}{Main\+Window.\+h}}.
+
+\Hypertarget{classomni_1_1_main_window_ad370182fb6f8f2eacaa9c54613ea1172}\index{omni::MainWindow@{omni::MainWindow}!closeEvent@{closeEvent}}
+\index{closeEvent@{closeEvent}!omni::MainWindow@{omni::MainWindow}}
+\doxysubsubsection{\texorpdfstring{closeEvent()}{closeEvent()}}
+{\footnotesize\ttfamily \label{classomni_1_1_main_window_ad370182fb6f8f2eacaa9c54613ea1172} 
+void omni::\+\+Main\+Window::\+close\+Event (\begin{DoxyParamCaption}\item[{QClose\+Event \texorpdfstring{$\ast$}{*}}]{event}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_main_window_8cpp_source_l00380}{380}} of file \doxymbox{\hyperlink{_main_window_8cpp_source}{Main\+Window.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{classomni_1_1_main_window_a1ecd100c6eb347b914ed672f8e38a5ce}\index{omni::MainWindow@{omni::MainWindow}!setAppMode@{setAppMode}}
+\index{setAppMode@{setAppMode}!omni::MainWindow@{omni::MainWindow}}
+\doxysubsubsection{\texorpdfstring{setAppMode()}{setAppMode()}}
+{\footnotesize\ttfamily \label{classomni_1_1_main_window_a1ecd100c6eb347b914ed672f8e38a5ce} 
+void omni::\+\+Main\+Window::\+set\+App\+Mode (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{App\+Mode}}}]{mode}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_main_window_8cpp_source_l00066}{66}} of file \doxymbox{\hyperlink{_main_window_8cpp_source}{Main\+Window.\+cpp}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+windows/\+\doxymbox{\hyperlink{_main_window_8h}{Main\+Window.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+windows/\+\doxymbox{\hyperlink{_main_window_8cpp}{Main\+Window.\+cpp}}\end{DoxyCompactItemize}

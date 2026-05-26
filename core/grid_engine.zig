@@ -481,20 +481,33 @@ pub fn tick(
 
 // ─── Helpers JSON pentru RPC ──────────────────────────────────────────────
 
+fn writeJsonSafeStr(w: anytype, s: []const u8) !void {
+    for (s) |c| {
+        if (c == '"')       { try w.writeByte('\''); }
+        else if (c == '\\') { try w.writeByte('/');  }
+        else if (c < 0x20)  {}
+        else                { try w.writeByte(c);    }
+    }
+}
+
 /// Scrie JSON-ul unui GridConfig într-un ArrayList.
 pub fn writeGridJson(
     g:     *const GridConfig,
     out:   *std.ArrayList(u8),
     alloc: std.mem.Allocator,
 ) !void {
-    try std.fmt.format(out.writer(alloc),
-        "{{\"grid_id\":{d},\"pair_id\":{d},\"owner\":\"{s}\"," ++
+    const w = out.writer(alloc);
+    try std.fmt.format(w,
+        "{{\"grid_id\":{d},\"pair_id\":{d},\"owner\":\"",
+        .{ g.id, g.pair_id });
+    try writeJsonSafeStr(w, g.owner[0..g.owner_len]);
+    try std.fmt.format(w,
+        "\"," ++
         "\"price_low\":{d},\"price_high\":{d},\"levels\":{d}," ++
         "\"total_base\":{d},\"total_quote\":{d}," ++
         "\"filled_count\":{d},\"profit_quote\":{d},\"active\":{s}," ++
         "\"created_block\":{d}}}",
         .{
-            g.id, g.pair_id, g.owner[0..g.owner_len],
             g.price_low, g.price_high, g.levels,
             g.total_base, g.total_quote,
             g.filled_count, g.profit_quote,

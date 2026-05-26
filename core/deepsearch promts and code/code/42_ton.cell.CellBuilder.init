@@ -1,0 +1,4 @@
+pub const Amount = struct {
+    chain: ChainId,
+    value: u256,
+};

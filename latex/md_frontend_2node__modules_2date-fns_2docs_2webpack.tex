@@ -1,0 +1,56 @@
+\chapter{webpack }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2webpack}{}\label{md_frontend_2node__modules_2date-fns_2docs_2webpack}\index{webpack@{webpack}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2webpack_autotoc_md6384}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2webpack_autotoc_md6384}%
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2webpack_autotoc_md6385}{}\doxysection{\texorpdfstring{Removing unused languages from dynamic import}{Removing unused languages from dynamic import}}\label{md_frontend_2node__modules_2date-fns_2docs_2webpack_autotoc_md6385}
+If a locale is imported dynamically, then all locales from date-\/fns are loaded by webpack into a bundle (\texorpdfstring{$\sim$}{\string~}160kb) or split across the chunks. This prolongs the build process and increases the amount of space taken. However, it is possible to use webpack to trim down languages using \href{https://webpack.js.org/plugins/context-replacement-plugin/}{\texttt{Context\+Replacement\+Plugin}}.
+
+Let\textquotesingle{}s assume that we have a single point in which supported locales are present:\+
+
+{\ttfamily config.\+js}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ \`{}see\ date-\/fns/src/locale`\ for\ available\ locales}
+\DoxyCodeLine{export\ const\ supportedLocales\ =\ ['en-\/US',\ 'de',\ 'pl',\ 'it']}
+
+\end{DoxyCode}
+
+
+\doxylink{namespace_we}{We} could also have a function that formats the date:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ getLocale\ =\ (locale)\ =>\ import(`date-\/fns/locale/\$\{locale\}/index.js`)\ //\ or\ require()\ if\ using\ CommonJS}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ formatDate\ =\ (date,\ formatStyle,\ locale)\ =>\ \{}
+\DoxyCodeLine{\ \ return\ format(date,\ formatStyle,\ \{}
+\DoxyCodeLine{\ \ \ \ locale:\ getLocale(locale),}
+\DoxyCodeLine{\ \ \})}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+In order to exclude unused languages we can use webpacks \href{https://webpack.js.org/plugins/context-replacement-plugin/}{\texttt{Context\+Replacement\+Plugin}}.
+
+{\ttfamily webpack.\+config.\+js}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ webpack\ from\ 'webpack'}
+\DoxyCodeLine{import\ \{\ supportedLocales\ \}\ from\ './config.js'}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ const\ config\ =\ \{}
+\DoxyCodeLine{\ \ plugins:\ [}
+\DoxyCodeLine{\ \ \ \ new\ webpack.ContextReplacementPlugin(}
+\DoxyCodeLine{\ \ \ \ \ \ /\string^date-\/fns[/\(\backslash\)\(\backslash\)]locale\$/,}
+\DoxyCodeLine{\ \ \ \ \ \ new\ RegExp(`\(\backslash\)\(\backslash\).[/\(\backslash\)\(\backslash\)\(\backslash\)\(\backslash\)](\$\{supportedLocales.join('|')\})[/\(\backslash\)\(\backslash\)\(\backslash\)\(\backslash\)]index\(\backslash\)\(\backslash\).js\$`)}
+\DoxyCodeLine{\ \ \ \ )}
+\DoxyCodeLine{\ \ ]}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+This results in a language bundle of \texorpdfstring{$\sim$}{\string~}23kb . 

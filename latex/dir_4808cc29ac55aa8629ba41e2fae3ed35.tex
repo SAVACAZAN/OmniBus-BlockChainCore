@@ -1,0 +1,255 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@scure/\+bip32/\+node\+\_\+modules/\+@scure/\+base Directory Reference}
+\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35}{}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35}\index{frontend/node\_modules/"@scure/bip32/node\_modules/"@scure/base Directory Reference@{frontend/node\_modules/"@scure/bip32/node\_modules/"@scure/base Directory Reference}}
+Directory dependency graph for base:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4820}{}\doxysubsection{\texorpdfstring{scure-\/base}{scure-\/base}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4820}
+Audited \& minimal implementation of bech32, base64, base58, base32 \& base16.
+
+
+\begin{DoxyItemize}
+\item 🔒 AuditedAudited
+\end{DoxyItemize}by an independent security firm
+\begin{DoxyItemize}
+\item 🔻 Tree-\/shakeable:\+ unused code is excluded from your builds
+\item ✍️ Written in functional stylefunctional style
+\end{DoxyItemize}, easily composable
+\begin{DoxyItemize}
+\item 💼 Matches specs
+\begin{DoxyItemize}
+\item \href{https://en.bitcoin.it/wiki/BIP_0173}{\texttt{BIP173}}, \href{https://en.bitcoin.it/wiki/BIP_0350}{\texttt{BIP350}} for bech32 /\+ bech32m
+\item \href{https://datatracker.ietf.org/doc/html/rfc4648}{\texttt{RFC 4648}} (aka RFC 3548) for Base16, Base32, Base32\+Hex, Base64, Base64\+Url
+\item \href{https://www.ietf.org/archive/id/draft-msporny-base58-03.txt}{\texttt{Base58}}, \href{https://en.bitcoin.it/wiki/Base58Check_encoding}{\texttt{Base58check}}, \href{https://www.crockford.com/base32.html}{\texttt{Base32 Crockford}}
+\end{DoxyItemize}
+\item 🪶 4KB (gzipped)
+\end{DoxyItemize}
+
+Check out Projects using scure-\/baseProjects using scure-\/base.\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4821}{}\doxysubsubsection{\texorpdfstring{This library belongs to {\itshape scure}}{This library belongs to {\itshape scure}}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4821}
+\begin{quote}
+{\bfseries{scure}} — audited micro-\/libraries. \end{quote}
+
+
+
+\begin{DoxyItemize}
+\item Zero or minimal dependencies
+\item Highly readable Type\+Script /\+ JS code
+\item PGP-\/signed releases and transparent NPM builds
+\item Check out \href{https://paulmillr.com/noble/\#scure}{\texttt{homepage}} \& all libraries:\+ \href{https://github.com/paulmillr/scure-base}{\texttt{base}}, \href{https://github.com/paulmillr/scure-bip32}{\texttt{bip32}}, \href{https://github.com/paulmillr/scure-bip39}{\texttt{bip39}}, \href{https://github.com/paulmillr/scure-btc-signer}{\texttt{btc-\/signer}}, \href{https://github.com/paulmillr/scure-sr25519}{\texttt{sr25519}}, \href{https://github.com/paulmillr/scure-starknet}{\texttt{starknet}}
+\end{DoxyItemize}\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4822}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4822}
+\begin{quote}
+{\ttfamily npm install @scure/\+base} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno add jsr:\+@scure/\+base} \end{quote}
+
+
+\doxylink{namespace_we}{We} support all major platforms and runtimes. The library is hybrid ESM /\+ Common.\+js package.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ base16,\ base32,\ base64,\ base58\ \}\ from\ '@scure/base';}
+\DoxyCodeLine{//\ Flavors}
+\DoxyCodeLine{import\ \{}
+\DoxyCodeLine{\ \ base58xmr,}
+\DoxyCodeLine{\ \ base58xrp,}
+\DoxyCodeLine{\ \ base32nopad,}
+\DoxyCodeLine{\ \ base32hex,}
+\DoxyCodeLine{\ \ base32hexnopad,}
+\DoxyCodeLine{\ \ base32crockford,}
+\DoxyCodeLine{\ \ base64nopad,}
+\DoxyCodeLine{\ \ base64url,}
+\DoxyCodeLine{\ \ base64urlnopad,}
+\DoxyCodeLine{\}\ from\ '@scure/base';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ data\ =\ Uint8Array.from([1,\ 2,\ 3]);}
+\DoxyCodeLine{base64.decode(base64.encode(data));}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Convert\ utf8\ string\ to\ Uint8Array}
+\DoxyCodeLine{const\ data2\ =\ new\ TextEncoder().encode('hello');}
+\DoxyCodeLine{base58.encode(data2);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Everything\ has\ the\ same\ API\ except\ for\ bech32\ and\ base58check}
+\DoxyCodeLine{base32.encode(data);}
+\DoxyCodeLine{base16.encode(data);}
+\DoxyCodeLine{base32hex.encode(data);}
+
+\end{DoxyCode}
+
+
+base58check is a special case:\+ you need to pass {\ttfamily \doxylink{namespacesha256}{sha256()}} function:\+
+
+\begin{quote}
+{\ttfamily npm install @noble/\+hashes} \end{quote}
+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ createBase58check\ \}\ from\ '@scure/base';}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ data\ =\ Uint8Array.from([1,\ 2,\ 3]);}
+\DoxyCodeLine{createBase58check(sha256).encode(data);}
+
+\end{DoxyCode}
+\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4823}{}\doxysubsection{\texorpdfstring{Bech32, Bech32m and Bitcoin}{Bech32, Bech32m and Bitcoin}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4823}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ bech32\ \}\ from\ '@scure/base';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ words\ =\ bech32.toWords(new\ TextEncoder().encode('hello'));}
+\DoxyCodeLine{const\ addr\ =\ bech32.encode('test',\ words);}
+\DoxyCodeLine{console.log(addr);\ //\ "{}test1w508d6qejxtdg4"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ \{\ prefix,\ words:\ decoded\ \}\ =\ bech32.decode(addr);}
+\DoxyCodeLine{console.log(prefix);\ //\ "{}test"{}}
+\DoxyCodeLine{console.log(new\ TextDecoder().decode(bech32.fromWords(decoded)));\ //\ "{}hello"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{console.log(bech32.decodeUnsafe('invalid'));\ //\ undefined}
+
+\end{DoxyCode}
+
+
+\doxylink{namespace_we}{We} provide low-\/level bech32 operations. If you need high-\/level methods for BTC (addresses, and others), use \href{https://github.com/paulmillr/scure-btc-signer}{\texttt{scure-\/btc-\/signer}} instead.
+
+Bitcoin addresses use both 5-\/bit words and bytes representations. They can\textquotesingle{}t be parsed using {\ttfamily bech32.\+decode\+To\+Bytes}.
+
+Same applies to Lightning Invoice Protocol \href{https://github.com/lightning/bolts/blob/master/11-payment-encoding.md}{\texttt{BOLT-\/11}}. \doxylink{namespace_we}{We} have many tests in {\ttfamily ./\+test/\+bip173.test.\+js} that serve as minimal examples of Bitcoin address and Lightning Invoice Protocol parsers. Keep in mind that you\textquotesingle{}ll need to verify the examples before using them in your code.
+
+Do something like this:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ bech32\ \}\ from\ '@scure/base';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ address\ =\ bech32.encode('bc',\ [0,\ ...bech32.toWords(new\ Uint8Array(20))]);}
+\DoxyCodeLine{const\ decoded\ =\ bech32.decode(address);}
+\DoxyCodeLine{//\ NOTE:\ words\ in\ bitcoin\ addresses\ contain\ version\ as\ first\ element,}
+\DoxyCodeLine{//\ with\ actual\ witness\ program\ words\ in\ rest}
+\DoxyCodeLine{//\ BIP-\/141:\ The\ value\ of\ the\ first\ push\ is\ called\ the\ "{}version\ byte"{}.}
+\DoxyCodeLine{//\ The\ following\ byte\ vector\ pushed\ is\ called\ the\ "{}witness\ program"{}.}
+\DoxyCodeLine{const\ [version,\ ...dataW]\ =\ decoded.words;}
+\DoxyCodeLine{const\ program\ =\ bech32.fromWords(dataW);\ //\ actual\ witness\ program}
+
+\end{DoxyCode}
+\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4824}{}\doxysubsection{\texorpdfstring{Design rationale}{Design rationale}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4824}
+The code may feel unnecessarily complicated; but actually it\textquotesingle{}s much easier to reason about. Any encoding library consists of two functions:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{encode(A)\ -\/>\ B}
+\DoxyCodeLine{decode(B)\ -\/>\ A}
+\DoxyCodeLine{\ \ where\ X\ =\ decode(encode(X))}
+\DoxyCodeLine{\ \ \#\ encode(decode(X))\ can\ be\ !==\ X!}
+\DoxyCodeLine{\ \ \#\ because\ decoding\ can\ normalize\ input}
+\DoxyCodeLine{}
+\DoxyCodeLine{e.g.}
+\DoxyCodeLine{base58checksum\ =\ \{}
+\DoxyCodeLine{\ \ encode():\ \{}
+\DoxyCodeLine{\ \ \ \ //\ checksum}
+\DoxyCodeLine{\ \ \ \ //\ radix\ conversion}
+\DoxyCodeLine{\ \ \ \ //\ alphabet}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ decode():\ \{}
+\DoxyCodeLine{\ \ \ \ //\ alphabet}
+\DoxyCodeLine{\ \ \ \ //\ radix\ conversion}
+\DoxyCodeLine{\ \ \ \ //\ checksum}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+But instead of creating two big functions for each specific case, we create them from tiny composable building blocks:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{base58checksum\ =\ chain(checksum(),\ radix(),\ alphabet())}
+
+\end{DoxyCode}
+
+
+Which is the same as chain/\+pipe/\+sequence function in Functional Programming, but significantly more useful since it enforces same order of execution of encode/\+decode. Basically you only define encode (in declarative way) and get correct decode for free. So, instead of reasoning about two big functions you need only reason about primitives and encode chain. The design revealed obvious bug in older version of the lib, where xmr version of base58 had errors in decode\textquotesingle{}s block processing.
+
+Besides base-\/encodings, we can reuse the same approach with any encode/\+decode function ({\ttfamily bytes2number}, {\ttfamily bytes2u32}, etc). For example, you can easily encode entropy to mnemonic (BIP-\/39):\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{export\ function\ getCoder(wordlist:\ string[])\ \{}
+\DoxyCodeLine{\ \ if\ (!Array.isArray(wordlist)\ ||\ wordlist.length\ !==\ 2\ **\ 11\ ||\ typeof\ wordlist[0]\ !==\ 'string')\ \{}
+\DoxyCodeLine{\ \ \ \ throw\ new\ Error('Wordlist:\ expected\ array\ of\ 2048\ strings');}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ return\ mbc.chain(mbu.checksum(1,\ checksum),\ mbu.radix2(11,\ true),\ mbu.alphabet(wordlist));}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4825}{}\doxysubsubsection{\texorpdfstring{base58 is O(n\texorpdfstring{$^\wedge$}{\string^}2) and radixes}{base58 is O(n\texorpdfstring{$^\wedge$}{\string^}2) and radixes}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4825}
+{\ttfamily Uint8\+Array} is represented as big-\/endian number:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[1,\ 2,\ 3,\ 4,\ 5]\ -\/>\ 1*(256**4)\ +\ 2*(256**3)\ 3*(256**2)\ +\ 4*(256**1)\ +\ 5*(256**0)}
+\DoxyCodeLine{where\ 256\ =\ 2**8\ (8\ bits\ per\ byte)}
+
+\end{DoxyCode}
+
+
+which is then converted to a number in another radix/\+base (16/\+32/\+58/\+64, etc).
+
+However, generic conversion between bases has \href{https://cs.stackexchange.com/q/21799}{\texttt{quadratic O(n\texorpdfstring{$^\wedge$}{\string^}2) time complexity}}.
+
+Which means base58 has quadratic time complexity too. Use base58 only when you have small constant sized input, because variable length sized input from user can cause DoS.
+
+On the other hand, if both bases are power of same number (like {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}8 \texorpdfstring{$<$}{<}-\/\texorpdfstring{$>$}{>} 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}64}), there is linear algorithm. For now we have implementation for power-\/of-\/two bases only (radix2).\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4826}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4826}
+The library has been audited:\+
+
+
+\begin{DoxyItemize}
+\item at version 2.\+2.\+0, in Apr 2026, by ourselves (self-\/audited)
+\begin{DoxyItemize}
+\item Scope:\+ everything
+\item \href{https://github.com/paulmillr/scure-base/compare/2.2.0..main}{\texttt{Changes since audit}}
+\end{DoxyItemize}
+\item at version 1.\+0.\+0, in Jan 2022, independently, by \href{https://cure53.de}{\texttt{cure53}}
+\begin{DoxyItemize}
+\item PDFs:\+ \href{https://cure53.de/pentest-report_hashing-libs.pdf}{\texttt{online}}, \href{./audit/2022-01-05-cure53-audit-nbl2.pdf}{\texttt{offline}}
+\item The audit has been funded by \href{https://ethereum.org/en/}{\texttt{Ethereum Foundation}} with help of \href{https://nomiclabs.io}{\texttt{Nomic Labs}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+The library was initially developed for \href{https://github.com/ethereum/js-ethereum-cryptography}{\texttt{js-\/ethereum-\/cryptography}}. At commit \href{https://github.com/ethereum/js-ethereum-cryptography/commit/ae00e6d7d24fb3c76a1c7fe10039f6ecd120b77e}{\texttt{ae00e6d7}}, it was extracted to a separate package called {\ttfamily micro-\/base}. After the audit we\textquotesingle{}ve decided to use {\ttfamily @scure} NPM namespace for security.\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4827}{}\doxysubsubsection{\texorpdfstring{Supply chain security}{Supply chain security}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4827}
+
+\begin{DoxyItemize}
+\item {\bfseries{Commits}} are signed with PGP keys to prevent forgery. Be sure to verify the commit signatures
+\item {\bfseries{Releases}} are made transparently through token-\/less Git\+Hub CI and Trusted Publishing. Be sure to verify the \href{https://docs.npmjs.com/generating-provenance-statements}{\texttt{provenance logs}} for authenticity.
+\item {\bfseries{Rare releasing}} is practiced to minimize the need for re-\/audits by end-\/users.
+\item {\bfseries{Dependencies}} are minimized and strictly pinned to reduce supply-\/chain risk.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} use as few dependencies as possible.
+\item Version ranges are locked, and changes are checked with npm-\/diff.
+\end{DoxyItemize}
+\item {\bfseries{Dev dependencies}} are excluded from end-\/user installs; they’re only used for development and build steps.
+\end{DoxyItemize}
+
+For this package, there are 0 dependencies; and a few dev dependencies:\+
+
+
+\begin{DoxyItemize}
+\item jsbt is used for benchmarking /\+ testing /\+ build tooling and developed by the same author
+\item prettier, fast-\/check and typescript are used for code quality /\+ test generation /\+ ts compilation
+\end{DoxyItemize}\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4828}{}\doxysubsection{\texorpdfstring{Contributing \& testing}{Contributing \& testing}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4828}
+
+\begin{DoxyItemize}
+\item {\ttfamily npm install \&\& npm run \doxylink{namespacebuild}{build} \&\& npm \doxylink{namespacetest}{test}} will build the code and run tests.
+\item {\ttfamily npm run lint} /\+ {\ttfamily npm run format} will run linter /\+ fix linter issues.
+\item {\ttfamily npm run \doxylink{namespacebuild}{build}:\+release} will build single file
+\end{DoxyItemize}\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4829}{}\doxysubsubsection{\texorpdfstring{Projects using scure-\/base}{Projects using scure-\/base}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4829}
+
+\begin{DoxyItemize}
+\item \href{https://github.com/paulmillr/scure-btc-signer}{\texttt{scure-\/btc-\/signer}}
+\item \href{https://github.com/truestamp/prefixed-api-key}{\texttt{prefixed-\/api-\/key}}
+\item \href{https://github.com/CoinSpace/CoinSpace}{\texttt{coinspace}} wallet and its modules:\+ \href{https://github.com/CoinSpace/cs-cardano-wallet}{\texttt{ada}}, \href{https://github.com/CoinSpace/cs-bitcoin-wallet}{\texttt{btc}} \href{https://github.com/CoinSpace/cs-eos-wallet}{\texttt{eos}}, \href{https://github.com/CoinSpace/cs-solana-wallet}{\texttt{sol}}, \href{https://github.com/CoinSpace/cs-monero-wallet}{\texttt{xmr}}
+\end{DoxyItemize}\hypertarget{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4830}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_4808cc29ac55aa8629ba41e2fae3ed35_autotoc_md4830}
+MIT (c) Paul Miller \href{https://paulmillr.com}{\texttt{(https:\+/\+/\+paulmillr.\+com)}}, see LICENSE file. 

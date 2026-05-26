@@ -1,0 +1,28 @@
+var classomni_1_1_wallet_manager =
+[
+    [ "CreateResult", "structomni_1_1_wallet_manager_1_1_create_result.html", "structomni_1_1_wallet_manager_1_1_create_result" ],
+    [ "addresses", "classomni_1_1_wallet_manager.html#ab6767557b7705aac6d0c835403ddf5ef", null ],
+    [ "addressGenerated", "classomni_1_1_wallet_manager.html#a770d96bbdd19fdba7d12417b2ab23f03", null ],
+    [ "createWallet", "classomni_1_1_wallet_manager.html#a55d9eeae4d1cb5300606a1fe75454002", null ],
+    [ "currentWalletId", "classomni_1_1_wallet_manager.html#a683f20571973449f36696ed8f0d6970e", null ],
+    [ "currentWalletName", "classomni_1_1_wallet_manager.html#a470e433cf3855e51a38940da6230a955", null ],
+    [ "deleteWallet", "classomni_1_1_wallet_manager.html#a18ec308df1f6edf24f9321eb415175b3", null ],
+    [ "exportMnemonic", "classomni_1_1_wallet_manager.html#a17be13c29532c86c972213e13a1df39a", null ],
+    [ "generateAddress", "classomni_1_1_wallet_manager.html#a3e686877688afa10f0ae54de01668115", null ],
+    [ "getPrivateKey", "classomni_1_1_wallet_manager.html#a2bcf254ed38af2fce0db95f2fa6ac22d", null ],
+    [ "getSeed", "classomni_1_1_wallet_manager.html#a3f88c4f3cfe2cd52d136be61ede31f86", null ],
+    [ "hasWallets", "classomni_1_1_wallet_manager.html#ad5ce005ba673a7993d0a4b72a97ec9d8", null ],
+    [ "importWallet", "classomni_1_1_wallet_manager.html#a2aa11ccb4554ae6f6d41433a1ac52ac3", null ],
+    [ "isUnlocked", "classomni_1_1_wallet_manager.html#af796e20edbb9cb8c2d7ea1d8604ab9a0", null ],
+    [ "listWallets", "classomni_1_1_wallet_manager.html#ab1da46ca366f5b2356f3e3854bcfd31f", null ],
+    [ "lock", "classomni_1_1_wallet_manager.html#a867da6436db16586709c4b1005a164c0", null ],
+    [ "primaryAddress", "classomni_1_1_wallet_manager.html#a015849f6acfbe9cf2236f3a26c7969eb", null ],
+    [ "renameWallet", "classomni_1_1_wallet_manager.html#a6d689086d1fce4baf9134cdb2a9deb69", null ],
+    [ "signTransaction", "classomni_1_1_wallet_manager.html#a2808272207e4d6502403749c348f17db", null ],
+    [ "switchWallet", "classomni_1_1_wallet_manager.html#a8806be583efef3465e1b637b00bb8a54", null ],
+    [ "unlock", "classomni_1_1_wallet_manager.html#ad90978d371736c6bed2455ab4f4e2d18", null ],
+    [ "walletChanged", "classomni_1_1_wallet_manager.html#a39fee57b17186763d9c440e6290c81b9", null ],
+    [ "walletDir", "classomni_1_1_wallet_manager.html#a50b34bbfe2ca7b11b46487005264599e", null ],
+    [ "walletLocked", "classomni_1_1_wallet_manager.html#a0d19e01a8b83fea5860317e4cc99fa69", null ],
+    [ "walletUnlocked", "classomni_1_1_wallet_manager.html#a424727996953b57a45492125fe5452d6", null ]
+];

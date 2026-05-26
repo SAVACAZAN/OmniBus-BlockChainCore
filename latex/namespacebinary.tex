@@ -1,0 +1,24 @@
+\doxysection{binary Namespace Reference}
+\hypertarget{namespacebinary}{}\label{namespacebinary}\index{binary@{binary}}
+
+
+-\/analysis  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/analysis 
+
+\begin{DoxyVerb}binary-analysis.py — OmniBus BlockChainCore Binary Security Analyzer
+
+Analyze the compiled zig-out/bin/omnibus-node.exe for security hardening:
+  - NX/DEP (non-executable stack)
+  - ASLR/PIE
+  - Stack canaries
+  - Unsafe C string patterns (strcpy, sprintf, gets)
+  - Binary size, sections, entry point
+
+Uses objdump + strings (Git Bash) or pwntools checksec when available.
+\end{DoxyVerb}
+ 

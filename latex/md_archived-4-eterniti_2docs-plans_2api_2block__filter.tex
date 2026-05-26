@@ -1,0 +1,25 @@
+\chapter{block\+\_\+filter.\+zig — API Reference }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block__filter}{}\label{md_archived-4-eterniti_2docs-plans_2api_2block__filter}\index{block\_filter.zig — API Reference@{block\_filter.zig — API Reference}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2block__filter_autotoc_md904}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block__filter_autotoc_md904}%
+
+
+\begin{quote}
+Auto-\/generated from core/\+block\+\_\+filter.\+zig \end{quote}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block__filter_autotoc_md905}{}\doxysection{\texorpdfstring{Public Functions}{Public Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2block__filter_autotoc_md905}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ FilterType\ =\ enum(u8)\ \{}
+\DoxyCodeLine{pub\ const\ BlockFilter\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ mayContain(self:\ *const\ BlockFilter,\ address:\ []const\ u8)\ bool\ \{}
+\DoxyCodeLine{pub\ const\ FilterBuilder\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ buildBasicFilter(}
+\DoxyCodeLine{pub\ const\ FilterHeaderChain\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ init(allocator:\ std.mem.Allocator)\ FilterHeaderChain\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ deinit(self:\ *FilterHeaderChain)\ void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ addHeader(self:\ *FilterHeaderChain,\ header:\ [32]u8)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ getHeader(self:\ *const\ FilterHeaderChain,\ height:\ u64)\ ?[32]u8\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ chainHeight(self:\ *const\ FilterHeaderChain)\ u64\ \{}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2block__filter_autotoc_md906}{}\doxysection{\texorpdfstring{Tests:\+ 4}{Tests:\+ 4}}\label{md_archived-4-eterniti_2docs-plans_2api_2block__filter_autotoc_md906}

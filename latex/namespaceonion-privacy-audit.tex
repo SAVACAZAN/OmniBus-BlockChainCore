@@ -1,0 +1,329 @@
+\doxysection{onion-\/privacy-\/audit Namespace Reference}
+\hypertarget{namespaceonion-privacy-audit}{}\label{namespaceonion-privacy-audit}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+socket.\+socket \doxymbox{\hyperlink{namespaceonion-privacy-audit_a5930551710c9a2b3636641224922a4ca}{socks5\+\_\+connect}} (str proxy\+\_\+host, int proxy\+\_\+port, str target\+\_\+host, int target\+\_\+port)
+\item 
+tuple \doxymbox{\hyperlink{namespaceonion-privacy-audit_a8a77f8e893ea82373f0bbf7e15d18ca3}{rpc\+\_\+call\+\_\+direct}} (str host, int port, str method, params=None)
+\item 
+tuple \doxymbox{\hyperlink{namespaceonion-privacy-audit_a7afafbe356f8f44dd62b8b62a9873e46}{rpc\+\_\+call\+\_\+tor}} (str proxy\+\_\+host, int proxy\+\_\+port, str target\+\_\+host, int target\+\_\+port, str method, params=None)
+\item 
+list \doxymbox{\hyperlink{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc}{find\+\_\+ips\+\_\+in\+\_\+data}} (data, bool exclude\+\_\+private=True)
+\item 
+list \doxymbox{\hyperlink{namespaceonion-privacy-audit_ad1d10515c59c610499ff14e73e60e2b2}{find\+\_\+ips\+\_\+in\+\_\+headers}} (headers)
+\item 
+dict \doxymbox{\hyperlink{namespaceonion-privacy-audit_ae046e0cd9f3903f26949a838845eb709}{check\+\_\+version\+\_\+leak}} (dict data)
+\item 
+\doxymbox{\hyperlink{namespaceonion-privacy-audit_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceonion-privacy-audit_a38440c17a292b052c2aa2d02a110a6b5}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceonion-privacy-audit_aeef17db522a080ea0413f45cd4ec911f}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceonion-privacy-audit_a8b79e3b081eb95ee2fc21c0fb3f76075}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceonion-privacy-audit_a25bf3a3e3482047fd8fcf3f9afd3c00c}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceonion-privacy-audit_acd84efb2aa6d43e1853842b31e3acc6a}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceonion-privacy-audit_af62e0bdb579b75ab925250e9da443e0e}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespaceonion-privacy-audit_a94c58b18e0d1d1c5b26f4c7944cb5af2}{RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespaceonion-privacy-audit_a840afe79619e41db4be487bcebfc1c03}{P2\+P\+\_\+\+PORT}} = 9000
+\item 
+int \doxymbox{\hyperlink{namespaceonion-privacy-audit_a02d0ae0b02c8a9773bf34b6ef31ce6dc}{WS\+\_\+\+PORT}} = 8334
+\item 
+int \doxymbox{\hyperlink{namespaceonion-privacy-audit_a40875d6b547a88addbd3bddbc156bc6f}{SHARDS}} = 4
+\item 
+int \doxymbox{\hyperlink{namespaceonion-privacy-audit_a480b0744e742ec9bd2d6e81903f85ce6}{MAX\+\_\+\+SUPPLY}} = 21\+\_\+000\+\_\+000
+\item 
+\doxymbox{\hyperlink{namespaceonion-privacy-audit_aa4e1c08fc6f6118cb9d344e888e7b608}{SAT}} = int(1e9)
+\item 
+\doxymbox{\hyperlink{namespaceonion-privacy-audit_af28caa85a4e7181376fb282f645b0f41}{IPV4\+\_\+\+PATTERN}}
+\item 
+\doxymbox{\hyperlink{namespaceonion-privacy-audit_a5c6693327eb353f41716892f6a9f19c0}{IPV6\+\_\+\+PATTERN}}
+\item 
+\doxymbox{\hyperlink{namespaceonion-privacy-audit_a8cb721c7e7376e24f2b9f4c2d431e2e9}{PRIVATE\+\_\+\+IPS}}
+\end{DoxyCompactItemize}
+
+
+\label{namespaceonion-privacy-audit_doc-func-members}
+\Hypertarget{namespaceonion-privacy-audit_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceonion-privacy-audit_ae046e0cd9f3903f26949a838845eb709}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!check\_version\_leak@{check\_version\_leak}}
+\index{check\_version\_leak@{check\_version\_leak}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{check\_version\_leak()}{check\_version\_leak()}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_ae046e0cd9f3903f26949a838845eb709} 
+ dict check\+\_\+version\+\_\+leak (\begin{DoxyParamCaption}\item[{dict}]{data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if response leaks version/OS information.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00153}{153}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!find\_ips\_in\_data@{find\_ips\_in\_data}}
+\index{find\_ips\_in\_data@{find\_ips\_in\_data}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{find\_ips\_in\_data()}{find\_ips\_in\_data()}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc} 
+ list find\+\_\+ips\+\_\+in\+\_\+data (\begin{DoxyParamCaption}\item[{}]{data}{, }\item[{bool }]{exclude\+\_\+private}{ = {\ttfamily True}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Recursively search for IP addresses in JSON data.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00126}{126}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceonion-privacy-audit_ad1d10515c59c610499ff14e73e60e2b2}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!find\_ips\_in\_headers@{find\_ips\_in\_headers}}
+\index{find\_ips\_in\_headers@{find\_ips\_in\_headers}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{find\_ips\_in\_headers()}{find\_ips\_in\_headers()}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_ad1d10515c59c610499ff14e73e60e2b2} 
+ list find\+\_\+ips\+\_\+in\+\_\+headers (\begin{DoxyParamCaption}\item[{}]{headers}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Search for IPs in HTTP response headers.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00144}{144}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceonion-privacy-audit_a51af30a60f9f02777c6396b8247e356f}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!main@{main}}
+\index{main@{main}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00182}{182}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceonion-privacy-audit_a8a77f8e893ea82373f0bbf7e15d18ca3}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!rpc\_call\_direct@{rpc\_call\_direct}}
+\index{rpc\_call\_direct@{rpc\_call\_direct}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{rpc\_call\_direct()}{rpc\_call\_direct()}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a8a77f8e893ea82373f0bbf7e15d18ca3} 
+ tuple rpc\+\_\+call\+\_\+direct (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{str}]{method}{, }\item[{}]{params}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Direct RPC call. Returns (json_response, http_headers_dict).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00072}{72}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceonion-privacy-audit_a7afafbe356f8f44dd62b8b62a9873e46}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!rpc\_call\_tor@{rpc\_call\_tor}}
+\index{rpc\_call\_tor@{rpc\_call\_tor}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{rpc\_call\_tor()}{rpc\_call\_tor()}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a7afafbe356f8f44dd62b8b62a9873e46} 
+ tuple rpc\+\_\+call\+\_\+tor (\begin{DoxyParamCaption}\item[{str}]{proxy\+\_\+host}{, }\item[{int}]{proxy\+\_\+port}{, }\item[{str}]{target\+\_\+host}{, }\item[{int}]{target\+\_\+port}{, }\item[{str}]{method}{, }\item[{}]{params}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}RPC call through Tor. Returns (json_response, raw_headers_str).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00087}{87}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceonion-privacy-audit_a5930551710c9a2b3636641224922a4ca}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!socks5\_connect@{socks5\_connect}}
+\index{socks5\_connect@{socks5\_connect}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{socks5\_connect()}{socks5\_connect()}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a5930551710c9a2b3636641224922a4ca} 
+ socket.\+socket socks5\+\_\+connect (\begin{DoxyParamCaption}\item[{str}]{proxy\+\_\+host}{, }\item[{int}]{proxy\+\_\+port}{, }\item[{str}]{target\+\_\+host}{, }\item[{int}]{target\+\_\+port}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}SOCKS5 connection (no auth).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+
+
+\label{namespaceonion-privacy-audit_doc-var-members}
+\Hypertarget{namespaceonion-privacy-audit_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceonion-privacy-audit_acd84efb2aa6d43e1853842b31e3acc6a}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_acd84efb2aa6d43e1853842b31e3acc6a} 
+str \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a25bf3a3e3482047fd8fcf3f9afd3c00c}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a25bf3a3e3482047fd8fcf3f9afd3c00c} 
+str \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_aeef17db522a080ea0413f45cd4ec911f}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_aeef17db522a080ea0413f45cd4ec911f} 
+str \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_af28caa85a4e7181376fb282f645b0f41}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!IPV4\_PATTERN@{IPV4\_PATTERN}}
+\index{IPV4\_PATTERN@{IPV4\_PATTERN}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{IPV4\_PATTERN}{IPV4\_PATTERN}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_af28caa85a4e7181376fb282f645b0f41} 
+\doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+IPV4\+\_\+\+PATTERN}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{r'\(\backslash\)b(?:(?:25[0-\/5]|2[0-\/4]\(\backslash\)d|[01]?\(\backslash\)d\(\backslash\)d?)\(\backslash\).)\{3\}(?:25[0-\/5]|2[0-\/4]\(\backslash\)d|[01]?\(\backslash\)d\(\backslash\)d?)\(\backslash\)b'}}
+\DoxyCodeLine{)}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a5c6693327eb353f41716892f6a9f19c0}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!IPV6\_PATTERN@{IPV6\_PATTERN}}
+\index{IPV6\_PATTERN@{IPV6\_PATTERN}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{IPV6\_PATTERN}{IPV6\_PATTERN}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a5c6693327eb353f41716892f6a9f19c0} 
+\doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+IPV6\+\_\+\+PATTERN}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{r'(?:[0-\/9a-\/fA-\/F]\{1,4\}:)\{2,7\}[0-\/9a-\/fA-\/F]\{1,4\}'}}
+\DoxyCodeLine{)}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a480b0744e742ec9bd2d6e81903f85ce6}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!MAX\_SUPPLY@{MAX\_SUPPLY}}
+\index{MAX\_SUPPLY@{MAX\_SUPPLY}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{MAX\_SUPPLY}{MAX\_SUPPLY}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a480b0744e742ec9bd2d6e81903f85ce6} 
+int \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+MAX\+\_\+\+SUPPLY = 21\+\_\+000\+\_\+000}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a840afe79619e41db4be487bcebfc1c03}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!P2P\_PORT@{P2P\_PORT}}
+\index{P2P\_PORT@{P2P\_PORT}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{P2P\_PORT}{P2P\_PORT}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a840afe79619e41db4be487bcebfc1c03} 
+int \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+P2\+P\+\_\+\+PORT = 9000}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a8cb721c7e7376e24f2b9f4c2d431e2e9}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!PRIVATE\_IPS@{PRIVATE\_IPS}}
+\index{PRIVATE\_IPS@{PRIVATE\_IPS}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{PRIVATE\_IPS}{PRIVATE\_IPS}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a8cb721c7e7376e24f2b9f4c2d431e2e9} 
+\doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+PRIVATE\+\_\+\+IPS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ re.compile(}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{r'\string^(127\(\backslash\).|10\(\backslash\).|192\(\backslash\).168\(\backslash\).|172\(\backslash\).(1[6-\/9]|2\(\backslash\)d|3[01])\(\backslash\).|0\(\backslash\).0\(\backslash\).0\(\backslash\).0|::1|fe80:)'}}
+\DoxyCodeLine{)}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a38440c17a292b052c2aa2d02a110a6b5}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!RED@{RED}}
+\index{RED@{RED}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a38440c17a292b052c2aa2d02a110a6b5} 
+str \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_af62e0bdb579b75ab925250e9da443e0e}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!RESET@{RESET}}
+\index{RESET@{RESET}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_af62e0bdb579b75ab925250e9da443e0e} 
+str \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a94c58b18e0d1d1c5b26f4c7944cb5af2}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!RPC\_PORT@{RPC\_PORT}}
+\index{RPC\_PORT@{RPC\_PORT}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{RPC\_PORT}{RPC\_PORT}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a94c58b18e0d1d1c5b26f4c7944cb5af2} 
+int \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+RPC\+\_\+\+PORT = 8332}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_aa4e1c08fc6f6118cb9d344e888e7b608}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!SAT@{SAT}}
+\index{SAT@{SAT}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{SAT}{SAT}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_aa4e1c08fc6f6118cb9d344e888e7b608} 
+\doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+SAT = int(1e9)}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a40875d6b547a88addbd3bddbc156bc6f}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!SHARDS@{SHARDS}}
+\index{SHARDS@{SHARDS}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{SHARDS}{SHARDS}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a40875d6b547a88addbd3bddbc156bc6f} 
+int \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+SHARDS = 4}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a02d0ae0b02c8a9773bf34b6ef31ce6dc}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!WS\_PORT@{WS\_PORT}}
+\index{WS\_PORT@{WS\_PORT}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{WS\_PORT}{WS\_PORT}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a02d0ae0b02c8a9773bf34b6ef31ce6dc} 
+int \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+WS\+\_\+\+PORT = 8334}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+
+\Hypertarget{namespaceonion-privacy-audit_a8b79e3b081eb95ee2fc21c0fb3f76075}\index{onion-\/privacy-\/audit@{onion-\/privacy-\/audit}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!onion-\/privacy-\/audit@{onion-\/privacy-\/audit}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespaceonion-privacy-audit_a8b79e3b081eb95ee2fc21c0fb3f76075} 
+str \doxymbox{\hyperlink{namespaceonion}{onion}}-\/privacy-\/audit.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{onion-privacy-audit_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{onion-privacy-audit_8py_source}{onion-\/privacy-\/audit.\+py}}.
+

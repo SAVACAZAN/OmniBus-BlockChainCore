@@ -1,0 +1,1061 @@
+\doxysection{frontend/\+node\+\_\+modules/\+terser Directory Reference}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae}{}\label{dir_39b41e0ceb926518b062335bd26a16ae}\index{frontend/node\_modules/terser Directory Reference@{frontend/node\_modules/terser Directory Reference}}
+Directory dependency graph for terser:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_4f5ffdfaa29cf93d92abb85a7ffdee0f}{node\+\_\+modules}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\doxysubsection*{}
+
+\href{https://npmjs.org/package/terser}{\texttt{}} \href{https://npmjs.org/package/terser}{\texttt{}} \href{https://github.com/terser/terser/actions/workflows/ci.yml}{\texttt{}} \href{https://opencollective.com/terser}{\texttt{}}
+
+A Java\+Script mangler/\+compressor toolkit for ES6+.
+
+{\itshape note}:\+ \sout{You can support this project on patreon:\+ \+[link]\+} {\bfseries{The Terser Patreon is shutting down in favor of opencollective}}. Check out \href{https://github.com/terser/terser/blob/master/PATRONS.md}{\texttt{PATRONS.\+md}} for our first-\/tier patrons.
+
+Terser recommends you use Rollup\+JS to bundle your modules, as that produces smaller code overall.
+
+{\itshape Beautification} has been undocumented and is {\itshape being removed} from terser, we recommend you use \href{https://npmjs.com/package/prettier}{\texttt{prettier}}.
+
+Find the changelog in \href{https://github.com/terser/terser/blob/master/CHANGELOG.md}{\texttt{CHANGELOG.\+md}}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9123}{}\doxysubsubsection{\texorpdfstring{Why choose terser?}{Why choose terser?}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9123}
+{\ttfamily uglify-\/es} is \href{https://github.com/mishoo/UglifyJS2/issues/3156\#issuecomment-392943058}{\texttt{no longer maintained}} and {\ttfamily uglify-\/js} does not support ES6+.
+
+{\bfseries{{\ttfamily terser}}} is a fork of {\ttfamily uglify-\/es} that mostly retains API and CLI compatibility with {\ttfamily uglify-\/es} and {\ttfamily uglify-\/js@3}.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9124}{}\doxysubsubsection{\texorpdfstring{Install}{Install}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9124}
+First make sure you have installed the latest version of \href{http://nodejs.org/}{\texttt{node.\+js}} (You may need to restart your computer after this step).
+
+From NPM for use as a command line app:\+ \begin{DoxyVerb}npm install terser -g
+\end{DoxyVerb}
+
+
+From NPM for programmatic use:\+ \begin{DoxyVerb}npm install terser
+\end{DoxyVerb}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9125}{}\doxysubsection{\texorpdfstring{Command line usage}{Command line usage}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9125}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{terser\ [input\ files]\ [options]}
+
+\end{DoxyCode}
+
+
+Terser can take multiple input files. It\textquotesingle{}s recommended that you pass the input files first, then pass the options. Terser will parse input files in sequence and apply any compression options. The files are parsed in the same global scope, that is, a reference from a file to some variable/\+function declared in another file will be matched properly.
+
+Command line arguments that take options (like --parse, --compress, --mangle and --format) can take in a comma-\/separated list of default option overrides. For instance:\+ \begin{DoxyVerb}terser input.js --compress ecma=2015,computed_props=false
+\end{DoxyVerb}
+
+
+If no input file is specified, Terser will read from STDIN.
+
+If you wish to pass your options before the input files, separate the two with a double dash to prevent input files being used as option arguments:\+ \begin{DoxyVerb}terser --compress --mangle -- input.js
+\end{DoxyVerb}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9126}{}\doxysubsubsubsection{\texorpdfstring{Command line options}{Command line options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9126}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{-\/h,\ -\/-\/help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Print\ usage\ information.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}-\/-\/help\ options`\ for\ details\ on\ available\ options.}
+\DoxyCodeLine{-\/V,\ -\/-\/version\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Print\ version\ number.}
+\DoxyCodeLine{-\/p,\ -\/-\/parse\ <options>\ \ \ \ \ \ \ Specify\ parser\ options:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}acorn`\ \ Use\ Acorn\ for\ parsing.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}bare\_returns`\ \ Allow\ return\ outside\ of\ functions.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Useful\ when\ minifying\ CommonJS}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ modules\ and\ Userscripts\ that\ may}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ be\ anonymous\ function\ wrapped\ (IIFE)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ by\ the\ .user.js\ engine\ \`{}caller`.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}expression`\ \ Parse\ a\ single\ expression,\ rather\ than}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ a\ program\ (for\ parsing\ JSON).}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}spidermonkey`\ \ Assume\ input\ files\ are\ SpiderMonkey}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ AST\ format\ (as\ JSON).}
+\DoxyCodeLine{-\/c,\ -\/-\/compress\ [options]\ \ \ \ Enable\ compressor/specify\ compressor\ options:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}pure\_funcs`\ \ List\ of\ functions\ that\ can\ be\ safely}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ removed\ when\ their\ return\ values\ are}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ not\ used.}
+\DoxyCodeLine{-\/m,\ -\/-\/mangle\ [options]\ \ \ \ \ \ Mangle\ names/specify\ mangler\ options:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}reserved`\ \ List\ of\ names\ that\ should\ not\ be\ mangled.}
+\DoxyCodeLine{-\/-\/mangle-\/props\ [options]\ \ \ \ Mangle\ properties/specify\ mangler\ options:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}builtins`\ \ Mangle\ property\ names\ that\ overlaps}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ with\ standard\ JavaScript\ globals\ and\ DOM}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ API\ props.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}debug`\ \ Add\ debug\ prefix\ and\ suffix.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}keep\_quoted`\ \ Only\ mangle\ unquoted\ properties,\ quoted}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ properties\ are\ automatically\ reserved.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}strict`\ disables\ quoted\ properties}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ being\ automatically\ reserved.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}regex`\ \ Only\ mangle\ matched\ property\ names.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}only\_annotated`\ Only\ mangle\ properties\ defined\ with\ /*@\_\_MANGLE\_PROP\_\_*/.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}reserved`\ \ List\ of\ names\ that\ should\ not\ be\ mangled.}
+\DoxyCodeLine{-\/f,\ -\/-\/format\ [options]\ \ \ \ \ \ Specify\ format\ options.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}preamble`\ \ Preamble\ to\ prepend\ to\ the\ output.\ You}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ can\ use\ this\ to\ insert\ a\ comment,\ for}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ example\ for\ licensing\ information.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ This\ will\ not\ be\ parsed,\ but\ the\ source}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ map\ will\ adjust\ for\ its\ presence.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}quote\_style`\ \ Quote\ style:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ -\/\ auto}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1\ -\/\ single}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2\ -\/\ double}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 3\ -\/\ original}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}wrap\_iife`\ \ Wrap\ IIFEs\ in\ parenthesis.\ Note:\ you\ may}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ want\ to\ disable\ \`{}negate\_iife`\ under}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ compressor\ options.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}wrap\_func\_args`\ \ Wrap\ function\ arguments\ in\ parenthesis.}
+\DoxyCodeLine{-\/o,\ -\/-\/output\ <file>\ \ \ \ \ \ \ \ \ Output\ file\ path\ (default\ STDOUT).\ Specify\ \`{}ast`\ or}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}spidermonkey`\ to\ write\ Terser\ or\ SpiderMonkey\ AST}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ as\ JSON\ to\ STDOUT\ respectively.}
+\DoxyCodeLine{-\/-\/comments\ [filter]\ \ \ \ \ \ \ \ \ Preserve\ copyright\ comments\ in\ the\ output.\ By}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ default\ this\ works\ like\ Google\ Closure,\ keeping}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JSDoc-\/style\ comments\ that\ contain\ e.g.\ "{}@license"{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ or\ start\ with\ "{}!"{}.\ You\ can\ optionally\ pass\ one\ of\ the}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ following\ arguments\ to\ this\ flag:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ "{}all"{}\ to\ keep\ all\ comments}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ \`{}false`\ to\ omit\ comments\ in\ the\ output}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ a\ valid\ JS\ RegExp\ like\ \`{}/foo/`\ or\ \`{}/\string^!/`\ to}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ keep\ only\ matching\ comments.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Note\ that\ currently\ not\ *all*\ comments\ can\ be}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kept\ when\ compression\ is\ on,\ because\ of\ dead}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ code\ removal\ or\ cascading\ statements\ into}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sequences.}
+\DoxyCodeLine{-\/-\/config-\/file\ <file>\ \ \ \ \ \ \ \ Read\ \`{}minify()`\ options\ from\ JSON\ file.}
+\DoxyCodeLine{-\/d,\ -\/-\/define\ <expr>[=value]\ Global\ definitions.}
+\DoxyCodeLine{-\/-\/ecma\ <version>\ \ \ \ \ \ \ \ \ \ \ \ Specify\ ECMAScript\ release:\ 5,\ 2015,\ 2016,\ etc.}
+\DoxyCodeLine{-\/e,\ -\/-\/enclose\ [arg[:value]]\ Embed\ output\ in\ a\ big\ function\ with\ configurable}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ arguments\ and\ values.}
+\DoxyCodeLine{-\/-\/ie8\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Support\ non-\/standard\ Internet\ Explorer\ 8.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Equivalent\ to\ setting\ \`{}ie8:\ true`\ in\ \`{}minify()`}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ for\ \`{}compress`,\ \`{}mangle`\ and\ \`{}format`\ options.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ By\ default\ Terser\ will\ not\ try\ to\ be\ IE-\/proof.}
+\DoxyCodeLine{-\/-\/keep-\/classnames\ \ \ \ \ \ \ \ \ \ \ Do\ not\ mangle/drop\ class\ names.}
+\DoxyCodeLine{-\/-\/keep-\/fnames\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Do\ not\ mangle/drop\ function\ names.\ \ Useful\ for}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ code\ relying\ on\ Function.prototype.name.}
+\DoxyCodeLine{-\/-\/module\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Input\ is\ an\ ES6\ module.\ If\ \`{}compress`\ or\ \`{}mangle`\ is}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ enabled\ then\ the\ \`{}toplevel`\ option,\ as\ well\ as\ strict\ mode,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ will\ be\ enabled.}
+\DoxyCodeLine{-\/-\/name-\/cache\ <file>\ \ \ \ \ \ \ \ \ File\ to\ hold\ mangled\ name\ mappings.}
+\DoxyCodeLine{-\/-\/safari10\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Support\ non-\/standard\ Safari\ 10/11.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Equivalent\ to\ setting\ \`{}safari10:\ true`\ in\ \`{}minify()`}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ for\ \`{}mangle`\ and\ \`{}format`\ options.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ By\ default\ \`{}terser`\ will\ not\ work\ around}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Safari\ 10/11\ bugs.}
+\DoxyCodeLine{-\/-\/source-\/map\ [options]\ \ \ \ \ \ Enable\ source\ map/specify\ source\ map\ options:}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}base`\ \ Path\ to\ compute\ relative\ paths\ from\ input\ files.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}content`\ \ Input\ source\ map,\ useful\ if\ you're\ compressing}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JS\ that\ was\ generated\ from\ some\ other\ original}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ code.\ Specify\ "{}inline"{}\ if\ the\ source\ map\ is}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ included\ within\ the\ sources.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}filename`\ \ Name\ and/or\ location\ of\ the\ output\ source.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}includeSources`\ \ Pass\ this\ flag\ if\ you\ want\ to\ include}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ content\ of\ source\ files\ in\ the}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ source\ map\ as\ sourcesContent\ property.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}root`\ \ Path\ to\ the\ original\ source\ to\ be\ included\ in}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ source\ map.}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}url`\ \ If\ specified,\ path\ to\ the\ source\ map\ to\ append\ in}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \`{}//\#\ sourceMappingURL`.}
+\DoxyCodeLine{-\/-\/timings\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Display\ operations\ run\ time\ on\ STDERR.}
+\DoxyCodeLine{-\/-\/toplevel\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Compress\ and/or\ mangle\ variables\ in\ top\ level\ scope.}
+\DoxyCodeLine{-\/-\/wrap\ <name>\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Embed\ everything\ in\ a\ big\ function,\ making\ the}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ “exports”\ and\ “global”\ variables\ available.\ You}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ need\ to\ pass\ an\ argument\ to\ this\ option\ to}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ specify\ the\ name\ that\ your\ module\ will\ take}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ when\ included\ in,\ say,\ a\ browser.}
+
+\end{DoxyCode}
+
+
+Specify {\ttfamily -\/-\/output} ({\ttfamily -\/o}) to declare the output file. Otherwise the output goes to STDOUT.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9127}{}\doxysubsubsection{\texorpdfstring{CLI source map options}{CLI source map options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9127}
+Terser can generate a source map file, which is highly useful for debugging your compressed Java\+Script. To get a source map, pass {\ttfamily -\/-\/source-\/map -\/-\/output output.\+js} (source map will be written out to {\ttfamily output.\+js.\+map}).
+
+Additional options:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily -\/-\/source-\/map "{}filename=\textquotesingle{}\texorpdfstring{$<$}{<}NAME\texorpdfstring{$>$}{>}\textquotesingle{}"{}} to specify the name of the source map.
+\item {\ttfamily -\/-\/source-\/map "{}root=\textquotesingle{}\texorpdfstring{$<$}{<}URL\texorpdfstring{$>$}{>}\textquotesingle{}"{}} to pass the URL where the original files can be found.
+\item {\ttfamily -\/-\/source-\/map "{}url=\textquotesingle{}\texorpdfstring{$<$}{<}URL\texorpdfstring{$>$}{>}\textquotesingle{}"{}} to specify the URL where the source map can be found. Otherwise Terser assumes HTTP {\ttfamily X-\/\+Source\+Map} is being used and will omit the {\ttfamily /\+/\+\# source\+Mapping\+URL=} directive.
+\end{DoxyItemize}
+
+For example:\+ \begin{DoxyVerb}terser js/file1.js js/file2.js \
+         -o foo.min.js -c -m \
+         --source-map "root='http://foo.com/src',url='foo.min.js.map'"
+\end{DoxyVerb}
+
+
+The above will compress and mangle {\ttfamily file1.\+js} and {\ttfamily file2.\+js}, will drop the output in {\ttfamily foo.\+min.\+js} and the source map in {\ttfamily foo.\+min.\+js.\+map}. The source mapping will refer to {\ttfamily \href{http://foo.com/src/js/file1.js}{\texttt{http:\+/\+/\+foo.\+com/\+src/\+js/\+file1.\+js}}} and {\ttfamily \href{http://foo.com/src/js/file2.js}{\texttt{http:\+/\+/\+foo.\+com/\+src/\+js/\+file2.\+js}}} (in fact it will list {\ttfamily \href{http://foo.com/src}{\texttt{http:\+/\+/\+foo.\+com/\+src}}} as the source map root, and the original files as {\ttfamily js/\+file1.\+js} and {\ttfamily js/\+file2.\+js}).\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9128}{}\doxysubsubsubsection{\texorpdfstring{Composed source map}{Composed source map}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9128}
+When you\textquotesingle{}re compressing JS code that was output by a compiler such as Coffee\+Script, mapping to the JS code won\textquotesingle{}t be too helpful. Instead, you\textquotesingle{}d like to map back to the original code (i.\+e. Coffee\+Script). Terser has an option to take an input source map. Assuming you have a mapping from Coffee\+Script → compiled JS, Terser can generate a map from Coffee\+Script → compressed JS by mapping every token in the compiled JS to its original location.
+
+To use this feature pass {\ttfamily -\/-\/source-\/map "{}content=\textquotesingle{}/\+path/\+to/\+input/\+source.map\textquotesingle{}"{}} or {\ttfamily -\/-\/source-\/map "{}content=inline"{}} if the source map is included inline with the sources.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9129}{}\doxysubsubsection{\texorpdfstring{CLI compress options}{CLI compress options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9129}
+You need to pass {\ttfamily -\/-\/compress} ({\ttfamily -\/c}) to enable the compressor. Optionally you can pass a comma-\/separated list of compress optionscompress options.
+
+Options are in the form {\ttfamily foo=bar}, or just {\ttfamily foo} (the latter implies a boolean option that you want to set {\ttfamily true}; it\textquotesingle{}s effectively a shortcut for {\ttfamily foo=true}).
+
+Example:\+ \begin{DoxyVerb}terser file.js -c toplevel,sequences=false
+\end{DoxyVerb}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9130}{}\doxysubsubsection{\texorpdfstring{CLI mangle options}{CLI mangle options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9130}
+To enable the mangler you need to pass {\ttfamily -\/-\/mangle} ({\ttfamily -\/m}). The following (comma-\/separated) options are supported:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily toplevel} (default {\ttfamily false}) -- mangle names declared in the top level scope.
+\item {\ttfamily eval} (default {\ttfamily false}) -- mangle names visible in scopes where {\ttfamily eval} or {\ttfamily with} are used.
+\end{DoxyItemize}
+
+When mangling is enabled but you want to prevent certain names from being mangled, you can declare those names with {\ttfamily -\/-\/mangle reserved} — pass a comma-\/separated list of names. For example:\+ \begin{DoxyVerb}terser ... -m reserved=['$','require','exports']
+\end{DoxyVerb}
+
+
+to prevent the {\ttfamily require}, {\ttfamily exports} and {\ttfamily \$} names from being changed.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9131}{}\doxysubsubsubsection{\texorpdfstring{CLI mangling property names ({\ttfamily -\/-\/mangle-\/props})}{CLI mangling property names ({\ttfamily -\/-\/mangle-\/props})}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9131}
+{\bfseries{Note:\+}} THIS {\bfseries{WILL}} BREAK YOUR CODE. A good rule of thumb is not to use this unless you know exactly what you\textquotesingle{}re doing and how this works and read this section until the end.
+
+Mangling property names is a separate step, different from variable name mangling. Pass {\ttfamily -\/-\/mangle-\/props} to enable it. The least dangerous way to use this is to use the {\ttfamily regex} option like so:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{terser\ example.js\ -\/c\ -\/m\ -\/-\/mangle-\/props\ regex=/\_\$/}
+
+\end{DoxyCode}
+
+
+This will mangle all properties that end with an underscore. So you can use it to mangle internal methods.
+
+By default, it will mangle all properties in the input code with the exception of built in DOM properties and properties in core Java\+Script classes, which is what will break your code if you don\textquotesingle{}t:\+
+
+
+\begin{DoxyEnumerate}
+\item Control all the code you\textquotesingle{}re mangling
+\item Avoid using a module bundler, as they usually will call Terser on each file individually, making it impossible to pass mangled objects between modules.
+\item Avoid calling functions like {\ttfamily define\+Property} or {\ttfamily has\+Own\+Property}, because they refer to object properties using strings and will break your code if you don\textquotesingle{}t know what you are doing.
+\end{DoxyEnumerate}
+
+An example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ example.js}
+\DoxyCodeLine{var\ x\ =\ \{}
+\DoxyCodeLine{\ \ \ \ baz\_:\ 0,}
+\DoxyCodeLine{\ \ \ \ foo\_:\ 1,}
+\DoxyCodeLine{\ \ \ \ calc:\ function()\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ this.foo\_\ +\ this.baz\_;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{x.bar\_\ =\ 2;}
+\DoxyCodeLine{x["{}baz\_"{}]\ =\ 3;}
+\DoxyCodeLine{console.log(x.calc());}
+
+\end{DoxyCode}
+ Mangle all properties (except for Java\+Script {\ttfamily builtins}) ({\bfseries{very}} unsafe):\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ terser\ example.js\ -\/c\ passes=2\ -\/m\ -\/-\/mangle-\/props}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ x=\{o:3,t:1,i:function()\{return\ this.t+this.o\},s:2\};console.log(x.i());}
+
+\end{DoxyCode}
+ Mangle all properties except for {\ttfamily reserved} properties (still very unsafe):\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ terser\ example.js\ -\/c\ passes=2\ -\/m\ -\/-\/mangle-\/props\ reserved=[foo\_,bar\_]}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ x=\{o:3,foo\_:1,t:function()\{return\ this.foo\_+this.o\},bar\_:2\};console.log(x.t());}
+
+\end{DoxyCode}
+ Mangle all properties matching a {\ttfamily regex} (not as unsafe but still unsafe):\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ terser\ example.js\ -\/c\ passes=2\ -\/m\ -\/-\/mangle-\/props\ regex=/\_\$/}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ x=\{o:3,t:1,calc:function()\{return\ this.t+this.o\},i:2\};console.log(x.calc());}
+
+\end{DoxyCode}
+
+
+Combining mangle properties options:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ terser\ example.js\ -\/c\ passes=2\ -\/m\ -\/-\/mangle-\/props\ regex=/\_\$/,reserved=[bar\_]}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ x=\{o:3,t:1,calc:function()\{return\ this.t+this.o\},bar\_:2\};console.log(x.calc());}
+
+\end{DoxyCode}
+
+
+In order for this to be of any use, we avoid mangling standard JS names and DOM API properties by default ({\ttfamily -\/-\/mangle-\/props builtins} to override).
+
+A regular expression can be used to define which property names should be mangled. For example, {\ttfamily -\/-\/mangle-\/props regex=/\+\texorpdfstring{$^\wedge$}{\string^}\+\_\+/\+} will only mangle property names that start with an underscore.
+
+When you compress multiple files using this option, in order for them to work together in the end we need to ensure somehow that one property gets mangled to the same name in all of them. For this, pass {\ttfamily -\/-\/name-\/cache filename.\+json} and Terser will maintain these mappings in a file which can then be reused. It should be initially empty. Example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ rm\ -\/f\ /tmp/cache.json\ \ \#\ start\ fresh}
+\DoxyCodeLine{\$\ terser\ file1.js\ file2.js\ -\/-\/mangle-\/props\ -\/-\/name-\/cache\ /tmp/cache.json\ -\/o\ part1.js}
+\DoxyCodeLine{\$\ terser\ file3.js\ file4.js\ -\/-\/mangle-\/props\ -\/-\/name-\/cache\ /tmp/cache.json\ -\/o\ part2.js}
+
+\end{DoxyCode}
+
+
+Now, {\ttfamily part1.\+js} and {\ttfamily part2.\+js} will be consistent with each other in terms of mangled property names.
+
+Using the name cache is not necessary if you compress all your files in a single call to Terser.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9132}{}\doxysubsubsubsection{\texorpdfstring{Mangling unquoted names ({\ttfamily -\/-\/mangle-\/props keep\+\_\+quoted})}{Mangling unquoted names ({\ttfamily -\/-\/mangle-\/props keep\+\_\+quoted})}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9132}
+Using quoted property name ({\ttfamily o\+["{}foo"{}]\+}) reserves the property name ({\ttfamily foo}) so that it is not mangled throughout the entire script even when used in an unquoted style ({\ttfamily o.\+foo}). Example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ stuff.js}
+\DoxyCodeLine{var\ o\ =\ \{}
+\DoxyCodeLine{\ \ \ \ "{}foo"{}:\ 1,}
+\DoxyCodeLine{\ \ \ \ bar:\ 3}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{o.foo\ +=\ o.bar;}
+\DoxyCodeLine{console.log(o.foo);}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ terser\ stuff.js\ -\/-\/mangle-\/props\ keep\_quoted\ -\/c\ -\/m}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ o=\{foo:1,o:3\};o.foo+=o.o,console.log(o.foo);}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9133}{}\doxysubsubsubsection{\texorpdfstring{Debugging property name mangling}{Debugging property name mangling}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9133}
+You can also pass {\ttfamily -\/-\/mangle-\/props debug} in order to mangle property names without completely obscuring them. For example the property {\ttfamily o.\+foo} would mangle to {\ttfamily o.\+\_\+\$foo\$\+\_\+} with this option. This allows property mangling of a large codebase while still being able to debug the code and identify where mangling is breaking things.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ terser\ stuff.js\ -\/-\/mangle-\/props\ debug\ -\/c\ -\/m}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ o=\{\_\$foo\$\_:1,\_\$bar\$\_:3\};o.\_\$foo\$\_+=o.\_\$bar\$\_,console.log(o.\_\$foo\$\_);}
+
+\end{DoxyCode}
+
+
+You can also pass a custom suffix using {\ttfamily -\/-\/mangle-\/props debug=XYZ}. This would then mangle {\ttfamily o.\+foo} to {\ttfamily o.\+\_\+\$foo\$XYZ\+\_\+}. You can change this each time you compile a script to identify how a property got mangled. One technique is to pass a random number on every compile to simulate mangling changing with different inputs (e.\+g. as you update the input script with new properties), and to help identify mistakes like writing mangled keys to storage.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9134}{}\doxysubsection{\texorpdfstring{API Reference}{API Reference}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9134}
+Assuming installation via NPM, you can load Terser in your application like this:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ \{\ minify\ \}\ =\ require("{}terser"{});}
+
+\end{DoxyCode}
+
+
+Or,
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ minify\ \}\ from\ "{}terser"{};}
+
+\end{DoxyCode}
+
+
+Browser loading is also supported. It exposes a global variable {\ttfamily Terser} containing a {\ttfamily .minify} property:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ src="{}https://cdn.jsdelivr.net/npm/source-\/map@0.7.3/dist/source-\/map.js"{}></script>}
+\DoxyCodeLine{<script\ src="{}https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"{}></script>}
+
+\end{DoxyCode}
+
+
+There is an async high level function, {\bfseries{{\ttfamily async minify(code, options)}}}, which will perform all minification phasesphases in a configurable manner. By default {\ttfamily minify()} will enable \`{}compress\`{}{\ttfamily compress} and \`{}mangle\`{}{\ttfamily mangle}. Example:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ code\ =\ "{}function\ add(first,\ second)\ \{\ return\ first\ +\ second;\ \}"{};}
+\DoxyCodeLine{var\ result\ =\ await\ minify(code,\ \{\ sourceMap:\ true\ \});}
+\DoxyCodeLine{console.log(result.code);\ \ //\ minified\ output:\ function\ add(n,d)\{return\ n+d\}}
+\DoxyCodeLine{console.log(result.map);\ \ //\ source\ map}
+
+\end{DoxyCode}
+
+
+There is also a {\ttfamily minify\+\_\+sync()} alternative version of it, which returns instantly.
+
+You can {\ttfamily minify} more than one Java\+Script file at a time by using an object for the first argument where the keys are file names and the values are source code:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ code\ =\ \{}
+\DoxyCodeLine{\ \ \ \ "{}file1.js"{}:\ "{}function\ add(first,\ second)\ \{\ return\ first\ +\ second;\ \}"{},}
+\DoxyCodeLine{\ \ \ \ "{}file2.js"{}:\ "{}console.log(add(1\ +\ 2,\ 3\ +\ 4));"{}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{var\ result\ =\ await\ minify(code);}
+\DoxyCodeLine{console.log(result.code);}
+\DoxyCodeLine{//\ function\ add(d,n)\{return\ d+n\}console.log(add(3,7));}
+
+\end{DoxyCode}
+
+
+The {\ttfamily toplevel} option:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ code\ =\ \{}
+\DoxyCodeLine{\ \ \ \ "{}file1.js"{}:\ "{}function\ add(first,\ second)\ \{\ return\ first\ +\ second;\ \}"{},}
+\DoxyCodeLine{\ \ \ \ "{}file2.js"{}:\ "{}console.log(add(1\ +\ 2,\ 3\ +\ 4));"{}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{var\ options\ =\ \{\ toplevel:\ true\ \};}
+\DoxyCodeLine{var\ result\ =\ await\ minify(code,\ options);}
+\DoxyCodeLine{console.log(result.code);}
+\DoxyCodeLine{//\ console.log(3+7);}
+
+\end{DoxyCode}
+
+
+The {\ttfamily name\+Cache} option:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ options\ =\ \{}
+\DoxyCodeLine{\ \ \ \ mangle:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ toplevel:\ true,}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ nameCache:\ \{\}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{var\ result1\ =\ await\ minify(\{}
+\DoxyCodeLine{\ \ \ \ "{}file1.js"{}:\ "{}function\ add(first,\ second)\ \{\ return\ first\ +\ second;\ \}"{}}
+\DoxyCodeLine{\},\ options);}
+\DoxyCodeLine{var\ result2\ =\ await\ minify(\{}
+\DoxyCodeLine{\ \ \ \ "{}file2.js"{}:\ "{}console.log(add(1\ +\ 2,\ 3\ +\ 4));"{}}
+\DoxyCodeLine{\},\ options);}
+\DoxyCodeLine{console.log(result1.code);}
+\DoxyCodeLine{//\ function\ n(n,r)\{return\ n+r\}}
+\DoxyCodeLine{console.log(result2.code);}
+\DoxyCodeLine{//\ console.log(n(3,7));}
+
+\end{DoxyCode}
+
+
+You may persist the name cache to the file system in the following way:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ cacheFileName\ =\ "{}/tmp/cache.json"{};}
+\DoxyCodeLine{var\ options\ =\ \{}
+\DoxyCodeLine{\ \ \ \ mangle:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ properties:\ true,}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ nameCache:\ JSON.parse(fs.readFileSync(cacheFileName,\ "{}utf8"{}))}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{fs.writeFileSync("{}part1.js"{},\ await\ minify(\{}
+\DoxyCodeLine{\ \ \ \ "{}file1.js"{}:\ fs.readFileSync("{}file1.js"{},\ "{}utf8"{}),}
+\DoxyCodeLine{\ \ \ \ "{}file2.js"{}:\ fs.readFileSync("{}file2.js"{},\ "{}utf8"{})}
+\DoxyCodeLine{\},\ options).code,\ "{}utf8"{});}
+\DoxyCodeLine{fs.writeFileSync("{}part2.js"{},\ await\ minify(\{}
+\DoxyCodeLine{\ \ \ \ "{}file3.js"{}:\ fs.readFileSync("{}file3.js"{},\ "{}utf8"{}),}
+\DoxyCodeLine{\ \ \ \ "{}file4.js"{}:\ fs.readFileSync("{}file4.js"{},\ "{}utf8"{})}
+\DoxyCodeLine{\},\ options).code,\ "{}utf8"{});}
+\DoxyCodeLine{fs.writeFileSync(cacheFileName,\ JSON.stringify(options.nameCache),\ "{}utf8"{});}
+
+\end{DoxyCode}
+
+
+An example of a combination of {\ttfamily minify()} options:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ code\ =\ \{}
+\DoxyCodeLine{\ \ \ \ "{}file1.js"{}:\ "{}function\ add(first,\ second)\ \{\ return\ first\ +\ second;\ \}"{},}
+\DoxyCodeLine{\ \ \ \ "{}file2.js"{}:\ "{}console.log(add(1\ +\ 2,\ 3\ +\ 4));"{}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{var\ options\ =\ \{}
+\DoxyCodeLine{\ \ \ \ toplevel:\ true,}
+\DoxyCodeLine{\ \ \ \ compress:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ global\_defs:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ "{}@console.log"{}:\ "{}alert"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ passes:\ 2}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ format:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ preamble:\ "{}/*\ minified\ */"{}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{var\ result\ =\ await\ minify(code,\ options);}
+\DoxyCodeLine{console.log(result.code);}
+\DoxyCodeLine{//\ /*\ minified\ */}
+\DoxyCodeLine{//\ alert(10);"{}}
+
+\end{DoxyCode}
+
+
+An error example:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{try\ \{}
+\DoxyCodeLine{\ \ \ \ const\ result\ =\ await\ minify(\{"{}foo.js"{}\ :\ "{}if\ (0)\ else\ console.log(1);"{}\});}
+\DoxyCodeLine{\ \ \ \ //\ Do\ something\ with\ result}
+\DoxyCodeLine{\}\ catch\ (error)\ \{}
+\DoxyCodeLine{\ \ \ \ const\ \{\ message,\ filename,\ line,\ col,\ pos\ \}\ =\ error;}
+\DoxyCodeLine{\ \ \ \ //\ Do\ something\ with\ error}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9135}{}\doxysubsubsection{\texorpdfstring{Minify options}{Minify options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9135}
+
+\begin{DoxyItemize}
+\item {\ttfamily ecma} (default {\ttfamily undefined}) -\/ pass {\ttfamily 5}, {\ttfamily 2015}, {\ttfamily 2016}, etc to override {\ttfamily compress} and {\ttfamily format}\textquotesingle{}s {\ttfamily ecma} options.
+\item {\ttfamily enclose} (default {\ttfamily false}) -\/ pass {\ttfamily true}, or a string in the format of {\ttfamily "{}args\+[:\+values]\+"{}}, where {\ttfamily args} and {\ttfamily values} are comma-\/separated argument names and values, respectively, to embed the output in a big function with the configurable arguments and values.
+\item {\ttfamily parse} (default {\ttfamily \{\}}) — pass an object if you wish to specify some additional parse optionsparse options
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily compress} (default {\ttfamily \{\}}) — pass {\ttfamily false} to skip compressing entirely. Pass an object to specify custom compress optionscompress options
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily mangle} (default {\ttfamily true}) — pass {\ttfamily false} to skip mangling names, or pass an object to specify mangle optionsmangle options
+\end{DoxyItemize}(see below).
+
+
+\begin{DoxyItemize}
+\item {\ttfamily mangle.\+properties} (default {\ttfamily false}) — a subcategory of the mangle option. Pass an object to specify custom mangle property optionsmangle property options
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{namespacemodule}{module}} (default {\ttfamily false}) — Use when minifying an ES6 module. "{}use strict"{} is implied and names can be mangled on the top scope. If {\ttfamily compress} or {\ttfamily mangle} is enabled then the {\ttfamily toplevel} option will be enabled.
+\item {\ttfamily format} or {\ttfamily output} (default {\ttfamily null}) — pass an object if you wish to specify additional format optionsformat options
+\end{DoxyItemize}. The defaults are optimized for best compression.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily source\+Map} (default {\ttfamily false}) -\/ pass an object if you wish to specify source map optionssource map options
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily toplevel} (default {\ttfamily false}) -\/ set to {\ttfamily true} if you wish to enable top level variable and function name mangling and to drop unused variables and functions.
+\item {\ttfamily name\+Cache} (default {\ttfamily null}) -\/ pass an empty object {\ttfamily \{\}} or a previously used {\ttfamily name\+Cache} object if you wish to cache mangled variable and property names across multiple invocations of {\ttfamily minify()}. Note:\+ this is a read/\+write property. {\ttfamily minify()} will read the name cache state of this object and update it during minification so that it may be reused or externally persisted by the user.
+\item {\ttfamily ie8} (default {\ttfamily false}) -\/ set to {\ttfamily true} to support IE8.
+\item {\ttfamily keep\+\_\+classnames} (default:\+ {\ttfamily undefined}) -\/ pass {\ttfamily true} to prevent discarding or mangling of class names. Pass a regular expression to only keep class names matching that regex.
+\item {\ttfamily keep\+\_\+fnames} (default:\+ {\ttfamily false}) -\/ pass {\ttfamily true} to prevent discarding or mangling of function names. Pass a regular expression to only keep function names matching that regex. Useful for code relying on {\ttfamily Function.\+prototype.\+name}. If the top level minify option {\ttfamily keep\+\_\+classnames} is {\ttfamily undefined} it will be overridden with the value of the top level minify option {\ttfamily keep\+\_\+fnames}.
+\item {\ttfamily safari10} (default:\+ {\ttfamily false}) -\/ pass {\ttfamily true} to work around Safari 10/\+11 bugs in loop scoping and {\ttfamily await}. See {\ttfamily safari10} options in \`{}mangle\`{}{\ttfamily mangle}
+\end{DoxyItemize}and \`{}format\`{}{\ttfamily format} for details.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9136}{}\doxysubsubsection{\texorpdfstring{Minify options structure}{Minify options structure}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9136}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ \ \ parse:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ parse\ options}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ compress:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ compress\ options}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ mangle:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ mangle\ options}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ properties:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ //\ mangle\ property\ options}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ format:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ format\ options\ (can\ also\ use\ \`{}output`\ for\ backwards\ compatibility)}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ sourceMap:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ source\ map\ options}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \ \ ecma:\ 5,\ //\ specify\ one\ of:\ 5,\ 2015,\ 2016,\ etc.}
+\DoxyCodeLine{\ \ \ \ enclose:\ false,\ //\ or\ specify\ true,\ or\ "{}args:values"{}}
+\DoxyCodeLine{\ \ \ \ keep\_classnames:\ false,}
+\DoxyCodeLine{\ \ \ \ keep\_fnames:\ false,}
+\DoxyCodeLine{\ \ \ \ ie8:\ false,}
+\DoxyCodeLine{\ \ \ \ module:\ false,}
+\DoxyCodeLine{\ \ \ \ nameCache:\ null,\ //\ or\ specify\ a\ name\ cache\ object}
+\DoxyCodeLine{\ \ \ \ safari10:\ false,}
+\DoxyCodeLine{\ \ \ \ toplevel:\ false}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9137}{}\doxysubsubsubsection{\texorpdfstring{Source map options}{Source map options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9137}
+To generate a source map:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ result\ =\ await\ minify(\{"{}file1.js"{}:\ "{}var\ a\ =\ function()\ \{\};"{}\},\ \{}
+\DoxyCodeLine{\ \ \ \ sourceMap:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ filename:\ "{}out.js"{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ url:\ "{}out.js.map"{}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\});}
+\DoxyCodeLine{console.log(result.code);\ //\ minified\ output}
+\DoxyCodeLine{console.log(result.map);\ \ //\ source\ map}
+
+\end{DoxyCode}
+
+
+Note that the source map is not saved in a file, it\textquotesingle{}s just returned in {\ttfamily result.\+map}. The value passed for {\ttfamily source\+Map.\+url} is only used to set {\ttfamily /\+/\+\# source\+Mapping\+URL=out.\+js.\+map} in {\ttfamily result.\+code}. The value of {\ttfamily filename} is only used to set {\ttfamily file} attribute (see \href{https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k}{\texttt{the spec}}) in source map file.
+
+You can set option {\ttfamily source\+Map.\+url} to be {\ttfamily "{}inline"{}} and source map will be appended to code.
+
+You can also specify source\+Root property to be included in source map:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ result\ =\ await\ minify(\{"{}file1.js"{}:\ "{}var\ a\ =\ function()\ \{\};"{}\},\ \{}
+\DoxyCodeLine{\ \ \ \ sourceMap:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ root:\ "{}http://example.com/src"{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ url:\ "{}out.js.map"{}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+
+
+If you\textquotesingle{}re compressing compiled Java\+Script and have a source map for it, you can use {\ttfamily source\+Map.\+content}:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ result\ =\ await\ minify(\{"{}compiled.js"{}:\ "{}compiled\ code"{}\},\ \{}
+\DoxyCodeLine{\ \ \ \ sourceMap:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ content:\ "{}content\ from\ compiled.js.map"{},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ url:\ "{}minified.js.map"{}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\});}
+\DoxyCodeLine{//\ same\ as\ before,\ it\ returns\ \`{}code`\ and\ \`{}map`}
+
+\end{DoxyCode}
+
+
+If you\textquotesingle{}re using the {\ttfamily X-\/\+Source\+Map} header instead, you can just omit {\ttfamily source\+Map.\+url}.
+
+If you happen to need the source map as a raw object, set {\ttfamily source\+Map.\+as\+Object} to {\ttfamily true}.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9138}{}\doxysubsubsection{\texorpdfstring{Parse options}{Parse options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9138}
+
+\begin{DoxyItemize}
+\item {\ttfamily bare\+\_\+returns} (default {\ttfamily false}) -- support top level {\ttfamily return} statements
+\item {\ttfamily html5\+\_\+comments} (default {\ttfamily true})
+\item {\ttfamily shebang} (default {\ttfamily true}) -- support {\ttfamily \#!command} as the first line
+\item {\ttfamily spidermonkey} (default {\ttfamily false}) -- accept a Spidermonkey (Mozilla) AST
+\end{DoxyItemize}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9139}{}\doxysubsubsection{\texorpdfstring{Compress options}{Compress options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9139}
+
+\begin{DoxyItemize}
+\item {\ttfamily defaults} (default:\+ {\ttfamily true}) -- Pass {\ttfamily false} to disable most default enabled {\ttfamily compress} transforms. Useful when you only want to enable a few {\ttfamily compress} options while disabling the rest.
+\item {\ttfamily arrows} (default:\+ {\ttfamily true}) -- Class and object literal methods are converted will also be converted to arrow expressions if the resultant code is shorter:\+ {\ttfamily m()\{return x\}} becomes {\ttfamily m:\+()=\texorpdfstring{$>$}{>}x}. To do this to regular ES5 functions which don\textquotesingle{}t use {\ttfamily this} or {\ttfamily arguments}, see {\ttfamily unsafe\+\_\+arrows}.
+\item {\ttfamily arguments} (default:\+ {\ttfamily false}) -- replace {\ttfamily arguments\+[index]\+} with function parameter name whenever possible.
+\item {\ttfamily booleans} (default:\+ {\ttfamily true}) -- various optimizations for boolean context, for example {\ttfamily !!a ? b :\+ c → a ? b :\+ c}
+\item {\ttfamily booleans\+\_\+as\+\_\+integers} (default:\+ {\ttfamily false}) -- Turn booleans into 0 and 1, also makes comparisons with booleans use {\ttfamily ==} and {\ttfamily !=} instead of {\ttfamily ===} and {\ttfamily !==}.
+\item {\ttfamily collapse\+\_\+vars} (default:\+ {\ttfamily true}) -- Collapse single-\/use non-\/constant variables, side effects permitting.
+\item {\ttfamily comparisons} (default:\+ {\ttfamily true}) -- apply certain optimizations to binary nodes, e.\+g. {\ttfamily !(a \texorpdfstring{$<$}{<}= b) → a \texorpdfstring{$>$}{>} b} (only when {\ttfamily unsafe\+\_\+comps}), attempts to negate binary nodes, e.\+g. {\ttfamily a = !b \&\& !c \&\& !d \&\& !e → a=!(b\texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}c\texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}d\texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}e)} etc. Note:\+ {\ttfamily comparisons} works best with {\ttfamily lhs\+\_\+constants} enabled.
+\item {\ttfamily computed\+\_\+props} (default:\+ {\ttfamily true}) -- Transforms constant computed properties into regular ones:\+ {\ttfamily \{\+["{}computed"{}]\+:\+ 1\}} is converted to {\ttfamily \{computed:\+ 1\}}.
+\item {\ttfamily conditionals} (default:\+ {\ttfamily true}) -- apply optimizations for {\ttfamily if}-\/s and conditional expressions
+\item {\ttfamily dead\+\_\+code} (default:\+ {\ttfamily true}) -- remove unreachable code
+\item {\ttfamily directives} (default:\+ {\ttfamily true}) -- remove redundant or non-\/standard directives
+\item {\ttfamily drop\+\_\+console} (default:\+ {\ttfamily false}) -- Pass {\ttfamily true} to discard calls to {\ttfamily console.\texorpdfstring{$\ast$}{*}} functions. If you only want to discard a portion of console, you can pass an array like this {\ttfamily \+[\textquotesingle{}\doxylink{namespacelog}{log}\textquotesingle{}, \textquotesingle{}info\textquotesingle{}]\+}, which will only discard {\ttfamily console.\+log}、 {\ttfamily console.\+info}.
+\item {\ttfamily drop\+\_\+debugger} (default:\+ {\ttfamily true}) -- remove {\ttfamily debugger;} statements
+\item {\ttfamily ecma} (default:\+ {\ttfamily 5}) -- Pass {\ttfamily 2015} or greater to enable {\ttfamily compress} options that will transform ES5 code into smaller ES6+ equivalent forms.
+\item {\ttfamily evaluate} (default:\+ {\ttfamily true}) -- attempt to evaluate constant expressions
+\item {\ttfamily expression} (default:\+ {\ttfamily false}) -- Pass {\ttfamily true} to preserve completion values from terminal statements without {\ttfamily return}, e.\+g. in bookmarklets.
+\item {\ttfamily global\+\_\+defs} (default:\+ {\ttfamily \{\}}) -- see conditional compilationconditional compilation
+\end{DoxyItemize}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily hoist\+\_\+funs} (default:\+ {\ttfamily false}) -- hoist function declarations
+\item {\ttfamily hoist\+\_\+props} (default:\+ {\ttfamily true}) -- hoist properties from constant object and array literals into regular variables subject to a set of constraints. For example:\+ {\ttfamily var o=\{p:\+1, q:\+2\}; f(o.\+p, o.\+q);} is converted to {\ttfamily f(1, 2);}. Note:\+ {\ttfamily hoist\+\_\+props} works best with {\ttfamily mangle} enabled, the {\ttfamily compress} option {\ttfamily passes} set to {\ttfamily 2} or higher, and the {\ttfamily compress} option {\ttfamily toplevel} enabled.
+\item {\ttfamily hoist\+\_\+vars} (default:\+ {\ttfamily false}) -- hoist {\ttfamily var} declarations (this is {\ttfamily false} by default because it seems to increase the size of the output in general)
+\item {\ttfamily if\+\_\+return} (default:\+ {\ttfamily true}) -- optimizations for if/\+return and if/\+continue
+\item {\ttfamily inline} (default:\+ {\ttfamily true}) -- inline calls to function with simple/\+{\ttfamily return} statement:\+
+\begin{DoxyItemize}
+\item {\ttfamily false} -- same as {\ttfamily 0}
+\item {\ttfamily 0} -- disabled inlining
+\item {\ttfamily 1} -- inline simple functions
+\item {\ttfamily 2} -- inline functions with arguments
+\item {\ttfamily 3} -- inline functions with arguments and variables
+\item {\ttfamily true} -- same as {\ttfamily 3}
+\end{DoxyItemize}
+\item {\ttfamily join\+\_\+vars} (default:\+ {\ttfamily true}) -- join consecutive {\ttfamily var}, {\ttfamily let} and {\ttfamily const} statements
+\item {\ttfamily keep\+\_\+classnames} (default:\+ {\ttfamily false}) -- Pass {\ttfamily true} to prevent the compressor from discarding class names. Pass a regular expression to only keep class names matching that regex. See also:\+ the {\ttfamily keep\+\_\+classnames} mangle optionmangle option
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily keep\+\_\+fargs} (default:\+ {\ttfamily true}) -- Prevents the compressor from discarding unused function arguments. You need this for code which relies on {\ttfamily Function.\+length}.
+\item {\ttfamily keep\+\_\+fnames} (default:\+ {\ttfamily false}) -- Pass {\ttfamily true} to prevent the compressor from discarding function names. Pass a regular expression to only keep function names matching that regex. Useful for code relying on {\ttfamily Function.\+prototype.\+name}. See also:\+ the {\ttfamily keep\+\_\+fnames} mangle optionmangle option
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily keep\+\_\+infinity} (default:\+ {\ttfamily false}) -- Pass {\ttfamily true} to prevent {\ttfamily Infinity} from being compressed into {\ttfamily 1/\+0}, which may cause performance issues on Chrome.
+\item {\ttfamily lhs\+\_\+constants} (default:\+ {\ttfamily true}) -- Moves constant values to the left-\/hand side of binary nodes. {\ttfamily foo == 42 → 42 == foo}
+\item {\ttfamily loops} (default:\+ {\ttfamily true}) -- optimizations for {\ttfamily do}, {\ttfamily while} and {\ttfamily for} loops when we can statically determine the condition.
+\item {\ttfamily \doxylink{namespacemodule}{module}} (default {\ttfamily false}) -- Pass {\ttfamily true} when compressing an ES6 module. Strict mode is implied and the {\ttfamily toplevel} option as well.
+\item {\ttfamily negate\+\_\+iife} (default:\+ {\ttfamily true}) -- negate "{}\+Immediately-\/\+Called Function Expressions"{} where the return value is discarded, to avoid the parens that the code generator would insert.
+\item {\ttfamily passes} (default:\+ {\ttfamily 1}) -- The maximum number of times to run compress. In some cases more than one pass leads to further compressed code. Keep in mind more passes will take more time.
+\item {\ttfamily properties} (default:\+ {\ttfamily true}) -- rewrite property access using the dot notation, for example {\ttfamily foo\+["{}bar"{}]\+ → foo.\+bar}
+\item {\ttfamily pure\+\_\+funcs} (default:\+ {\ttfamily null}) -- You can pass an array of names and Terser will assume that those functions do not produce side effects. DANGER:\+ will not check if the name is redefined in scope. An example case here, for instance {\ttfamily var q = Math.\+floor(a/\+b)}. If variable {\ttfamily q} is not used elsewhere, Terser will drop it, but will still keep the {\ttfamily Math.\+floor(a/\+b)}, not knowing what it does. You can pass {\ttfamily pure\+\_\+funcs:\+ \+[ \textquotesingle{}Math.\+floor\textquotesingle{} ]\+} to let it know that this function won\textquotesingle{}t produce any side effect, in which case the whole statement would get discarded. The current implementation adds some overhead (compression will be slower).
+\item {\ttfamily pure\+\_\+getters} (default:\+ {\ttfamily "{}strict"{}}) -- If you pass {\ttfamily true} for this, Terser will assume that object property access (e.\+g. {\ttfamily foo.\+bar} or {\ttfamily foo\+["{}bar"{}]\+}) doesn\textquotesingle{}t have any side effects. Specify {\ttfamily "{}strict"{}} to treat {\ttfamily foo.\+bar} as side-\/effect-\/free only when {\ttfamily foo} is certain to not throw, i.\+e. not {\ttfamily null} or {\ttfamily undefined}.
+\item {\ttfamily pure\+\_\+new} (default:\+ {\ttfamily false}) -- Set to {\ttfamily true} to assume {\ttfamily new X()} never has side effects.
+\item {\ttfamily reduce\+\_\+vars} (default:\+ {\ttfamily true}) -- Improve optimization on variables assigned with and used as constant values.
+\item {\ttfamily reduce\+\_\+funcs} (default:\+ {\ttfamily true}) -- Inline single-\/use functions when possible. Depends on {\ttfamily reduce\+\_\+vars} being enabled. Disabling this option sometimes improves performance of the output code.
+\item {\ttfamily sequences} (default:\+ {\ttfamily true}) -- join consecutive simple statements using the comma operator. May be set to a positive integer to specify the maximum number of consecutive comma sequences that will be generated. If this option is set to {\ttfamily true} then the default {\ttfamily sequences} limit is {\ttfamily 200}. Set option to {\ttfamily false} or {\ttfamily 0} to disable. The smallest {\ttfamily sequences} length is {\ttfamily 2}. A {\ttfamily sequences} value of {\ttfamily 1} is grandfathered to be equivalent to {\ttfamily true} and as such means {\ttfamily 200}. On rare occasions the default sequences limit leads to very slow compress times in which case a value of {\ttfamily 20} or less is recommended.
+\item {\ttfamily side\+\_\+effects} (default:\+ {\ttfamily true}) -- Remove expressions which have no side effects and whose results aren\textquotesingle{}t used.
+\item {\ttfamily switches} (default:\+ {\ttfamily true}) -- de-\/duplicate and remove unreachable {\ttfamily switch} branches
+\item {\ttfamily toplevel} (default:\+ {\ttfamily false}) -- drop unreferenced functions ({\ttfamily "{}funcs"{}}) and/\+or variables ({\ttfamily "{}vars"{}}) in the top level scope ({\ttfamily false} by default, {\ttfamily true} to drop both unreferenced functions and variables)
+\item {\ttfamily top\+\_\+retain} (default:\+ {\ttfamily null}) -- prevent specific toplevel functions and variables from {\ttfamily unused} removal (can be array, comma-\/separated, Reg\+Exp or function. Implies {\ttfamily toplevel})
+\item {\ttfamily typeofs} (default:\+ {\ttfamily true}) -- Transforms {\ttfamily typeof foo == "{}undefined"{}} into {\ttfamily foo === void 0}. Note:\+ recommend to set this value to {\ttfamily false} for IE10 and earlier versions due to known issues.
+\item {\ttfamily unsafe} (default:\+ {\ttfamily false}) -- apply "{}unsafe"{} transformations (detailsdetails
+\end{DoxyItemize}).
+
+
+\begin{DoxyItemize}
+\item {\ttfamily unsafe\+\_\+arrows} (default:\+ {\ttfamily false}) -- Convert ES5 style anonymous function expressions to arrow functions if the function body does not reference {\ttfamily this}. Note:\+ it is not always safe to perform this conversion if code relies on the the function having a {\ttfamily prototype}, which arrow functions lack. This transform requires that the {\ttfamily ecma} compress option is set to {\ttfamily 2015} or greater.
+\item {\ttfamily unsafe\+\_\+comps} (default:\+ {\ttfamily false}) -- Reverse {\ttfamily \texorpdfstring{$<$}{<}} and {\ttfamily \texorpdfstring{$<$}{<}=} to {\ttfamily \texorpdfstring{$>$}{>}} and {\ttfamily \texorpdfstring{$>$}{>}=} to allow improved compression. This might be unsafe when an at least one of two operands is an object with computed values due the use of methods like {\ttfamily get}, or {\ttfamily value\+Of}. This could cause change in execution order after operands in the comparison are switching. Or if one of two operands is {\ttfamily NaN}, the result is always {\ttfamily false}. Compression only works if both {\ttfamily comparisons} and {\ttfamily unsafe\+\_\+comps} are both set to true.
+\item {\ttfamily unsafe\+\_\+\+Function} (default:\+ {\ttfamily false}) -- compress and mangle {\ttfamily Function(args, code)} when both {\ttfamily args} and {\ttfamily code} are string literals.
+\item {\ttfamily unsafe\+\_\+math} (default:\+ {\ttfamily false}) -- optimize numerical expressions like {\ttfamily 2 \texorpdfstring{$\ast$}{*} x \texorpdfstring{$\ast$}{*} 3} into {\ttfamily 6 \texorpdfstring{$\ast$}{*} x}, which may give imprecise floating point results.
+\item {\ttfamily unsafe\+\_\+symbols} (default:\+ {\ttfamily false}) -- removes keys from native Symbol declarations, e.\+g {\ttfamily Symbol("{}k\+Dog"{})} becomes {\ttfamily Symbol()}.
+\item {\ttfamily unsafe\+\_\+methods} (default:\+ false) -- Converts {\ttfamily \{ m:\+ function()\{\} \}} to {\ttfamily \{ m()\{\} \}}. {\ttfamily ecma} must be set to {\ttfamily 6} or greater to enable this transform. If {\ttfamily unsafe\+\_\+methods} is a Reg\+Exp then key/\+value pairs with keys matching the Reg\+Exp will be converted to concise methods. Note:\+ if enabled there is a risk of getting a "{}\`{}$<$method name$>$\`{} is not a   constructor"{} Type\+Error should any code try to {\ttfamily new} the former function.
+\item {\ttfamily unsafe\+\_\+proto} (default:\+ {\ttfamily false}) -- optimize expressions like {\ttfamily Array.\+prototype.\+slice.\+call(a)} into {\ttfamily \+[]\+.slice.\+call(a)}
+\item {\ttfamily unsafe\+\_\+regexp} (default:\+ {\ttfamily false}) -- enable substitutions of variables with {\ttfamily Reg\+Exp} values the same way as if they are constants.
+\item {\ttfamily unsafe\+\_\+undefined} (default:\+ {\ttfamily false}) -- substitute {\ttfamily void 0} if there is a variable named {\ttfamily undefined} in scope (variable name will be mangled, typically reduced to a single character)
+\item {\ttfamily unused} (default:\+ {\ttfamily true}) -- drop unreferenced functions and variables (simple direct variable assignments do not count as references unless set to {\ttfamily "{}keep\+\_\+assign"{}})
+\end{DoxyItemize}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9140}{}\doxysubsubsection{\texorpdfstring{Mangle options}{Mangle options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9140}
+
+\begin{DoxyItemize}
+\item {\ttfamily eval} (default {\ttfamily false}) -- Pass {\ttfamily true} to mangle names visible in scopes where {\ttfamily eval} or {\ttfamily with} are used.
+\item {\ttfamily keep\+\_\+classnames} (default {\ttfamily false}) -- Pass {\ttfamily true} to not mangle class names. Pass a regular expression to only keep class names matching that regex. See also:\+ the {\ttfamily keep\+\_\+classnames} compress optioncompress option
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily keep\+\_\+fnames} (default {\ttfamily false}) -- Pass {\ttfamily true} to not mangle function names. Pass a regular expression to only keep function names matching that regex. Useful for code relying on {\ttfamily Function.\+prototype.\+name}. See also:\+ the {\ttfamily keep\+\_\+fnames} compress optioncompress option
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{namespacemodule}{module}} (default {\ttfamily false}) -- Pass {\ttfamily true} an ES6 modules, where the toplevel scope is not the global scope. Implies {\ttfamily toplevel} and assumes input code is strict mode JS.
+\item {\ttfamily nth\+\_\+identifier} (default:\+ an internal mangler that weights based on character frequency analysis) -- Pass an object with a {\ttfamily get(n)} function that converts an ordinal into the nth most favored (usually shortest) identifier. Optionally also provide {\ttfamily reset()}, {\ttfamily sort()}, and {\ttfamily consider(chars, delta)} to use character frequency analysis of the source code.
+\item {\ttfamily reserved} (default {\ttfamily \+[]\+}) -- Pass an array of identifiers that should be excluded from mangling. Example:\+ {\ttfamily \+["{}foo"{}, "{}bar"{}]\+}.
+\item {\ttfamily toplevel} (default {\ttfamily false}) -- Pass {\ttfamily true} to mangle names declared in the top level scope.
+\item {\ttfamily safari10} (default {\ttfamily false}) -- Pass {\ttfamily true} to work around the Safari 10 loop iterator \href{https://bugs.webkit.org/show_bug.cgi?id=171041}{\texttt{bug}} "{}\+Cannot declare a let variable twice"{}. See also:\+ the {\ttfamily safari10} format optionformat option
+\end{DoxyItemize}.
+
+Examples:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ test.js}
+\DoxyCodeLine{var\ globalVar;}
+\DoxyCodeLine{function\ funcName(firstLongName,\ anotherLongName)\ \{}
+\DoxyCodeLine{\ \ \ \ var\ myVariable\ =\ firstLongName\ +\ \ anotherLongName;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ code\ =\ fs.readFileSync("{}test.js"{},\ "{}utf8"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{await\ minify(code).code;}
+\DoxyCodeLine{//\ 'function\ funcName(a,n)\{\}var\ globalVar;'}
+\DoxyCodeLine{}
+\DoxyCodeLine{await\ minify(code,\ \{\ mangle:\ \{\ reserved:\ ['firstLongName']\ \}\ \}).code;}
+\DoxyCodeLine{//\ 'function\ funcName(firstLongName,a)\{\}var\ globalVar;'}
+\DoxyCodeLine{}
+\DoxyCodeLine{await\ minify(code,\ \{\ mangle:\ \{\ toplevel:\ true\ \}\ \}).code;}
+\DoxyCodeLine{//\ 'function\ n(n,a)\{\}var\ a;'}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9141}{}\doxysubsubsubsection{\texorpdfstring{Mangle properties options}{Mangle properties options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9141}
+
+\begin{DoxyItemize}
+\item {\ttfamily builtins} (default:\+ {\ttfamily false}) — Use {\ttfamily true} to allow the mangling of builtin DOM properties. Not recommended to override this setting.
+\item {\ttfamily debug} (default:\+ {\ttfamily false}) — Mangle names with the original name still present. Pass an empty string {\ttfamily "{}"{}} to enable, or a non-\/empty string to set the debug suffix.
+\item {\ttfamily keep\+\_\+quoted} (default:\+ {\ttfamily false}) — How quoting properties ({\ttfamily \{"{}prop"{}:\+ ...\}} and {\ttfamily obj\+["{}prop"{}]\+}) controls what gets mangled.
+\begin{DoxyItemize}
+\item {\ttfamily "{}strict"{}} (recommended) -- {\ttfamily obj.\+prop} is mangled.
+\item {\ttfamily false} -- {\ttfamily obj\+["{}prop"{}]\+} is mangled.
+\item {\ttfamily true} -- {\ttfamily obj.\+prop} is mangled unless there is {\ttfamily obj\+["{}prop"{}]\+} elsewhere in the code.
+\end{DoxyItemize}
+\item {\ttfamily nth\+\_\+identifier} (default:\+ an internal mangler that weights based on character frequency analysis) -- Pass an object with a {\ttfamily get(n)} function that converts an ordinal into the nth most favored (usually shortest) identifier. Optionally also provide {\ttfamily reset()}, {\ttfamily sort()}, and {\ttfamily consider(chars, delta)} to use character frequency analysis of the source code.
+\item {\ttfamily regex} (default:\+ {\ttfamily null}) — Pass a \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp}{\texttt{Reg\+Exp literal or pattern string}} to only mangle property matching the regular expression.
+\item {\ttfamily reserved} (default:\+ {\ttfamily \+[]\+}) — Do not mangle property names listed in the {\ttfamily reserved} array.
+\item {\ttfamily undeclared} (default:\+ {\ttfamily false}) -\/ Mangle those names when they are accessed as properties of known top level variables but their declarations are never found in input code. May be useful when only minifying parts of a project. See \href{https://github.com/terser/terser/issues/397}{\texttt{\#397}} for more details.
+\end{DoxyItemize}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9142}{}\doxysubsubsection{\texorpdfstring{Format options}{Format options}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9142}
+These options control the format of Terser\textquotesingle{}s output code. Previously known as "{}output options"{}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily ascii\+\_\+only} (default {\ttfamily false}) -- escape Unicode characters in strings and regexps (affects directives with non-\/ascii characters becoming invalid)
+\item {\ttfamily beautify} (default {\ttfamily false}) -- (DEPRECATED) whether to beautify the output. When using the legacy {\ttfamily -\/b} CLI flag, this is set to true by default.
+\item {\ttfamily braces} (default {\ttfamily false}) -- always insert braces in {\ttfamily if}, {\ttfamily for}, {\ttfamily do}, {\ttfamily while} or {\ttfamily with} statements, even if their body is a single statement.
+\item {\ttfamily comments} (default {\ttfamily "{}some"{}}) -- by default it keeps JSDoc-\/style comments that contain "{}@license"{}, "{}@copyright"{}, "{}@preserve"{} or start with {\ttfamily !}, pass {\ttfamily true} or {\ttfamily "{}all"{}} to preserve all comments, {\ttfamily false} to omit comments in the output, a regular expression string (e.\+g. {\ttfamily /\+\texorpdfstring{$^\wedge$}{\string^}!/\+}) or a function.
+\item {\ttfamily ecma} (default {\ttfamily 5}) -- set desired Ecma\+Script standard version for output. Set {\ttfamily ecma} to {\ttfamily 2015} or greater to emit shorthand object properties -\/ i.\+e.:\+ {\ttfamily \{a\}} instead of {\ttfamily \{a:\+ a\}}. The {\ttfamily ecma} option will only change the output in direct control of the beautifier. Non-\/compatible features in your input will still be output as is. For example:\+ an {\ttfamily ecma} setting of {\ttfamily 5} will {\bfseries{not}} convert modern code to ES5.
+\item {\ttfamily indent\+\_\+level} (default {\ttfamily 4})
+\item {\ttfamily indent\+\_\+start} (default {\ttfamily 0}) -- prefix all lines by that many spaces
+\item {\ttfamily inline\+\_\+script} (default {\ttfamily true}) -- escape HTML comments and the slash in occurrences of {\ttfamily \texorpdfstring{$<$}{<}/\+script\texorpdfstring{$>$}{>}} in strings
+\item {\ttfamily keep\+\_\+numbers} (default {\ttfamily false}) -- keep number literals as it was in original code (disables optimizations like converting {\ttfamily 1000000} into {\ttfamily 1e6})
+\item {\ttfamily keep\+\_\+quoted\+\_\+props} (default {\ttfamily false}) -- when turned on, prevents stripping quotes from property names in object literals.
+\item {\ttfamily max\+\_\+line\+\_\+len} (default {\ttfamily false}) -- maximum line length (for minified code)
+\item {\ttfamily preamble} (default {\ttfamily null}) -- when passed it must be a string and it will be prepended to the output literally. The source map will adjust for this text. Can be used to insert a comment containing licensing information, for example.
+\item {\ttfamily quote\+\_\+keys} (default {\ttfamily false}) -- pass {\ttfamily true} to quote all keys in literal objects
+\item {\ttfamily quote\+\_\+style} (default {\ttfamily 0}) -- preferred quote style for strings (affects quoted property names and directives as well):\+
+\begin{DoxyItemize}
+\item {\ttfamily 0} -- prefers double quotes, switches to single quotes when there are more double quotes in the string itself. {\ttfamily 0} is best for gzip size.
+\item {\ttfamily 1} -- always use single quotes
+\item {\ttfamily 2} -- always use double quotes
+\item {\ttfamily 3} -- always use the original quotes
+\end{DoxyItemize}
+\item {\ttfamily preserve\+\_\+annotations} -- (default {\ttfamily false}) -- Preserve Terser annotationsTerser annotations
+\end{DoxyItemize}in the output.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily safari10} (default {\ttfamily false}) -- set this option to {\ttfamily true} to work around the \href{https://bugs.webkit.org/show_bug.cgi?id=176685}{\texttt{Safari 10/\+11 await bug}}. See also:\+ the {\ttfamily safari10} mangle optionmangle option
+\end{DoxyItemize}.
+
+
+\begin{DoxyItemize}
+\item {\ttfamily semicolons} (default {\ttfamily true}) -- separate statements with semicolons. If you pass {\ttfamily false} then whenever possible we will use a newline instead of a semicolon, leading to more readable output of minified code (size before gzip could be smaller; size after gzip insignificantly larger).
+\item {\ttfamily shebang} (default {\ttfamily true}) -- preserve shebang {\ttfamily \#!} in preamble (bash scripts)
+\item {\ttfamily spidermonkey} (default {\ttfamily false}) -- produce a Spidermonkey (Mozilla) AST
+\item {\ttfamily webkit} (default {\ttfamily false}) -- enable workarounds for Web\+Kit bugs. Phantom\+JS users should set this option to {\ttfamily true}.
+\item {\ttfamily wrap\+\_\+iife} (default {\ttfamily false}) -- pass {\ttfamily true} to wrap immediately invoked function expressions. See \href{https://github.com/mishoo/UglifyJS2/issues/640}{\texttt{\#640}} for more details.
+\item {\ttfamily wrap\+\_\+func\+\_\+args} (default {\ttfamily false}) -- pass {\ttfamily true} in order to wrap function expressions that are passed as arguments, in parenthesis. See \href{https://github.com/nolanlawson/optimize-js}{\texttt{Optimize\+JS}} for more details.
+\end{DoxyItemize}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9143}{}\doxysubsection{\texorpdfstring{Miscellaneous}{Miscellaneous}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9143}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9144}{}\doxysubsubsubsection{\texorpdfstring{Keeping copyright notices or other comments}{Keeping copyright notices or other comments}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9144}
+You can pass {\ttfamily -\/-\/comments} to retain certain comments in the output. By default it will keep comments starting with "{}!"{} and JSDoc-\/style comments that contain "{}@preserve"{}, "{}@copyright"{}, "{}@license"{} or "{}@cc\+\_\+on"{} (conditional compilation for IE). You can pass {\ttfamily -\/-\/comments all} to keep all the comments, or a valid Java\+Script regexp to keep only comments that match this regexp. For example {\ttfamily -\/-\/comments /\+\texorpdfstring{$^\wedge$}{\string^}!/\+} will keep comments like {\ttfamily /\+\texorpdfstring{$\ast$}{*}! Copyright Notice \texorpdfstring{$\ast$}{*}/\+}.
+
+Note, however, that there might be situations where comments are lost. For example:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{function\ f()\ \{}
+\DoxyCodeLine{\ \ \ \ /**\ @preserve\ Foo\ Bar\ */}
+\DoxyCodeLine{\ \ \ \ function\ g()\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ this\ function\ is\ never\ called}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ return\ something();}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Even though it has "{}@preserve"{}, the comment will be lost because the inner function {\ttfamily g} (which is the AST node to which the comment is attached to) is discarded by the compressor as not referenced.
+
+The safest comments where to place copyright information (or other info that needs to be kept in the output) are comments attached to toplevel nodes.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9145}{}\doxysubsubsubsection{\texorpdfstring{The {\ttfamily unsafe} {\ttfamily compress} option}{The {\ttfamily unsafe} {\ttfamily compress} option}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9145}
+It enables some transformations that {\itshape might} break code logic in certain contrived cases, but should be fine for most code. It assumes that standard built-\/in ECMAScript functions and classes have not been altered or replaced. You might want to try it on your own code; it should reduce the minified size. Some examples of the optimizations made when this option is enabled:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily new Array(1, 2, 3)} or {\ttfamily Array(1, 2, 3)} → {\ttfamily \+[ 1, 2, 3 ]\+}
+\item {\ttfamily Array.\+from(\+[1, 2, 3]\+)} → {\ttfamily \+[1, 2, 3]\+}
+\item {\ttfamily new Object()} → {\ttfamily \{\}}
+\item {\ttfamily String(exp)} or {\ttfamily exp.\+to\+String()} → {\ttfamily "{}"{} + exp}
+\item {\ttfamily new Object/\+\+Reg\+Exp/\+\+Function/\+\+Error/\+\+Array (...)} → we discard the {\ttfamily new}
+\item {\ttfamily "{}foo bar"{}.substr(4)} → {\ttfamily "{}bar"{}}
+\end{DoxyItemize}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9146}{}\doxysubsubsubsection{\texorpdfstring{Conditional compilation}{Conditional compilation}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9146}
+You can use the {\ttfamily -\/-\/define} ({\ttfamily -\/d}) switch in order to declare global variables that Terser will assume to be constants (unless defined in scope). For example if you pass {\ttfamily -\/-\/define DEBUG=false} then, coupled with dead code removal Terser will discard the following from the output:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{if\ (DEBUG)\ \{}
+\DoxyCodeLine{\ \ \ \ console.log("{}debug\ stuff"{});}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+You can specify nested constants in the form of {\ttfamily -\/-\/define env.\+DEBUG=false}.
+
+Another way of doing that is to declare your globals as constants in a separate file and include it into the build. For example you can have a {\ttfamily build/\+defines.\+js} file with the following:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ DEBUG\ =\ false;}
+\DoxyCodeLine{var\ PRODUCTION\ =\ true;}
+\DoxyCodeLine{//\ etc.}
+
+\end{DoxyCode}
+
+
+and build your code like this:\+ \begin{DoxyVerb}terser build/defines.js js/foo.js js/bar.js... -c
+\end{DoxyVerb}
+
+
+Terser will notice the constants and, since they cannot be altered, it will evaluate references to them to the value itself and drop unreachable code as usual. The build will contain the {\ttfamily const} declarations if you use them. If you are targeting \texorpdfstring{$<$}{<} ES6 environments which does not support {\ttfamily const}, using {\ttfamily var} with {\ttfamily reduce\+\_\+vars} (enabled by default) should suffice.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9147}{}\doxysubsubsubsection{\texorpdfstring{Conditional compilation API}{Conditional compilation API}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9147}
+You can also use conditional compilation via the programmatic API. With the difference that the property name is {\ttfamily global\+\_\+defs} and is a compressor property:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ result\ =\ await\ minify(fs.readFileSync("{}input.js"{},\ "{}utf8"{}),\ \{}
+\DoxyCodeLine{\ \ \ \ compress:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ dead\_code:\ true,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ global\_defs:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ DEBUG:\ false}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+
+
+To replace an identifier with an arbitrary non-\/constant expression it is necessary to prefix the {\ttfamily global\+\_\+defs} key with {\ttfamily "{}@"{}} to instruct Terser to parse the value as an expression:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{await\ minify("{}alert('hello');"{},\ \{}
+\DoxyCodeLine{\ \ \ \ compress:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ global\_defs:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ "{}@alert"{}:\ "{}console.log"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\}).code;}
+\DoxyCodeLine{//\ returns:\ 'console.log("{}hello"{});'}
+
+\end{DoxyCode}
+
+
+Otherwise it would be replaced as string literal:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{await\ minify("{}alert('hello');"{},\ \{}
+\DoxyCodeLine{\ \ \ \ compress:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ global\_defs:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ "{}alert"{}:\ "{}console.log"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\}).code;}
+\DoxyCodeLine{//\ returns:\ '"{}console.log"{}("{}hello"{});'}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9148}{}\doxysubsubsubsection{\texorpdfstring{Annotations}{Annotations}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9148}
+Annotations in Terser are a way to tell it to treat a certain function call differently. The following annotations are available:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily /\+\texorpdfstring{$\ast$}{*}@\+\_\+\+\_\+\+INLINE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} -\/ forces a function to be inlined somewhere.
+\item {\ttfamily /\+\texorpdfstring{$\ast$}{*}@\+\_\+\+\_\+\+NOINLINE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} -\/ Makes sure the called function is not inlined into the call site.
+\item {\ttfamily /\+\texorpdfstring{$\ast$}{*}@\+\_\+\+\_\+\+PURE\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} -\/ Marks a function call as pure. That means, it can safely be dropped.
+\item {\ttfamily /\+\texorpdfstring{$\ast$}{*}@\+\_\+\+\_\+\+KEY\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} -\/ Marks a string literal as a property to also mangle it when mangling properties.
+\item {\ttfamily /\+\texorpdfstring{$\ast$}{*}@\+\_\+\+\_\+\+MANGLE\+\_\+\+PROP\+\_\+\+\_\+\texorpdfstring{$\ast$}{*}/\+} -\/ Opts-\/in an object property (or class field) for mangling, when the property mangler is enabled.
+\end{DoxyItemize}
+
+You can use either a {\ttfamily @} sign at the start, or a {\ttfamily \#}.
+
+Here are some examples on how to use them:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{/*@\_\_INLINE\_\_*/}
+\DoxyCodeLine{function\_always\_inlined\_here()}
+\DoxyCodeLine{}
+\DoxyCodeLine{/*\#\_\_NOINLINE\_\_*/}
+\DoxyCodeLine{function\_cant\_be\_inlined\_into\_here()}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ x\ =\ /*\#\_\_PURE\_\_*/i\_am\_dropped\_if\_x\_is\_not\_used()}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ lookup(object,\ key)\ \{\ return\ object[key];\ \}}
+\DoxyCodeLine{lookup(\{\ i\_will\_be\_mangled\_too:\ "{}bar"{}\ \},\ /*@\_\_KEY\_\_*/\ "{}i\_will\_be\_mangled\_too"{});}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9149}{}\doxysubsubsubsection{\texorpdfstring{ESTree /\+ Spider\+Monkey AST}{ESTree /\+ Spider\+Monkey AST}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9149}
+Terser has its own abstract syntax tree format; for \href{http://lisperator.net/blog/uglifyjs-why-not-switching-to-spidermonkey-ast/}{\texttt{practical reasons}} we can\textquotesingle{}t easily change to using the Spider\+Monkey AST internally. However, Terser now has a converter which can import a Spider\+Monkey AST.
+
+For example \href{https://github.com/acornjs/acorn}{\texttt{Acorn}} is a super-\/fast parser that produces a Spider\+Monkey AST. It has a small CLI utility that parses one file and dumps the AST in JSON on the standard output. To use Terser to mangle and compress that:\+ \begin{DoxyVerb}acorn file.js | terser -p spidermonkey -m -c
+\end{DoxyVerb}
+
+
+The {\ttfamily -\/p spidermonkey} option tells Terser that all input files are not Java\+Script, but JS code described in Spider\+Monkey AST in JSON. Therefore we don\textquotesingle{}t use our own parser in this case, but just transform that AST into our internal AST.
+
+{\ttfamily spidermonkey} is also available in {\ttfamily minify} as {\ttfamily parse} and {\ttfamily format} options to accept and/\+or produce a spidermonkey AST.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9150}{}\doxysubsubsubsection{\texorpdfstring{Use Acorn for parsing}{Use Acorn for parsing}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9150}
+More for fun, I added the {\ttfamily -\/p acorn} option which will use Acorn to do all the parsing. If you pass this option, Terser will {\ttfamily require("{}acorn"{})}.
+
+Acorn is really fast (e.\+g. 250ms instead of 380ms on some 650K code), but converting the Spider\+Monkey tree that Acorn produces takes another 150ms so in total it\textquotesingle{}s a bit more than just using Terser\textquotesingle{}s own parser.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9151}{}\doxysubsubsubsection{\texorpdfstring{Terser Fast Minify Mode}{Terser Fast Minify Mode}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9151}
+It\textquotesingle{}s not well known, but whitespace removal and symbol mangling accounts for 95\% of the size reduction in minified code for most Java\+Script -\/ not elaborate code transforms. One can simply disable {\ttfamily compress} to speed up Terser builds by 3 to 4 times.
+
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}d3.\+js  &\SetCell{r,bg=\tableheadbgcolor,font=\bfseries}size  &\SetCell{r,bg=\tableheadbgcolor,font=\bfseries}gzip size  &\SetCell{r,bg=\tableheadbgcolor,font=\bfseries}time (s)  \\
+original  &\SetCell{r}451,131  &\SetCell{r}108,733  &\SetCell{r}-\/  \\
+terser@3.\+7.\+5 mangle=false, compress=false  &\SetCell{r}316,600  &\SetCell{r}85,245  &\SetCell{r}0.\+82  \\
+terser@3.\+7.\+5 mangle=true, compress=false  &\SetCell{r}220,216  &\SetCell{r}72,730  &\SetCell{r}1.\+45  \\
+terser@3.\+7.\+5 mangle=true, compress=true  &\SetCell{r}212,046  &\SetCell{r}70,954  &\SetCell{r}5.\+87  \\
+babili@0.\+1.\+4  &\SetCell{r}210,713  &\SetCell{r}72,140  &\SetCell{r}12.\+64  \\
+babel-\/minify@0.\+4.\+3  &\SetCell{r}210,321  &\SetCell{r}72,242  &\SetCell{r}48.\+67  \\
+\href{mailto:babel-minify@0.5.0-alpha.01eac1c3}{\texttt{babel-\/minify@0.\+5.\+0-\/alpha.\+01eac1c3}}  &\SetCell{r}210,421  &\SetCell{r}72,238  &\SetCell{r}14.\+17  \\
+\end{DoxyTable}
+
+
+To enable fast minify mode from the CLI use:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{terser\ file.js\ -\/m}
+
+\end{DoxyCode}
+ To enable fast minify mode with the API use:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{await\ minify(code,\ \{\ compress:\ false,\ mangle:\ true\ \});}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9152}{}\doxysubsubsubsubsection{\texorpdfstring{Source maps and debugging}{Source maps and debugging}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9152}
+Various {\ttfamily compress} transforms that simplify, rearrange, inline and remove code are known to have an adverse effect on debugging with source maps. This is expected as code is optimized and mappings are often simply not possible as some code no longer exists. For highest fidelity in source map debugging disable the {\ttfamily compress} option and just use {\ttfamily mangle}.
+
+When debugging, make sure you enable the {\bfseries{"{}map scopes"{}}} feature to map mangled variable names back to their original names. ~\newline
+ Without this, all variable values will be {\ttfamily undefined}. See \href{https://github.com/terser/terser/issues/1367}{\texttt{https:\+/\+/\+github.\+com/\+terser/\+terser/\+issues/\+1367}} for more details. ~\newline
+~\newline
+
+
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9153}{}\doxysubsubsubsection{\texorpdfstring{Compiler assumptions}{Compiler assumptions}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9153}
+To allow for better optimizations, the compiler makes various assumptions:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily .to\+String()} and {\ttfamily .value\+Of()} don\textquotesingle{}t have side effects, and for built-\/in objects they have not been overridden.
+\item {\ttfamily undefined}, {\ttfamily NaN} and {\ttfamily Infinity} have not been externally redefined.
+\item {\ttfamily arguments.\+callee}, {\ttfamily arguments.\+caller} and {\ttfamily Function.\+prototype.\+caller} are not used.
+\item The code doesn\textquotesingle{}t expect the contents of {\ttfamily Function.\+prototype.\+to\+String()} or {\ttfamily Error.\+prototype.\+stack} to be anything in particular.
+\item Getting and setting properties on a plain object does not cause other side effects (using {\ttfamily .watch()} or {\ttfamily Proxy}).
+\item Object properties can be added, removed and modified (not prevented with {\ttfamily Object.\+define\+Property()}, {\ttfamily Object.\+define\+Properties()}, {\ttfamily Object.\+freeze()}, {\ttfamily Object.\+prevent\+Extensions()} or {\ttfamily Object.\+seal()}).
+\item {\ttfamily document.\+all} is not {\ttfamily == null}
+\item Assigning properties to a class doesn\textquotesingle{}t have side effects and does not throw.
+\end{DoxyItemize}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9154}{}\doxysubsubsubsection{\texorpdfstring{Build Tools and Adaptors using Terser}{Build Tools and Adaptors using Terser}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9154}
+\href{https://www.npmjs.com/browse/depended/terser}{\texttt{https:\+/\+/\+www.\+npmjs.\+com/\+browse/\+depended/\+terser}}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9155}{}\doxysubsubsubsection{\texorpdfstring{Replacing {\ttfamily uglify-\/es} with {\ttfamily terser} in a project using {\ttfamily yarn}}{Replacing {\ttfamily uglify-\/es} with {\ttfamily terser} in a project using {\ttfamily yarn}}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9155}
+A number of JS bundlers and uglify wrappers are still using buggy versions of {\ttfamily uglify-\/es} and have not yet upgraded to {\ttfamily terser}. If you are using {\ttfamily yarn} you can add the following alias to your project\textquotesingle{}s {\ttfamily package.\+json} file:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{"{}resolutions"{}:\ \{}
+\DoxyCodeLine{\ \ "{}uglify-\/es"{}:\ "{}npm:terser"{}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+to use {\ttfamily terser} instead of {\ttfamily uglify-\/es} in all deeply nested dependencies without changing any code.
+
+Note:\+ for this change to take effect you must run the following commands to remove the existing {\ttfamily yarn} lock file and reinstall all packages:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ rm\ -\/rf\ node\_modules\ yarn.lock}
+\DoxyCodeLine{\$\ yarn}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9156}{}\doxysubsection{\texorpdfstring{Reporting issues}{Reporting issues}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9156}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9157}{}\doxysubsubsection{\texorpdfstring{A minimal, reproducible example}{A minimal, reproducible example}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9157}
+You\textquotesingle{}re expected to provide a \+[minimal reproducible example]\+ of input code that will demonstrate your issue.
+
+To get to this example, you can remove bits of your code and stop if your issue ceases to reproduce.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9158}{}\doxysubsubsection{\texorpdfstring{Obtaining the source code given to Terser}{Obtaining the source code given to Terser}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9158}
+Because users often don\textquotesingle{}t control the call to {\ttfamily await minify()} or its arguments, Terser provides a {\ttfamily TERSER\+\_\+\+DEBUG\+\_\+\+DIR} environment variable to make terser output some debug logs.
+
+These logs will contain the input code and options of each {\ttfamily minify()} call.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{TERSER\_DEBUG\_DIR=/tmp/terser-\/log-\/dir\ command-\/that-\/uses-\/terser}
+\DoxyCodeLine{ls\ /tmp/terser-\/log-\/dir}
+\DoxyCodeLine{terser-\/debug-\/123456.log}
+
+\end{DoxyCode}
+
+
+If you\textquotesingle{}re not sure how to set an environment variable on your shell (the above example works in bash), you can try using cross-\/env:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{>\ npx\ cross-\/env\ TERSER\_DEBUG\_DIR=/path/to/logs\ command-\/that-\/uses-\/terser}
+
+\end{DoxyCode}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9159}{}\doxysubsubsection{\texorpdfstring{Stack traces}{Stack traces}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9159}
+In the terser CLI we use \href{https://npmjs.com/source-map-support}{\texttt{source-\/map-\/support}} to produce good error stacks. In your own app, you\textquotesingle{}re expected to enable source-\/map-\/support (read their docs) to have nice stack traces that will help you write good issues.\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9160}{}\doxysubsection{\texorpdfstring{README.\+md Patrons:\+}{README.\+md Patrons:\+}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9160}
+{\itshape note}:\+ \sout{You can support this project on patreon:\+ \+[link]\+} {\bfseries{The Terser Patreon is shutting down in favor of opencollective}}. Check out \href{https://github.com/terser/terser/blob/master/PATRONS.md}{\texttt{PATRONS.\+md}} for our first-\/tier patrons.
+
+These are the second-\/tier patrons. Great thanks for your support!
+
+
+\begin{DoxyItemize}
+\item CKEditor 
+\item 38elements 
+\end{DoxyItemize}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9161}{}\doxysubsubsection{\texorpdfstring{Contributors}{Contributors}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9161}
+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9162}{}\doxysubsubsubsection{\texorpdfstring{Code Contributors}{Code Contributors}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9162}
+This project exists thanks to all the people who contribute. \+[\doxylink{_c_o_n_t_r_i_b_u_t_i_n_g_8md}{Contribute}]\+. \href{https://github.com/terser/terser/graphs/contributors}{\texttt{}}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9163}{}\doxysubsubsubsection{\texorpdfstring{Financial Contributors}{Financial Contributors}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9163}
+Become a financial contributor and help us sustain our community. \+[\href{https://opencollective.com/terser/contribute}{\texttt{Contribute}}]\+\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9164}{}\doxysubsubsubsubsection{\texorpdfstring{Individuals}{Individuals}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9164}
+\href{https://opencollective.com/terser}{\texttt{}}\hypertarget{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9165}{}\doxysubsubsubsubsection{\texorpdfstring{Organizations}{Organizations}}\label{dir_39b41e0ceb926518b062335bd26a16ae_autotoc_md9165}
+Support this project with your organization. Your logo will show up here with a link to your website. \+[\href{https://opencollective.com/terser/contribute}{\texttt{Contribute}}]\+
+
+\href{https://opencollective.com/terser/organization/0/website}{\texttt{}} \href{https://opencollective.com/terser/organization/1/website}{\texttt{}} \href{https://opencollective.com/terser/organization/2/website}{\texttt{}} \href{https://opencollective.com/terser/organization/3/website}{\texttt{}} \href{https://opencollective.com/terser/organization/4/website}{\texttt{}} \href{https://opencollective.com/terser/organization/5/website}{\texttt{}} \href{https://opencollective.com/terser/organization/6/website}{\texttt{}} \href{https://opencollective.com/terser/organization/7/website}{\texttt{}} \href{https://opencollective.com/terser/organization/8/website}{\texttt{}} \href{https://opencollective.com/terser/organization/9/website}{\texttt{}} 

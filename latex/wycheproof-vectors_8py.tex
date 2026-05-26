@@ -1,0 +1,55 @@
+\doxysection{tools/\+\+SECURITY/\+wycheproof-\/vectors.py File Reference}
+\hypertarget{wycheproof-vectors_8py}{}\label{wycheproof-vectors_8py}\index{tools/SECURITY/wycheproof-\/vectors.py@{tools/SECURITY/wycheproof-\/vectors.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacewycheproof-vectors}{wycheproof-\/vectors}}
+\item 
+namespace \doxymbox{\hyperlink{namespacewycheproof}{wycheproof}}
+\begin{DoxyCompactList}\small\item\em -\/vectors \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{namespacewycheproof-vectors_ac089d7c5236b56d6c437f71c1a33c7c1}{wycheproof-\/vectors.\+download\+\_\+vectors}} (str url, str cache\+\_\+path)
+\item 
+bool \doxymbox{\hyperlink{namespacewycheproof-vectors_a84037e2c52ab318c76a7ee8ed83360c6}{wycheproof-\/vectors.\+verify\+\_\+signature\+\_\+coincurve}} (str pub\+\_\+key\+\_\+hex, str msg\+\_\+hex, str sig\+\_\+hex)
+\item 
+tuple \doxymbox{\hyperlink{namespacewycheproof-vectors_a806c9c8118d5fb40ed3ce5b7ac56ff39}{wycheproof-\/vectors.\+parse\+\_\+der\+\_\+signature}} (str der\+\_\+hex)
+\item 
+bool \doxymbox{\hyperlink{namespacewycheproof-vectors_af3379c1add51879706505d2c949fe9c5}{wycheproof-\/vectors.\+is\+\_\+high\+\_\+s}} (int s)
+\item 
+dict \doxymbox{\hyperlink{namespacewycheproof-vectors_a2cb2d5a47843cc0e74cc63c9a84db5f7}{wycheproof-\/vectors.\+run\+\_\+vectors}} (dict vectors)
+\item 
+\doxymbox{\hyperlink{namespacewycheproof-vectors_a51af30a60f9f02777c6396b8247e356f}{wycheproof-\/vectors.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacewycheproof-vectors_a0d8ae897d54f5473c382081a9225b360}{wycheproof-\/vectors.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacewycheproof-vectors_aaea948e48f2b956a507975413fa9459c}{wycheproof-\/vectors.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacewycheproof-vectors_a15137f4345599db94511ded538291579}{wycheproof-\/vectors.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacewycheproof-vectors_a2e23ab21629ca1ee05e033f6b32c2a2c}{wycheproof-\/vectors.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacewycheproof-vectors_a198a290da09f992b84ca3a5c5f4a7ec2}{wycheproof-\/vectors.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacewycheproof-vectors_a6d3aec9d82c869d2a547999bb2ddeca9}{wycheproof-\/vectors.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespacewycheproof-vectors_a23e287f23ce3466d36ce63737b0b06d7}{wycheproof-\/vectors.\+RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespacewycheproof-vectors_a35b80916234312c774deab0c60a4463d}{wycheproof-\/vectors.\+SHARDS}} = 4
+\item 
+int \doxymbox{\hyperlink{namespacewycheproof-vectors_a98b116ac6e3c0ac0a0a04c3e64cd5760}{wycheproof-\/vectors.\+MAX\+\_\+\+SUPPLY}} = 21\+\_\+000\+\_\+000
+\item 
+\doxymbox{\hyperlink{namespacewycheproof-vectors_a0f8f47ff54f964f6c1e5920d65cf0a62}{wycheproof-\/vectors.\+SAT}} = int(1e9)
+\item 
+tuple \doxymbox{\hyperlink{namespacewycheproof-vectors_a05bfd444e8ad73ec84e97241e9ceb63e}{wycheproof-\/vectors.\+WYCHEPROOF\+\_\+\+URL}}
+\item 
+\doxymbox{\hyperlink{namespacewycheproof-vectors_ade2b0dc1d2383039f61acc5ba3b9c064}{wycheproof-\/vectors.\+CACHE\+\_\+\+DIR}} = os.\+path.\+join(os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+)), "{}data"{})
+\item 
+\doxymbox{\hyperlink{namespacewycheproof-vectors_af8b09e7a60d1be22711e70030723bbeb}{wycheproof-\/vectors.\+CACHE\+\_\+\+FILE}} = os.\+path.\+join(\doxymbox{\hyperlink{namespacewycheproof-vectors_ade2b0dc1d2383039f61acc5ba3b9c064}{CACHE\+\_\+\+DIR}}, "{}wycheproof\+\_\+secp256k1\+\_\+sha256.\+json"{})
+\item 
+bool \doxymbox{\hyperlink{namespacewycheproof-vectors_a86b58a4f6a1db37cb477884e7d273b37}{wycheproof-\/vectors.\+HAS\+\_\+\+COINCURVE}} = True
+\end{DoxyCompactItemize}

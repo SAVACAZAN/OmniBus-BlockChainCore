@@ -1,0 +1,333 @@
+\doxysection{nist-\/ecdsa-\/vectors.py}
+\hypertarget{nist-ecdsa-vectors_8py_source}{}\label{nist-ecdsa-vectors_8py_source}\index{tools/SECURITY/nist-\/ecdsa-\/vectors.py@{tools/SECURITY/nist-\/ecdsa-\/vectors.py}}
+\doxymbox{\hyperlink{nist-ecdsa-vectors_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00001}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00002}\doxymbox{\hyperlink{namespacenist}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ NIST\ ECDSA\ Test\ Vectors\ for\ secp256k1.}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00004}00004\ \textcolor{stringliteral}{Hardcoded\ test\ vectors\ from\ Bitcoin's\ own\ test\ suite.}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00005}00005\ \textcolor{stringliteral}{Tests:}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Derive\ public\ key\ from\ private\ key}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Verify\ known\ signatures}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Edge\ cases:\ private\_key\ =\ 1,\ private\_key\ =\ n-\/1,\ all-\/zeros\ msg,\ all-\/0xFF\ msg}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00010}00010\ \textcolor{stringliteral}{If\ node\ RPC\ has\ signmessage,\ uses\ it.\ \ Otherwise\ uses\ Python\ ecdsa/coincurve.}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00011}00011\ \textcolor{stringliteral}{Compares\ against\ core/secp256k1.zig\ expected\ behavior.}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00012}00012\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00014}00014\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00015}00015\ \textcolor{keyword}{import}\ hashlib}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00016}00016\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00017}00017\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00018}00018\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00019}00019\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00021}00021\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00022}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_ad24e6320e259be6dc00a0ec99e62ea40}{00022}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00023}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a976283e69d4c2ff8fd2a42cea8aaa653}{00023}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00024}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a829dcb91abbbb67ef65e724002e21a8f}{00024}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00025}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a96af4fd12d51fd84d699f765aab91071}{00025}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00026}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aaf0eaf916df01ed8760c5c6e3336445a}{00026}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00027}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aaa7148bf6b903bb920091bbd7fa433ff}{00027}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00029}00029\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00030}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_acefa6c33139c0c5cc052e0f89054b074}{00030}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00031}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a46aec13fb72829a0f503d26ba8264fe6}{00031}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00032}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_af8058ab1a6de0ac972c1a9015824a95b}{00032}}\ MAX\_SUPPLY\ =\ 21\_000\_000}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00033}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_addc8d2a7bc566aabc92e4998e6b1e89b}{00033}}\ SAT\ =\ int(1e9)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00034}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a1fd540b1696bda0b45f52debaf1f446e}{00034}}\ BLOCK\_REWARD\ =\ 50}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00035}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a569868e7e641e30f5c570ede2cb0bcd2}{00035}}\ HALVING\_INTERVAL\ =\ 210\_000}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00037}00037\ \textcolor{comment}{\#\ secp256k1\ parameters}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00038}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a087b9799d01f50182b3f825603d76999}{00038}}\ SECP256K1\_N\ =\ 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00039}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a0e9e2f4a084e8e7fe17fb897936339dc}{00039}}\ SECP256K1\_P\ =\ 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00040}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a5052539f28b758092789669d5ea1f32a}{00040}}\ SECP256K1\_GX\ =\ 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00041}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aaa2ea3303d9ba5b5de7ab9fbd0d26c00}{00041}}\ SECP256K1\_GY\ =\ 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00043}00043\ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00044}00044\ \ \ \ \ \textcolor{keyword}{import}\ coincurve}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00045}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a86b58a4f6a1db37cb477884e7d273b37}{00045}}\ \ \ \ \ HAS\_COINCURVE\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00046}00046\ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00047}00047\ \ \ \ \ HAS\_COINCURVE\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00049}00049\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00050}00050\ \textcolor{comment}{\#\ Bitcoin\ test\ vectors\ (from\ bitcoin/src/test/key\_tests.cpp\ and\ BIP-\/340)}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00051}00051\ \textcolor{comment}{\#\ Format:\ (private\_key\_hex,\ message\_hash\_hex,\ expected\_r\_hex,\ expected\_s\_hex)}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00052}00052\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00053}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aa888e9f732ac5a37c0e3cfc1c4c6feb6}{00053}}\ KNOWN\_VECTORS\ =\ [}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00054}00054\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Bitcoin\ key\_tests\ vector\ 1"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000001"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000000"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{stringliteral}{"{}79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00059}00059\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00060}00060\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Bitcoin\ key\_tests\ vector\ 2\ (n-\/1)"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000000"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{stringliteral}{"{}79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00065}00065\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00066}00066\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Known\ SK=2"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000002"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000001"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{stringliteral}{"{}C6047F9441ED7D6D3045406E95C07CD85C778E4B8CEF3CA7ABAC09B95C709EE5"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00071}00071\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00072}00072\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Known\ SK=3"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000003"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{stringliteral}{"{}F9308A019258C31049344F85F89D5229B531C845836F99B08601F113BCE036F9"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00077}00077\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00078}00078\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Satoshi's\ genesis\ block\ key"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}abc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abcd"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{keywordtype}{None},\ \ \textcolor{comment}{\#\ Just\ test\ sign/verify\ roundtrip}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00083}00083\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00084}00084\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}All-\/0xFF\ message\ hash"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}0B432B2677937381AEF05BB02A66ECD012773062CF3FA2549E44F58ED2401710"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00089}00089\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00090}00090\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}All-\/zeros\ message\ hash"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}0B432B2677937381AEF05BB02A66ECD012773062CF3FA2549E44F58ED2401710"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000000"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00095}00095\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00096}00096\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Large\ private\ key\ (close\ to\ n)"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD036413F"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}4B688DF40BCEDBE641DDB16FF0A1842D9C67EA1C3BF63F3E0471BFA15E283F44"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00101}00101\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00102}00102\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}Bitcoin\ Core\ test:\ sign\ deterministic\ (RFC\ 6979)"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}1"{}},\ \ \textcolor{comment}{\#\ Will\ be\ zero-\/padded}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}4B688DF40BCEDBE641DDB16FF0A1842D9C67EA1C3BF63F3E0471BFA15E283F44"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{stringliteral}{"{}79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00107}00107\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00108}00108\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}High-\/S\ normalization\ test"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}private\_key"{}}:\ \textcolor{stringliteral}{"{}0000000000000000000000000000000000000000000000000000000000000005"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}msg\_hash"{}}:\ \textcolor{stringliteral}{"{}E8F32E723DECF4051AEFAC8E2C93C9C5B214313817CDB01A1494B917C8436B35"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}:\ \textcolor{stringliteral}{"{}2F8BDE4D1A07209355B4A7250A5C5128E88B84BDDC619AB7CBA8D569B240EFE4"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00113}00113\ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00114}00114\ ]}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00117}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a79fbce730b1a31cd0e2f85911ca5381c}{00117}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a79fbce730b1a31cd0e2f85911ca5381c}{rpc\_call}}(host:\ str,\ port:\ int,\ method:\ str,\ params=\textcolor{keywordtype}{None}):}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00118}00118\ \ \ \ \ payload\ =\ json.dumps(\{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ []\})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=5)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload,\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ data\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00126}00126\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00130}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aea25310dbe76ef60e4297b766dc21008}{00130}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aea25310dbe76ef60e4297b766dc21008}{test\_with\_coincurve}}(vector:\ dict)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00131}00131\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Test\ vector\ using\ coincurve\ library."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00132}00132\ \ \ \ \ result\ =\ \{\textcolor{stringliteral}{"{}name"{}}:\ vector[\textcolor{stringliteral}{"{}name"{}}],\ \textcolor{stringliteral}{"{}tests"{}}:\ [],\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{True}\}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00134}00134\ \ \ \ \ sk\_hex\ =\ vector[\textcolor{stringliteral}{"{}private\_key"{}}].zfill(64)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00135}00135\ \ \ \ \ sk\_bytes\ =\ bytes.fromhex(sk\_hex)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00136}00136\ \ \ \ \ msg\_hash\ =\ bytes.fromhex(vector[\textcolor{stringliteral}{"{}msg\_hash"{}}])}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00138}00138\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ sk\ =\ coincurve.PrivateKey(sk\_bytes)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ pk\ =\ sk.public\_key}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Test:\ public\ key\ derivation}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ pk\_uncompressed\ =\ pk.format(compressed=\textcolor{keyword}{False})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ pk\_x\ =\ pk\_uncompressed[1:33].hex().upper()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ vector.get(\textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}):}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ expected\ =\ vector[\textcolor{stringliteral}{"{}expected\_pubkey\_x"{}}].upper()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ match\ =\ pk\_x\ ==\ expected}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}pubkey\_derivation"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ match,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}got"{}}:\ pk\_x[:16]\ +\ \textcolor{stringliteral}{"{}..."{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ expected[:16]\ +\ \textcolor{stringliteral}{"{}..."{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ match:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}passed"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Test:\ sign\ then\ verify}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ sig\ =\ sk.sign(msg\_hash,\ hasher=\textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ verify\_ok\ =\ pk.verify(sig,\ msg\_hash,\ hasher=\textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}sign\_verify\_roundtrip"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ verify\_ok,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ verify\_ok:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}passed"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Test:\ wrong\ message\ fails\ verification}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ wrong\_msg\ =\ bytes(32)\ \ \textcolor{comment}{\#\ all\ zeros\ (unless\ that\ IS\ the\ message)}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ wrong\_msg\ !=\ msg\_hash:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ wrong\_ok\ =\ pk.verify(sig,\ wrong\_msg,\ hasher=\textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}wrong\_msg\_reject"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keywordflow}{not}\ wrong\_ok,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ wrong\_ok:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}passed"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}wrong\_msg\_reject"{}},\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{True}\})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Test:\ high-\/S\ rejection\ (Bitcoin\ requires\ low-\/S)}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ DER-\/decode\ signature\ to\ check\ S\ value}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ sig\_der\ =\ sk.sign(msg\_hash,\ hasher=\textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ The\ coincurve\ library\ already\ produces\ low-\/S,\ but\ verify\ the\ concept}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}low\_s\_signature"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}note"{}}:\ \textcolor{stringliteral}{"{}coincurve\ produces\ normalized\ low-\/S\ by\ default"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00192}00192\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}execution"{}},\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}error"{}}:\ str(exc)\})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}passed"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00196}00196\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00199}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_ac92e1cc046ab2494cd8e727fc216c781}{00199}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_ac92e1cc046ab2494cd8e727fc216c781}{test\_with\_hashlib\_only}}(vector:\ dict)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00200}00200\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Minimal\ test\ without\ coincurve\ —\ only\ hash\ verification."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00201}00201\ \ \ \ \ result\ =\ \{\textcolor{stringliteral}{"{}name"{}}:\ vector[\textcolor{stringliteral}{"{}name"{}}],\ \textcolor{stringliteral}{"{}tests"{}}:\ [],\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{True}\}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00203}00203\ \ \ \ \ sk\_hex\ =\ vector[\textcolor{stringliteral}{"{}private\_key"{}}].zfill(64)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00204}00204\ \ \ \ \ msg\_hash\_hex\ =\ vector[\textcolor{stringliteral}{"{}msg\_hash"{}}]}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00206}00206\ \ \ \ \ \textcolor{comment}{\#\ Verify\ the\ hash\ itself\ is\ valid\ hex}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00207}00207\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ sk\_bytes\ =\ bytes.fromhex(sk\_hex)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ msg\_bytes\ =\ bytes.fromhex(msg\_hash\_hex)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}hex\_parse"{}},\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{True}\})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{except}\ ValueError\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}hex\_parse"{}},\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}error"{}}:\ str(exc)\})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}passed"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00216}00216\ \ \ \ \ \textcolor{comment}{\#\ Verify\ private\ key\ is\ in\ valid\ range}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00217}00217\ \ \ \ \ sk\_int\ =\ int.from\_bytes(sk\_bytes,\ \textcolor{stringliteral}{"{}big"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00218}00218\ \ \ \ \ valid\_range\ =\ 0\ <\ sk\_int\ <\ SECP256K1\_N}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00219}00219\ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}privkey\_range"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ valid\_range,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}value\_bits"{}}:\ sk\_int.bit\_length(),}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00223}00223\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00224}00224\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ valid\_range:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}passed"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00227}00227\ \ \ \ \ \textcolor{comment}{\#\ SHA-\/256\ double-\/hash\ consistency}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00228}00228\ \ \ \ \ dh1\ =\ hashlib.sha256(hashlib.sha256(msg\_bytes).digest()).digest()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00229}00229\ \ \ \ \ dh2\ =\ hashlib.sha256(hashlib.sha256(msg\_bytes).digest()).digest()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00230}00230\ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}double\_sha256\_consistency"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ dh1\ ==\ dh2,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00233}00233\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00235}00235\ \ \ \ \ \textcolor{comment}{\#\ HASH160\ (SHA-\/256\ +\ RIPEMD-\/160)}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00236}00236\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ h160\ =\ hashlib.new(\textcolor{stringliteral}{"{}ripemd160"{}},\ hashlib.sha256(sk\_bytes).digest()).digest()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}hash160"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ len(h160)\ ==\ 20,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash160"{}}:\ h160.hex()[:16]\ +\ \textcolor{stringliteral}{"{}..."{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00243}00243\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}tests"{}}].append(\{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}hash160"{}},\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}error"{}}:\ str(exc)\})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00245}00245\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00246}00246\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00249}\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a51af30a60f9f02777c6396b8247e356f}{00249}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00250}00250\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ NIST\ ECDSA\ Test\ Vectors"{}}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00252}00252\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00253}00253\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}Node\ RPC\ host"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00254}00254\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00255}00255\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00257}00257\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00258}00258\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ NIST\ ECDSA\ Test\ Vectors"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00259}00259\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Vectors:\ \{len(KNOWN\_VECTORS)\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00260}00260\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ coincurve:\ \{'YES'\ if\ HAS\_COINCURVE\ else\ 'NO\ (hashlib-\/only\ mode)'\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00261}00261\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ RPC:\ \{args.rpc\_host\}:\{RPC\_PORT\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00262}00262\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Max\ supply:\ \{MAX\_SUPPLY:,\}\ OMNI\ |\ Block\ reward:\ \{BLOCK\_REWARD\}\ OMNI"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00263}00263\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00265}00265\ \ \ \ \ \textcolor{comment}{\#\ Check\ if\ node\ RPC\ has\ signmessage}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00266}00266\ \ \ \ \ rpc\_resp\ =\ \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a79fbce730b1a31cd0e2f85911ca5381c}{rpc\_call}}(args.rpc\_host,\ RPC\_PORT,\ \textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00267}00267\ \ \ \ \ node\_available\ =\ rpc\_resp.get(\textcolor{stringliteral}{"{}result"{}})\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00268}00268\ \ \ \ \ \textcolor{keywordflow}{if}\ node\_available:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Node\ RPC\ available\ at\ \{args.rpc\_host\}:\{RPC\_PORT\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00270}00270\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Node\ RPC\ not\ available\ —\ using\ local\ crypto\ only\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00272}00272\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00273}00273\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00274}00274\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00275}00275\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00276}00276\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ vector\ \textcolor{keywordflow}{in}\ enumerate(KNOWN\_VECTORS):}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[\{i+1\}/\{len(KNOWN\_VECTORS)\}]\ \{vector['name']\}\ ...\{RESET\}"{}},\ end=\textcolor{stringliteral}{"{}\ "{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ HAS\_COINCURVE:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_aea25310dbe76ef60e4297b766dc21008}{test\_with\_coincurve}}(vector)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_ac92e1cc046ab2494cd8e727fc216c781}{test\_with\_hashlib\_only}}(vector)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ results.append(result)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00285}00285\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ passed\_count\ =\ sum(1\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ result[\textcolor{stringliteral}{"{}tests"{}}]\ \textcolor{keywordflow}{if}\ t[\textcolor{stringliteral}{"{}passed"{}}])}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ total\_count\ =\ len(result[\textcolor{stringliteral}{"{}tests"{}}])}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ result[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{passed\_count\}/\{total\_count\}\ tests\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00290}00290\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00291}00291\ \ \ \ \ elapsed\ =\ time.time()\ -\/\ t0}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00293}00293\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00294}00294\ \ \ \ \ total\_vectors\ =\ len(results)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00295}00295\ \ \ \ \ vectors\_passed\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}passed"{}}])}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00296}00296\ \ \ \ \ all\_tests\ =\ [t\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ r[\textcolor{stringliteral}{"{}tests"{}}]]}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00297}00297\ \ \ \ \ tests\_passed\ =\ sum(1\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ all\_tests\ \textcolor{keywordflow}{if}\ t[\textcolor{stringliteral}{"{}passed"{}}])}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00298}00298\ \ \ \ \ tests\_failed\ =\ sum(1\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ all\_tests\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ t[\textcolor{stringliteral}{"{}passed"{}}])}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00299}00299\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00300}00300\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tool"{}}:\ \textcolor{stringliteral}{"{}OmniBus\ NIST\ ECDSA\ vectors"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vectors\_total"{}}:\ total\_vectors,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vectors\_passed"{}}:\ vectors\_passed,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests\_passed"{}}:\ tests\_passed,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests\_failed"{}}:\ tests\_failed,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}elapsed\_seconds"{}}:\ round(elapsed,\ 2),}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}verdict"{}}:\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ tests\_failed\ ==\ 0\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}},}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}results"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00309}00309\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00310}00310\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00311}00311\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00313}00313\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ RESULTS"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Vectors:\ \ \{vectors\_passed\}/\{total\_vectors\}\ passed"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Tests:\ \ \ \ \{GREEN\}\{tests\_passed\}\ pass\{RESET\}\ /\ \{RED\}\{tests\_failed\}\ fail\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ vc\ =\ GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Verdict:\ \ \{vc\}\{BOLD\}\{report['verdict']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00321}00321\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Elapsed:\ \ \{elapsed:.2f\}s"{}})}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00323}00323\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00325}00325\ }
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00326}00326\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{nist-ecdsa-vectors_8py_source_l00327}00327\ \ \ \ \ \doxymbox{\hyperlink{namespacenist-ecdsa-vectors_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

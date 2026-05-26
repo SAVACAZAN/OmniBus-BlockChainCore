@@ -1,0 +1,127 @@
+\chapter{Ghid Compatibilitate EVM pentru Omni\+Bus }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e}{}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e}\index{Ghid Compatibilitate EVM pentru OmniBus@{Ghid Compatibilitate EVM pentru OmniBus}}
+\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3657}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3657}%
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3658}{}\doxysection{\texorpdfstring{1. Mapare adresă Omni\+Bus → EVM}{1. Mapare adresă Omni\+Bus → EVM}}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3658}
+Omni\+Bus folosește adrese cu prefix {\ttfamily ob1q...} dar wallet-\/urile EVM așteaptă format {\ttfamily 0x...}.\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3659}{}\doxysubsection{\texorpdfstring{Soluție:\+ Conversie duală}{Soluție:\+ Conversie duală}}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3659}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ core/evm\_adapter.zig}
+\DoxyCodeLine{}
+\DoxyCodeLine{///\ Convertește\ adresă\ OmniBus\ (ob1q...)\ în\ adresă\ EVM\ (0x...)}
+\DoxyCodeLine{pub\ fn\ omniToEvmAddress(omni\_addr:\ []const\ u8)\ ![20]u8\ \{}
+\DoxyCodeLine{\ \ \ \ //\ Extrage\ hash160\ din\ adresă\ (fără\ prefix)}
+\DoxyCodeLine{\ \ \ \ const\ hash160\ =\ try\ decodeBase58Check(omni\_addr);}
+\DoxyCodeLine{\ \ \ \ //\ Returnează\ direct\ ca\ adresă\ EVM\ (20\ bytes)}
+\DoxyCodeLine{\ \ \ \ return\ hash160;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{///\ Convertește\ adresă\ EVM\ (0x...)\ în\ adresă\ OmniBus}
+\DoxyCodeLine{pub\ fn\ evmToOmniAddress(evm\_addr:\ []const\ u8,\ prefix:\ []const\ u8,\ allocator:\ Allocator)\ ![]u8\ \{}
+\DoxyCodeLine{\ \ \ \ var\ hash160:\ [20]u8\ =\ undefined;}
+\DoxyCodeLine{\ \ \ \ \_\ =\ try\ std.fmt.hexToBytes(\&hash160,\ evm\_addr[2..]);\ //\ skip\ "{}0x"{}}
+\DoxyCodeLine{\ \ \ \ return\ try\ encodeBase58Check(\&hash160,\ prefix,\ allocator);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3660}{}\doxysection{\texorpdfstring{2. Adapter RPC EVM → Omni\+Bus}{2. Adapter RPC EVM → Omni\+Bus}}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3660}
+Wallet-\/urile EVM folosesc metode standard. Trebuie să mapați:\+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metodă EVM  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metodă Omni\+Bus  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Implementare  \\
+{\ttfamily eth\+\_\+get\+Balance}  &{\ttfamily getbalance}  &Returnează balance în wei (SAT \texorpdfstring{$\ast$}{*} 10\texorpdfstring{$^\wedge$}{\string^}9)  \\
+{\ttfamily eth\+\_\+send\+Transaction}  &{\ttfamily sendtransaction}  &Convertește TX EVM în TX Omni\+Bus  \\
+{\ttfamily eth\+\_\+get\+Transaction\+Count}  &{\ttfamily getnonce}  &Returnează nonce  \\
+{\ttfamily eth\+\_\+estimate\+Gas}  &{\ttfamily estimatefee}  &Returnează fee estimat  \\
+{\ttfamily eth\+\_\+chain\+Id}  &-\/  &Returnează 777 (0x309)  \\
+{\ttfamily eth\+\_\+block\+Number}  &{\ttfamily getblockcount}  &Returnează block height  \\
+{\ttfamily eth\+\_\+get\+Block\+By\+Number}  &{\ttfamily getblock}  &Returnează block format EVM  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3661}{}\doxysubsection{\texorpdfstring{Exemplu implementare adapter:\+}{Exemplu implementare adapter:\+}}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3661}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ core/evm\_rpc\_adapter.zig}
+\DoxyCodeLine{}
+\DoxyCodeLine{pub\ const\ EvmAdapter\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ omni\_rpc:\ *RPCServer,}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ pub\ fn\ dispatchEvm(self:\ *EvmAdapter,\ method:\ []const\ u8,\ params:\ json.Value)\ !json.Value\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (std.mem.eql(u8,\ method,\ "{}eth\_getBalance"{}))\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ const\ evm\_addr\ =\ params.array.items[0].string;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ const\ omni\_addr\ =\ try\ evmToOmniAddress(evm\_addr,\ "{}ob1q"{},\ self.allocator);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ const\ balance\_sat\ =\ try\ self.omni\_rpc.getBalance(omni\_addr);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ //\ Returnează\ în\ format\ hex\ EVM\ (wei)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ return\ json.Value\{\ .string\ =\ try\ std.fmt.allocPrint(self.allocator,\ "{}0x\{x\}"{},\ .\{balance\_sat\ *\ 1\_000\_000\_000\})\ \};}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ ...\ alte\ metode}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\};}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3662}{}\doxysection{\texorpdfstring{3. Semnătură tranzacție}{3. Semnătură tranzacție}}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3662}
+Wallet-\/urile EVM semnează cu secp256k1 (la fel ca Omni\+Bus), deci compatibilitatea este directă.
+
+Format TX EVM → Omni\+Bus:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{EVM\ TX:\ \{\ to,\ value,\ gas,\ gasPrice,\ nonce,\ data\ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{OmniBus\ TX:\ \{}
+\DoxyCodeLine{\ \ \ \ from\_address:\ "{}ob1q..."{},}
+\DoxyCodeLine{\ \ \ \ to\_address:\ "{}ob1q..."{},}
+\DoxyCodeLine{\ \ \ \ amount:\ value\ /\ 10\string^9,\ \ //\ wei\ →\ SAT}
+\DoxyCodeLine{\ \ \ \ fee:\ gas\ *\ gasPrice\ /\ 10\string^9,}
+\DoxyCodeLine{\ \ \ \ nonce:\ nonce,}
+\DoxyCodeLine{\ \ \ \ op\_return:\ data\ (opțional)}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3663}{}\doxysection{\texorpdfstring{4. Pași implementare}{4. Pași implementare}}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3663}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Creează {\ttfamily core/\+evm\+\_\+adapter.\+zig}}} -\/ conversie adrese + TX
+\item {\bfseries{Extinde {\ttfamily rpc\+\_\+server.\+zig}}} -\/ adaugă endpoint {\ttfamily /\+evm} pentru RPC EVM
+\item {\bfseries{Implementează metodele EVM standard}} -\/ eth\+\_\+\texorpdfstring{$\ast$}{*}
+\item {\bfseries{Testează cu Meta\+Mask}} -\/ adaugă rețea custom
+\item {\bfseries{Publică pe Chainlist.\+org}} -\/ pentru descoperire automată
+\end{DoxyEnumerate}\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3664}{}\doxysection{\texorpdfstring{5. Wallet-\/uri suportate imediat}{5. Wallet-\/uri suportate imediat}}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3664}
+După implementare, Omni\+Bus va funcționa cu:\+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Wallet  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Suport  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Observații  \\
+Meta\+Mask  &✅ Full  &Via wallet\+\_\+add\+Ethereum\+Chain  \\
+Trust Wallet  &✅ Full  &Suportă custom EVM networks  \\
+Rabby Wallet  &✅ Full  &Specializat De\+Fi  \\
+Coinbase Wallet  &✅ Full  &Via Wallet\+Connect sau direct  \\
+Rainbow  &✅ Full  &Wallet EVM modern  \\
+Frame  &✅ Full  &Desktop wallet  \\
+Taho  &✅ Full  &Fost Tally Ho  \\
+Zerion  &✅ Full  &Mobile wallet  \\
+Rainbow\+Kit  &✅ Full  &Pentru d\+App integration  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3665}{}\doxysection{\texorpdfstring{6. Post-\/\+Quantum în context EVM}{6. Post-\/\+Quantum în context EVM}}\label{md_archived-4-eterniti_2docs-plans_2_e_v_m___c_o_m_p_a_t_i_b_i_l_i_t_y___g_u_i_d_e_autotoc_md3665}
+Wallet-\/urile EVM semnează standard cu secp256k1. Pentru PQ:\+
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Faza 1}}:\+ Semnătură hibridă -\/ wallet-\/ul semnează cu secp256k1, node-\/ul adaugă semnătură PQ
+\item {\bfseries{Faza 2}}:\+ Meta\+Mask Snap custom pentru semnătură directă PQ
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ MetaMask\ Snap\ pentru\ PQ\ (opțional,\ Faza\ 2)}
+\DoxyCodeLine{const\ signature\ =\ await\ ethereum.request(\{}
+\DoxyCodeLine{\ \ method:\ 'wallet\_invokeSnap',}
+\DoxyCodeLine{\ \ params:\ \{}
+\DoxyCodeLine{\ \ \ \ snapId:\ 'npm:omnibus-\/pq-\/snap',}
+\DoxyCodeLine{\ \ \ \ request:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ method:\ 'signWithMlDsa87',}
+\DoxyCodeLine{\ \ \ \ \ \ params:\ \{\ tx:\ transactionData\ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+ 

@@ -15,20 +15,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Trash2, Clock, RefreshCw, X, Plus } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, satToOmni, midTrunc } from "../../utils/fmt";
+import { AddressLabel } from "../common/AddressLabel";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types/index";
 
-const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
+
 const REFRESH_INTERVAL_MS = 30_000;
-
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
-}
 
 interface ColdWalletEntry {
   address: string;
@@ -59,9 +54,7 @@ function HistoryModal({ entry, onClose }: HistoryModalProps) {
     let cancelled = false;
     const load = async () => {
       try {
-        const result = await rpc.request_raw("coldwallet_history", [
-          { address: entry.address, limit: 50 },
-        ]) as { transactions?: ColdWalletTx[] } | null;
+        const result = await rpc.coldwalletHistory(entry.address, 50) as { transactions?: ColdWalletTx[] } | null;
         if (!cancelled) setTxs(result?.transactions ?? []);
       } catch (e) {
         if (!cancelled) setErr(e instanceof Error ? e.message : String(e));
@@ -80,7 +73,7 @@ function HistoryModal({ entry, onClose }: HistoryModalProps) {
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-mempool-blue" />
             <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
-              History — {entry.label || shortAddr(entry.address)}
+              History — {entry.label || midTrunc(entry.address)}
             </h3>
           </div>
           <button
@@ -121,10 +114,10 @@ function HistoryModal({ entry, onClose }: HistoryModalProps) {
                       {tx.block_height === null ? "pending" : tx.block_height}
                     </td>
                     <td className="py-1.5 pr-2 text-mempool-blue">
-                      {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}
+                      {midTrunc(tx.txid, 10, 6)}
                     </td>
                     <td className={`py-1.5 text-right ${tx.direction === "received" ? "text-mempool-green" : "text-mempool-orange"}`}>
-                      {tx.direction === "received" ? "+" : "−"}{fmtOmni(tx.amount_sat)} OMNI
+                      {tx.direction === "received" ? "+" : "−"}{satToOmni(tx.amount_sat, 4)} OMNI
                     </td>
                   </tr>
                 ))}
@@ -172,8 +165,7 @@ export function ColdWalletPanel() {
     setLoading(true);
     setErr(null);
     try {
-      const result = await rpc.request_raw("coldwallet_list", [{}]) as
-        { addresses?: ColdWalletEntry[] } | null;
+      const result = await rpc.coldwalletList() as { addresses?: ColdWalletEntry[] } | null;
       setAddresses(result?.addresses ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -184,9 +176,11 @@ export function ColdWalletPanel() {
 
   useEffect(() => {
     void refresh();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
     timerRef.current = setInterval(() => void refresh(), REFRESH_INTERVAL_MS);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      unsub();
     };
   }, [refresh]);
 
@@ -195,10 +189,10 @@ export function ColdWalletPanel() {
     if (!addr) return;
     setAddBusy(true);
     try {
-      await rpc.request_raw("coldwallet_add", [{ address: addr, label: addLabel.trim() }]);
+      await rpc.coldwalletAdd(addr, addLabel.trim());
       setAddAddress("");
       setAddLabel("");
-      showToast(`Watching address ${shortAddr(addr)}`);
+      showToast(`Watching address ${midTrunc(addr)}`);
       await refresh();
     } catch (e) {
       showToast(`Add failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -209,9 +203,9 @@ export function ColdWalletPanel() {
 
   const handleRemove = async (address: string) => {
     try {
-      await rpc.request_raw("coldwallet_remove", [{ address }]);
+      await rpc.coldwalletRemove(address);
       setRemoveAddr(null);
-      showToast(`Removed ${shortAddr(address)}`);
+      showToast(`Removed ${midTrunc(address)}`);
       await refresh();
     } catch (e) {
       showToast(`Remove failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -264,6 +258,28 @@ export function ColdWalletPanel() {
           Watched addresses ({addresses.length})
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {addresses.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["address", "label", "balance_omni"].join(","),
+                ...addresses.map((a) => [
+                  `"${a.address}"`,
+                  `"${a.label}"`,
+                  (a.balance_sat / SAT_PER_OMNI).toFixed(4),
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const el = document.createElement("a");
+              el.href = url; el.download = "omnibus-cold-wallets.csv";
+              el.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
@@ -298,13 +314,15 @@ export function ColdWalletPanel() {
               {addresses.map((entry) => (
                 <tr key={entry.address} className="border-t border-mempool-border/40 hover:bg-mempool-bg/50">
                   <td className="py-2 px-2 text-mempool-blue" title={entry.address}>
-                    {shortAddr(entry.address)}
+                    <button onClick={() => { window.location.hash = `#/address/${entry.address}`; }} className="hover:underline">
+                      <AddressLabel address={entry.address} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </button>
                   </td>
                   <td className="py-2 px-2 text-mempool-text-dim">
                     {entry.label || <span className="italic opacity-50">—</span>}
                   </td>
                   <td className="py-2 px-2 text-right text-mempool-text">
-                    {fmtOmni(entry.balance_sat ?? 0)}
+                    {satToOmni(entry.balance_sat ?? 0, 4)}
                   </td>
                   <td className="py-2 px-2">
                     <div className="flex items-center justify-center gap-2">

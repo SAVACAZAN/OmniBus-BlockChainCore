@@ -1,0 +1,97 @@
+\doxysection{Settings\+Dialog.\+cpp}
+\hypertarget{_settings_dialog_8cpp_source}{}\label{_settings_dialog_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/SettingsDialog.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/SettingsDialog.cpp}}
+\doxymbox{\hyperlink{_settings_dialog_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_settings_dialog_8h}{dialogs/SettingsDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_settings_8h}{core/Settings.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QVBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QFormLayout>}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QHBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <QGroupBox>}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00011}00011\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00013}\doxymbox{\hyperlink{classomni_1_1_settings_dialog_a6aa1e54c39ff67840a829cb3f55883ce}{00013}}\ \doxymbox{\hyperlink{classomni_1_1_settings_dialog_a6aa1e54c39ff67840a829cb3f55883ce}{SettingsDialog::SettingsDialog}}(QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00014}00014\ \ \ \ \ :\ QDialog(parent)}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00015}00015\ \{}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00016}00016\ \ \ \ \ setWindowTitle(\textcolor{stringliteral}{"{}Settings"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00017}00017\ \ \ \ \ setMinimumWidth(400);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00018}00018\ \ \ \ \ setModal(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00020}00020\ \ \ \ \ \textcolor{keyword}{auto}\&\ s\ =\ \doxymbox{\hyperlink{classomni_1_1_settings_a2067640ae1b069a3a46355c8b72b971c}{Settings::instance}}();}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00021}00021\ \ \ \ \ \textcolor{keyword}{auto}*\ layout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00022}00022\ \ \ \ \ layout-\/>setSpacing(16);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00023}00023\ \ \ \ \ layout-\/>setContentsMargins(24,\ 24,\ 24,\ 24);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00025}00025\ \ \ \ \ \textcolor{comment}{//\ Connection\ group}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00026}00026\ \ \ \ \ \textcolor{keyword}{auto}*\ connGroup\ =\ \textcolor{keyword}{new}\ QGroupBox(\textcolor{stringliteral}{"{}Node\ Connection"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00027}00027\ \ \ \ \ \textcolor{keyword}{auto}*\ connForm\ =\ \textcolor{keyword}{new}\ QFormLayout(connGroup);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00029}00029\ \ \ \ \ m\_rpcHostEdit\ =\ \textcolor{keyword}{new}\ QLineEdit(s.rpcHost());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00030}00030\ \ \ \ \ m\_rpcPortSpin\ =\ \textcolor{keyword}{new}\ QSpinBox;}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00031}00031\ \ \ \ \ m\_rpcPortSpin-\/>setRange(1,\ 65535);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00032}00032\ \ \ \ \ m\_rpcPortSpin-\/>setValue(s.rpcPort());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00033}00033\ \ \ \ \ m\_wsPortSpin\ =\ \textcolor{keyword}{new}\ QSpinBox;}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00034}00034\ \ \ \ \ m\_wsPortSpin-\/>setRange(1,\ 65535);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00035}00035\ \ \ \ \ m\_wsPortSpin-\/>setValue(s.wsPort());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00037}00037\ \ \ \ \ connForm-\/>addRow(\textcolor{stringliteral}{"{}RPC\ Host:"{}},\ m\_rpcHostEdit);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00038}00038\ \ \ \ \ connForm-\/>addRow(\textcolor{stringliteral}{"{}RPC\ Port:"{}},\ m\_rpcPortSpin);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00039}00039\ \ \ \ \ connForm-\/>addRow(\textcolor{stringliteral}{"{}WebSocket\ Port:"{}},\ m\_wsPortSpin);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00040}00040\ \ \ \ \ layout-\/>addWidget(connGroup);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00042}00042\ \ \ \ \ \textcolor{comment}{//\ UI\ group}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00043}00043\ \ \ \ \ \textcolor{keyword}{auto}*\ uiGroup\ =\ \textcolor{keyword}{new}\ QGroupBox(\textcolor{stringliteral}{"{}Interface"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00044}00044\ \ \ \ \ \textcolor{keyword}{auto}*\ uiLayout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(uiGroup);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00046}00046\ \ \ \ \ m\_trayCheck\ =\ \textcolor{keyword}{new}\ QCheckBox(\textcolor{stringliteral}{"{}Minimize\ to\ system\ tray\ on\ close"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00047}00047\ \ \ \ \ m\_trayCheck-\/>setChecked(s.minimizeToTray());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00048}00048\ \ \ \ \ uiLayout-\/>addWidget(m\_trayCheck);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00049}00049\ \ \ \ \ layout-\/>addWidget(uiGroup);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00051}00051\ \ \ \ \ \textcolor{comment}{//\ Notifications\ group}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00052}00052\ \ \ \ \ \textcolor{keyword}{auto}*\ notifGroup\ =\ \textcolor{keyword}{new}\ QGroupBox(\textcolor{stringliteral}{"{}Notifications"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00053}00053\ \ \ \ \ \textcolor{keyword}{auto}*\ notifLayout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(notifGroup);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00055}00055\ \ \ \ \ m\_notifyBlockCheck\ =\ \textcolor{keyword}{new}\ QCheckBox(\textcolor{stringliteral}{"{}Notify\ on\ new\ block\ mined"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00056}00056\ \ \ \ \ m\_notifyBlockCheck-\/>setChecked(s.notifyNewBlock());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00057}00057\ \ \ \ \ m\_notifyTxCheck\ =\ \textcolor{keyword}{new}\ QCheckBox(\textcolor{stringliteral}{"{}Notify\ on\ incoming\ transaction"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00058}00058\ \ \ \ \ m\_notifyTxCheck-\/>setChecked(s.notifyIncomingTx());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00060}00060\ \ \ \ \ notifLayout-\/>addWidget(m\_notifyBlockCheck);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00061}00061\ \ \ \ \ notifLayout-\/>addWidget(m\_notifyTxCheck);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00062}00062\ \ \ \ \ layout-\/>addWidget(notifGroup);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00064}00064\ \ \ \ \ \textcolor{comment}{//\ Buttons}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00065}00065\ \ \ \ \ \textcolor{keyword}{auto}*\ btnLayout\ =\ \textcolor{keyword}{new}\ QHBoxLayout;}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00066}00066\ \ \ \ \ \textcolor{keyword}{auto}*\ cancelBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Cancel"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00067}00067\ \ \ \ \ cancelBtn-\/>setObjectName(\textcolor{stringliteral}{"{}secondaryButton"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00068}00068\ \ \ \ \ \textcolor{keyword}{auto}*\ saveBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Save"{}});}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00069}00069\ \ \ \ \ saveBtn-\/>setMinimumWidth(120);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00071}00071\ \ \ \ \ btnLayout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00072}00072\ \ \ \ \ btnLayout-\/>addWidget(cancelBtn);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00073}00073\ \ \ \ \ btnLayout-\/>addWidget(saveBtn);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00074}00074\ \ \ \ \ layout-\/>addLayout(btnLayout);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00076}00076\ \ \ \ \ connect(cancelBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ \&QDialog::reject);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00077}00077\ \ \ \ \ connect(saveBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ \&SettingsDialog::onSave);}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00078}00078\ \}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00080}00080\ \textcolor{keywordtype}{void}\ SettingsDialog::onSave()\ \{}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00081}00081\ \ \ \ \ \textcolor{keyword}{auto}\&\ s\ =\ \doxymbox{\hyperlink{classomni_1_1_settings_a2067640ae1b069a3a46355c8b72b971c}{Settings::instance}}();}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00082}00082\ \ \ \ \ s.setRpcHost(m\_rpcHostEdit-\/>text());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00083}00083\ \ \ \ \ s.setRpcPort(m\_rpcPortSpin-\/>value());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00084}00084\ \ \ \ \ s.setWsPort(m\_wsPortSpin-\/>value());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00085}00085\ \ \ \ \ s.setMinimizeToTray(m\_trayCheck-\/>isChecked());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00086}00086\ \ \ \ \ s.setNotifyNewBlock(m\_notifyBlockCheck-\/>isChecked());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00087}00087\ \ \ \ \ s.setNotifyIncomingTx(m\_notifyTxCheck-\/>isChecked());}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00088}00088\ \ \ \ \ accept();}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00089}00089\ \}}
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{_settings_dialog_8cpp_source_l00091}00091\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

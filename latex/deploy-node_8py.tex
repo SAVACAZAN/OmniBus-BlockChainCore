@@ -1,0 +1,61 @@
+\doxysection{tools/\+\+DEVOPS/\+deploy-\/node.py File Reference}
+\hypertarget{deploy-node_8py}{}\label{deploy-node_8py}\index{tools/DEVOPS/deploy-\/node.py@{tools/DEVOPS/deploy-\/node.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacedeploy-node}{deploy-\/node}}
+\item 
+namespace \doxymbox{\hyperlink{namespacedeploy}{deploy}}
+\begin{DoxyCompactList}\small\item\em -\/node \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_a72cc38807bfd658d179228b3b03952e5}{deploy-\/node.\+step}} (str msg)
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_a36fb3585a663e65d7d1f16473cf5e6dd}{deploy-\/node.\+ok}} (str msg)
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_ad8cb840fd28eaa63f6efd629e549f1be}{deploy-\/node.\+fail}} (str msg)
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_a18f510f28672301fc78bbf194b27151f}{deploy-\/node.\+warn}} (str msg)
+\item 
+Path \doxymbox{\hyperlink{namespacedeploy-node_ac8e5f0a7730f8396cce2214741332182}{deploy-\/node.\+find\+\_\+project\+\_\+root}} ()
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacedeploy-node_a58c595792c00ff7f97f118f558105ebf}{deploy-\/node.\+check\+\_\+zig}} ()
+\item 
+bool \doxymbox{\hyperlink{namespacedeploy-node_a158185186497a09680829d07084ea21a}{deploy-\/node.\+build\+\_\+node}} (Path project\+\_\+root)
+\item 
+Path\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacedeploy-node_a45b82bfaa7597f587cfc620dc1a0a73c}{deploy-\/node.\+find\+\_\+binary}} (Path project\+\_\+root)
+\item 
+Path \doxymbox{\hyperlink{namespacedeploy-node_a74f747cd94db57a2c9b15165db87749b}{deploy-\/node.\+generate\+\_\+toml}} (Path target\+\_\+dir, str mode, str node\+\_\+id, int port, int rpc\+\_\+port, str seed\+\_\+host, int seed\+\_\+port)
+\item 
+Path \doxymbox{\hyperlink{namespacedeploy-node_a7f71c90bd9eb2a83bf497452d9fdac71}{deploy-\/node.\+generate\+\_\+systemd\+\_\+service}} (Path target\+\_\+dir, str binary\+\_\+name, str mode, str node\+\_\+id)
+\item 
+Path \doxymbox{\hyperlink{namespacedeploy-node_a1ab76fbcf4e716e2d33c6edfb40a1fd6}{deploy-\/node.\+generate\+\_\+bat\+\_\+launcher}} (Path target\+\_\+dir, str binary\+\_\+name, str mode, str node\+\_\+id)
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_a51af30a60f9f02777c6396b8247e356f}{deploy-\/node.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{deploy-\/node.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a2f08a9e1081d0b95595bd38775d82b76}{deploy-\/node.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a923a696316ca5f0eb1eeaf7a272a1cf8}{deploy-\/node.\+DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a7ce93b21b37c435583bf929917e1be6f}{deploy-\/node.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_adfe5981a888b645cf575c9ae485f97f3}{deploy-\/node.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a3b2fbcf1e8c4031f1f26db16d63b7549}{deploy-\/node.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a09da1adffef004ed0f412e750c895963}{deploy-\/node.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a7a35342595d4cc5104e819600d26f521}{deploy-\/node.\+MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_af4f5bbae7d45e05dc799662aa8b0d828}{deploy-\/node.\+CHECKMARK}} = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_adfe5981a888b645cf575c9ae485f97f3}{GREEN}}\}\+[OK]\+\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_ae4ec60f58f5dce2886bfde4d1b8734a5}{deploy-\/node.\+CROSS}} = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_a7ce93b21b37c435583bf929917e1be6f}{RED}}\}\+[FAIL]\+\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_ac8f1fc5fd7b25b821783d3a2f653feb7}{deploy-\/node.\+ARROW}} = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_a09da1adffef004ed0f412e750c895963}{CYAN}}\}$>$$>$$>$\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}
+\end{DoxyCompactItemize}

@@ -1,0 +1,301 @@
+\doxysection{git-\/zig-\/evolution.py}
+\hypertarget{git-zig-evolution_8py_source}{}\label{git-zig-evolution_8py_source}\index{tools/LEARNING/git-\/zig-\/evolution.py@{tools/LEARNING/git-\/zig-\/evolution.py}}
+\doxymbox{\hyperlink{git-zig-evolution_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00001}\doxymbox{\hyperlink{namespacegit-zig-evolution}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00002}\doxymbox{\hyperlink{namespacegit}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00003}00003\ \textcolor{stringliteral}{git-\/zig-\/evolution.py}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00005}00005\ \textcolor{stringliteral}{Analyze\ the\ evolution\ of\ core/*.zig\ modules\ over\ git\ history.}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00006}00006\ \textcolor{stringliteral}{Computes:}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Lines\ of\ code\ (LOC)\ per\ module\ over\ time}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Commit/fix\ frequency\ per\ module\ (proxy\ for\ instability)}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Complexity\ score\ (branching\ +\ function\ count)\ per\ module\ over\ time}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ Allocation\ divergence\ detection\ (introduction\ of\ allocator\ usage\ in}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ previously\ bare-\/metal\ modules)}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00013}00013\ \textcolor{stringliteral}{Outputs:\ evolution-\/report.json}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00014}00014\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00016}00016\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00017}00017\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00018}00018\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00019}00019\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00020}00020\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00022}00022\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00023}00023\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00024}00024\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00025}00025\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00027}00027\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00028}00028\ \textcolor{comment}{\#\ Colours}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00029}00029\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00030}\doxymbox{\hyperlink{namespacegit-zig-evolution_a3a0904634d69ecb240683fc884c34e02}{00030}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00031}\doxymbox{\hyperlink{namespacegit-zig-evolution_a1c61ef499bffe47f1436a7633079def6}{00031}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00032}\doxymbox{\hyperlink{namespacegit-zig-evolution_a666c8aed86e55995ac75035797ac462d}{00032}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00033}\doxymbox{\hyperlink{namespacegit-zig-evolution_ac48acdb273637f065885833c6f7421cf}{00033}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00034}\doxymbox{\hyperlink{namespacegit-zig-evolution_a3f3464d7c8bc36b9f8ce540f288b6b5d}{00034}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00037}\doxymbox{\hyperlink{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00037}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00038}00038\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00041}\doxymbox{\hyperlink{namespacegit-zig-evolution_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00041}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00042}00042\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00045}\doxymbox{\hyperlink{namespacegit-zig-evolution_abf994b8269849d29e07697ea8a840f74}{00045}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00046}00046\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00049}\doxymbox{\hyperlink{namespacegit-zig-evolution_adf0e2aa4d06b5ca38e44721821eca783}{00049}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00050}00050\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00053}00053\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00054}00054\ \textcolor{comment}{\#\ Git\ helpers}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00055}00055\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00056}\doxymbox{\hyperlink{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb}{00056}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}(args:\ list[str],\ cwd:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00057}00057\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ a\ git\ command\ and\ return\ stdout.\ Raises\ on\ failure."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00058}00058\ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}git"{}}]\ +\ args,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ cwd=cwd,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ text=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ errors=\textcolor{stringliteral}{"{}replace"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00065}00065\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{if}\ result.returncode\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError(f\textcolor{stringliteral}{"{}git\ \{'\ '.join(args)\}\ failed:\ \{result.stderr\}"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{return}\ result.stdout}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00071}\doxymbox{\hyperlink{namespacegit-zig-evolution_aa498602fce9ff6b792ef009597081a93}{00071}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_aa498602fce9ff6b792ef009597081a93}{get\_commits}}(cwd:\ str,\ max\_commits:\ int\ =\ 200)\ -\/>\ list[dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00072}00072\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Return\ list\ of\ commits\ with\ hash,\ date,\ and\ message."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00073}00073\ \ \ \ \ fmt\ =\ \textcolor{stringliteral}{"{}\%H|\%aI|\%s"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00074}00074\ \ \ \ \ out\ =\ \doxymbox{\hyperlink{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}log"{}},\ f\textcolor{stringliteral}{"{}-\/-\/format=\{fmt\}"{}},\ f\textcolor{stringliteral}{"{}-\/n\{max\_commits\}"{}},\ \textcolor{stringliteral}{"{}-\/-\/"{}},\ \textcolor{stringliteral}{"{}core/*.zig"{}}],}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ cwd=cwd,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00077}00077\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00078}00078\ \ \ \ \ commits:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00079}00079\ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ out.strip().splitlines():}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}|"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ parts\ =\ line.split(\textcolor{stringliteral}{"{}|"{}},\ 2)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ commits.append(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ parts[0],}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}date"{}}:\ parts[1],}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}message"{}}:\ parts[2],}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00090}00090\ \ \ \ \ \textcolor{keywordflow}{return}\ commits}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00093}\doxymbox{\hyperlink{namespacegit-zig-evolution_ae23c0e01a3fac822627f315c3bd715ac}{00093}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_ae23c0e01a3fac822627f315c3bd715ac}{get\_file\_at\_commit}}(cwd:\ str,\ commit\_hash:\ str,\ file\_path:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00094}00094\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Return\ file\ contents\ at\ a\ specific\ commit."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}show"{}},\ f\textcolor{stringliteral}{"{}\{commit\_hash\}:\{file\_path\}"{}}],\ cwd=cwd)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00097}00097\ \ \ \ \ \textcolor{keywordflow}{except}\ RuntimeError:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00101}\doxymbox{\hyperlink{namespacegit-zig-evolution_aa2b4571da638f0d2ce2089c0a2e9604a}{00101}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_aa2b4571da638f0d2ce2089c0a2e9604a}{list\_zig\_files}}(cwd:\ str,\ commit\_hash:\ str)\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00102}00102\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}List\ core/*.zig\ files\ present\ at\ a\ given\ commit."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00103}00103\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ out\ =\ \doxymbox{\hyperlink{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}ls-\/tree"{}},\ \textcolor{stringliteral}{"{}-\/r"{}},\ \textcolor{stringliteral}{"{}-\/-\/name-\/only"{}},\ commit\_hash,\ \textcolor{stringliteral}{"{}-\/-\/"{}},\ \textcolor{stringliteral}{"{}core/*.zig"{}}],}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ cwd=cwd,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ [ln\ \textcolor{keywordflow}{for}\ ln\ \textcolor{keywordflow}{in}\ out.strip().splitlines()\ \textcolor{keywordflow}{if}\ ln.endswith(\textcolor{stringliteral}{"{}.zig"{}})]}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{except}\ RuntimeError:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ []}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00113}00113\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00114}00114\ \textcolor{comment}{\#\ Metrics}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00115}00115\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00116}\doxymbox{\hyperlink{namespacegit-zig-evolution_a9e37984b9df268e6fc00b0abed5c9a27}{00116}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_a9e37984b9df268e6fc00b0abed5c9a27}{count\_loc}}(source:\ str)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00117}00117\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Count\ non-\/empty,\ non-\/comment\ lines."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00118}00118\ \ \ \ \ lines\ =\ 0}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00119}00119\ \ \ \ \ in\_multiline\_comment\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00120}00120\ \ \ \ \ \textcolor{keywordflow}{for}\ raw\ \textcolor{keywordflow}{in}\ source.splitlines():}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ line\ =\ raw.strip()}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ line:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ line.startswith(\textcolor{stringliteral}{"{}//"{}}):}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}/*"{}}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}*/"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ in\_multiline\_comment\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ in\_multiline\_comment:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}*/"{}}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ in\_multiline\_comment\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ lines\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00135}00135\ \ \ \ \ \textcolor{keywordflow}{return}\ lines}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00138}\doxymbox{\hyperlink{namespacegit-zig-evolution_a2b2891e715a164437979a30153ddef76}{00138}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_a2b2891e715a164437979a30153ddef76}{complexity\_score}}(source:\ str)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00139}00139\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Rough\ complexity:\ number\ of\ functions\ +\ branching\ keywords."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00140}00140\ \ \ \ \ funcs\ =\ len(re.findall(\textcolor{stringliteral}{r"{}\(\backslash\)bfn\(\backslash\)s+\(\backslash\)w+"{}},\ source))}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00141}00141\ \ \ \ \ branches\ =\ len(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ re.findall(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\)b(if|else|switch|while|for|return|break|continue|catch|try)\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ source,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00146}00146\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00147}00147\ \ \ \ \ \textcolor{keywordflow}{return}\ funcs\ +\ branches}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00150}\doxymbox{\hyperlink{namespacegit-zig-evolution_a38d052450fdb6c1e9cc1273181f2c761}{00150}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_a38d052450fdb6c1e9cc1273181f2c761}{has\_allocations}}(source:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00151}00151\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Detect\ allocator\ usage\ patterns\ in\ Zig\ source."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00152}00152\ \ \ \ \ patterns\ =\ [}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\)ballocator\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\)bAllocator\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\)bstd\(\backslash\).heap\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\)bpage\_allocator\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\)bGeneralPurposeAllocator\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\)bFixedBufferAllocator\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\).alloc\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\).create\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\).realloc\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{r"{}\(\backslash\).free\(\backslash\)b"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00163}00163\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00164}00164\ \ \ \ \ \textcolor{keywordflow}{return}\ any(re.search(p,\ source)\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ patterns)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00167}\doxymbox{\hyperlink{namespacegit-zig-evolution_a73956d33be817e7537546311e43392b4}{00167}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_a73956d33be817e7537546311e43392b4}{fix\_indicator}}(commit\_msg:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00168}00168\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Heuristic:\ does\ the\ commit\ message\ indicate\ a\ fix?"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00169}00169\ \ \ \ \ msg\ =\ commit\_msg.lower()}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00170}00170\ \ \ \ \ keywords\ =\ [\textcolor{stringliteral}{"{}fix"{}},\ \textcolor{stringliteral}{"{}bug"{}},\ \textcolor{stringliteral}{"{}patch"{}},\ \textcolor{stringliteral}{"{}repair"{}},\ \textcolor{stringliteral}{"{}correct"{}},\ \textcolor{stringliteral}{"{}resolve"{}},\ \textcolor{stringliteral}{"{}hotfix"{}}]}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00171}00171\ \ \ \ \ \textcolor{keywordflow}{return}\ any(kw\ \textcolor{keywordflow}{in}\ msg\ \textcolor{keywordflow}{for}\ kw\ \textcolor{keywordflow}{in}\ keywords)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00173}00173\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00174}00174\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00175}00175\ \textcolor{comment}{\#\ Main\ analysis}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00176}00176\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00177}\doxymbox{\hyperlink{namespacegit-zig-evolution_a9e9960d4c7756bb68a1da8cce11a78d9}{00177}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_a9e9960d4c7756bb68a1da8cce11a78d9}{analyze\_evolution}}(cwd:\ str,\ max\_commits:\ int)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00178}00178\ \ \ \ \ \doxymbox{\hyperlink{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Fetching\ up\ to\ \{max\_commits\}\ commits\ touching\ core/*.zig\ …"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00179}00179\ \ \ \ \ commits\ =\ \doxymbox{\hyperlink{namespacegit-zig-evolution_aa498602fce9ff6b792ef009597081a93}{get\_commits}}(cwd,\ max\_commits)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00180}00180\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ commits:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacegit-zig-evolution_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(\textcolor{stringliteral}{"{}No\ commits\ found\ for\ core/*.zig"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),\ \textcolor{stringliteral}{"{}modules"{}}:\ \{\}\}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00184}00184\ \ \ \ \ \doxymbox{\hyperlink{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Analyzing\ \{len(commits)\}\ commits\ …"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00186}00186\ \ \ \ \ \textcolor{comment}{\#\ Per-\/commit\ per-\/module\ metrics}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00187}00187\ \ \ \ \ module\_history:\ dict[str,\ list[dict[str,\ Any]]]\ =\ defaultdict(list)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00188}00188\ \ \ \ \ module\_fix\_count:\ dict[str,\ int]\ =\ defaultdict(int)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00190}00190\ \ \ \ \ \textcolor{keywordflow}{for}\ idx,\ commit\ \textcolor{keywordflow}{in}\ enumerate(commits):}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ files\ =\ \doxymbox{\hyperlink{namespacegit-zig-evolution_aa2b4571da638f0d2ce2089c0a2e9604a}{list\_zig\_files}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}])}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ fpath\ \textcolor{keywordflow}{in}\ files:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ source\ =\ \doxymbox{\hyperlink{namespacegit-zig-evolution_ae23c0e01a3fac822627f315c3bd715ac}{get\_file\_at\_commit}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}],\ fpath)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ source:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ module\_name\ =\ Path(fpath).stem}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ module\_history[module\_name].append(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commit"{}}:\ commit[\textcolor{stringliteral}{"{}hash"{}}],}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}date"{}}:\ commit[\textcolor{stringliteral}{"{}date"{}}],}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}loc"{}}:\ \doxymbox{\hyperlink{namespacegit-zig-evolution_a9e37984b9df268e6fc00b0abed5c9a27}{count\_loc}}(source),}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}complexity"{}}:\ \doxymbox{\hyperlink{namespacegit-zig-evolution_a2b2891e715a164437979a30153ddef76}{complexity\_score}}(source),}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}allocations"{}}:\ \doxymbox{\hyperlink{namespacegit-zig-evolution_a38d052450fdb6c1e9cc1273181f2c761}{has\_allocations}}(source),}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \doxymbox{\hyperlink{namespacegit-zig-evolution_a73956d33be817e7537546311e43392b4}{fix\_indicator}}(commit[\textcolor{stringliteral}{"{}message"{}}]):}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ module\_fix\_count[module\_name]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (idx\ +\ 1)\ \%\ 20\ ==\ 0\ \textcolor{keywordflow}{or}\ idx\ ==\ len(commits)\ -\/\ 1:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}\ \ processed\ \{idx\ +\ 1\}/\{len(commits)\}\ commits"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00211}00211\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00212}00212\ \ \ \ \ \textcolor{comment}{\#\ Aggregate\ per-\/module}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00213}00213\ \ \ \ \ modules:\ dict[str,\ Any]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00214}00214\ \ \ \ \ \textcolor{keywordflow}{for}\ mod,\ history\ \textcolor{keywordflow}{in}\ module\_history.items():}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ history.sort(key=\textcolor{keyword}{lambda}\ x:\ x[\textcolor{stringliteral}{"{}date"{}}])}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ loc\_start\ =\ history[0][\textcolor{stringliteral}{"{}loc"{}}]\ \textcolor{keywordflow}{if}\ history\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ loc\_end\ =\ history[-\/1][\textcolor{stringliteral}{"{}loc"{}}]\ \textcolor{keywordflow}{if}\ history\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ loc\_growth\ =\ loc\_end\ -\/\ loc\_start}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ avg\_complexity\ =\ sum(h[\textcolor{stringliteral}{"{}complexity"{}}]\ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ history)\ /\ len(history)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ max\_complexity\ =\ max(h[\textcolor{stringliteral}{"{}complexity"{}}]\ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ history)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Detect\ allocation\ divergence:\ first\ snapshot\ no\ alloc,\ later\ snapshot\ has\ alloc}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ alloc\_diverged\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ first\_no\_alloc\ =\ any(\textcolor{keywordflow}{not}\ h[\textcolor{stringliteral}{"{}allocations"{}}]\ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ history)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ later\_has\_alloc\ =\ any(h[\textcolor{stringliteral}{"{}allocations"{}}]\ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ history[1:])}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ first\_no\_alloc\ \textcolor{keywordflow}{and}\ later\_has\_alloc:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ alloc\_diverged\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ modules[mod]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}file"{}}:\ f\textcolor{stringliteral}{"{}core/\{mod\}.zig"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commits\_analyzed"{}}:\ len(history),}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fix\_count"{}}:\ module\_fix\_count[mod],}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}loc\_start"{}}:\ loc\_start,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}loc\_end"{}}:\ loc\_end,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}loc\_growth"{}}:\ loc\_growth,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}growth\_percent"{}}:\ round((loc\_growth\ /\ max(loc\_start,\ 1))\ *\ 100,\ 2),}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}average\_complexity"{}}:\ round(avg\_complexity,\ 2),}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}max\_complexity"{}}:\ max\_complexity,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}allocation\_diverged"{}}:\ alloc\_diverged,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}history"{}}:\ history,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00242}00242\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00243}00243\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commits\_scanned"{}}:\ len(commits),}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ modules,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00247}00247\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00248}00248\ \ \ \ \ \textcolor{keywordflow}{return}\ report}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00251}\doxymbox{\hyperlink{namespacegit-zig-evolution_a7431cb90017e54fe695b23d4190db046}{00251}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegit-zig-evolution_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00252}00252\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}Analyze\ Zig\ core\ module\ evolution\ via\ git\ history."{}}}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00254}00254\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00255}00255\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/repo"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}."{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Path\ to\ the\ BlockChainCore\ git\ repository\ (default:\ current\ dir)"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00259}00259\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00260}00260\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/max-\/commits"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ type=int,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ default=200,}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Maximum\ commits\ to\ scan\ (default:\ 200)"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00265}00265\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00266}00266\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/output"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}tools/LEARNING/evolution-\/report.json"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}},}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00270}00270\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00271}00271\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00272}00272\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00273}00273\ \ \ \ \ repo\ =\ os.path.abspath(args.repo)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00274}00274\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isdir(os.path.join(repo,\ \textcolor{stringliteral}{"{}.git"{}})):}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacegit-zig-evolution_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}\{repo\}\ does\ not\ appear\ to\ be\ a\ git\ repository."{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00278}00278\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ report\ =\ \doxymbox{\hyperlink{namespacegit-zig-evolution_a9e9960d4c7756bb68a1da8cce11a78d9}{analyze\_evolution}}(repo,\ args.max\_commits)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00280}00280\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacegit-zig-evolution_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(str(exc))}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00284}00284\ \ \ \ \ out\_path\ =\ os.path.join(repo,\ args.output)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00285}00285\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00286}00286\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00289}00289\ \ \ \ \ \doxymbox{\hyperlink{namespacegit-zig-evolution_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00290}00290\ \ \ \ \ \doxymbox{\hyperlink{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Modules\ analyzed:\ \{len(report['modules'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00291}00291\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00294}00294\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{git-zig-evolution_8py_source_l00295}00295\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacegit-zig-evolution_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

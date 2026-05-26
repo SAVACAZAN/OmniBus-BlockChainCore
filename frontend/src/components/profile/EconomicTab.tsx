@@ -86,7 +86,7 @@ export function EconomicTab({
               <div className="text-xs text-mempool-text-dim italic">No linked addresses</div>
             )}
             {addresses.map((a, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={`addr-${i}`} className="flex gap-2 items-center">
                 {editable ? (
                   <>
                     <input
@@ -149,7 +149,7 @@ export function EconomicTab({
         ) : (
           <div className="space-y-1">
             {donations.map((d, i) => (
-              <div key={i} className="flex justify-between text-xs">
+              <div key={`donation-${i}`} className="flex justify-between text-xs">
                 <span className="font-mono text-mempool-text truncate flex-1">
                   → {d.to}
                 </span>

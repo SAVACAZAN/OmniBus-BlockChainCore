@@ -1,0 +1,143 @@
+\doxysection{omni::\+Overview\+Tab Class Reference}
+\hypertarget{classomni_1_1_overview_tab}{}\label{classomni_1_1_overview_tab}\index{omni::OverviewTab@{omni::OverviewTab}}
+
+
+{\ttfamily \+\#include $<$Overview\+Tab.\+h$>$}
+
+
+
+Inheritance diagram for omni::\+Overview\+Tab:\+
+% FIG 0
+
+
+Collaboration diagram for omni::\+Overview\+Tab:\+
+% FIG 1
+\doxysubsubsection*{Public Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_overview_tab_ab23cb7823c4571e04fc5a04937e73b73}{on\+Wallet\+Updated}} (const \doxymbox{\hyperlink{structomni_1_1_wallet_info}{Wallet\+Info}} \&info)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_overview_tab_a0ffefeafdaff8746d5c6f47409ae901c}{on\+Network\+Updated}} (const \doxymbox{\hyperlink{structomni_1_1_network_info}{Network\+Info}} \&info)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_overview_tab_af93314883116f49992ed78e130e6152d}{on\+Mempool\+Updated}} (const \doxymbox{\hyperlink{structomni_1_1_mempool_stats}{Mempool\+Stats}} \&stats)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_overview_tab_a2472b4e61925d5fd77d1558803b8ebc7}{on\+New\+Block}} (const \doxymbox{\hyperlink{structomni_1_1_block_data}{Block\+Data}} \&block)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_overview_tab_a8d15046b3bd239a9c78bad87ed807f46}{on\+New\+Tx}} (const QString \&txid, const QString \&from, qint64 amount\+Sat)
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_overview_tab_afa6e9f3cb834cac58c54a663199b7c5a}{on\+Block\+Height\+Changed}} (int height)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classomni_1_1_overview_tab_a115dc861927d51bc9cffe983912c7028}{Overview\+Tab}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_overview_tab_8h_source_l00014}{14}} of file \doxymbox{\hyperlink{_overview_tab_8h_source}{Overview\+Tab.\+h}}.
+
+
+
+\label{classomni_1_1_overview_tab_doc-constructors}
+\Hypertarget{classomni_1_1_overview_tab_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classomni_1_1_overview_tab_a115dc861927d51bc9cffe983912c7028}\index{omni::OverviewTab@{omni::OverviewTab}!OverviewTab@{OverviewTab}}
+\index{OverviewTab@{OverviewTab}!omni::OverviewTab@{omni::OverviewTab}}
+\doxysubsubsection{\texorpdfstring{OverviewTab()}{OverviewTab()}}
+{\footnotesize\ttfamily \label{classomni_1_1_overview_tab_a115dc861927d51bc9cffe983912c7028} 
+omni::\+\+Overview\+Tab::\+\+Overview\+Tab (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_overview_tab_8cpp_source_l00016}{16}} of file \doxymbox{\hyperlink{_overview_tab_8cpp_source}{Overview\+Tab.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+
+
+\label{classomni_1_1_overview_tab_doc-func-members}
+\Hypertarget{classomni_1_1_overview_tab_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_overview_tab_afa6e9f3cb834cac58c54a663199b7c5a}\index{omni::OverviewTab@{omni::OverviewTab}!onBlockHeightChanged@{onBlockHeightChanged}}
+\index{onBlockHeightChanged@{onBlockHeightChanged}!omni::OverviewTab@{omni::OverviewTab}}
+\doxysubsubsection{\texorpdfstring{onBlockHeightChanged}{onBlockHeightChanged}}
+{\footnotesize\ttfamily \label{classomni_1_1_overview_tab_afa6e9f3cb834cac58c54a663199b7c5a} 
+void omni::\+\+Overview\+Tab::\+on\+Block\+Height\+Changed (\begin{DoxyParamCaption}\item[{int}]{height}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [slot]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_overview_tab_8cpp_source_l00195}{195}} of file \doxymbox{\hyperlink{_overview_tab_8cpp_source}{Overview\+Tab.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{classomni_1_1_overview_tab_af93314883116f49992ed78e130e6152d}\index{omni::OverviewTab@{omni::OverviewTab}!onMempoolUpdated@{onMempoolUpdated}}
+\index{onMempoolUpdated@{onMempoolUpdated}!omni::OverviewTab@{omni::OverviewTab}}
+\doxysubsubsection{\texorpdfstring{onMempoolUpdated}{onMempoolUpdated}}
+{\footnotesize\ttfamily \label{classomni_1_1_overview_tab_af93314883116f49992ed78e130e6152d} 
+void omni::\+\+Overview\+Tab::\+on\+Mempool\+Updated (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1_mempool_stats}{Mempool\+Stats}} \&}]{stats}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [slot]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_overview_tab_8cpp_source_l00182}{182}} of file \doxymbox{\hyperlink{_overview_tab_8cpp_source}{Overview\+Tab.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{classomni_1_1_overview_tab_a0ffefeafdaff8746d5c6f47409ae901c}\index{omni::OverviewTab@{omni::OverviewTab}!onNetworkUpdated@{onNetworkUpdated}}
+\index{onNetworkUpdated@{onNetworkUpdated}!omni::OverviewTab@{omni::OverviewTab}}
+\doxysubsubsection{\texorpdfstring{onNetworkUpdated}{onNetworkUpdated}}
+{\footnotesize\ttfamily \label{classomni_1_1_overview_tab_a0ffefeafdaff8746d5c6f47409ae901c} 
+void omni::\+\+Overview\+Tab::\+on\+Network\+Updated (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1_network_info}{Network\+Info}} \&}]{info}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [slot]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_overview_tab_8cpp_source_l00171}{171}} of file \doxymbox{\hyperlink{_overview_tab_8cpp_source}{Overview\+Tab.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{classomni_1_1_overview_tab_a2472b4e61925d5fd77d1558803b8ebc7}\index{omni::OverviewTab@{omni::OverviewTab}!onNewBlock@{onNewBlock}}
+\index{onNewBlock@{onNewBlock}!omni::OverviewTab@{omni::OverviewTab}}
+\doxysubsubsection{\texorpdfstring{onNewBlock}{onNewBlock}}
+{\footnotesize\ttfamily \label{classomni_1_1_overview_tab_a2472b4e61925d5fd77d1558803b8ebc7} 
+void omni::\+\+Overview\+Tab::\+on\+New\+Block (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1_block_data}{Block\+Data}} \&}]{block}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [slot]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_overview_tab_8cpp_source_l00186}{186}} of file \doxymbox{\hyperlink{_overview_tab_8cpp_source}{Overview\+Tab.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{classomni_1_1_overview_tab_a8d15046b3bd239a9c78bad87ed807f46}\index{omni::OverviewTab@{omni::OverviewTab}!onNewTx@{onNewTx}}
+\index{onNewTx@{onNewTx}!omni::OverviewTab@{omni::OverviewTab}}
+\doxysubsubsection{\texorpdfstring{onNewTx}{onNewTx}}
+{\footnotesize\ttfamily \label{classomni_1_1_overview_tab_a8d15046b3bd239a9c78bad87ed807f46} 
+void omni::\+\+Overview\+Tab::\+on\+New\+Tx (\begin{DoxyParamCaption}\item[{const QString \&}]{txid}{, }\item[{const QString \&}]{from}{, }\item[{qint64}]{amount\+Sat}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [slot]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_overview_tab_8cpp_source_l00191}{191}} of file \doxymbox{\hyperlink{_overview_tab_8cpp_source}{Overview\+Tab.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{classomni_1_1_overview_tab_ab23cb7823c4571e04fc5a04937e73b73}\index{omni::OverviewTab@{omni::OverviewTab}!onWalletUpdated@{onWalletUpdated}}
+\index{onWalletUpdated@{onWalletUpdated}!omni::OverviewTab@{omni::OverviewTab}}
+\doxysubsubsection{\texorpdfstring{onWalletUpdated}{onWalletUpdated}}
+{\footnotesize\ttfamily \label{classomni_1_1_overview_tab_ab23cb7823c4571e04fc5a04937e73b73} 
+void omni::\+\+Overview\+Tab::\+on\+Wallet\+Updated (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structomni_1_1_wallet_info}{Wallet\+Info}} \&}]{info}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [slot]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_overview_tab_8cpp_source_l00159}{159}} of file \doxymbox{\hyperlink{_overview_tab_8cpp_source}{Overview\+Tab.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+widgets/\+\doxymbox{\hyperlink{_overview_tab_8h}{Overview\+Tab.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+widgets/\+\doxymbox{\hyperlink{_overview_tab_8cpp}{Overview\+Tab.\+cpp}}\end{DoxyCompactItemize}

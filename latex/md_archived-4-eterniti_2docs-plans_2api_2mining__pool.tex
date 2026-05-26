@@ -1,0 +1,380 @@
+\chapter{Module:\+ {\ttfamily mining\+\_\+pool} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool}{}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool}\index{Module: $<$tt$>$mining\_pool$<$/tt$>$@{Module: $<$tt$>$mining\_pool$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2125}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2125}%
+
+
+\begin{quote}
+Mining pool coordination — dynamic miner registration, fair reward distribution, share submission, pool statistics. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+mining\+\_\+pool.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 215 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 11 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 5
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2127}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2127}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2128}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2128}
+
+\begin{DoxyItemize}
+\item \`{}\+Mining\+Pool\`{}{\ttfamily Mining\+Pool}
+\end{DoxyItemize}— Mining Pool -\/ Coordinates multiple miners
+\begin{DoxyItemize}
+\item \`{}\+Miner\`{}{\ttfamily Miner}
+\end{DoxyItemize}— Data structure for miner. Fields include:\+ miner\+\_\+id, address, hashrate, shares, l...
+\begin{DoxyItemize}
+\item \`{}\+Pool\+Stats\`{}{\ttfamily Pool\+Stats}
+\end{DoxyItemize}— Data structure for pool stats. Fields include:\+ total\+\_\+miners, active\+\_\+miners, tota...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2129}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2129}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2130}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2130}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+Miner()\`{}{\ttfamily add\+Miner()}
+\end{DoxyItemize}— Add miner to pool
+\begin{DoxyItemize}
+\item \`{}update\+Miner\+Status()\`{}{\ttfamily update\+Miner\+Status()}
+\end{DoxyItemize}— Update miner status
+\begin{DoxyItemize}
+\item \`{}record\+Share()\`{}{\ttfamily record\+Share()}
+\end{DoxyItemize}— Record share from miner
+\begin{DoxyItemize}
+\item \`{}record\+Block\+Found()\`{}{\ttfamily record\+Block\+Found()}
+\end{DoxyItemize}— Record block found
+\begin{DoxyItemize}
+\item \`{}get\+Miner\+Count()\`{}{\ttfamily get\+Miner\+Count()}
+\end{DoxyItemize}— Get miner count
+\begin{DoxyItemize}
+\item \`{}get\+Total\+Hashrate()\`{}{\ttfamily get\+Total\+Hashrate()}
+\end{DoxyItemize}— Get total hashrate
+\begin{DoxyItemize}
+\item \`{}get\+Stats()\`{}{\ttfamily get\+Stats()}
+\end{DoxyItemize}— Get pool statistics
+\begin{DoxyItemize}
+\item \`{}remove\+Inactive\+Miners()\`{}{\ttfamily remove\+Inactive\+Miners()}
+\end{DoxyItemize}— Remove inactive miners (no share for 300s)
+\begin{DoxyItemize}
+\item \`{}get\+Miner\+Reward\+Share()\`{}{\ttfamily get\+Miner\+Reward\+Share()}
+\end{DoxyItemize}— Get miner reward share (proportional to hashrate)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2132}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2132}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2133}{}\doxysubsection{\texorpdfstring{{\ttfamily Mining\+Pool}}{{\ttfamily Mining\+Pool}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2133}
+Mining Pool -\/ Coordinates multiple miners
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily pool\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Pool\+\_\+id  \\
+{\ttfamily miners}  &{\ttfamily array\+\_\+list.\+Managed(\+Miner)}  &Miners  \\
+{\ttfamily total\+\_\+hashrate}  &{\ttfamily u64}  &Total\+\_\+hashrate  \\
+{\ttfamily blocks\+\_\+found}  &{\ttfamily u64}  &Blocks\+\_\+found  \\
+{\ttfamily pool\+\_\+reward\+\_\+address}  &{\ttfamily \+[]\+const u8}  &Pool\+\_\+reward\+\_\+address  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 5}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2135}{}\doxysubsection{\texorpdfstring{{\ttfamily Miner}}{{\ttfamily Miner}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2135}
+Data structure for miner. Fields include:\+ miner\+\_\+id, address, hashrate, shares, last\+\_\+share\+\_\+time.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily hashrate}  &{\ttfamily u64}  &Hashrate  \\
+{\ttfamily shares}  &{\ttfamily u64}  &Shares  \\
+{\ttfamily last\+\_\+share\+\_\+time}  &{\ttfamily i64}  &Last\+\_\+share\+\_\+time  \\
+{\ttfamily status}  &{\ttfamily Miner\+Status}  &Status  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 13}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2137}{}\doxysubsection{\texorpdfstring{{\ttfamily Pool\+Stats}}{{\ttfamily Pool\+Stats}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2137}
+Data structure for pool stats. Fields include:\+ total\+\_\+miners, active\+\_\+miners, total\+\_\+hashrate, blocks\+\_\+found.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily total\+\_\+miners}  &{\ttfamily usize}  &Total\+\_\+miners  \\
+{\ttfamily active\+\_\+miners}  &{\ttfamily u32}  &Active\+\_\+miners  \\
+{\ttfamily total\+\_\+hashrate}  &{\ttfamily u64}  &Total\+\_\+hashrate  \\
+{\ttfamily blocks\+\_\+found}  &{\ttfamily u64}  &Blocks\+\_\+found  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 149}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2139}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2139}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Miner\+Status}  &{\ttfamily enum \{}  &Miner status  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2141}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2141}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2142}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2142}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(pool\_id:\ []const\ u8,\ reward\_address:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ MiningPool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily pool\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Pool\+\_\+id  \\
+{\ttfamily reward\+\_\+address}  &{\ttfamily \+[]\+const u8}  &Reward\+\_\+address  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Mining\+Pool}
+
+{\itshape Defined at line 29}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2144}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2144}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *MiningPool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mining\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 40}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2146}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Miner()}}{{\ttfamily add\+Miner()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2146}
+Add miner to pool
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addMiner(self:\ *MiningPool,\ miner\_id:\ []const\ u8,\ address:\ []const\ u8,\ hashrate:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mining\+Pool}  &The instance  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily hashrate}  &{\ttfamily u64}  &Hashrate  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 45}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2148}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Miner\+Status()}}{{\ttfamily update\+Miner\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2148}
+Update miner status
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateMinerStatus(self:\ *MiningPool,\ miner\_id:\ []const\ u8,\ status:\ MinerStatus)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mining\+Pool}  &The instance  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+{\ttfamily status}  &{\ttfamily Miner\+Status}  &Status  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 62}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2150}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+Share()}}{{\ttfamily record\+Share()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2150}
+Record share from miner
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordShare(self:\ *MiningPool,\ miner\_id:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mining\+Pool}  &The instance  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 74}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2152}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+Block\+Found()}}{{\ttfamily record\+Block\+Found()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2152}
+Record block found
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordBlockFound(self:\ *MiningPool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mining\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2154}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Miner\+Count()}}{{\ttfamily get\+Miner\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2154}
+Get miner count
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMinerCount(self:\ *const\ MiningPool)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mining\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 93}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2156}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Total\+Hashrate()}}{{\ttfamily get\+Total\+Hashrate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2156}
+Get total hashrate
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getTotalHashrate(self:\ *const\ MiningPool)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mining\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 98}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2158}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Stats()}}{{\ttfamily get\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2158}
+Get pool statistics
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getStats(self:\ *const\ MiningPool)\ PoolStats\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mining\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Pool\+Stats}
+
+{\itshape Defined at line 103}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2160}{}\doxysubsection{\texorpdfstring{{\ttfamily remove\+Inactive\+Miners()}}{{\ttfamily remove\+Inactive\+Miners()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2160}
+Remove inactive miners (no share for 300s)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ removeInactiveMiners(self:\ *MiningPool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Mining\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 121}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2162}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Miner\+Reward\+Share()}}{{\ttfamily get\+Miner\+Reward\+Share()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2mining__pool_autotoc_md2162}
+Get miner reward share (proportional to hashrate)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMinerRewardShare(self:\ *const\ MiningPool,\ miner\_id:\ []const\ u8,\ block\_reward:\ u64)\ !u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Mining\+Pool}  &The instance  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+id  \\
+{\ttfamily block\+\_\+reward}  &{\ttfamily u64}  &Block\+\_\+reward  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u64}
+
+{\itshape Defined at line 138}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

@@ -1,0 +1,255 @@
+\doxysection{franchise\+\_\+client.\+py}
+\hypertarget{franchise__client_8py_source}{}\label{franchise__client_8py_source}\index{examples/client\_python/franchise\_client.py@{examples/client\_python/franchise\_client.py}}
+\doxymbox{\hyperlink{franchise__client_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00001}\doxymbox{\hyperlink{namespacefranchise__client}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00003}00003\ \textcolor{stringliteral}{franchise\_client.py\ —\ Reference\ Python\ client\ for\ OmniBus\ L1.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00005}00005\ \textcolor{stringliteral}{The\ "{}franchise"{}\ model:\ the\ chain\ is\ public\ infrastructure\ (consensus,}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00006}00006\ \textcolor{stringliteral}{P2P,\ RPC,\ REST\ exchange,\ faucet,\ WebSocket\ events).\ Anyone\ can\ plug}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00007}00007\ \textcolor{stringliteral}{in\ with\ any\ client\ they\ like\ —\ Python,\ Node.js,\ Rust,\ browser,\ mobile,}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00008}00008\ \textcolor{stringliteral}{even\ a\ spreadsheet.\ The\ chain\ doesn't\ care\ who\ you\ are;\ it\ enforces}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00009}00009\ \textcolor{stringliteral}{the\ same\ on-\/chain\ rules\ for\ everyone\ (signatures,\ balances,\ nonces,}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00010}00010\ \textcolor{stringliteral}{fee\ schedule,\ paper-\/vs-\/real\ isolation).}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00011}00011\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00012}00012\ \textcolor{stringliteral}{This\ script\ demonstrates\ the\ full\ happy\ path\ of\ a\ "{}franchisee"{}:}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00013}00013\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ \ \ 1.\ Connect\ to\ a\ public\ RPC\ endpoint}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ \ \ 2.\ Probe\ the\ chain\ (block\ height,\ peer\ count,\ status)}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ \ \ 3.\ Claim\ faucet\ (testnet\ only,\ gives\ free\ OMNI)}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00017}00017\ \textcolor{stringliteral}{\ \ \ \ 4.\ Watch\ balance\ grow\ as\ the\ chain\ mines}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ \ \ 5.\ Place\ a\ tiny\ order\ on\ the\ in-\/chain\ DEX\ (paper\ mode\ by\ default)}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00019}00019\ \textcolor{stringliteral}{\ \ \ \ 6.\ Cancel\ it\ after\ a\ few\ seconds}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00020}00020\ \textcolor{stringliteral}{\ \ \ \ 7.\ Print\ a\ summary}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00021}00021\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00022}00022\ \textcolor{stringliteral}{Everything\ goes\ through\ the\ public\ RPC.\ There's\ no\ shared\ library,}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00023}00023\ \textcolor{stringliteral}{no\ chain-\/side\ hook,\ no\ internal\ state.\ If\ you\ can\ speak\ HTTP+JSON,}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00024}00024\ \textcolor{stringliteral}{you\ can\ build\ a\ franchisee.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00025}00025\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00026}00026\ \textcolor{stringliteral}{Run:}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00027}00027\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00028}00028\ \textcolor{stringliteral}{\ \ \ \ python3\ franchise\_client.py\ [-\/-\/endpoint\ URL]\ [-\/-\/mnemonic\ "{}..."{}]}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00029}00029\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00030}00030\ \textcolor{stringliteral}{Defaults:}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00031}00031\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00032}00032\ \textcolor{stringliteral}{\ \ \ \ endpoint\ =\ https://omnibusblockchain.cc:8443/api-\/testnet/}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00033}00033\ \textcolor{stringliteral}{\ \ \ \ mnemonic\ =\ generated\ fresh\ +\ saved\ to\ .franchise\_mnemonic.txt}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00034}00034\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00035}00035\ \textcolor{stringliteral}{Requires:}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00036}00036\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00037}00037\ \textcolor{stringliteral}{\ \ \ \ pip\ install\ requests}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00038}00038\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00040}00040\ \textcolor{keyword}{from}\ \_\_future\_\_\ \textcolor{keyword}{import}\ annotations}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00042}00042\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00043}00043\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00044}00044\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00045}00045\ \textcolor{keyword}{import}\ secrets}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00046}00046\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00047}00047\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00048}00048\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00049}00049\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00051}00051\ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00052}00052\ \ \ \ \ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00053}00053\ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00054}00054\ \ \ \ \ sys.exit(\textcolor{stringliteral}{"{}This\ example\ needs\ \`{}requests`.\ Install\ it:\ pip\ install\ requests"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00057}00057\ \textcolor{comment}{\#\ ───\ RPC\ client\ ─────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00060}\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{00060}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{OmniBusClient}}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00061}00061\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00062}00062\ \textcolor{stringliteral}{\ \ \ \ Tiny\ JSON-\/RPC\ 2.0\ client\ over\ the\ public\ OmniBus\ endpoint.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00063}00063\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00064}00064\ \textcolor{stringliteral}{\ \ \ \ No\ retries,\ no\ async,\ no\ websockets.\ Just\ HTTP\ POST\ with\ JSON\ body.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00065}00065\ \textcolor{stringliteral}{\ \ \ \ The\ point\ of\ this\ file\ is\ to\ show\ how\ thin\ the\ surface\ area\ is\ —}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00066}00066\ \textcolor{stringliteral}{\ \ \ \ you\ can\ re-\/implement\ it\ in\ any\ language\ in\ \string~30\ lines.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00067}00067\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00069}\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a0835461d580f5a002f827756f05b93d4}{00069}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a0835461d580f5a002f827756f05b93d4}{\_\_init\_\_}}(self,\ endpoint:\ str,\ timeout\_s:\ float\ =\ 10.0):}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00070}\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a7b683abd4abe24030668ab3b786a659b}{00070}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a7b683abd4abe24030668ab3b786a659b}{endpoint}}\ =\ endpoint.rstrip(\textcolor{stringliteral}{"{}/"{}})\ +\ \textcolor{stringliteral}{"{}/"{}}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00071}\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_ac2f75a9ca649b1118f9ee3b72d44dfb4}{00071}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_ac2f75a9ca649b1118f9ee3b72d44dfb4}{timeout\_s}}\ =\ timeout\_s}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00072}\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a1f2d78cf9063809e75530d1a9c11cece}{00072}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a1f2d78cf9063809e75530d1a9c11cece}{\_id}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00074}\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a1d09d11b02edf3c456b87bef166d4b1d}{00074}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a1d09d11b02edf3c456b87bef166d4b1d}{call}}(self,\ method:\ str,\ params:\ list[Any]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a1f2d78cf9063809e75530d1a9c11cece}{\_id}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ body\ =\ \{}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ self.\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a1f2d78cf9063809e75530d1a9c11cece}{\_id}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ r\ =\ requests.post(}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_a7b683abd4abe24030668ab3b786a659b}{endpoint}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ json=body,}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ timeout=self.\doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client_ac2f75a9ca649b1118f9ee3b72d44dfb4}{timeout\_s}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ headers=\{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ r.raise\_for\_status()}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ resp\ =\ r.json()}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError(f\textcolor{stringliteral}{"{}RPC\ error\ on\ \{method\}:\ \{resp['error']\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00095}00095\ \textcolor{comment}{\#\ ───\ Step\ helpers\ ───────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00098}\doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{00098}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{banner}}(title:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00099}00099\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'━'\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00100}00100\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{title\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00101}00101\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'━'\ *\ 60\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00104}\doxymbox{\hyperlink{namespacefranchise__client_afdf1e98d686483a6bf1eab7cad25f1ca}{00104}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefranchise__client_afdf1e98d686483a6bf1eab7cad25f1ca}{step\_probe\_chain}}(c:\ OmniBusClient)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00105}00105\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{banner}}(\textcolor{stringliteral}{"{}Step\ 1\ ·\ Probe\ the\ chain"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00106}00106\ \ \ \ \ height\ =\ c.call(\textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00107}00107\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ current\ height\ \ \ \ \ \ \ :\ \{height\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ status\ =\ c.call(\textcolor{stringliteral}{"{}getstatus"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ chain\ id\ \ \ \ \ \ \ \ \ \ \ \ \ :\ \{status.get('chain')\ or\ status.get('chain\_id')\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ difficulty\ \ \ \ \ \ \ \ \ \ \ :\ \{status.get('difficulty')\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00112}00112\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ \`{}getstatus`\ may\ have\ a\ different\ name\ on\ some\ deployments;}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ don't\ abort,\ just\ keep\ going.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ getstatus\ skipped\ \ \ \ :\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00116}00116\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}height"{}}:\ height\}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00119}\doxymbox{\hyperlink{namespacefranchise__client_a1b33c487e5e23a28ad7a35a4a3bda63a}{00119}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefranchise__client_a1b33c487e5e23a28ad7a35a4a3bda63a}{step\_load\_or\_create\_mnemonic}}(path:\ Path)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00120}00120\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{banner}}(\textcolor{stringliteral}{"{}Step\ 2\ ·\ Load\ or\ create\ a\ wallet\ mnemonic"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00121}00121\ \ \ \ \ \textcolor{keywordflow}{if}\ path.exists():}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ m\ =\ path.read\_text().strip()}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ loaded\ mnemonic\ from\ :\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00124}00124\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Demo-\/only\ mnemonic.\ Real\ wallets\ MUST\ use\ a\ vetted\ BIP-\/39\ generator}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ with\ proper\ entropy\ +\ checksum.\ This\ 24-\/byte\ hex\ is\ enough\ to\ call}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ the\ faucet\ on\ testnet,\ nothing\ more.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ m\ =\ secrets.token\_hex(24)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ path.write\_text(m)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ generated\ fresh\ and\ saved\ to\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00131}00131\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ mnemonic\ (first\ 16ch):\ \{m[:16]\}…"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00132}00132\ \ \ \ \ \textcolor{keywordflow}{return}\ m}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00135}\doxymbox{\hyperlink{namespacefranchise__client_af8582f80c4f7fc4517167b0b8a5c28db}{00135}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefranchise__client_af8582f80c4f7fc4517167b0b8a5c28db}{step\_claim\_faucet}}(c:\ OmniBusClient,\ address:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00136}00136\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{banner}}(\textcolor{stringliteral}{"{}Step\ 3\ ·\ Claim\ faucet\ (testnet\ only)"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00137}00137\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ address\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \{address\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00138}00138\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ result\ =\ c.call(\textcolor{stringliteral}{"{}claimfaucet"{}},\ [\{\textcolor{stringliteral}{"{}address"{}}:\ address\}])}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ faucet\ response\ \ \ \ \ \ :\ \{json.dumps(result)[:160]\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Faucet\ may\ rate-\/limit\ or\ refuse\ if\ you've\ claimed\ already}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ within\ the\ cooldown\ window.\ That's\ fine\ for\ the\ demo.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ faucet\ refused\ \ \ \ \ \ \ :\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00146}00146\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00147}\doxymbox{\hyperlink{namespacefranchise__client_ae6f745904010d8f862f1005024ed4846}{00147}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefranchise__client_ae6f745904010d8f862f1005024ed4846}{step\_watch\_balance}}(c:\ OmniBusClient,\ address:\ str,\ seconds:\ int\ =\ 30)\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00148}00148\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{banner}}(f\textcolor{stringliteral}{"{}Step\ 4\ ·\ Watch\ balance\ for\ \{seconds\}s"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00149}00149\ \ \ \ \ deadline\ =\ time.time()\ +\ seconds}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00150}00150\ \ \ \ \ last\_seen\ =\ -\/1}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00151}00151\ \ \ \ \ \textcolor{keywordflow}{while}\ time.time()\ <\ deadline:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ bal\ =\ c.call(\textcolor{stringliteral}{"{}getaddressbalance"{}},\ [\{\textcolor{stringliteral}{"{}address"{}}:\ address\}])}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ cur\ =\ bal\ \textcolor{keywordflow}{if}\ isinstance(bal,\ int)\ \textcolor{keywordflow}{else}\ bal.get(\textcolor{stringliteral}{"{}balance"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ cur\ =\ -\/1}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ getaddressbalance\ error:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ cur\ !=\ last\_seen:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ t=\{int(time.time()\ \%\ 10000)\}\ \ balance\ =\ \{cur\}\ sat"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ last\_seen\ =\ cur}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ time.sleep(2)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00162}00162\ \ \ \ \ \textcolor{keywordflow}{return}\ last\_seen}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00165}\doxymbox{\hyperlink{namespacefranchise__client_a5d6afe1210fda6379f322b5368674eea}{00165}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefranchise__client_a5d6afe1210fda6379f322b5368674eea}{step\_place\_paper\_order}}(}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00166}00166\ \ \ \ \ c:\ OmniBusClient,\ address:\ str,\ mnemonic:\ str}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00167}00167\ )\ -\/>\ dict\ |\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00168}00168\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{banner}}(\textcolor{stringliteral}{"{}Step\ 5\ ·\ Place\ a\ paper\ order\ on\ the\ DEX\ (demo)"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00169}00169\ \ \ \ \ \textcolor{comment}{\#\ Paper-\/mode\ order.\ Server\ enforces\ real\ signatures\ +\ nonce\ +\ balance}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00170}00170\ \ \ \ \ \textcolor{comment}{\#\ checks\ even\ for\ paper\ orders,\ but\ the\ matched\ fills\ don't\ affect}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00171}00171\ \ \ \ \ \textcolor{comment}{\#\ real\ OMNI\ balances\ —\ separate\ orderbook\ entirely.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00172}00172\ \ \ \ \ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00173}00173\ \ \ \ \ \textcolor{comment}{\#\ On\ a\ real\ client\ you'd\ derive\ the\ keypair\ from\ the\ mnemonic,\ sign}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00174}00174\ \ \ \ \ \textcolor{comment}{\#\ a\ EXCHANGE\_PLACE\_V1\ payload,\ and\ submit.\ To\ keep\ this\ demo\ small}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00175}00175\ \ \ \ \ \textcolor{comment}{\#\ we\ don't\ ship\ the\ secp256k1\ +\ bech32\ dependencies\ inline;\ instead}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00176}00176\ \ \ \ \ \textcolor{comment}{\#\ we\ just\ call\ the\ public\ read\ endpoint\ to\ show\ that\ orderbook}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00177}00177\ \ \ \ \ \textcolor{comment}{\#\ access\ works,\ and\ print\ the\ URL\ of\ the\ place\ endpoint\ for\ the}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00178}00178\ \ \ \ \ \textcolor{comment}{\#\ operator\ to\ try\ with\ curl\ or\ a\ real\ wallet\ client.}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00179}00179\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ reading\ public\ orderbook\ for\ OMNI/USDC\ (pair\_id=0):"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00180}00180\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ depth\ =\ c.call(\textcolor{stringliteral}{"{}exchangeGetDepth"{}},\ [\{\textcolor{stringliteral}{"{}pairId"{}}:\ 0,\ \textcolor{stringliteral}{"{}mode"{}}:\ \textcolor{stringliteral}{"{}paper"{}}\}])}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ bids\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \{len(depth.get('bids',\ []))\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ asks\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \{len(depth.get('asks',\ []))\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00184}00184\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ depth\ call\ error\ \ \ \ \ :\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00186}00186\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00187}00187\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ to\ place\ a\ real\ signed\ order,\ use\ a\ wallet\ client\ that"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00188}00188\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ knows\ secp256k1\ +\ EXCHANGE\_PLACE\_V1\ signing.\ Example:"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00189}00189\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ POST\ /exchange/0/private/AddOrder"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00190}00190\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ body:\ \{pair,\ type,\ ordertype,\ price,\ volume,\ signature,\ ...\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00191}00191\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00194}\doxymbox{\hyperlink{namespacefranchise__client_a9a61d7e2fe3327ba72e61f844cd4f40e}{00194}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefranchise__client_a9a61d7e2fe3327ba72e61f844cd4f40e}{step\_summary}}(c:\ OmniBusClient,\ start\_height:\ int)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00195}00195\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_aea3a6fc79f1d8dea8471be446c2b92d6}{banner}}(\textcolor{stringliteral}{"{}Step\ 6\ ·\ Summary"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00196}00196\ \ \ \ \ end\_height\ =\ c.call(\textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00197}00197\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ blocks\ added\ during\ demo:\ \{end\_height\ -\/\ start\_height\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00198}00198\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ end\ height\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \{end\_height\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00199}00199\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00200}00200\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ This\ script\ touched\ only\ public\ RPC\ endpoints.\ Anyone\ with"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00201}00201\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ network\ access\ to\ the\ chain\ can\ do\ exactly\ the\ same\ thing"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00202}00202\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ from\ any\ language\ —\ Python,\ Rust,\ Go,\ browser\ fetch(),"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00203}00203\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ curl\ in\ a\ shell\ loop.\ \ That's\ the\ franchise\ model:\ chain"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00204}00204\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ is\ infrastructure,\ clients\ are\ whatever\ the\ operator\ wants."{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00206}00206\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00207}00207\ \textcolor{comment}{\#\ ───\ main\ ───────────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00210}\doxymbox{\hyperlink{namespacefranchise__client_a7431cb90017e54fe695b23d4190db046}{00210}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefranchise__client_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00211}00211\ \ \ \ \ p\ =\ argparse.ArgumentParser(description=\_\_doc\_\_)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00212}00212\ \ \ \ \ p.add\_argument(}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/endpoint"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}https://omnibusblockchain.cc:8443/api-\/testnet/"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}JSON-\/RPC\ endpoint\ URL"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00216}00216\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00217}00217\ \ \ \ \ p.add\_argument(}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/address"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}address\ to\ use\ for\ faucet\ +\ balance\ checks\ (testnet\ ok\ if\ not\ yours)"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00221}00221\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00222}00222\ \ \ \ \ p.add\_argument(}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/mnemonic-\/file"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}.franchise\_mnemonic.txt"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}where\ to\ cache\ the\ demo\ mnemonic"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00226}00226\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00227}00227\ \ \ \ \ p.add\_argument(}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/watch-\/seconds"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ type=int,}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ default=30,}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}how\ long\ to\ poll\ the\ balance\ after\ the\ faucet\ call"{}},}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00232}00232\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00233}00233\ \ \ \ \ args\ =\ p.parse\_args()}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00235}00235\ \ \ \ \ print(f\textcolor{stringliteral}{"{}OmniBus\ Franchise\ Client\ ·\ talking\ to\ \{args.endpoint\}"{}})}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00236}00236\ \ \ \ \ c\ =\ \doxymbox{\hyperlink{classfranchise__client_1_1_omni_bus_client}{OmniBusClient}}(args.endpoint)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00237}00237\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00238}00238\ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespacefranchise__client_afdf1e98d686483a6bf1eab7cad25f1ca}{step\_probe\_chain}}(c)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00239}00239\ \ \ \ \ \_mnemonic\ =\ \doxymbox{\hyperlink{namespacefranchise__client_a1b33c487e5e23a28ad7a35a4a3bda63a}{step\_load\_or\_create\_mnemonic}}(Path(args.mnemonic\_file))}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00240}00240\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_af8582f80c4f7fc4517167b0b8a5c28db}{step\_claim\_faucet}}(c,\ args.address)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00241}00241\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_ae6f745904010d8f862f1005024ed4846}{step\_watch\_balance}}(c,\ args.address,\ seconds=args.watch\_seconds)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00242}00242\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_a5d6afe1210fda6379f322b5368674eea}{step\_place\_paper\_order}}(c,\ args.address,\ \_mnemonic)}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00243}00243\ \ \ \ \ \doxymbox{\hyperlink{namespacefranchise__client_a9a61d7e2fe3327ba72e61f844cd4f40e}{step\_summary}}(c,\ info[\textcolor{stringliteral}{"{}height"{}}])}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00245}00245\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00248}00248\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{franchise__client_8py_source_l00249}00249\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacefranchise__client_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

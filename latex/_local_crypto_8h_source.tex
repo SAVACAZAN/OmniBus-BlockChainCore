@@ -1,0 +1,77 @@
+\doxysection{Local\+Crypto.\+h}
+\hypertarget{_local_crypto_8h_source}{}\label{_local_crypto_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/LocalCrypto.h@{archived-\/4-\/eterniti/gui-\/qt/src/core/LocalCrypto.h}}
+\doxymbox{\hyperlink{_local_crypto_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QByteArray>}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QString>}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QStringList>}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <array>}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00010}00010\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00011}00011\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni_1_1crypto}{crypto}}\ \{}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00013}00013\ \textcolor{comment}{//\ ───\ SHA-\/256\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00014}00014\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a1b92c6c411b3e45ae0fdba166e245311}{sha256}}(\textcolor{keyword}{const}\ QByteArray\&\ data);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00015}00015\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a80d023ff288c77dd24290ab62cad269c}{doubleSha256}}(\textcolor{keyword}{const}\ QByteArray\&\ data);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00017}00017\ \textcolor{comment}{//\ ───\ HMAC-\/SHA512\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00018}00018\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a0886555b24eb5fd875992e91049caccd}{hmacSha512}}(\textcolor{keyword}{const}\ QByteArray\&\ key,\ \textcolor{keyword}{const}\ QByteArray\&\ data);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00020}00020\ \textcolor{comment}{//\ ───\ SHA-\/512\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00021}00021\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_aa0c074fd79467c4253b91f2287d5a3b4}{sha512}}(\textcolor{keyword}{const}\ QByteArray\&\ data);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00023}00023\ \textcolor{comment}{//\ ───\ RIPEMD-\/160\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00024}00024\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a14ffdb97a40bf9b3046dea5e64596565}{ripemd160}}(\textcolor{keyword}{const}\ QByteArray\&\ data);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00026}00026\ \textcolor{comment}{//\ ───\ Hash160\ =\ RIPEMD160(SHA256(data))\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00027}00027\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{hash160}}(\textcolor{keyword}{const}\ QByteArray\&\ data);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00029}00029\ \textcolor{comment}{//\ ───\ PBKDF2-\/HMAC-\/SHA512\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00030}00030\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a0ae370714077f54426f4e59d509e7db7}{pbkdf2HmacSha512}}(\textcolor{keyword}{const}\ QByteArray\&\ password,\ \textcolor{keyword}{const}\ QByteArray\&\ salt,\ \textcolor{keywordtype}{int}\ iterations,\ \textcolor{keywordtype}{int}\ keyLen\ =\ 64);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00032}00032\ \textcolor{comment}{//\ ───\ AES-\/256-\/CBC\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00033}00033\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a49fec41db5c1757a2fc911a1fe957d37}{aes256Encrypt}}(\textcolor{keyword}{const}\ QByteArray\&\ plaintext,\ \textcolor{keyword}{const}\ QByteArray\&\ key,\ \textcolor{keyword}{const}\ QByteArray\&\ iv);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00034}00034\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_af90149809fc87f2b018ba817dd1c6b7f}{aes256Decrypt}}(\textcolor{keyword}{const}\ QByteArray\&\ ciphertext,\ \textcolor{keyword}{const}\ QByteArray\&\ key,\ \textcolor{keyword}{const}\ QByteArray\&\ iv);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00036}00036\ \textcolor{comment}{//\ ───\ Random\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00037}00037\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a4ea864d0aa189b81583db1987a2777e5}{randomBytes}}(\textcolor{keywordtype}{int}\ count);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00039}00039\ \textcolor{comment}{//\ ───\ BIP-\/39\ Mnemonic\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00040}00040\ QStringList\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a7d0a942f3e6fc10bbc54312d74e54948}{bip39Wordlist}}();\ \ \ \ \ \ \ \textcolor{comment}{//\ returns\ the\ 2048\ English\ words}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00041}00041\ QString\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a64fb10c8cb4589c464e53b61ec2fdb9f}{generateMnemonic}}(\textcolor{keywordtype}{int}\ wordCount\ =\ 12);\ \textcolor{comment}{//\ 12\ or\ 24\ words}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00042}00042\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a834109445be202971829ee6408eefbc3}{mnemonicToSeed}}(\textcolor{keyword}{const}\ QString\&\ mnemonic,\ \textcolor{keyword}{const}\ QString\&\ passphrase\ =\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00043}00043\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9b799c91888707b20d701e30b0c157ba}{validateMnemonic}}(\textcolor{keyword}{const}\ QString\&\ mnemonic);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00045}00045\ \textcolor{comment}{//\ ───\ BIP-\/32\ HD\ Key\ Derivation\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00046}\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{00046}}\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{ExtendedKey}}\ \{}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00047}\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_aa20752467f486cf61250e43f6cef4a90}{00047}}\ \ \ \ \ QByteArray\ \doxymbox{\hyperlink{namespacekey}{key}};\ \ \ \ \ \ \ \textcolor{comment}{//\ 32\ bytes\ private\ key\ (or\ 33\ bytes\ compressed\ pubkey)}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00048}\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_ae92e288506ae2638262c480773aa755d}{00048}}\ \ \ \ \ QByteArray\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_ae92e288506ae2638262c480773aa755d}{chainCode}};\ \textcolor{comment}{//\ 32\ bytes}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00049}\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_ad91226d9d02eca6db5c1a8fa526d9c82}{00049}}\ \ \ \ \ uint32\_t\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_ad91226d9d02eca6db5c1a8fa526d9c82}{depth}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00050}\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_ab6c475ebf34436fecf40821d580fdc11}{00050}}\ \ \ \ \ uint32\_t\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_ab6c475ebf34436fecf40821d580fdc11}{childIndex}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00051}\doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_a3596fac68b5f7df9df532d204d8167bf}{00051}}\ \ \ \ \ QByteArray\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key_a3596fac68b5f7df9df532d204d8167bf}{parentFingerprint}};\ \textcolor{comment}{//\ 4\ bytes}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00052}00052\ \};}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00054}00054\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{ExtendedKey}}\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a19d5efd5af01ee9c9504dac2d07e6f75}{masterKeyFromSeed}}(\textcolor{keyword}{const}\ QByteArray\&\ seed);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00055}00055\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{ExtendedKey}}\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a719e5514144de0e1005db64002749bac}{deriveChild}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{ExtendedKey}}\&\ parent,\ uint32\_t\ index);\ \textcolor{comment}{//\ index\ |\ 0x80000000\ for\ hardened}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00056}00056\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{ExtendedKey}}\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a422eb2611809cfc8ca4f5695b123e90c}{derivePath}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1crypto_1_1_extended_key}{ExtendedKey}}\&\ master,\ \textcolor{keyword}{const}\ QString\&\ path);\ \textcolor{comment}{//\ e.g.\ "{}m/44'/9999'/0'/0/0"{}}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00058}00058\ \textcolor{comment}{//\ ───\ secp256k1\ public\ key\ from\ private\ key\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00059}00059\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abea293da117475fe108ec2cd06332865}{privateToPublicKey}}(\textcolor{keyword}{const}\ QByteArray\&\ privKey);\ \textcolor{comment}{//\ returns\ 33-\/byte\ compressed\ pubkey}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00060}00060\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a55f28e9f746c45b54a9a3b4bc4c600f7}{privateToUncompressedPublicKey}}(\textcolor{keyword}{const}\ QByteArray\&\ privKey);\ \textcolor{comment}{//\ 65-\/byte\ uncompressed}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00062}00062\ \textcolor{comment}{//\ ───\ Bech32\ address\ encoding\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00063}00063\ QString\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a431fba8d04be2febbe4697fc4412e492}{pubkeyToOb1qAddress}}(\textcolor{keyword}{const}\ QByteArray\&\ compressedPubkey);\ \textcolor{comment}{//\ Hash160\ -\/>\ Bech32\ with\ "{}ob1q"{}\ prefix}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00064}00064\ QString\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a9007b104fd48fafea883d2b411d551e8}{pubkeyHashToAddress}}(\textcolor{keyword}{const}\ QByteArray\&\ hash20,\ \textcolor{keyword}{const}\ QString\&\ hrp\ =\ \textcolor{stringliteral}{"{}ob"{}});\ \textcolor{comment}{//\ raw\ hash160\ -\/>\ bech32}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00066}00066\ \textcolor{comment}{//\ ───\ ECDSA\ signing\ (for\ transaction\ signing)\ ───}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00067}00067\ QByteArray\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a2ac21a02b71a0577d0bd4a67baf829fc}{ecdsaSign}}(\textcolor{keyword}{const}\ QByteArray\&\ hash32,\ \textcolor{keyword}{const}\ QByteArray\&\ privKey32);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00068}00068\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_aabba94a5eeb7d47f32ffd9f3cff31d0d}{ecdsaVerify}}(\textcolor{keyword}{const}\ QByteArray\&\ hash32,\ \textcolor{keyword}{const}\ QByteArray\&\ signature,\ \textcolor{keyword}{const}\ QByteArray\&\ pubkey33);}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00070}00070\ \}\ \textcolor{comment}{//\ namespace\ crypto}}
+\DoxyCodeLine{\Hypertarget{_local_crypto_8h_source_l00071}00071\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

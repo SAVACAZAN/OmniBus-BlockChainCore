@@ -1,0 +1,174 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@scure/\+bip32 Directory Reference}
+\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f}{}\label{dir_5a97cf55226c792cbe513e9a14530c9f}\index{frontend/node\_modules/"@scure/bip32 Directory Reference@{frontend/node\_modules/"@scure/bip32 Directory Reference}}
+Directory dependency graph for bip32:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_60c8259f5583fb622ea64c9c9f29e2c5}{node\+\_\+modules}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4831}{}\doxysubsection{\texorpdfstring{scure-\/bip32}{scure-\/bip32}}\label{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4831}
+Audited \& minimal implementation of BIP32 hierarchical deterministic (HD) wallets over secp256k1.
+
+
+\begin{DoxyItemize}
+\item 🔒 AuditedAudited
+\end{DoxyItemize}by an independent security firm
+\begin{DoxyItemize}
+\item 🔻 Tree-\/shakeable:\+ unused code is excluded from your builds
+\item 📦 ESM
+\item ➰ Only 3 audited dependencies by the same author:\+ \href{https://github.com/paulmillr/noble-curves}{\texttt{noble-\/curves}}, \href{https://github.com/paulmillr/noble-hashes}{\texttt{noble-\/hashes}}, and \href{https://github.com/paulmillr/scure-base}{\texttt{scure-\/base}}
+\item 🪶 18KB gzipped with all dependencies bundled
+\end{DoxyItemize}
+
+Check out \href{https://github.com/paulmillr/scure-bip39}{\texttt{scure-\/bip39}} if you need mnemonic phrases. See \href{https://github.com/paulmillr/micro-key-producer}{\texttt{key-\/producer}} if you need SLIP-\/0010/\+\+BIP32 ed25519 hdkey implementation. Notice Warnings about BIP32Warnings about BIP32.\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4832}{}\doxysubsubsection{\texorpdfstring{This library belongs to {\itshape scure}}{This library belongs to {\itshape scure}}}\label{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4832}
+\begin{quote}
+{\bfseries{scure}} — audited micro-\/libraries. \end{quote}
+
+
+
+\begin{DoxyItemize}
+\item Zero or minimal dependencies
+\item Highly readable Type\+Script /\+ JS code
+\item PGP-\/signed releases and transparent NPM builds
+\item Check out \href{https://paulmillr.com/noble/\#scure}{\texttt{homepage}} \& all libraries:\+ \href{https://github.com/paulmillr/scure-base}{\texttt{base}}, \href{https://github.com/paulmillr/scure-bip32}{\texttt{bip32}}, \href{https://github.com/paulmillr/scure-bip39}{\texttt{bip39}}, \href{https://github.com/paulmillr/scure-btc-signer}{\texttt{btc-\/signer}}, \href{https://github.com/paulmillr/scure-sr25519}{\texttt{sr25519}}, \href{https://github.com/paulmillr/scure-starknet}{\texttt{starknet}}
+\end{DoxyItemize}\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4833}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4833}
+\begin{quote}
+{\ttfamily npm install @scure/\+bip32} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno add jsr:\+@scure/\+bip32} \end{quote}
+
+
+This module exports a single class {\ttfamily HDKey}, which should be used like this:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ HDKey\ \}\ from\ '@scure/bip32';}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/hashes/utils.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ seed\ =\ randomBytes(32);}
+\DoxyCodeLine{const\ root\ =\ HDKey.fromMasterSeed(seed);}
+\DoxyCodeLine{const\ base58key\ =\ root.privateExtendedKey;}
+\DoxyCodeLine{const\ restored\ =\ HDKey.fromExtendedKey(base58key);}
+\DoxyCodeLine{const\ fromJson\ =\ HDKey.fromJSON(\{\ xpriv:\ base58key\ \});}
+\DoxyCodeLine{const\ child\ =\ fromJson.derive("{}m/0/2147483647'/1"{});}
+\DoxyCodeLine{const\ msgHash\ =\ sha256(new\ TextEncoder().encode('hello\ scure-\/bip32'));}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ props}
+\DoxyCodeLine{[root.depth,\ root.index,\ root.chainCode];}
+\DoxyCodeLine{[restored.privateKey,\ restored.publicKey];}
+\DoxyCodeLine{const\ sig\ =\ child.sign(msgHash);}
+\DoxyCodeLine{child.verify(msgHash,\ sig);}
+
+\end{DoxyCode}
+
+
+Note:\+ {\ttfamily chain\+Code} property is essentially a private part of a secret "{}master"{} key, it should be guarded from unauthorized access.
+
+The full API is:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{class\ HDKey\ \{}
+\DoxyCodeLine{\ \ public\ static\ HARDENED\_OFFSET:\ number;}
+\DoxyCodeLine{\ \ public\ static\ fromMasterSeed(seed:\ Uint8Array,\ versions:\ Versions):\ HDKey;}
+\DoxyCodeLine{\ \ public\ static\ fromExtendedKey(base58key:\ string,\ versions:\ Versions):\ HDKey;}
+\DoxyCodeLine{\ \ public\ static\ fromJSON(json:\ \{\ xpriv:\ string\ \}):\ HDKey;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ readonly\ versions:\ Versions;}
+\DoxyCodeLine{\ \ readonly\ depth:\ number\ =\ 0;}
+\DoxyCodeLine{\ \ readonly\ index:\ number\ =\ 0;}
+\DoxyCodeLine{\ \ readonly\ chainCode:\ Uint8Array\ |\ null\ =\ null;}
+\DoxyCodeLine{\ \ readonly\ parentFingerprint:\ number\ =\ 0;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ get\ fingerprint():\ number;}
+\DoxyCodeLine{\ \ get\ identifier():\ Uint8Array\ |\ undefined;}
+\DoxyCodeLine{\ \ get\ pubKeyHash():\ Uint8Array\ |\ undefined;}
+\DoxyCodeLine{\ \ get\ privateKey():\ Uint8Array\ |\ null;}
+\DoxyCodeLine{\ \ get\ publicKey():\ Uint8Array\ |\ null;}
+\DoxyCodeLine{\ \ get\ privateExtendedKey():\ string;}
+\DoxyCodeLine{\ \ get\ publicExtendedKey():\ string;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ derive(path:\ string):\ HDKey;}
+\DoxyCodeLine{\ \ deriveChild(index:\ number):\ HDKey;}
+\DoxyCodeLine{\ \ sign(hash:\ Uint8Array):\ Uint8Array;}
+\DoxyCodeLine{\ \ verify(hash:\ Uint8Array,\ signature:\ Uint8Array):\ boolean;}
+\DoxyCodeLine{\ \ wipePrivateData():\ this;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{interface\ Versions\ \{}
+\DoxyCodeLine{\ \ private:\ number;}
+\DoxyCodeLine{\ \ public:\ number;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+The module implements \href{https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki}{\texttt{bip32}} standard:\+ check it out for additional documentation.
+
+The implementation is loosely based on cryptocoinjs/\+hdkey, which has MIT Licensewhich has MIT License.\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4834}{}\doxysubsection{\texorpdfstring{Warnings about BIP32}{Warnings about BIP32}}\label{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4834}
+BIP32 is a bad standard. It would be great if we\textquotesingle{}ve had something better.
+
+
+\begin{DoxyItemize}
+\item Network IDs (different currencies) are taken from a single Git\+Hub document called SLIP-\/0044
+\item There were new projects, which did not yet have SLIP. Exchanges added support of those projects to their cold wallets. Then after the projects were added to SLIP, the exchanges were required to re-\/generate their cold wallets -\/ a complicated task
+\item BIP32 is unusable for many different elliptic curves. For example, ETH2 uses bls12-\/381 curve, and with bip32 54\% of generated keys would be invalid. So, they’re using much better BLS-\/only EIP-\/2333 as a replacement.
+\item It’s easy to shoot yourself in foot with non-\/hardened keys, which could allow simple de-\/anonimization of all addresses
+\end{DoxyItemize}\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4835}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4835}
+The library has been audited:\+
+
+
+\begin{DoxyItemize}
+\item at version 2.\+2.\+0, in Apr 2026, by ourselves (self-\/audited)
+\begin{DoxyItemize}
+\item Scope:\+ everything
+\item \href{https://github.com/paulmillr/scure-bip32/compare/2.2.0..main}{\texttt{Changes since audit}}
+\end{DoxyItemize}
+\item at version 1.\+0.\+1, in Jan 2022, independently, by \href{https://cure53.de}{\texttt{cure53}}
+\begin{DoxyItemize}
+\item PDFs:\+ \href{https://cure53.de/pentest-report_hashing-libs.pdf}{\texttt{online}}, \href{./audit/2022-01-05-cure53-audit-nbl2.pdf}{\texttt{offline}}
+\item \href{https://github.com/paulmillr/scure-bip32/compare/1.0.0..main}{\texttt{Changes since audit}}.
+\item The audit has been funded by \href{https://ethereum.org/en/}{\texttt{Ethereum Foundation}} with help of \href{https://nomiclabs.io}{\texttt{Nomic Labs}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+The library was initially developed for \href{https://github.com/ethereum/js-ethereum-cryptography}{\texttt{js-\/ethereum-\/cryptography}}. At commit \href{https://github.com/ethereum/js-ethereum-cryptography/commit/ae00e6d7d24fb3c76a1c7fe10039f6ecd120b77e}{\texttt{ae00e6d7}}, it was extracted to a separate package called {\ttfamily micro-\/bip32}. After the audit we\textquotesingle{}ve decided to use {\ttfamily @scure} NPM namespace for security.\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4836}{}\doxysubsubsection{\texorpdfstring{Supply chain security}{Supply chain security}}\label{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4836}
+
+\begin{DoxyItemize}
+\item {\bfseries{Commits}} are signed with PGP keys to prevent forgery. Be sure to verify the commit signatures
+\item {\bfseries{Releases}} are made transparently through token-\/less Git\+Hub CI and Trusted Publishing. Be sure to verify the \href{https://docs.npmjs.com/generating-provenance-statements}{\texttt{provenance logs}} for authenticity.
+\item {\bfseries{Rare releasing}} is practiced to minimize the need for re-\/audits by end-\/users.
+\item {\bfseries{Dependencies}} are minimized and strictly pinned to reduce supply-\/chain risk.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} use as few dependencies as possible.
+\item Version ranges are locked, and changes are checked with npm-\/diff.
+\end{DoxyItemize}
+\item {\bfseries{Dev dependencies}} are excluded from end-\/user installs; they’re only used for development and build steps.
+\end{DoxyItemize}
+
+For this package, there are 3 dependencies; and a few dev dependencies:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://github.com/paulmillr/noble-hashes}{\texttt{noble-\/hashes}} provides cryptographic hashing functionality
+\item \href{https://github.com/paulmillr/noble-curves}{\texttt{noble-\/curves}} provides ECDSA
+\item \href{https://github.com/paulmillr/scure-base}{\texttt{scure-\/base}} provides base58
+\item jsbt is used for benchmarking /\+ testing /\+ build tooling and developed by the same author
+\item prettier, fast-\/check and typescript are used for code quality /\+ test generation /\+ ts compilation
+\end{DoxyItemize}\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4837}{}\doxysubsection{\texorpdfstring{Contributing \& testing}{Contributing \& testing}}\label{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4837}
+
+\begin{DoxyItemize}
+\item {\ttfamily npm install \&\& npm run \doxylink{namespacebuild}{build} \&\& npm \doxylink{namespacetest}{test}} will build the code and run tests.
+\item {\ttfamily npm run lint} /\+ {\ttfamily npm run format} will run linter /\+ fix linter issues.
+\item {\ttfamily npm run \doxylink{namespacebuild}{build}:\+release} will build single file
+\end{DoxyItemize}\hypertarget{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4838}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_5a97cf55226c792cbe513e9a14530c9f_autotoc_md4838}
+\href{./LICENSE}{\texttt{MIT License}}
+
+Copyright (c) 2022 Patricio Palladino, Paul Miller (paulmillr.\+com) 

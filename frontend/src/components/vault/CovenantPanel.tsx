@@ -14,16 +14,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Shield, Trash2, ChevronDown, ChevronRight, Plus, X, RefreshCw, AlertTriangle } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
-}
 
 interface CovenantEntry {
   address: string;
@@ -42,6 +38,7 @@ export function CovenantPanel() {
   const [toast, setToast] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [removeAddr, setRemoveAddr] = useState<string | null>(null);
+  const [liveMap, setLiveMap] = useState<Record<string, CovenantEntry>>({});
 
   // Create form state
   const [formAddr, setFormAddr] = useState("");
@@ -65,8 +62,7 @@ export function CovenantPanel() {
     setLoading(true);
     setErr(null);
     try {
-      const result = await rpc.request_raw("covenant_list", [{}]) as
-        { covenants?: CovenantEntry[] } | null;
+      const result = await rpc.covenantList() as { covenants?: CovenantEntry[] } | null;
       setCovenants(result?.covenants ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -94,8 +90,8 @@ export function CovenantPanel() {
       if (formMaxPerTx) payload.max_per_tx_sat = Math.floor(parseFloat(formMaxPerTx) * SAT_PER_OMNI);
       if (formExpires) payload.expires_block = parseInt(formExpires, 10);
 
-      await rpc.request_raw("covenant_create", [payload]);
-      showToast(`Covenant created for ${shortAddr(addr)}`);
+      await rpc.covenantCreate(payload as Parameters<typeof rpc.covenantCreate>[0]);
+      showToast(`Covenant created for ${midTrunc(addr)}`);
       setFormAddr(wallet?.address ?? "");
       setFormLabel("");
       setFormWhitelist([""]);
@@ -109,11 +105,18 @@ export function CovenantPanel() {
     }
   };
 
+  const handleFetchLive = async (address: string) => {
+    try {
+      const r = await rpc.covenantGet(address);
+      if (r) setLiveMap((prev) => ({ ...prev, [address]: r }));
+    } catch { /* ignore */ }
+  };
+
   const handleRemove = async (address: string) => {
     try {
-      await rpc.request_raw("covenant_remove", [{ address }]);
+      await rpc.covenantRemove(address);
       setRemoveAddr(null);
-      showToast(`Covenant removed for ${shortAddr(address)}`);
+      showToast(`Covenant removed for ${midTrunc(address)}`);
       await refresh();
     } catch (e) {
       showToast(`Remove failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -261,6 +264,32 @@ export function CovenantPanel() {
           Active covenants ({covenants.length})
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {covenants.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["address", "label", "whitelist_count", "whitelist", "max_per_tx_omni", "expires_block", "created_block"].join(","),
+                ...covenants.map((c) => [
+                  `"${c.address}"`,
+                  `"${c.label}"`,
+                  c.whitelist.length,
+                  `"${c.whitelist.join("|")}"`,
+                  c.max_per_tx_sat !== undefined ? (c.max_per_tx_sat / SAT_PER_OMNI).toFixed(4) : "",
+                  c.expires_block ?? "",
+                  c.created_block ?? "",
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-covenants.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
@@ -294,7 +323,9 @@ export function CovenantPanel() {
                   ) : (
                     <ChevronRight className="w-3.5 h-3.5 text-mempool-text-dim flex-shrink-0" />
                   )}
-                  <span className="font-mono text-xs text-mempool-blue">{shortAddr(c.address)}</span>
+                  <span className="font-mono text-xs text-mempool-blue">
+                    <AddressLabel address={c.address} showEmoji truncate={{ left: 8, right: 6 }} />
+                  </span>
                   <span className="text-xs text-mempool-text">{c.label || <span className="italic text-mempool-text-dim">—</span>}</span>
                   <span className="text-[10px] text-mempool-text-dim">
                     {c.whitelist.length} allowed dest{c.whitelist.length !== 1 ? "s" : ""}
@@ -317,19 +348,29 @@ export function CovenantPanel() {
                 {/* Expanded whitelist */}
                 {isOpen && (
                   <div className="px-4 pb-3 border-t border-mempool-border/40 space-y-1 pt-2">
-                    <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-2">
-                      Whitelist
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
+                        Whitelist{liveMap[c.address] ? " (live)" : ""}
+                      </div>
+                      {!liveMap[c.address] && (
+                        <button
+                          onClick={() => void handleFetchLive(c.address)}
+                          className="text-[10px] text-mempool-blue hover:underline"
+                        >
+                          Fetch live
+                        </button>
+                      )}
                     </div>
-                    {c.whitelist.map((addr, i) => (
-                      <div key={i} className="font-mono text-xs text-mempool-text bg-mempool-bg-elev rounded px-2 py-1 break-all">
+                    {(liveMap[c.address]?.whitelist ?? c.whitelist).map((addr) => (
+                      <div key={addr} className="font-mono text-xs text-mempool-text bg-mempool-bg-elev rounded px-2 py-1 break-all">
                         {addr}
                       </div>
                     ))}
-                    {c.max_per_tx_sat && (
+                    {(liveMap[c.address]?.max_per_tx_sat ?? c.max_per_tx_sat) ? (
                       <div className="text-[10px] text-mempool-text-dim pt-1">
-                        Max per TX: {(c.max_per_tx_sat / SAT_PER_OMNI).toFixed(4)} OMNI
+                        Max per TX: {((liveMap[c.address]?.max_per_tx_sat ?? c.max_per_tx_sat ?? 0) / SAT_PER_OMNI).toFixed(4)} OMNI
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </div>

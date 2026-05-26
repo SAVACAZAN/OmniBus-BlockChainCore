@@ -1,0 +1,82 @@
+\doxysection{scan\+\_\+opcodes Namespace Reference}
+\hypertarget{namespacescan__opcodes}{}\label{namespacescan__opcodes}\index{scan\_opcodes@{scan\_opcodes}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classscan__opcodes_1_1_constant}{Constant}}
+\item 
+class \doxymbox{\hyperlink{classscan__opcodes_1_1_enum_variant}{Enum\+Variant}}
+\item 
+class \doxymbox{\hyperlink{classscan__opcodes_1_1_enum_def}{Enum\+Def}}
+\item 
+class \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scan_result}{Opcode\+Scan\+Result}}
+\item 
+class \doxymbox{\hyperlink{classscan__opcodes_1_1_zig_parser}{Zig\+Parser}}
+\item 
+class \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner}{Opcode\+Scanner}}
+\item 
+class \doxymbox{\hyperlink{classscan__opcodes_1_1_markdown_generator}{Markdown\+Generator}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacescan__opcodes_a6ae12eb86b38f8a352228738652c91e1}{merge\+\_\+with\+\_\+existing}} (str new\+\_\+content, Path existing\+\_\+path)
+\item 
+\doxymbox{\hyperlink{namespacescan__opcodes_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}OmniBus Blockchain - Opcode Scanner
+====================================
+
+Scaneaza intregul codebase Zig pentru a detecta automat:
+- Constants (pub const NAME = value)
+- Enums si variantele lor
+- Message types
+- Error codes
+- Magic numbers
+
+Actualizeaza automat fisierul OPCODES.md cu informatiile noi.
+
+Utilizare:
+    python scan_opcodes.py
+    python scan_opcodes.py --update  # Actualizeaza OPCODES.md
+    python scan_opcodes.py --diff    # Arata diferentele fara a modifica
+    python scan_opcodes.py --output opcodes_nou.md  # Output in alt fisier
+
+Autor: OmniBus AI Collective
+Versiune: 1.0.0
+\end{DoxyVerb}
+ 
+
+\label{namespacescan__opcodes_doc-func-members}
+\Hypertarget{namespacescan__opcodes_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacescan__opcodes_a51af30a60f9f02777c6396b8247e356f}\index{scan\_opcodes@{scan\_opcodes}!main@{main}}
+\index{main@{main}!scan\_opcodes@{scan\_opcodes}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacescan__opcodes_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00517}{517}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacescan__opcodes_a6ae12eb86b38f8a352228738652c91e1}\index{scan\_opcodes@{scan\_opcodes}!merge\_with\_existing@{merge\_with\_existing}}
+\index{merge\_with\_existing@{merge\_with\_existing}!scan\_opcodes@{scan\_opcodes}}
+\doxysubsubsection{\texorpdfstring{merge\_with\_existing()}{merge\_with\_existing()}}
+{\footnotesize\ttfamily \label{namespacescan__opcodes_a6ae12eb86b38f8a352228738652c91e1} 
+ str merge\+\_\+with\+\_\+existing (\begin{DoxyParamCaption}\item[{str}]{new\+\_\+content}{, }\item[{Path}]{existing\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Îmbină conținutul nou cu documentul existent, păstrând secțiunile manuale.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00499}{499}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2

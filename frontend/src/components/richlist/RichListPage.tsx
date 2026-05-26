@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
-import { AddressDetail } from "./AddressDetail";
+import { useEffect, useState, useMemo } from "react";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
+import { AddressLabel } from "../common/AddressLabel";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
+
 
 type Role = "validator" | "miner" | "agent" | "user";
+
+const PAGE_SIZE_OPTIONS = [50, 100, 250, 500] as const;
 
 type RichEntry = {
   rank: number;
@@ -41,6 +45,9 @@ type ChainMetrics = {
   peerCount: number;
   currentBlockReward: number;
   satPerOmni: number;
+  latestBlockTxCount?: number;
+  latestBlockFees?: number;
+  latestBlockTimestamp?: number;
 };
 
 // Derive role list with backward-compat fallback when entry.roles is missing.
@@ -61,30 +68,109 @@ function deriveRoles(e: RichEntry): Role[] {
   return fallback;
 }
 
+// ── Wealth Concentration ───────────────────────────────────────────────────
+
+type ConcentrationSlot = { label: string; pct: number; color: string };
+
+function buildConcentration(entries: RichEntry[], totalSupply: number): ConcentrationSlot[] {
+  if (!totalSupply || entries.length === 0) return [];
+  const pct = (n: number) => +((n / totalSupply) * 100).toFixed(2);
+  const sumRange = (from: number, to: number) =>
+    entries.slice(from, to).reduce((s, e) => s + e.balance, 0);
+  const top1   = pct(sumRange(0, 1));
+  const top5   = pct(sumRange(0, Math.min(5,  entries.length)));
+  const top10  = pct(sumRange(0, Math.min(10, entries.length)));
+  const top50  = pct(sumRange(0, Math.min(50, entries.length)));
+  return [
+    { label: "Top 1",    pct: top1,            color: "#f97316" },
+    { label: "Top 5",    pct: top5  - top1,    color: "#eab308" },
+    { label: "Top 10",   pct: top10 - top5,    color: "#22c55e" },
+    { label: "Top 50",   pct: top50 - top10,   color: "#3b82f6" },
+    { label: "Others",   pct: 100   - top50,   color: "#4b5563" },
+  ].filter((s) => s.pct > 0);
+}
+
+function nakamotoCoefficient(entries: RichEntry[], totalSupply: number): number {
+  let cumulative = 0;
+  for (let i = 0; i < entries.length; i++) {
+    cumulative += entries[i].balance;
+    if (cumulative / totalSupply > 0.5) return i + 1;
+  }
+  return entries.length;
+}
+
+function ConcentrationBar({ entries, totalSupply }: { entries: RichEntry[]; totalSupply: number }) {
+  const slots = useMemo(() => buildConcentration(entries, totalSupply), [entries, totalSupply]);
+  const coeff = useMemo(() => nakamotoCoefficient(entries, totalSupply), [entries, totalSupply]);
+  if (slots.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim">
+          Wealth Concentration
+        </h3>
+        <div className="flex items-center gap-1.5 text-xs">
+          <span className="text-mempool-text-dim">Nakamoto coefficient:</span>
+          <span
+            className={`font-mono font-bold ${
+              coeff <= 3 ? "text-red-400" : coeff <= 10 ? "text-orange-400" : "text-green-400"
+            }`}
+            title={`${coeff} address${coeff !== 1 ? "es" : ""} needed to control >50% of supply`}
+          >
+            {coeff}
+          </span>
+          <span className="text-mempool-text-dim text-[10px]">addr → 51%</span>
+        </div>
+      </div>
+
+      {/* Stacked bar */}
+      <div className="flex rounded-full overflow-hidden h-5 mb-3" title="Supply concentration by address group">
+        {slots.map((s) => (
+          <div
+            key={s.label}
+            style={{ width: `${s.pct}%`, backgroundColor: s.color, minWidth: s.pct > 0.5 ? "4px" : "0" }}
+            title={`${s.label}: ${s.pct.toFixed(2)}%`}
+            className="transition-all"
+          />
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {slots.map((s) => (
+          <div key={s.label} className="flex items-center gap-1.5 text-[11px]">
+            <span className="w-2.5 h-2.5 rounded-sm inline-block flex-shrink-0" style={{ backgroundColor: s.color }} />
+            <span className="text-mempool-text-dim">{s.label}</span>
+            <span className="font-mono text-mempool-text">{s.pct.toFixed(2)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+
 export function RichListPage() {
   const [list, setList] = useState<RichListResp | null>(null);
   const [metrics, setMetrics] = useState<ChainMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(100);
   const [error, setError] = useState<string | null>(null);
-  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const [filter, setFilter] = useState("");
 
-  if (selectedAddress) {
-    return (
-      <AddressDetail
-        address={selectedAddress}
-        onBack={() => setSelectedAddress(null)}
-      />
-    );
-  }
+  const filteredEntries = useMemo(() =>
+    filter ? (list?.entries ?? []).filter((e) => e.address.includes(filter)) : (list?.entries ?? []),
+  [list?.entries, filter]);
 
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
       try {
         const [rl, m] = await Promise.all([
-          rpc.request_raw("getrichlist", [limit]) as Promise<RichListResp>,
-          rpc.request_raw("getchainmetrics", []) as Promise<ChainMetrics>,
+          rpc.getRichList(limit) as Promise<RichListResp>,
+          rpc.getChainMetrics() as Promise<ChainMetrics>,
         ]);
         if (!cancelled) {
           setList(rl);
@@ -97,30 +183,58 @@ export function RichListPage() {
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
-    const id = setInterval(refresh, 8000);
+    void refresh();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [limit]);
 
-  const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
 
-  // Per-role counts derived from current entries.
-  let validatorCount = 0;
-  let minerCount = 0;
-  let agentCount = 0;
-  let userCount = 0;
-  if (list) {
-    for (const e of list.entries) {
+  const { validatorCount, minerCount, agentCount, userCount } = useMemo(() => {
+    let validatorCount = 0;
+    let minerCount = 0;
+    let agentCount = 0;
+    let userCount = 0;
+    for (const e of list?.entries ?? []) {
       const roles = deriveRoles(e);
       if (roles.includes("validator")) validatorCount++;
       if (roles.includes("miner")) minerCount++;
       if (roles.includes("agent")) agentCount++;
       if (roles.includes("user")) userCount++;
     }
-  }
+    return { validatorCount, minerCount, agentCount, userCount };
+  }, [list]);
+
+  const exportCsv = () => {
+    if (!list) return;
+    const rows = [
+      ["rank", "address", "balance_omni", "share_pct", "blocks_mined", "tx_count", "received_omni", "sent_omni", "roles"].join(","),
+      ...list.entries.map((e) => {
+        const sharePct = list.totalSupply > 0 ? ((e.balance / list.totalSupply) * 100).toFixed(4) : "0";
+        const roles = deriveRoles(e).join("|");
+        return [
+          e.rank,
+          `"${e.address}"`,
+          (e.balance / SAT_PER_OMNI).toFixed(8),
+          sharePct,
+          e.blocksMined,
+          e.txCount ?? 0,
+          ((e.received ?? 0) / SAT_PER_OMNI).toFixed(8),
+          ((e.sent ?? 0) / SAT_PER_OMNI).toFixed(8),
+          `"${roles}"`,
+        ].join(",");
+      }),
+    ].join("\n");
+    const blob = new Blob([rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `omnibus-richlist-top${list.shown}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -135,7 +249,7 @@ export function RichListPage() {
       {metrics && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <Metric label="Height" value={metrics.height.toLocaleString()} />
-          <Metric label="Total supply" value={`${omniFmt(metrics.totalSupply)} OMNI`} />
+          <Metric label="Total supply" value={`${satToOmni(metrics.totalSupply)} OMNI`} />
           <Metric label="Addresses" value={metrics.addressesWithBalance.toLocaleString()} />
           <Metric label="Validators" value={validatorCount.toLocaleString()} />
           <Metric label="Miners" value={minerCount.toLocaleString()} />
@@ -143,15 +257,30 @@ export function RichListPage() {
           <Metric label="Users" value={userCount.toLocaleString()} />
           <Metric label="Mempool" value={metrics.mempoolSize.toString()} />
           <Metric label="Peers" value={metrics.peerCount.toString()} />
-          <Metric label="Block reward" value={`${omniFmt(metrics.currentBlockReward)} OMNI`} />
-          <Metric label="Min validator" value={`${omniFmt(metrics.minValidatorBalance)} OMNI`} />
+          <Metric label="Block reward" value={`${satToOmni(metrics.currentBlockReward)} OMNI`} />
+          <Metric label="Min validator" value={`${satToOmni(metrics.minValidatorBalance)} OMNI`} />
         </div>
       )}
 
-      {/* Limit selector */}
-      <div className="flex items-center gap-2 mb-4">
+      {/* Wealth concentration bar */}
+      {list && list.entries.length > 0 && list.totalSupply > 0 && (
+        <ConcentrationBar entries={list.entries} totalSupply={list.totalSupply} />
+      )}
+
+      {/* Filter + limit selector */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <input
+          type="text"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filter by address…"
+          className="flex-1 min-w-[180px] bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue transition-colors"
+        />
+        {filter && (
+          <button onClick={() => setFilter("")} className="text-xs text-mempool-text-dim hover:text-mempool-text">✕</button>
+        )}
         <span className="text-xs text-mempool-text-dim">Show:</span>
-        {[50, 100, 250, 500].map((n) => (
+        {PAGE_SIZE_OPTIONS.map((n) => (
           <button
             key={n}
             onClick={() => setLimit(n)}
@@ -166,8 +295,18 @@ export function RichListPage() {
         ))}
         {list && (
           <span className="ml-auto text-xs text-mempool-text-dim">
-            showing {list.shown} of {list.total}
+            {filter
+              ? `${filteredEntries.length} matched`
+              : `showing ${list.shown} of ${list.total}`}
           </span>
+        )}
+        {list && list.entries.length > 0 && (
+          <button
+            onClick={exportCsv}
+            className="text-[10px] px-2 py-1 bg-mempool-bg-elev border border-mempool-border rounded text-mempool-text-dim hover:text-mempool-text transition-colors font-mono"
+          >
+            ⬇ CSV
+          </button>
         )}
       </div>
 
@@ -201,7 +340,7 @@ export function RichListPage() {
               </tr>
             </thead>
             <tbody>
-              {list.entries.map((e) => {
+              {filteredEntries.map((e) => {
                 const sharePct = list.totalSupply > 0
                   ? ((e.balance / list.totalSupply) * 100).toFixed(2)
                   : "0.00";
@@ -211,15 +350,16 @@ export function RichListPage() {
                     <td className="px-3 py-2 text-mempool-text-dim font-mono text-xs">{e.rank}</td>
                     <td className="px-3 py-2 font-mono text-xs">
                       <button
-                        onClick={() => setSelectedAddress(e.address)}
-                        className="text-mempool-blue hover:underline truncate max-w-[160px] inline-block align-middle"
+                        onClick={() => { window.location.hash = `#/address/${e.address}`; }}
+                        className="text-mempool-blue hover:underline truncate max-w-[180px] inline-block align-middle"
                         title={e.address}
                       >
-                        {e.address.slice(0, 10)}…{e.address.slice(-6)}
+                        <AddressLabel address={e.address} showEmoji
+                          truncate={{ left: 10, right: 6 }} />
                       </button>
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-mempool-text">
-                      {omniFmt(e.balance)} OMNI
+                      {satToOmni(e.balance)} OMNI
                     </td>
                     <td className="px-3 py-2 text-right text-xs text-mempool-text-dim">{sharePct}%</td>
                     <td className="px-3 py-2 text-right text-xs text-mempool-text">
@@ -229,13 +369,13 @@ export function RichListPage() {
                       {(e.txCount ?? 0).toLocaleString()}
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-xs text-green-300">
-                      {omniFmt(e.received ?? 0)}
+                      {satToOmni(e.received ?? 0)}
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-xs text-red-300">
-                      {omniFmt(e.sent ?? 0)}
+                      {satToOmni(e.sent ?? 0)}
                     </td>
                     <td className="px-3 py-2">
-                      <RoleBadges roles={roles} stake={e.stake} omniFmt={omniFmt} />
+                      <RoleBadges roles={roles} stake={e.stake} omniFmt={satToOmni} />
                     </td>
                   </tr>
                 );
@@ -260,6 +400,15 @@ export function RichListPage() {
   );
 }
 
+const ROLE_BADGE_BASE =
+  "inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wider rounded border font-mono";
+const ROLE_BADGE_STYLE: Record<Role, string> = {
+  validator: "bg-green-900/40 text-green-300 border-green-600/40",
+  miner:     "bg-orange-900/40 text-orange-300 border-orange-600/40",
+  agent:     "bg-blue-900/40 text-blue-300 border-blue-600/40",
+  user:      "bg-gray-800 text-gray-400 border-gray-700",
+};
+
 function RoleBadges({
   roles,
   stake,
@@ -269,23 +418,15 @@ function RoleBadges({
   stake?: number;
   omniFmt: (sat: number) => string;
 }) {
-  const badgeBase =
-    "inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wider rounded border font-mono";
-  const styles: Record<Role, string> = {
-    validator: "bg-green-900/40 text-green-300 border-green-600/40",
-    miner: "bg-orange-900/40 text-orange-300 border-orange-600/40",
-    agent: "bg-blue-900/40 text-blue-300 border-blue-600/40",
-    user: "bg-gray-800 text-gray-400 border-gray-700",
-  };
   return (
     <div className="flex flex-wrap items-center justify-center gap-[2px]">
       {roles.map((r) => {
         const title =
           r === "validator" && stake && stake > 0
-            ? `stake: ${omniFmt(stake)} OMNI`
+            ? `stake: ${satToOmni(stake)} OMNI`
             : undefined;
         return (
-          <span key={r} className={`${badgeBase} ${styles[r]}`} title={title}>
+          <span key={r} className={`${ROLE_BADGE_BASE} ${ROLE_BADGE_STYLE[r]}`} title={title}>
             {r}
           </span>
         );

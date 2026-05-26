@@ -1,0 +1,22 @@
+\doxysection{onion Namespace Reference}
+\hypertarget{namespaceonion}{}\label{namespaceonion}\index{onion@{onion}}
+
+
+-\/privacy-\/audit  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/privacy-\/audit 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Onion Privacy Audit.
+
+Connects to RPC 8332, calls getnetworkinfo (or equivalent).
+Parses response for IP address patterns (regex for IPv4/IPv6).
+Connects via Tor SOCKS and repeats.
+Compares: does the response leak the node's real IP when connected via Tor?
+Checks version string, user-agent headers.
+Reports PASS/FAIL.
+\end{DoxyVerb}
+ 

@@ -1,0 +1,45 @@
+\doxysection{p2p Namespace Reference}
+\hypertarget{namespacep2p}{}\label{namespacep2p}\index{p2p@{p2p}}
+
+
+-\/test-\/harness  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/test-\/harness 
+
+-\/attack-\/simulator
+
+-\/connection-\/flood
+
+\begin{DoxyVerb}OmniBus Blockchain Core — P2P Test Harness
+
+Launches N local nodes, verifies:
+  - peer discovery
+  - block propagation
+  - transaction relay
+  - consensus convergence
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus BlockChainCore — P2P Connection Flood Test.
+
+Opens 200 TCP connections to P2P port 9000 simultaneously.
+For each: sends partial handshake (magic bytes), holds connection open.
+Monitors: how many the node accepts, when it starts rejecting, if it crashes.
+Uses socket + threading.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — P2P Attack Simulator
+
+Simulates:
+  - Eclipse attack (fake peers monopolize connections)
+  - Sybil attack (many fake identities)
+  - Transaction replay attack
+
+Outputs: attack-report.json
+\end{DoxyVerb}
+ 

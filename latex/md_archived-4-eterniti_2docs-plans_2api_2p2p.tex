@@ -1,0 +1,1923 @@
+\chapter{Module:\+ {\ttfamily p2p} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p}{}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p}\index{Module: $<$tt$>$p2p$<$/tt$>$@{Module: $<$tt$>$p2p$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2411}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2411}%
+
+
+\begin{quote}
+TCP P2P networking — binary protocol for peer connections, block/\+\+TX propagation, peer discovery, knock-\/knock duplicate detection, and message broadcasting. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+p2p.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 2718 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 63 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 15 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 47
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2413}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2413}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2414}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2414}
+
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Header\`{}{\ttfamily Msg\+Header}
+\end{DoxyItemize}— Data structure for msg header. Fields include:\+ version, msg\+\_\+type, payload\+\_\+len, c...
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Ping\`{}{\ttfamily Msg\+Ping}
+\end{DoxyItemize}— Data structure for msg ping. Fields include:\+ node\+\_\+id, height, version.
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Peer\+List\`{}{\ttfamily Msg\+Peer\+List}
+\end{DoxyItemize}— Data structure for msg peer list. Fields include:\+ peers.
+\begin{DoxyItemize}
+\item \`{}\+Peer\+Addr\`{}{\ttfamily Peer\+Addr}
+\end{DoxyItemize}— Data structure for peer addr. Fields include:\+ ip, port.
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Block\+Announce\`{}{\ttfamily Msg\+Block\+Announce}
+\end{DoxyItemize}— Data structure for msg block announce. Fields include:\+ block\+\_\+height, block\+\_\+hash,...
+\begin{DoxyItemize}
+\item \`{}\+Banned\+Peer\`{}{\ttfamily Banned\+Peer}
+\end{DoxyItemize}— Banned peer entry — tracks host:\+port + ban expiry
+\begin{DoxyItemize}
+\item \`{}\+Reconnect\+Info\`{}{\ttfamily Reconnect\+Info}
+\end{DoxyItemize}— Per-\/peer reconnect tracking
+\begin{DoxyItemize}
+\item \`{}\+Rate\+Limit\+State\`{}{\ttfamily Rate\+Limit\+State}
+\end{DoxyItemize}— Per-\/peer rate limiting state
+\begin{DoxyItemize}
+\item \`{}\+Peer\+Connection\`{}{\ttfamily Peer\+Connection}
+\end{DoxyItemize}— Data structure for peer connection. Fields include:\+ stream, node\+\_\+id, host, port,...
+\begin{DoxyItemize}
+\item \`{}\+Seen\+Hashes\`{}{\ttfamily Seen\+Hashes}
+\end{DoxyItemize}— Tracks recently seen TX/\+block hashes to prevent infinite relay loops. Fixed-\/size...
+\begin{DoxyItemize}
+\item \`{}\+Entry\`{}{\ttfamily Entry}
+\end{DoxyItemize}— Data structure for entry. Fields include:\+ hash, hash\+\_\+len, timestamp, active.
+\begin{DoxyItemize}
+\item \`{}\+Gossip\+Tx\+Payload\`{}{\ttfamily Gossip\+Tx\+Payload}
+\end{DoxyItemize}— Gossip TX payload:\+ JSON-\/encoded transaction for simplicity. Wire format:\+ \+[hash\+\_\+l...
+\begin{DoxyItemize}
+\item \`{}\+P2\+PNode\`{}{\ttfamily P2\+PNode}
+\end{DoxyItemize}— Data structure for p2 p node. Fields include:\+ local\+\_\+id, local\+\_\+host, local\+\_\+port, ...
+\begin{DoxyItemize}
+\item \`{}\+Accept\+Args\`{}{\ttfamily Accept\+Args}
+\end{DoxyItemize}— Data structure representing a accept args in the \doxylink{namespacep2p}{p2p} module.
+\begin{DoxyItemize}
+\item \`{}\+Peer\+Args\`{}{\ttfamily Peer\+Args}
+\end{DoxyItemize}— Data structure representing a peer args in the \doxylink{namespacep2p}{p2p} module.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2415}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2415}
+
+\begin{DoxyItemize}
+\item 29 constants defined29 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2416}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2416}
+
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Performs the decode operation on the \doxylink{namespacep2p}{p2p} module.
+\begin{DoxyItemize}
+\item \`{}calc\+Checksum()\`{}{\ttfamily calc\+Checksum()}
+\end{DoxyItemize}— Checksum simplu:\+ suma tuturor byte-\/ilor payload mod 65536
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Attempts to find decode. Returns null if not found.
+\begin{DoxyItemize}
+\item \`{}encode\+Peer\+List()\`{}{\ttfamily encode\+Peer\+List()}
+\end{DoxyItemize}— Encode a list of Peer\+Addr into a peer\+\_\+list payload.
+\begin{DoxyItemize}
+\item \`{}decode\+Peer\+List()\`{}{\ttfamily decode\+Peer\+List()}
+\end{DoxyItemize}— Decode a peer\+\_\+list payload into a slice of Peer\+Addr. Caller must free ...
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Attempts to find decode. Returns null if not found.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}is\+Expired()\`{}{\ttfamily is\+Expired()}
+\end{DoxyItemize}— Checks whether the expired condition is true.
+\begin{DoxyItemize}
+\item \`{}matches\+Host()\`{}{\ttfamily matches\+Host()}
+\end{DoxyItemize}— Checks matches host condition. Returns a boolean result.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}record\+Message()\`{}{\ttfamily record\+Message()}
+\end{DoxyItemize}— Record a message. Returns true if within limits, false if exceeded.
+\begin{DoxyItemize}
+\item \`{}send()\`{}{\ttfamily send()}
+\end{DoxyItemize}— Trimite un mesaj binar catre peer
+\begin{DoxyItemize}
+\item \`{}recv()\`{}{\ttfamily recv()}
+\end{DoxyItemize}— Citeste un mesaj binar de la peer Caller trebuie sa elibereze payload-\/...
+\begin{DoxyItemize}
+\item \`{}send\+Ping()\`{}{\ttfamily send\+Ping()}
+\end{DoxyItemize}— Trimite PING cu inaltimea curenta a lantului
+\begin{DoxyItemize}
+\item \`{}close()\`{}{\ttfamily close()}
+\end{DoxyItemize}— Closes the and releases associated resources.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}contains()\`{}{\ttfamily contains()}
+\end{DoxyItemize}— Returns true if the hash was already seen (still fresh).
+\begin{DoxyItemize}
+\item \`{}insert()\`{}{\ttfamily insert()}
+\end{DoxyItemize}— Inserts a hash. Returns false if it was already present (duplicate).
+\begin{DoxyItemize}
+\item \`{}evict\+Expired()\`{}{\ttfamily evict\+Expired()}
+\end{DoxyItemize}— Evict entries older than SEEN\+\_\+\+HASH\+\_\+\+EXPIRY\+\_\+S
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Attempts to find decode. Returns null if not found.
+\begin{DoxyItemize}
+\item \`{}encode\+Get\+Headers()\`{}{\ttfamily encode\+Get\+Headers()}
+\end{DoxyItemize}— Encode a getheaders\+\_\+p2p request payload
+\begin{DoxyItemize}
+\item \`{}decode\+Get\+Headers()\`{}{\ttfamily decode\+Get\+Headers()}
+\end{DoxyItemize}— Decode a getheaders\+\_\+p2p request payload
+\begin{DoxyItemize}
+\item \`{}serialize\+Spv\+Header()\`{}{\ttfamily serialize\+Spv\+Header()}
+\end{DoxyItemize}— Serialize a light\+\_\+client Block\+Header into the 120-\/byte wire format. Fi...
+\begin{DoxyItemize}
+\item \`{}deserialize\+Spv\+Header()\`{}{\ttfamily deserialize\+Spv\+Header()}
+\end{DoxyItemize}— Deserialize a 120-\/byte wire header into a light\+\_\+client Block\+Header.
+\begin{DoxyItemize}
+\item \`{}encode\+Bloom\+Filter()\`{}{\ttfamily encode\+Bloom\+Filter()}
+\end{DoxyItemize}— Encode a filterload payload:\+ \+[num\+\_\+hash\+\_\+funcs:\+u8]\+\+[bits:\+512]\+
+\begin{DoxyItemize}
+\item \`{}decode\+Bloom\+Filter()\`{}{\ttfamily decode\+Bloom\+Filter()}
+\end{DoxyItemize}— Decode a filterload payload into a Bloom\+Filter.
+\begin{DoxyItemize}
+\item \`{}attach\+Blockchain()\`{}{\ttfamily attach\+Blockchain()}
+\end{DoxyItemize}— Ataseaza blockchain si sync\+\_\+mgr — apelat din main dupa init P2\+PNode Ne...
+\begin{DoxyItemize}
+\item \`{}attach\+Light\+Client()\`{}{\ttfamily attach\+Light\+Client()}
+\end{DoxyItemize}— Attach a light client for SPV header sync mode
+\begin{DoxyItemize}
+\item \`{}sync\+Headers()\`{}{\ttfamily sync\+Headers()}
+\end{DoxyItemize}— SPV:\+ Send getheaders\+\_\+p2p to all connected peers. Requests headers star...
+\begin{DoxyItemize}
+\item \`{}request\+Merkle\+Proof()\`{}{\ttfamily request\+Merkle\+Proof()}
+\end{DoxyItemize}— SPV:\+ Request a Merkle proof for a specific TX hash in a specific block...
+\begin{DoxyItemize}
+\item \`{}send\+Bloom\+Filter()\`{}{\ttfamily send\+Bloom\+Filter()}
+\end{DoxyItemize}— SPV:\+ Send our Bloom filter to all connected peers (filterload).
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}connect\+To\+Peer()\`{}{\ttfamily connect\+To\+Peer()}
+\end{DoxyItemize}— Conecteaza la un peer (TCP outbound)
+\begin{DoxyItemize}
+\item \`{}broadcast\+Tx()\`{}{\ttfamily broadcast\+Tx()}
+\end{DoxyItemize}— Broadcast a TX to all connected peers via gossip. Deduplicates:\+ if we ...
+\begin{DoxyItemize}
+\item \`{}gossip\+Maintenance()\`{}{\ttfamily gossip\+Maintenance()}
+\end{DoxyItemize}— Periodic maintenance:\+ evict expired seen hashes
+\begin{DoxyItemize}
+\item \`{}get\+Gossip\+Stats()\`{}{\ttfamily get\+Gossip\+Stats()}
+\end{DoxyItemize}— Returns gossip statistics for logging
+\begin{DoxyItemize}
+\item \`{}send\+Get\+Peers()\`{}{\ttfamily send\+Get\+Peers()}
+\end{DoxyItemize}— Send a get\+\_\+peers request to a specific peer
+\begin{DoxyItemize}
+\item \`{}request\+Peers\+From\+All()\`{}{\ttfamily request\+Peers\+From\+All()}
+\end{DoxyItemize}— Send get\+\_\+peers to all connected peers
+\begin{DoxyItemize}
+\item \`{}build\+Peer\+List\+Payload()\`{}{\ttfamily build\+Peer\+List\+Payload()}
+\end{DoxyItemize}— Build a peer\+\_\+list payload from our known connected peers Returns encod...
+\begin{DoxyItemize}
+\item \`{}attach\+To\+Network()\`{}{\ttfamily attach\+To\+Network()}
+\end{DoxyItemize}— Ataseaza acest P2\+PNode la un P2\+PNetwork — de apelat din main.\+zig dupa ...
+\begin{DoxyItemize}
+\item \`{}peer\+Count()\`{}{\ttfamily peer\+Count()}
+\end{DoxyItemize}— Numarul de peeri conectati
+\begin{DoxyItemize}
+\item \`{}clean\+Dead\+Peers()\`{}{\ttfamily clean\+Dead\+Peers()}
+\end{DoxyItemize}— Deconecteaza peerii morti — adauga la reconnect queue in loc de sterge...
+\begin{DoxyItemize}
+\item \`{}knock\+Knock()\`{}{\ttfamily knock\+Knock()}
+\end{DoxyItemize}— Knock Knock — anunta reteaua + verifica daca exista duplicat pe acelas...
+\begin{DoxyItemize}
+\item \`{}is\+Banned()\`{}{\ttfamily is\+Banned()}
+\end{DoxyItemize}— Check if a host:\+port is currently banned
+\begin{DoxyItemize}
+\item \`{}ban\+Peer()\`{}{\ttfamily ban\+Peer()}
+\end{DoxyItemize}— Ban a peer by host:\+port for the configured duration
+\begin{DoxyItemize}
+\item \`{}evict\+Expired\+Bans()\`{}{\ttfamily evict\+Expired\+Bans()}
+\end{DoxyItemize}— Evict expired bans
+\begin{DoxyItemize}
+\item \`{}score\+Peer()\`{}{\ttfamily score\+Peer()}
+\end{DoxyItemize}— Score a peer event and auto-\/ban if threshold reached
+\begin{DoxyItemize}
+\item \`{}check\+Rate\+Limit()\`{}{\ttfamily check\+Rate\+Limit()}
+\end{DoxyItemize}— Check rate limit for a peer. Returns true if within limits. If exceede...
+\begin{DoxyItemize}
+\item \`{}process\+Reconnects()\`{}{\ttfamily process\+Reconnects()}
+\end{DoxyItemize}— Process reconnect queue — attempt reconnects for peers past the delay
+\begin{DoxyItemize}
+\item \`{}check\+Subnet\+Diversity()\`{}{\ttfamily check\+Subnet\+Diversity()}
+\end{DoxyItemize}— Check if adding a peer with this IP would violate subnet diversity rul...
+\begin{DoxyItemize}
+\item \`{}subnet\+Count()\`{}{\ttfamily subnet\+Count()}
+\end{DoxyItemize}— Count the number of distinct /\+16 subnets among connected peers
+\begin{DoxyItemize}
+\item \`{}has\+Min\+Subnet\+Diversity()\`{}{\ttfamily has\+Min\+Subnet\+Diversity()}
+\end{DoxyItemize}— Check if we have enough subnet diversity (at least MIN\+\_\+\+SUBNET\+\_\+\+DIVERSIT...
+\begin{DoxyItemize}
+\item \`{}can\+Accept\+Inbound()\`{}{\ttfamily can\+Accept\+Inbound()}
+\end{DoxyItemize}— Check if we can accept an inbound connection
+\begin{DoxyItemize}
+\item \`{}hardening\+Maintenance()\`{}{\ttfamily hardening\+Maintenance()}
+\end{DoxyItemize}— Periodic hardening maintenance
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the \doxylink{namespacep2p}{p2p} module.
+\begin{DoxyItemize}
+\item \`{}start\+Listener()\`{}{\ttfamily start\+Listener()}
+\end{DoxyItemize}— Porneste server TCP inbound pe {\ttfamily local\+\_\+port} — thread detached. Fiecare...
+\begin{DoxyItemize}
+\item \`{}send\+To\+Peer()\`{}{\ttfamily send\+To\+Peer()}
+\end{DoxyItemize}— Trimite un mesaj raw la un peer specific (dupa node\+\_\+id) Folosit de Syn...
+\begin{DoxyItemize}
+\item \`{}request\+Sync()\`{}{\ttfamily request\+Sync()}
+\end{DoxyItemize}— Trimite sync\+\_\+request la primul peer conectat mai sus decat noi Payload...
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2418}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2418}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2419}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Header}}{{\ttfamily Msg\+Header}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2419}
+Data structure for msg header. Fields include:\+ version, msg\+\_\+type, payload\+\_\+len, checksum, flags.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily version}  &{\ttfamily u8}  &Version  \\
+{\ttfamily msg\+\_\+type}  &{\ttfamily u8}  &Msg\+\_\+type  \\
+{\ttfamily payload\+\_\+len}  &{\ttfamily u32}  &Payload\+\_\+len  \\
+{\ttfamily checksum}  &{\ttfamily u16}  &Checksum  \\
+{\ttfamily flags}  &{\ttfamily u8}  &Flags  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 103}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2421}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Ping}}{{\ttfamily Msg\+Ping}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2421}
+Data structure for msg ping. Fields include:\+ node\+\_\+id, height, version.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Node\+\_\+id  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+{\ttfamily version}  &{\ttfamily u8}  &Version  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 138}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2423}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Peer\+List}}{{\ttfamily Msg\+Peer\+List}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2423}
+Data structure for msg peer list. Fields include:\+ peers.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily peers}  &{\ttfamily \+[]\+Peer\+Addr}  &Peers  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 163}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2425}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer\+Addr}}{{\ttfamily Peer\+Addr}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2425}
+Data structure for peer addr. Fields include:\+ ip, port.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily ip}  &{\ttfamily \+[4]\+u8}  &Ip  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 166}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2427}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Block\+Announce}}{{\ttfamily Msg\+Block\+Announce}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2427}
+Data structure for msg block announce. Fields include:\+ block\+\_\+height, block\+\_\+hash, miner\+\_\+id, reward\+\_\+sat.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily block\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Block\+\_\+hash  \\
+{\ttfamily miner\+\_\+id}  &{\ttfamily \+[32]\+u8}  &Miner\+\_\+id  \\
+{\ttfamily reward\+\_\+sat}  &{\ttfamily u64}  &Reward\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 212}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2429}{}\doxysubsection{\texorpdfstring{{\ttfamily Banned\+Peer}}{{\ttfamily Banned\+Peer}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2429}
+Banned peer entry — tracks host:\+port + ban expiry
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily host}  &{\ttfamily \+[64]\+u8}  &Host  \\
+{\ttfamily host\+\_\+len}  &{\ttfamily u8}  &Host\+\_\+len  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily banned\+\_\+until}  &{\ttfamily i64}  &Banned\+\_\+until  \\
+{\ttfamily reason}  &{\ttfamily \+[64]\+u8}  &Reason  \\
+{\ttfamily reason\+\_\+len}  &{\ttfamily u8}  &Reason\+\_\+len  \\
+{\ttfamily active}  &{\ttfamily bool}  &Active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 245}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2431}{}\doxysubsection{\texorpdfstring{{\ttfamily Reconnect\+Info}}{{\ttfamily Reconnect\+Info}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2431}
+Per-\/peer reconnect tracking
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily host}  &{\ttfamily \+[64]\+u8}  &Host  \\
+{\ttfamily host\+\_\+len}  &{\ttfamily u8}  &Host\+\_\+len  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[64]\+u8}  &Node\+\_\+id  \\
+{\ttfamily node\+\_\+id\+\_\+len}  &{\ttfamily u8}  &Node\+\_\+id\+\_\+len  \\
+{\ttfamily attempts}  &{\ttfamily u8}  &Attempts  \\
+{\ttfamily last\+\_\+disconnect}  &{\ttfamily i64}  &Last\+\_\+disconnect  \\
+{\ttfamily active}  &{\ttfamily bool}  &Active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 282}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2433}{}\doxysubsection{\texorpdfstring{{\ttfamily Rate\+Limit\+State}}{{\ttfamily Rate\+Limit\+State}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2433}
+Per-\/peer rate limiting state
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily msg\+\_\+count}  &{\ttfamily u32}  &Msg\+\_\+count  \\
+{\ttfamily byte\+\_\+count}  &{\ttfamily u64}  &Byte\+\_\+count  \\
+{\ttfamily window\+\_\+start}  &{\ttfamily i64}  &Window\+\_\+start  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 310}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2435}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer\+Connection}}{{\ttfamily Peer\+Connection}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2435}
+Data structure for peer connection. Fields include:\+ stream, node\+\_\+id, host, port, height.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily stream}  &{\ttfamily std.\+net.\+Stream}  &Stream  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+{\ttfamily connected}  &{\ttfamily bool}  &Connected  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily direction}  &{\ttfamily Conn\+Direction}  &Direction  \\
+{\ttfamily rate\+\_\+limit}  &{\ttfamily Rate\+Limit\+State}  &Rate\+\_\+limit  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 347}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2437}{}\doxysubsection{\texorpdfstring{{\ttfamily Seen\+Hashes}}{{\ttfamily Seen\+Hashes}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2437}
+Tracks recently seen TX/\+block hashes to prevent infinite relay loops. Fixed-\/size ring buffer — no dynamic allocation after init.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily entries}  &{\ttfamily \+[SEEN\+\_\+\+HASHES\+\_\+\+MAX]\+Entry}  &Entries  \\
+{\ttfamily count}  &{\ttfamily usize}  &Count  \\
+{\ttfamily next\+\_\+slot}  &{\ttfamily usize}  &Next\+\_\+slot  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 466}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2439}{}\doxysubsection{\texorpdfstring{{\ttfamily Entry}}{{\ttfamily Entry}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2439}
+Data structure for entry. Fields include:\+ hash, hash\+\_\+len, timestamp, active.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily hash}  &{\ttfamily \+[64]\+u8}  &Hash  \\
+{\ttfamily hash\+\_\+len}  &{\ttfamily u8}  &Hash\+\_\+len  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily active}  &{\ttfamily bool}  &Active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 467}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2441}{}\doxysubsection{\texorpdfstring{{\ttfamily Gossip\+Tx\+Payload}}{{\ttfamily Gossip\+Tx\+Payload}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2441}
+Gossip TX payload:\+ JSON-\/encoded transaction for simplicity. Wire format:\+ \+[hash\+\_\+len:\+1]\+\+[hash:\+N]\+\+[json\+\_\+len:\+4LE]\+\+[json:\+M]\+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+{\ttfamily tx\+\_\+json}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+json  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 536}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2443}{}\doxysubsection{\texorpdfstring{{\ttfamily P2\+PNode}}{{\ttfamily P2\+PNode}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2443}
+Data structure for p2 p node. Fields include:\+ local\+\_\+id, local\+\_\+host, local\+\_\+port, peers, allocator.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily local\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Local\+\_\+id  \\
+{\ttfamily local\+\_\+host}  &{\ttfamily \+[]\+const u8}  &Local\+\_\+host  \\
+{\ttfamily local\+\_\+port}  &{\ttfamily u16}  &Local\+\_\+port  \\
+{\ttfamily peers}  &{\ttfamily array\+\_\+list.\+Managed(\+Peer\+Connection)}  &Peers  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily chain\+\_\+height}  &{\ttfamily u64}  &Chain\+\_\+height  \\
+{\ttfamily is\+\_\+idle}  &{\ttfamily bool}  &Is\+\_\+idle  \\
+{\ttfamily blockchain}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}\+Blockchain}  &Blockchain  \\
+{\ttfamily sync\+\_\+mgr}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}\+Sync\+Manager}  &Sync\+\_\+mgr  \\
+{\ttfamily light\+\_\+client}  &{\ttfamily ?\texorpdfstring{$\ast$}{*}light\+\_\+client\+\_\+mod.Light\+Client}  &Light\+\_\+client  \\
+{\ttfamily seen\+\_\+tx\+\_\+hashes}  &{\ttfamily Seen\+Hashes}  &Seen\+\_\+tx\+\_\+hashes  \\
+{\ttfamily seen\+\_\+block\+\_\+hashes}  &{\ttfamily Seen\+Hashes}  &Seen\+\_\+block\+\_\+hashes  \\
+{\ttfamily gossip\+\_\+tx\+\_\+count}  &{\ttfamily u64}  &Gossip\+\_\+tx\+\_\+count  \\
+{\ttfamily gossip\+\_\+block\+\_\+count}  &{\ttfamily u64}  &Gossip\+\_\+block\+\_\+count  \\
+{\ttfamily scoring\+\_\+engine}  &{\ttfamily scoring\+\_\+mod.\+Peer\+Scoring\+Engine}  &Scoring\+\_\+engine  \\
+{\ttfamily banned\+\_\+peers}  &{\ttfamily \+[MAX\+\_\+\+BANNED\+\_\+\+PEERS]\+Banned\+Peer}  &Banned\+\_\+peers  \\
+{\ttfamily banned\+\_\+count}  &{\ttfamily u16}  &Banned\+\_\+count  \\
+{\ttfamily reconnect\+\_\+queue}  &{\ttfamily \+[MAX\+\_\+\+PEERS]\+Reconnect\+Info}  &Reconnect\+\_\+queue  \\
+{\ttfamily reconnect\+\_\+count}  &{\ttfamily u16}  &Reconnect\+\_\+count  \\
+{\ttfamily inbound\+\_\+count}  &{\ttfamily u16}  &Inbound\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 712}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2445}{}\doxysubsection{\texorpdfstring{{\ttfamily Accept\+Args}}{{\ttfamily Accept\+Args}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2445}
+Data structure representing a accept args in the \doxylink{namespacep2p}{p2p} module.
+
+{\itshape Defined at line 1489}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2447}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer\+Args}}{{\ttfamily Peer\+Args}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2447}
+Data structure representing a peer args in the \doxylink{namespacep2p}{p2p} module.
+
+{\itshape Defined at line 1519}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2449}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2449}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Network\+Node}  &{\ttfamily network\+\_\+mod.\+Network\+Node}  &Network node  \\
+{\ttfamily Message\+Type}  &{\ttfamily network\+\_\+mod.\+Message\+Type}  &Message type  \\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &Blockchain  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &Block  \\
+{\ttfamily Sync\+Manager}  &{\ttfamily sync\+\_\+mod.\+Sync\+Manager}  &Sync manager  \\
+{\ttfamily P2\+P\+\_\+\+PORT\+\_\+\+DEFAULT}  &{\ttfamily u16 = 8333}  &P2 p\+\_\+ p o r t\+\_\+ d e f a u l t  \\
+{\ttfamily P2\+P\+\_\+\+VERSION}  &{\ttfamily u8 = 1}  &P2 p\+\_\+ v e r s i o n  \\
+{\ttfamily P2\+P\+\_\+\+MAX\+\_\+\+MSG\+\_\+\+BYTES}  &{\ttfamily u32 = 1\+\_\+048\+\_\+576}  &P2 p\+\_\+ m a x\+\_\+ m s g\+\_\+ b y t e s  \\
+{\ttfamily P2\+P\+\_\+\+CONNECT\+\_\+\+TIMEOUT\+\_\+\+MS}  &{\ttfamily u64 = 3\+\_\+000}  &P2 p\+\_\+ c o n n e c t\+\_\+ t i m e o u t\+\_\+ m s  \\
+{\ttfamily P2\+P\+\_\+\+READ\+\_\+\+TIMEOUT\+\_\+\+MS}  &{\ttfamily u64 = 5\+\_\+000}  &P2 p\+\_\+ r e a d\+\_\+ t i m e o u t\+\_\+ m s  \\
+{\ttfamily MAX\+\_\+\+INBOUND}  &{\ttfamily usize = 32}  &M a x\+\_\+ i n b o u n d  \\
+{\ttfamily MAX\+\_\+\+OUTBOUND}  &{\ttfamily usize = 8}  &M a x\+\_\+ o u t b o u n d  \\
+{\ttfamily MAX\+\_\+\+PEERS}  &{\ttfamily usize = MAX\+\_\+\+INBOUND + MAX\+\_\+\+OUTBOUND}  &M a x\+\_\+ p e e r s  \\
+{\ttfamily MAX\+\_\+\+RECONNECT\+\_\+\+ATTEMPTS}  &{\ttfamily u8 = 3}  &M a x\+\_\+ r e c o n n e c t\+\_\+ a t t e m p t s  \\
+{\ttfamily RECONNECT\+\_\+\+DELAY\+\_\+\+SEC}  &{\ttfamily i64 = 30}  &R e c o n n e c t\+\_\+ d e l a y\+\_\+ s e c  \\
+{\ttfamily RATE\+\_\+\+LIMIT\+\_\+\+MSG\+\_\+\+PER\+\_\+\+SEC}  &{\ttfamily u32 = 100}  &R a t e\+\_\+ l i m i t\+\_\+ m s g\+\_\+ p e r\+\_\+ s e c  \\
+{\ttfamily RATE\+\_\+\+LIMIT\+\_\+\+BYTES\+\_\+\+PER\+\_\+\+SEC}  &{\ttfamily u64 = 10 \texorpdfstring{$\ast$}{*} 1024 \texorpdfstring{$\ast$}{*} 1024}  &R a t e\+\_\+ l i m i t\+\_\+ b y t e s\+\_\+ p e r\+\_\+ s e c  \\
+{\ttfamily RATE\+\_\+\+LIMIT\+\_\+\+BAN\+\_\+\+SCORE}  &{\ttfamily i32 = 50}  &R a t e\+\_\+ l i m i t\+\_\+ b a n\+\_\+ s c o r e  \\
+{\ttfamily MAX\+\_\+\+BANNED\+\_\+\+PEERS}  &{\ttfamily usize = 256}  &M a x\+\_\+ b a n n e d\+\_\+ p e e r s  \\
+{\ttfamily MAX\+\_\+\+PEERS\+\_\+\+PER\+\_\+\+SUBNET}  &{\ttfamily usize = 2}  &M a x\+\_\+ p e e r s\+\_\+ p e r\+\_\+ s u b n e t  \\
+{\ttfamily MIN\+\_\+\+SUBNET\+\_\+\+DIVERSITY}  &{\ttfamily usize = 4}  &M i n\+\_\+ s u b n e t\+\_\+ d i v e r s i t y  \\
+{\ttfamily MSG\+\_\+\+HEADER\+\_\+\+SIZE}  &{\ttfamily usize = 9}  &M s g\+\_\+ h e a d e r\+\_\+ s i z e  \\
+{\ttfamily PEX\+\_\+\+MAX\+\_\+\+PEERS}  &{\ttfamily usize = 100}  &P e x\+\_\+ m a x\+\_\+ p e e r s  \\
+{\ttfamily PEX\+\_\+\+PEER\+\_\+\+SIZE}  &{\ttfamily usize = 6}  &P e x\+\_\+ p e e r\+\_\+ s i z e  \\
+{\ttfamily Conn\+Direction}  &{\ttfamily enum \{}  &Conn direction  \\
+{\ttfamily Gossip\+Block\+Payload}  &{\ttfamily Msg\+Block\+Announce}  &Gossip block payload  \\
+{\ttfamily SPV\+\_\+\+HEADER\+\_\+\+SIZE}  &{\ttfamily usize = 124}  &S p v\+\_\+ h e a d e r\+\_\+ s i z e  \\
+{\ttfamily SPV\+\_\+\+MAX\+\_\+\+HEADERS\+\_\+\+PER\+\_\+\+MSG}  &{\ttfamily u32 = 2000}  &S p v\+\_\+ m a x\+\_\+ h e a d e r s\+\_\+ p e r\+\_\+ m s g  \\
+{\ttfamily Knock\+Result}  &{\ttfamily enum \{}  &Knock result  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2451}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2451}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2452}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2452}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ MsgHeader,\ buf:\ *[MSG\_HEADER\_SIZE]u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Msg\+Header}  &The instance  \\
+{\ttfamily buf}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+[MSG\+\_\+\+HEADER\+\_\+\+SIZE]\+u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 110}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2454}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2454}
+Performs the decode operation on the \doxylink{namespacep2p}{p2p} module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(buf:\ *const\ [MSG\_HEADER\_SIZE]u8)\ MsgHeader\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily buf}  &{\ttfamily \texorpdfstring{$\ast$}{*}const \+[MSG\+\_\+\+HEADER\+\_\+\+SIZE]\+u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Msg\+Header}
+
+{\itshape Defined at line 118}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2456}{}\doxysubsection{\texorpdfstring{{\ttfamily calc\+Checksum()}}{{\ttfamily calc\+Checksum()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2456}
+Checksum simplu:\+ suma tuturor byte-\/ilor payload mod 65536
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calcChecksum(data:\ []const\ u8)\ u16\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u16}
+
+{\itshape Defined at line 130}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2458}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2458}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ MsgPing,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Msg\+Ping}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 143}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2460}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2460}
+Attempts to find decode. Returns null if not found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(data:\ []const\ u8)\ ?MsgPing\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Msg\+Ping}
+
+{\itshape Defined at line 151}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2462}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+Peer\+List()}}{{\ttfamily encode\+Peer\+List()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2462}
+Encode a list of Peer\+Addr into a peer\+\_\+list payload.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodePeerList(peers:\ []const\ MsgPeerList.PeerAddr,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily peers}  &{\ttfamily \+[]\+const Msg\+Peer\+List.\+Peer\+Addr}  &Peers  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 183}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2464}{}\doxysubsection{\texorpdfstring{{\ttfamily decode\+Peer\+List()}}{{\ttfamily decode\+Peer\+List()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2464}
+Decode a peer\+\_\+list payload into a slice of Peer\+Addr. Caller must free the returned slice with allocator.\+free().
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decodePeerList(data:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]MsgPeerList.PeerAddr\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+Msg\+Peer\+List.\+Peer\+Addr}
+
+{\itshape Defined at line 198}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2466}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2466}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ MsgBlockAnnounce,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Msg\+Block\+Announce}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 218}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2468}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2468}
+Attempts to find decode. Returns null if not found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(data:\ []const\ u8)\ ?MsgBlockAnnounce\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Msg\+Block\+Announce}
+
+{\itshape Defined at line 227}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2470}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2470}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(host:\ []const\ u8,\ port:\ u16,\ duration\_sec:\ i64,\ reason:\ []const\ u8)\ BannedPeer\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily duration\+\_\+sec}  &{\ttfamily i64}  &Duration\+\_\+sec  \\
+{\ttfamily reason}  &{\ttfamily \+[]\+const u8}  &Reason  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Banned\+Peer}
+
+{\itshape Defined at line 254}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2472}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Expired()}}{{\ttfamily is\+Expired()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2472}
+Checks whether the expired condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isExpired(self:\ *const\ BannedPeer)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Banned\+Peer}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 269}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2474}{}\doxysubsection{\texorpdfstring{{\ttfamily matches\+Host()}}{{\ttfamily matches\+Host()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2474}
+Checks matches host condition. Returns a boolean result.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ matchesHost(self:\ *const\ BannedPeer,\ host:\ []const\ u8,\ port:\ u16)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Banned\+Peer}  &The instance  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 273}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2476}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2476}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(host:\ []const\ u8,\ port:\ u16,\ node\_id:\ []const\ u8)\ ReconnectInfo\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Reconnect\+Info}
+
+{\itshape Defined at line 292}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2478}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2478}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ RateLimitState\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Rate\+Limit\+State}
+
+{\itshape Defined at line 315}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2480}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+Message()}}{{\ttfamily record\+Message()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2480}
+Record a message. Returns true if within limits, false if exceeded.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordMessage(self:\ *RateLimitState,\ msg\_size:\ usize)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Rate\+Limit\+State}  &The instance  \\
+{\ttfamily msg\+\_\+size}  &{\ttfamily usize}  &Msg\+\_\+size  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 324}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2482}{}\doxysubsection{\texorpdfstring{{\ttfamily send()}}{{\ttfamily send()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2482}
+Trimite un mesaj binar catre peer
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ send(self:\ *PeerConnection,\ msg\_type:\ u8,\ payload:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Connection}  &The instance  \\
+{\ttfamily msg\+\_\+type}  &{\ttfamily u8}  &Msg\+\_\+type  \\
+{\ttfamily payload}  &{\ttfamily \+[]\+const u8}  &Payload  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 361}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2484}{}\doxysubsection{\texorpdfstring{{\ttfamily recv()}}{{\ttfamily recv()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2484}
+Citeste un mesaj binar de la peer Caller trebuie sa elibereze payload-\/ul cu allocator.\+free()
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recv(self:\ *PeerConnection)\ !struct\ \{\ msg\_type:\ u8,\ payload:\ []u8\ \}\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Connection}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !struct}
+
+{\itshape Defined at line 381}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2486}{}\doxysubsection{\texorpdfstring{{\ttfamily send\+Ping()}}{{\ttfamily send\+Ping()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2486}
+Trimite PING cu inaltimea curenta a lantului
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sendPing(self:\ *PeerConnection,\ node\_id:\ []const\ u8,\ height:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Connection}  &The instance  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 410}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2488}{}\doxysubsection{\texorpdfstring{{\ttfamily close()}}{{\ttfamily close()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2488}
+Closes the and releases associated resources.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ close(self:\ *PeerConnection)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Connection}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 449}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2490}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2490}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ SeenHashes\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Seen\+Hashes}
+
+{\itshape Defined at line 478}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2492}{}\doxysubsection{\texorpdfstring{{\ttfamily contains()}}{{\ttfamily contains()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2492}
+Returns true if the hash was already seen (still fresh).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ contains(self:\ *const\ SeenHashes,\ hash:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Seen\+Hashes}  &The instance  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 490}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2494}{}\doxysubsection{\texorpdfstring{{\ttfamily insert()}}{{\ttfamily insert()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2494}
+Inserts a hash. Returns false if it was already present (duplicate).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ insert(self:\ *SeenHashes,\ hash:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Seen\+Hashes}  &The instance  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 503}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2496}{}\doxysubsection{\texorpdfstring{{\ttfamily evict\+Expired()}}{{\ttfamily evict\+Expired()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2496}
+Evict entries older than SEEN\+\_\+\+HASH\+\_\+\+EXPIRY\+\_\+S
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ evictExpired(self:\ *SeenHashes)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Seen\+Hashes}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 523}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2498}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2498}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ GossipTxPayload,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Gossip\+Tx\+Payload}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 540}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2500}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2500}
+Attempts to find decode. Returns null if not found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(data:\ []const\ u8)\ ?GossipTxPayload\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Gossip\+Tx\+Payload}
+
+{\itshape Defined at line 552}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2502}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+Get\+Headers()}}{{\ttfamily encode\+Get\+Headers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2502}
+Encode a getheaders\+\_\+p2p request payload
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeGetHeaders(start\_height:\ u32,\ count:\ u32,\ buf:\ *[8]u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily start\+\_\+height}  &{\ttfamily u32}  &Start\+\_\+height  \\
+{\ttfamily count}  &{\ttfamily u32}  &Count  \\
+{\ttfamily buf}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+[8]\+u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 597}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2504}{}\doxysubsection{\texorpdfstring{{\ttfamily decode\+Get\+Headers()}}{{\ttfamily decode\+Get\+Headers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2504}
+Decode a getheaders\+\_\+p2p request payload
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decodeGetHeaders(data:\ []const\ u8)\ ?struct\ \{\ start\_height:\ u32,\ count:\ u32\ \}\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?struct}
+
+{\itshape Defined at line 603}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2506}{}\doxysubsection{\texorpdfstring{{\ttfamily serialize\+Spv\+Header()}}{{\ttfamily serialize\+Spv\+Header()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2506}
+Serialize a light\+\_\+client Block\+Header into the 120-\/byte wire format. Fields:\+ index(8) + timestamp(8) + prev\+\_\+hash(32) + merkle\+\_\+root(32) + hash(32) + \doxylink{namespacedifficulty}{difficulty(4)} + nonce(8) = 120
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ serializeSpvHeader(header:\ *const\ light\_client\_mod.BlockHeader,\ buf:\ *[SPV\_HEADER\_SIZE]u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily header}  &{\ttfamily \texorpdfstring{$\ast$}{*}const light\+\_\+client\+\_\+mod.\+Block\+Header}  &Header  \\
+{\ttfamily buf}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+[SPV\+\_\+\+HEADER\+\_\+\+SIZE]\+u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 613}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2508}{}\doxysubsection{\texorpdfstring{{\ttfamily deserialize\+Spv\+Header()}}{{\ttfamily deserialize\+Spv\+Header()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2508}
+Deserialize a 120-\/byte wire header into a light\+\_\+client Block\+Header.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deserializeSpvHeader(data:\ *const\ [SPV\_HEADER\_SIZE]u8)\ light\_client\_mod.BlockHeader\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \texorpdfstring{$\ast$}{*}const \+[SPV\+\_\+\+HEADER\+\_\+\+SIZE]\+u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily light\+\_\+client\+\_\+mod.\+Block\+Header}
+
+{\itshape Defined at line 631}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2510}{}\doxysubsection{\texorpdfstring{{\ttfamily encode\+Bloom\+Filter()}}{{\ttfamily encode\+Bloom\+Filter()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2510}
+Encode a filterload payload:\+ \+[num\+\_\+hash\+\_\+funcs:\+u8]\+\+[bits:\+512]\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encodeBloomFilter(filter:\ *const\ light\_client\_mod.BloomFilter,\ buf:\ *[513]u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily filter}  &{\ttfamily \texorpdfstring{$\ast$}{*}const light\+\_\+client\+\_\+mod.\+Bloom\+Filter}  &Filter  \\
+{\ttfamily buf}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+[513]\+u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 687}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2512}{}\doxysubsection{\texorpdfstring{{\ttfamily decode\+Bloom\+Filter()}}{{\ttfamily decode\+Bloom\+Filter()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2512}
+Decode a filterload payload into a Bloom\+Filter.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decodeBloomFilter(data:\ []const\ u8)\ ?light\_client\_mod.BloomFilter\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?light\+\_\+client\+\_\+mod.\+Bloom\+Filter}
+
+{\itshape Defined at line 693}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2514}{}\doxysubsection{\texorpdfstring{{\ttfamily attach\+Blockchain()}}{{\ttfamily attach\+Blockchain()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2514}
+Ataseaza blockchain si sync\+\_\+mgr — apelat din main dupa init P2\+PNode Necesar pentru ca dispatch\+Message sa poata aplica blocuri primite
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ attachBlockchain(self:\ *P2PNode,\ bc:\ *Blockchain,\ sm:\ *SyncManager)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily bc}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &Bc  \\
+{\ttfamily sm}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sync\+Manager}  &Sm  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 780}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2516}{}\doxysubsection{\texorpdfstring{{\ttfamily attach\+Light\+Client()}}{{\ttfamily attach\+Light\+Client()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2516}
+Attach a light client for SPV header sync mode
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ attachLightClient(self:\ *P2PNode,\ lc:\ *light\_client\_mod.LightClient)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily lc}  &{\ttfamily \texorpdfstring{$\ast$}{*}light\+\_\+client\+\_\+mod.Light\+Client}  &Lc  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 786}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2518}{}\doxysubsection{\texorpdfstring{{\ttfamily sync\+Headers()}}{{\ttfamily sync\+Headers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2518}
+SPV:\+ Send getheaders\+\_\+p2p to all connected peers. Requests headers starting from our current header chain height.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ syncHeaders(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 792}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2520}{}\doxysubsection{\texorpdfstring{{\ttfamily request\+Merkle\+Proof()}}{{\ttfamily request\+Merkle\+Proof()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2520}
+SPV:\+ Request a Merkle proof for a specific TX hash in a specific block.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ requestMerkleProof(self:\ *P2PNode,\ tx\_hash:\ [32]u8,\ block\_index:\ u32)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily block\+\_\+index}  &{\ttfamily u32}  &Block\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 817}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2522}{}\doxysubsection{\texorpdfstring{{\ttfamily send\+Bloom\+Filter()}}{{\ttfamily send\+Bloom\+Filter()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2522}
+SPV:\+ Send our Bloom filter to all connected peers (filterload).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sendBloomFilter(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 832}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2524}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2524}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 848}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2526}{}\doxysubsection{\texorpdfstring{{\ttfamily connect\+To\+Peer()}}{{\ttfamily connect\+To\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2526}
+Conecteaza la un peer (TCP outbound)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ connectToPeer(self:\ *P2PNode,\ host:\ []const\ u8,\ port:\ u16,\ node\_id:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 854}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2528}{}\doxysubsection{\texorpdfstring{{\ttfamily broadcast\+Tx()}}{{\ttfamily broadcast\+Tx()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2528}
+Broadcast a TX to all connected peers via gossip. Deduplicates:\+ if we already saw this TX hash, skip. tx\+\_\+hash:\+ hex hash of the transaction (64 chars) tx\+\_\+json:\+ JSON-\/encoded transaction payload
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ broadcastTx(self:\ *P2PNode,\ tx\_hash:\ []const\ u8,\ tx\_json:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+{\ttfamily tx\+\_\+json}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+json  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 945}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2530}{}\doxysubsection{\texorpdfstring{{\ttfamily gossip\+Maintenance()}}{{\ttfamily gossip\+Maintenance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2530}
+Periodic maintenance:\+ evict expired seen hashes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ gossipMaintenance(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1050}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2532}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Gossip\+Stats()}}{{\ttfamily get\+Gossip\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2532}
+Returns gossip statistics for logging
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getGossipStats(self:\ *const\ P2PNode)\ struct\ \{\ tx\_relayed:\ u64,\ blocks\_relayed:\ u64,\ seen\_tx:\ usize,\ seen\_blocks:\ usize\ \}\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily struct}
+
+{\itshape Defined at line 1056}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2534}{}\doxysubsection{\texorpdfstring{{\ttfamily send\+Get\+Peers()}}{{\ttfamily send\+Get\+Peers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2534}
+Send a get\+\_\+peers request to a specific peer
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sendGetPeers(\_:\ *P2PNode,\ peer:\ *PeerConnection)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \+\_\+}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &\+\_\+  \\
+{\ttfamily \doxylink{namespacepeer}{peer}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Connection}  &Peer  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1068}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2536}{}\doxysubsection{\texorpdfstring{{\ttfamily request\+Peers\+From\+All()}}{{\ttfamily request\+Peers\+From\+All()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2536}
+Send get\+\_\+peers to all connected peers
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ requestPeersFromAll(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1076}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2538}{}\doxysubsection{\texorpdfstring{{\ttfamily build\+Peer\+List\+Payload()}}{{\ttfamily build\+Peer\+List\+Payload()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2538}
+Build a peer\+\_\+list payload from our known connected peers Returns encoded bytes; caller must free with allocator.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ buildPeerListPayload(self:\ *P2PNode)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 1085}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2540}{}\doxysubsection{\texorpdfstring{{\ttfamily attach\+To\+Network()}}{{\ttfamily attach\+To\+Network()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2540}
+Ataseaza acest P2\+PNode la un P2\+PNetwork — de apelat din main.\+zig dupa init
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ attachToNetwork(self:\ *P2PNode,\ net:\ *network\_mod.P2PNetwork)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily net}  &{\ttfamily \texorpdfstring{$\ast$}{*}network\+\_\+mod.P2\+PNetwork}  &Net  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1112}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2542}{}\doxysubsection{\texorpdfstring{{\ttfamily peer\+Count()}}{{\ttfamily peer\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2542}
+Numarul de peeri conectati
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ peerCount(self:\ *const\ P2PNode)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 1117}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2544}{}\doxysubsection{\texorpdfstring{{\ttfamily clean\+Dead\+Peers()}}{{\ttfamily clean\+Dead\+Peers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2544}
+Deconecteaza peerii morti — adauga la reconnect queue in loc de stergere directa
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ cleanDeadPeers(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1126}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2546}{}\doxysubsection{\texorpdfstring{{\ttfamily knock\+Knock()}}{{\ttfamily knock\+Knock()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2546}
+Knock Knock — anunta reteaua + verifica daca exista duplicat pe acelasi IP
+
+Pasi:\+
+\begin{DoxyEnumerate}
+\item Trimite UDP broadcast "{}\+OMNI:\+we are here:\+$<$node\+\_\+id$>$:\+$<$height$>$"{} pe 3 porturi
+\item Asculta 3 secunde raspunsuri UDP pe portul principal
+\item Daca primeste acelasi mesaj de pe acelasi IP → seteaza is\+\_\+idle = true
+\item VPN/\+\+Tor:\+ daca IP-\/ul sursa e acelasi cu al nostru (loopback sau LAN) → idle
+\end{DoxyEnumerate}
+
+Returneaza Knock\+Result pentru logging in main
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ knockKnock(self:\ *P2PNode)\ KnockResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Knock\+Result}
+
+{\itshape Defined at line 1158}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2548}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Banned()}}{{\ttfamily is\+Banned()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2548}
+Check if a host:\+port is currently banned
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isBanned(self:\ *const\ P2PNode,\ host:\ []const\ u8,\ port:\ u16)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNode}  &The instance  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 1227}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2550}{}\doxysubsection{\texorpdfstring{{\ttfamily ban\+Peer()}}{{\ttfamily ban\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2550}
+Ban a peer by host:\+port for the configured duration
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ banPeer(self:\ *P2PNode,\ host:\ []const\ u8,\ port:\ u16,\ reason:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily reason}  &{\ttfamily \+[]\+const u8}  &Reason  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1238}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2552}{}\doxysubsection{\texorpdfstring{{\ttfamily evict\+Expired\+Bans()}}{{\ttfamily evict\+Expired\+Bans()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2552}
+Evict expired bans
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ evictExpiredBans(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1287}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2554}{}\doxysubsection{\texorpdfstring{{\ttfamily score\+Peer()}}{{\ttfamily score\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2554}
+Score a peer event and auto-\/ban if threshold reached
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ scorePeer(self:\ *P2PNode,\ peer:\ *PeerConnection,\ event:\ scoring\_mod.ScoreEvent)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily \doxylink{namespacepeer}{peer}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Connection}  &Peer  \\
+{\ttfamily event}  &{\ttfamily scoring\+\_\+mod.\+Score\+Event}  &Event  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1297}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2556}{}\doxysubsection{\texorpdfstring{{\ttfamily check\+Rate\+Limit()}}{{\ttfamily check\+Rate\+Limit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2556}
+Check rate limit for a peer. Returns true if within limits. If exceeded, adds ban score and returns false.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkRateLimit(self:\ *P2PNode,\ peer:\ *PeerConnection,\ msg\_size:\ usize)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily \doxylink{namespacepeer}{peer}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Connection}  &Peer  \\
+{\ttfamily msg\+\_\+size}  &{\ttfamily usize}  &Msg\+\_\+size  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 1317}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2558}{}\doxysubsection{\texorpdfstring{{\ttfamily process\+Reconnects()}}{{\ttfamily process\+Reconnects()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2558}
+Process reconnect queue — attempt reconnects for peers past the delay
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ processReconnects(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1376}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2560}{}\doxysubsection{\texorpdfstring{{\ttfamily check\+Subnet\+Diversity()}}{{\ttfamily check\+Subnet\+Diversity()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2560}
+Check if adding a peer with this IP would violate subnet diversity rules. Returns true if the peer is allowed, false if too many from same /\+16 subnet.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkSubnetDiversity(self:\ *const\ P2PNode,\ ip:\ [4]u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNode}  &The instance  \\
+{\ttfamily ip}  &{\ttfamily \+[4]\+u8}  &Ip  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 1412}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2562}{}\doxysubsection{\texorpdfstring{{\ttfamily subnet\+Count()}}{{\ttfamily subnet\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2562}
+Count the number of distinct /\+16 subnets among connected peers
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ subnetCount(self:\ *const\ P2PNode)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 1424}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2564}{}\doxysubsection{\texorpdfstring{{\ttfamily has\+Min\+Subnet\+Diversity()}}{{\ttfamily has\+Min\+Subnet\+Diversity()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2564}
+Check if we have enough subnet diversity (at least MIN\+\_\+\+SUBNET\+\_\+\+DIVERSITY)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hasMinSubnetDiversity(self:\ *const\ P2PNode)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 1447}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2566}{}\doxysubsection{\texorpdfstring{{\ttfamily can\+Accept\+Inbound()}}{{\ttfamily can\+Accept\+Inbound()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2566}
+Check if we can accept an inbound connection
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ canAcceptInbound(self:\ *const\ P2PNode)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 1456}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2568}{}\doxysubsection{\texorpdfstring{{\ttfamily hardening\+Maintenance()}}{{\ttfamily hardening\+Maintenance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2568}
+Periodic hardening maintenance
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hardeningMaintenance(self:\ *P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1461}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2570}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2570}
+Performs the print status operation on the \doxylink{namespacep2p}{p2p} module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ P2PNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1467}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2572}{}\doxysubsection{\texorpdfstring{{\ttfamily start\+Listener()}}{{\ttfamily start\+Listener()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2572}
+Porneste server TCP inbound pe {\ttfamily local\+\_\+port} — thread detached. Fiecare peer inbound primeste propriul thread handler. Returneaza error daca bind/\+listen esueaza (port ocupat, permisiuni etc.)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ startListener(self:\ *P2PNode)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 1482}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2574}{}\doxysubsection{\texorpdfstring{{\ttfamily send\+To\+Peer()}}{{\ttfamily send\+To\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2574}
+Trimite un mesaj raw la un peer specific (dupa node\+\_\+id) Folosit de Sync\+Manager pentru Get\+Headers etc.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sendToPeer(self:\ *P2PNode,\ node\_id:\ []const\ u8,\ msg\_type:\ u8,\ payload:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily msg\+\_\+type}  &{\ttfamily u8}  &Msg\+\_\+type  \\
+{\ttfamily payload}  &{\ttfamily \+[]\+const u8}  &Payload  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 1966}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2576}{}\doxysubsection{\texorpdfstring{{\ttfamily request\+Sync()}}{{\ttfamily request\+Sync()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2p2p_autotoc_md2576}
+Trimite sync\+\_\+request la primul peer conectat mai sus decat noi Payload:\+ \+[from\+\_\+height:\+ u64 LE]\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ requestSync(self:\ *P2PNode,\ from\_height:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+P2\+PNode}  &The instance  \\
+{\ttfamily from\+\_\+height}  &{\ttfamily u64}  &From\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 1978}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

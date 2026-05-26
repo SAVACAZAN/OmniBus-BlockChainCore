@@ -1,0 +1,1 @@
+const bump_fee = try btc_fee.calculateRbfBump(original_fee, original_vbytes);

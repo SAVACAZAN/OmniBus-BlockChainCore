@@ -1,0 +1,78 @@
+\doxysection{Exchange\+Keys\+Tab.\+h}
+\hypertarget{_exchange_keys_tab_8h_source}{}\label{_exchange_keys_tab_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/ExchangeKeysTab.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/ExchangeKeysTab.h}}
+\doxymbox{\hyperlink{_exchange_keys_tab_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00001}00001\ \textcolor{comment}{//\ ============================================================}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00002}00002\ \textcolor{comment}{//\ \ ExchangeKeysTab.h\ \ —\ \ Multi-\/exchange\ API\ key\ manager}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00003}00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00004}00004\ \textcolor{comment}{//\ \ Sub-\/tabs:\ LCX\ |\ Kraken\ |\ Coinbase}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00005}00005\ \textcolor{comment}{//\ \ Each\ sub-\/tab:\ list\ of\ API\ keys\ +\ Add/Edit/Delete\ +\ status}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00006}00006\ \textcolor{comment}{//\ \ All\ keys\ stored\ in\ SuperVault\ (DPAPI\ encrypted\ vault.dat)}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00007}00007\ \textcolor{comment}{//\ ============================================================}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00008}00008\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00010}00010\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00011}00011\ \textcolor{preprocessor}{\#include\ <QTabWidget>}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00012}00012\ \textcolor{preprocessor}{\#include\ <QTableWidget>}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00013}00013\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00014}00014\ \textcolor{preprocessor}{\#include\ <QStackedWidget>}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00015}00015\ \textcolor{preprocessor}{\#include\ <QLineEdit>}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00016}00016\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00017}00017\ \textcolor{preprocessor}{\#include\ <QComboBox>}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00019}00019\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_vault_storage_8h}{core/VaultStorage.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00021}00021\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00023}00023\ \textcolor{comment}{//\ ───\ Single\ exchange\ panel\ (used\ inside\ each\ sub-\/tab)\ ────────}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00024}\doxymbox{\hyperlink{classomni_1_1_exchange_panel}{00024}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_exchange_panel_ac232d77787c79fb4f82a5976dec4099b}{ExchangePanel}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00025}00025\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00026}00026\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00027}00027\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_exchange_panel_ac232d77787c79fb4f82a5976dec4099b}{ExchangePanel}}(\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ exchange,\ QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00029}00029\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_exchange_panel_af13e95024f425cc90af0e917fd1102e9}{refreshTable}}();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00031}00031\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00032}00032\ \ \ \ \ \textcolor{keywordtype}{void}\ onAddKey();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00033}00033\ \ \ \ \ \textcolor{keywordtype}{void}\ onEditKey();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00034}00034\ \ \ \ \ \textcolor{keywordtype}{void}\ onDeleteKey();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00035}00035\ \ \ \ \ \textcolor{keywordtype}{void}\ onSelectionChanged();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00037}00037\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00038}00038\ \ \ \ \ \textcolor{keywordtype}{void}\ setupUi();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00039}00039\ \ \ \ \ \textcolor{keywordtype}{int}\ selectedSlot()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00041}00041\ \ \ \ \ \doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{VaultExchange}}\ \ \ m\_exchange;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00042}00042\ \ \ \ \ QTableWidget*\ \ \ m\_table;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00043}00043\ \ \ \ \ QPushButton*\ \ \ \ m\_addBtn;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00044}00044\ \ \ \ \ QPushButton*\ \ \ \ m\_editBtn;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00045}00045\ \ \ \ \ QPushButton*\ \ \ \ m\_deleteBtn;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00046}00046\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ m\_countLabel;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00047}00047\ \};}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00049}00049\ \textcolor{comment}{//\ ───\ Main\ tab\ with\ sub-\/tabs\ +\ lock/unlock\ ────────────────────}}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00050}\doxymbox{\hyperlink{classomni_1_1_exchange_keys_tab}{00050}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_exchange_keys_tab_ae718204c5f5758f3a2e60b66b1cb890e}{ExchangeKeysTab}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00051}00051\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00052}00052\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00053}00053\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_exchange_keys_tab_ae718204c5f5758f3a2e60b66b1cb890e}{ExchangeKeysTab}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00055}00055\ \textcolor{keyword}{public}\ slots:}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00056}00056\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_exchange_keys_tab_a19f316f2e18daafb828dec70b38d528b}{refreshAll}}();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00058}00058\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00059}00059\ \ \ \ \ \textcolor{keywordtype}{void}\ onLockUnlock();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00061}00061\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00062}00062\ \ \ \ \ \textcolor{keywordtype}{void}\ setupUi();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00063}00063\ \ \ \ \ \textcolor{keywordtype}{void}\ updateLockState();}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00065}00065\ \ \ \ \ QTabWidget*\ \ \ \ \ \ m\_subTabs;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00066}00066\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_exchange_panel}{ExchangePanel}}*\ \ \ m\_panels[\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7a1c74b532493dd6c7f821957bffcaf657}{VAULT\_EXCHANGE\_COUNT}}];}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00067}00067\ \ \ \ \ QPushButton*\ \ \ \ \ m\_lockBtn;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00068}00068\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ \ m\_statusLabel;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00069}00069\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ \ m\_vaultPathLabel;}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00070}00070\ \};}
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{_exchange_keys_tab_8h_source_l00072}00072\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

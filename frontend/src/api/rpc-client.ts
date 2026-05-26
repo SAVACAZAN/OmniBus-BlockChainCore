@@ -7,6 +7,12 @@
  * to the correct backend RPC port (8332/18332/28332).
  */
 
+import { SAT_PER_OMNI } from "../utils/fmt";
+import type {
+  BlockData, TransactionData, MempoolStats, PeerInfo, NetworkInfo,
+  TransactionDetail, AddressHistoryEntry, FeeEstimate, MinerInfo,
+} from "../types";
+
 export type ChainName = "mainnet" | "testnet" | "regtest";
 
 const CHAIN_KEY = "omnibus.chain";
@@ -154,11 +160,11 @@ export class OmniBusRpcClient {
     return this.request("getblockcount");
   }
 
-  async getBlock(index: number): Promise<any> {
+  async getBlock(index: number): Promise<BlockData> {
     return this.request("getblock", [index]);
   }
 
-  async getLatestBlock(): Promise<any> {
+  async getLatestBlock(): Promise<BlockData> {
     return this.request("getlatestblock");
   }
 
@@ -182,12 +188,11 @@ export class OmniBusRpcClient {
     nonce: number;
     fee?: number;
     op_return?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }): Promise<any> {
+  }): Promise<{ txid?: string; hash?: string; error?: string }> {
     return this.request("pq_send", [p]);
   }
 
-  async getTransaction(txId: string): Promise<any> {
+  async getTransaction(txId: string): Promise<TransactionData> {
     return this.request("gettransaction", [txId]);
   }
 
@@ -250,7 +255,7 @@ export class OmniBusRpcClient {
         minerName: (m.miner || "").substring(0, 20),
         minerID: (m.miner || "").substring(0, 12),
         address: m.miner || "",
-        balanceOmni: (m.currentBalanceSAT || 0) / 1e9,
+        balanceOmni: (m.currentBalanceSAT || 0) / SAT_PER_OMNI,
         blocksMined: m.blocksMined || 0,
       }));
     } catch { return []; }
@@ -308,71 +313,247 @@ export class OmniBusRpcClient {
     }]);
   }
 
-  async getMempoolStats(): Promise<any> {
+  async getMempoolStats(): Promise<MempoolStats & { count?: number; max_tx?: number; max_bytes?: number }> {
     return this.request("getmempoolstats");
   }
 
-  async getPeers(): Promise<any> {
+  async getPeers(): Promise<PeerInfo[]> {
     return this.request("getpeers");
   }
 
-  async getSyncStatus(): Promise<any> {
+  async getSyncStatus(): Promise<{ synced: boolean; height: number; peerCount: number }> {
     return this.request("getsyncstatus");
   }
 
-  async getNetworkInfo(): Promise<any> {
+  async getNetworkInfo(): Promise<NetworkInfo> {
     return this.request("getnetworkinfo");
   }
 
-  async getNodeList(): Promise<any> {
+  async getNodeList(): Promise<PeerInfo[]> {
     return this.request("getnodelist");
   }
 
-  async getBlocks(from: number, count: number = 10): Promise<any> {
-    return this.request("getblocks", [from, count]);
+  async getBlocks(from: number, count: number = 10): Promise<BlockData[]> {
+    const r = await this.request("getblocks", [from, count]) as BlockData[] | { blocks?: BlockData[] };
+    return Array.isArray(r) ? r : (r?.blocks ?? []);
   }
 
-  async getMinerInfo(): Promise<any> {
+  async getMinerInfo(): Promise<MinerInfo> {
     return this.request("getminerinfo");
   }
 
-  async getMinerStatus(): Promise<any> {
+  async getMinerStatus(): Promise<{ mining: boolean; hashrate?: number; address?: string }> {
     return this.request("getminerstatus");
   }
 
-  async registerMiner(minerData: any): Promise<any> {
+  async registerMiner(minerData: { address: string; publicKey: string; signature: string; nonce: number }): Promise<{ success: boolean; message?: string }> {
     return this.request("registerminer", [minerData]);
   }
 
-  async minerKeepalive(address: string): Promise<any> {
+  async minerKeepalive(address: string): Promise<{ success: boolean }> {
     return this.request("minerkeepalive", [address]);
   }
 
   // ── New RPC endpoints ──────────────────────────────────────────────────
 
-  async getTransactionDetail(txid: string): Promise<any> {
+  async getTransactionDetail(txid: string): Promise<TransactionDetail> {
     return this.request("gettransaction", [txid]);
   }
 
-  async getAddressHistory(address: string): Promise<any> {
+  async getAddressHistory(address: string): Promise<{ transactions?: AddressHistoryEntry[]; history?: AddressHistoryEntry[]; entries?: AddressHistoryEntry[]; count?: number }> {
     return this.request("getaddresshistory", [address]);
   }
 
-  async listTransactions(count: number = 20): Promise<any> {
-    return this.request("listtransactions", [count]);
+  async listTransactions(count: number = 20): Promise<{ transactions: TransactionData[] }> {
+    const r = await this.request("listtransactions", [count]);
+    if (Array.isArray(r)) return { transactions: r as TransactionData[] };
+    return { transactions: (r as { transactions?: TransactionData[] })?.transactions ?? [] };
   }
 
-  async estimateFee(): Promise<any> {
+  async estimateFee(): Promise<FeeEstimate & { feeSAT?: number; fee_sat?: number; minFeeSAT?: number; min_fee_sat?: number; burn_pct?: number }> {
     return this.request("estimatefee");
   }
 
-  async getNonce(address: string): Promise<any> {
-    return this.request("getnonce", [address]);
+  async getNonce(address: string): Promise<number> {
+    const r = await this.request("getnonce", [address]) as
+      { nonce?: number; chainNonce?: number } | number | null;
+    return typeof r === "number" ? r : (r?.nonce ?? 0);
   }
 
   async getAddressBalance(address: string): Promise<{ address: string; balance: number; balanceOMNI: number } | null> {
     try {
       return await this.request("getaddressbalance", [address]);
+    } catch {
+      return null;
+    }
+  }
+
+  async resolveAddress(nameOrHandle: string): Promise<{ address?: string } | string | null> {
+    try {
+      return await this.request("resolveaddress", [nameOrHandle]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getDailyActivity(address: string, days: number = 30): Promise<{
+    daily?: Array<{
+      dayIndex: number; date?: string; txCount: number; sent: number; received: number;
+      miningReward: number; feesBurned: number; stakeChange: number;
+    }>;
+    tipTimestamp?: number; tipHeight?: number; blocksPerDay?: number;
+  } | null> {
+    try {
+      return await this.request("getdailyactivity", [{ address, days }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async listUnspent(address: string): Promise<{
+    utxos: Array<{ txid: string; vout: number; amount: number; height?: number }>;
+    total: number;
+  } | null> {
+    try {
+      return await this.request("listunspent", [address]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getRichList(limit: number = 100): Promise<{
+    entries: Array<{
+      rank: number; address: string; balance: number; isValidator: boolean;
+      blocksMined: number; txCount: number; received: number; sent: number;
+      firstHeight: number; lastHeight: number; roles?: string[]; stake?: number;
+    }>;
+    total: number; shown: number; totalSupply: number;
+  } | null> {
+    try {
+      return await this.request("getrichlist", [limit]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getChainMetrics(): Promise<{
+    height: number; tipHash: string; totalSupply: number; addressesWithBalance: number;
+    validators: number; validatorSetSize: number; minValidatorBalance: number;
+    mempoolSize: number; peerCount: number; currentBlockReward: number; satPerOmni: number;
+    latestBlockTxCount?: number; latestBlockFees?: number; latestBlockTimestamp?: number;
+  } | null> {
+    try {
+      return await this.request("getchainmetrics", []);
+    } catch {
+      return null;
+    }
+  }
+
+  async nsResolveForSend(name: string, tld: string): Promise<{
+    found: boolean; route_address?: string; primary_address?: string;
+    route_address_kind?: string; route_slot?: number;
+  } | null> {
+    try {
+      return await this.request("ns_resolveforsend", [name, tld]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getWalletSummary(address: string): Promise<{
+    wallet_sat?: number; staked_sat?: number; in_orders_sat?: number;
+    available_sat?: number; height?: number;
+  } | null> {
+    try {
+      return await this.request("getwalletsummary", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getStake(address: string): Promise<{
+    stakes: Array<{
+      id: number; amount_sat: number; lock_blocks: number;
+      started_at_block: number; days_locked: number; rent_earned: number;
+      status: "active" | "unbonding" | "completed"; unbonding_until?: number;
+    }>;
+  } | null> {
+    try {
+      return await this.request("getstake", [{ address }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async resolveName(name: string, tld: string): Promise<{
+    name: string; address: string | null; found: boolean;
+    registeredAtBlock?: number; expiresAtBlock?: number; fullLabel?: string;
+    tld?: string; category?: string; addresses?: Record<string, string | null>;
+    preferred_slot?: number; registered_years?: number;
+  } | null> {
+    try {
+      return await this.request("resolvename", [name, tld]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getMinerStats(): Promise<{
+    miners: Array<{
+      miner: string; blocksMined: number; totalRewardSAT: number;
+      currentBalanceSAT: number; lastBlockHeight?: number;
+    }>;
+    totalMiners: number;
+  } | null> {
+    try {
+      return await this.request("getminerstats", []);
+    } catch {
+      return null;
+    }
+  }
+
+  async getReputation(address: string): Promise<{
+    address: string; love: number; food: number; rent: number; vacation: number;
+    total: number; badge: "none" | "bronze" | "silver" | "gold" | "satoshi";
+    last_update_block?: number; history?: unknown[];
+    tier?: string; satoshi_badge?: boolean; cups?: Record<string, string>;
+  } | null> {
+    try {
+      return await this.request("getreputation", [address]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getReputationTop(sortBy: string, limit: number = 100): Promise<unknown[] | null> {
+    try {
+      return await this.request("getreputationtop", [{ sort_by: sortBy, limit }]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getChannels(): Promise<{
+    summary: {
+      open_count: number; closing_count: number; settled_count: number;
+      disputed_count: number; total_locked_sat: number;
+    };
+    channels: Array<{
+      channel_id: string; party_a: string; party_b: string;
+      capacity_sat: number; balance_a: number; balance_b: number;
+      sequence_num: number; state: "open" | "closing" | "settled" | "disputed";
+    }>;
+  } | null> {
+    try {
+      return await this.request("getchannels", []);
+    } catch {
+      return null;
+    }
+  }
+
+  async getTotalMined(): Promise<{ totalMinedOMNI: string; totalMinedSAT: number; blockHeight?: number } | null> {
+    try {
+      return await this.request("omnibus_gettotalmined", []);
     } catch {
       return null;
     }
@@ -526,6 +707,8 @@ export class OmniBusRpcClient {
     signature: string;
     publicKey: string;
     mode?: "real" | "paper";
+    taker_chain?: string;
+    sellerEvm?: string;
   }): Promise<{
     orderId: number;
     side: string;
@@ -974,6 +1157,464 @@ export class OmniBusRpcClient {
   }): Promise<{ txid: string; sent: boolean }> {
     return this.request("sendmultisig", [params]);
   }
+
+  // ── Network / node info ───────────────────────────────────────────────────
+
+  async getSyncStatusFull(): Promise<{
+    status: string; localHeight: number; peerHeight: number;
+    behind: number; progress: number; synced: boolean; stalled: boolean; ibd: boolean;
+  } | null> {
+    try { return await this.request("getsyncstatus", []); } catch { return null; }
+  }
+
+  async getPeerInfo(): Promise<Array<{
+    id: string; addr: string; host: string; port: number;
+    height: number; version: string; alive: boolean; last_seen: number;
+  }>> {
+    try {
+      const v = await this.request("getpeerinfo", []);
+      return (Array.isArray(v) ? v : ((v as { result?: unknown[] })?.result ?? [])) as Array<{
+        id: string; addr: string; host: string; port: number;
+        height: number; version: string; alive: boolean; last_seen: number;
+      }>;
+    } catch { return []; }
+  }
+
+  async getOnlineMiners(): Promise<Array<{ address: string; node_id: string; status: string }>> {
+    try {
+      const v = await this.request("omnibus_getminers", []);
+      return Array.isArray(v) ? v : [];
+    } catch { return []; }
+  }
+
+  async getNodeStatus(): Promise<{
+    status: string; blockCount: number; mempoolSize: number; address: string; balance: number;
+  } | null> {
+    try { return await this.request("getstatus", []); } catch { return null; }
+  }
+
+  async getMiningInfoFull(): Promise<{
+    blocks: number; difficulty: number; networkhashps: number; hashrate: number;
+    pooledtx: number; chain: string; currentblockreward: number;
+  } | null> {
+    try { return await this.request("getmininginfo", []); } catch { return null; }
+  }
+
+  async getPerformanceInfo(): Promise<{
+    uptime_seconds: number; blocks_mined: number; blocks_per_minute: number;
+    txs_processed: number; tps_current: number; mempool_throughput: number;
+    avg_block_time_ms: number; peak_tps: number; rpc_requests_total: number;
+    p2p_messages_total: number; hashrate: number;
+  } | null> {
+    try { return await this.request("getperformance", []); } catch { return null; }
+  }
+
+  async getMempoolInfo(): Promise<{ size: number; bytes: number } | null> {
+    try { return await this.request("getmempoolinfo", []); } catch { return null; }
+  }
+
+  async getConnectionCount(): Promise<number | null> {
+    try {
+      const v = await this.request("getconnectioncount", []);
+      return typeof v === "number" ? v : null;
+    } catch { return null; }
+  }
+
+  async getDifficulty(): Promise<number | null> {
+    try {
+      const v = await this.request("getdifficulty", []);
+      return typeof v === "number" ? v : null;
+    } catch { return null; }
+  }
+
+  async getBestBlockHash(): Promise<string | null> {
+    try { return await this.request("getbestblockhash", []); } catch { return null; }
+  }
+
+  async getBlockHash(height: number): Promise<string | null> {
+    try { return await this.request("getblockhash", [height]); } catch { return null; }
+  }
+
+  async getMerkleProofForTx(txid: string, blockHash?: string): Promise<unknown> {
+    return this.request("getmerkleproof", [blockHash ? { txid, blockHash } : txid]);
+  }
+
+  async getMerkleProofByIndex(blockHeight: number, txIndex: number): Promise<unknown> {
+    return this.request("getmerkleproof", [blockHeight, txIndex]);
+  }
+
+  async getPendingTxs(limit = 200): Promise<{ transactions?: Array<{
+    txid: string; from?: string; to?: string; amount: number; fee: number;
+    timestamp: number; scheme?: string; op_return?: string;
+  }> } | null> {
+    try { return await this.request("getpendingtxs", [limit]); } catch { return null; }
+  }
+
+  async getSchemeStats(limit = 100): Promise<unknown> {
+    try { return await this.request("getschemestats", [limit]); } catch { return null; }
+  }
+
+  async getBlockchainInfo(): Promise<unknown> {
+    try { return await this.request("getblockchaininfo", []); } catch { return null; }
+  }
+
+  // ── Agents (system-level + registry) ────────────────────────────────────────
+
+  async agentList(): Promise<{
+    count: number;
+    agents: Array<{
+      name: string; wallet_index: number; address: string; strategy: string;
+      tier: string; balance_sat: number; staked_sat: number; lp_locked_sat: number;
+      pnl_session_sat: number; halted: boolean;
+      stats: { ticks: number; decisions_emitted: number; decisions_queued: number;
+        exec_success: number; exec_failed: number; tier_transitions: number; total_mined_sat: number };
+    }>;
+  } | null> {
+    try { return await this.request("agent_list", []); } catch { return null; }
+  }
+
+  async agentPendingDecisions(): Promise<{
+    count: number;
+    decisions: Array<{
+      id: number; wallet_index: number; block_height: number; emitted_ms: number;
+      venue: string; kind: string; pair: string; amount_sat: number; reason: string;
+    }>;
+  }> {
+    try { return (await this.request("agent_pending_decisions", [])) ?? { count: 0, decisions: [] }; }
+    catch { return { count: 0, decisions: [] }; }
+  }
+
+  async getAgents(sortBy: string, limit = 200): Promise<{ agents: unknown[] } | null> {
+    try { return await this.request("getagents", [{ sort_by: sortBy, limit }]); } catch { return null; }
+  }
+
+  async getAgent(agentId: number): Promise<unknown> {
+    try { return await this.request("getagent", [{ agent_id: agentId }]); } catch { return null; }
+  }
+
+  async agentStatus(walletIndex: number): Promise<unknown> {
+    try { return await this.request("agent_status", [{ wallet_index: walletIndex }]); } catch { return null; }
+  }
+
+  // ── Validators ────────────────────────────────────────────────────────────
+
+  async getValidatorsV2(params: { sort_by: string; limit: number }): Promise<{
+    validators: unknown[];
+    current_slot_leader: string;
+    total_validators: number;
+    active_count: number;
+    slashed_count: number;
+  } | null> {
+    try { return await this.request("getvalidatorsv2", [params]); } catch { return null; }
+  }
+
+  async getValidators(): Promise<{ count: number; validators: unknown[] } | null> {
+    try { return await this.request("getvalidators", []); } catch { return null; }
+  }
+
+  async getStakingInfo(address: string): Promise<unknown> {
+    try { return await this.request("getstakinginfo", [address]); } catch { return null; }
+  }
+
+  async getSlashHistory(address: string): Promise<unknown[]> {
+    try {
+      const r = await this.request("getslashhistory", [address]);
+      return Array.isArray(r) ? r : [];
+    } catch { return []; }
+  }
+
+  async getSlashEvents(limit = 100): Promise<{ events: unknown[] }> {
+    try { return (await this.request("getslashevents", [{ limit }])) ?? { events: [] }; }
+    catch { return { events: [] }; }
+  }
+
+  async getSlotLeader(): Promise<{ slot: number; leader: string | null; weight: number } | null> {
+    try { return await this.request("getslotleader", []); } catch { return null; }
+  }
+
+  async getClockStatus(): Promise<{ now_ms: number; rdtsc: number; spectrum: string } | null> {
+    try { return await this.request("getclockstatus", []); } catch { return null; }
+  }
+
+  async getSlotCalendar(): Promise<{
+    head_slot: number; slot_interval_ms: number;
+    entries: Array<{ slot_id: number; leader: string; expected_arrival_ms: number; state: string }>;
+  } | null> {
+    try { return await this.request("getslotcalendar", []); } catch { return null; }
+  }
+
+  async getFuturePool(): Promise<{
+    current_height: number; locked_count: number; earliest_target: number; latest_target: number;
+  } | null> {
+    try { return await this.request("getfuturepool", []); } catch { return null; }
+  }
+
+  // ── NS / ENS / Names ──────────────────────────────────────────────────────
+
+  async listNames(params?: { limit?: number }): Promise<{ entries?: unknown[] } | null> {
+    try { return await this.request("listnames", params ? [params] : []); } catch { return null; }
+  }
+
+  async nsExpiringSoon(address: string, blocksThreshold?: number): Promise<{ entries?: unknown[] } | null> {
+    try {
+      const p = blocksThreshold == null ? [address] : [address, blocksThreshold];
+      return await this.request("ns_expiringSoon", p);
+    } catch { return null; }
+  }
+
+  // ── Exchange prices / oracle ───────────────────────────────────────────────
+
+  async getExchangeFeed(): Promise<{ prices: unknown[] } | null> {
+    try { return await this.request("omnibus_getexchangefeed", []); } catch { return null; }
+  }
+
+  async getAllPrices(params?: unknown): Promise<unknown> {
+    try { return await this.request("omnibus_getallprices", params != null ? [params] : []); } catch { return null; }
+  }
+
+  async getArbitrage(): Promise<unknown> {
+    try { return await this.request("omnibus_getarbitrage", []); } catch { return null; }
+  }
+
+  async getFxRate(): Promise<unknown> {
+    try { return await this.request("omnibus_getfxrate", []); } catch { return null; }
+  }
+
+  async getPriceRange(fromHeight: number, count: number): Promise<unknown> {
+    try { return await this.request("omnibus_getpricerange", [fromHeight, count]); } catch { return null; }
+  }
+
+  async getOraclePolicy(): Promise<unknown> {
+    try { return await this.request("omnibus_getoraclepolicy", []); } catch { return null; }
+  }
+
+  async getBlockPrices(height: number): Promise<unknown> {
+    try { return await this.request("omnibus_getblockprices", [height]); } catch { return null; }
+  }
+
+  async getDexOrderbook(pair: string): Promise<unknown> {
+    try { return await this.request("omnibus_getorderbook", [{ pair }]); } catch { return null; }
+  }
+
+  async getOracleBtcHeight(): Promise<number | null> {
+    try {
+      const v = await this.request("oracle_btcHeight", []);
+      return typeof v === "number" ? v : (v as { height?: number })?.height ?? null;
+    } catch { return null; }
+  }
+
+  async getOracleEthHeight(): Promise<number | null> {
+    try {
+      const v = await this.request("oracle_ethHeight", []);
+      return typeof v === "number" ? v : (v as { height?: number })?.height ?? null;
+    } catch { return null; }
+  }
+
+  async exchangeGetUserTrades(params: {
+    trader: string; limit?: number; pairId?: number; mode?: "real" | "paper";
+  }): Promise<unknown[]> {
+    try { return (await this.request("exchange_getUserTrades", [params])) ?? []; } catch { return []; }
+  }
+
+  async exchangeGetUserOrdersRaw(trader: string): Promise<unknown[]> {
+    try { return (await this.request("exchange_getUserOrders", [{ trader }])) ?? []; } catch { return []; }
+  }
+
+  // ── Address labels ────────────────────────────────────────────────────────
+
+  async getLabels(address: string): Promise<string[]> {
+    try {
+      const r = await this.request("getlabels", [address]);
+      return Array.isArray(r) ? r : ((r as { labels?: string[] })?.labels ?? []);
+    } catch { return []; }
+  }
+
+  async applyLabel(address: string, label: string): Promise<void> {
+    await this.request("applylabel", [address, label]);
+  }
+
+  async removeLabel(address: string, label: string): Promise<void> {
+    await this.request("removelabel", [address, label]);
+  }
+
+  // ── Identity DID / OBM / Facets ─────────────────────────────────────────
+
+  async getDid(address: string): Promise<unknown> {
+    try { return await this.request("getdid", [address]); } catch { return null; }
+  }
+
+  async getObm(address: string): Promise<unknown> {
+    try { return await this.request("getobm", [address]); } catch { return null; }
+  }
+
+  async getFacets(address: string): Promise<unknown> {
+    try { return await this.request("getfacets", [address]); } catch { return null; }
+  }
+
+  async getIdentity(address: string): Promise<unknown> {
+    try { return await this.request("getidentity", [{ address }]); } catch { return null; }
+  }
+
+  // ── Social graph (follow/unfollow) ───────────────────────────────────────
+
+  async getFollowers(address: string): Promise<string[]> {
+    try {
+      const r = await this.request("getfollowers", [address]);
+      return Array.isArray(r) ? r : ((r as { followers?: string[] })?.followers ?? []);
+    } catch { return []; }
+  }
+
+  async getFollowing(address: string): Promise<string[]> {
+    try {
+      const r = await this.request("getfollowing", [address]);
+      return Array.isArray(r) ? r : ((r as { following?: string[] })?.following ?? []);
+    } catch { return []; }
+  }
+
+  async follow(from: string, to: string): Promise<void> {
+    await this.request("follow", [{ from, to }]);
+  }
+
+  async unfollow(from: string, to: string): Promise<void> {
+    await this.request("unfollow", [{ from, to }]);
+  }
+
+  // ── Governance ────────────────────────────────────────────────────────────
+
+  async getProposals(filter: string): Promise<unknown> {
+    try { return await this.request("getproposals", [{ filter }]); } catch { return null; }
+  }
+
+  async getProposal(proposalId: string | number): Promise<unknown> {
+    try { return await this.request("getproposal", [{ proposal_id: proposalId }]); } catch { return null; }
+  }
+
+  // ── Bridge ────────────────────────────────────────────────────────────────
+
+  async getBridgeStatus(): Promise<unknown> {
+    try { return await this.request("omnibus_getbridgestatus", []); } catch { return null; }
+  }
+
+  async getBridgeLimits(): Promise<unknown> {
+    try { return await this.request("omnibus_bridge_limits", []); } catch { return null; }
+  }
+
+  // ── Subscriptions ─────────────────────────────────────────────────────────
+
+  async getSubscriptions(address: string): Promise<unknown> {
+    try { return await this.request("getsubscriptions", [{ address }]); } catch { return null; }
+  }
+
+  // ── Names (NS / ENS) ──────────────────────────────────────────────────────
+
+  async getEnsFee(address?: string): Promise<unknown> {
+    const params = address ? [address] : [];
+    try { return await this.request("getensfee", params); } catch { return null; }
+  }
+
+  async nsListTlds(): Promise<unknown[]> {
+    try {
+      const r = await this.request("ns_listTlds", []);
+      return Array.isArray(r) ? r : [];
+    } catch { return []; }
+  }
+
+  async nsYearTiers(): Promise<unknown[]> {
+    try {
+      const r = await this.request("ns_yearTiers", []);
+      return Array.isArray(r) ? r : [];
+    } catch { return []; }
+  }
+
+  async nsStats(): Promise<unknown> {
+    try { return await this.request("ns_stats", []); } catch { return null; }
+  }
+
+  async getNamesByCategory(category: string, limit = 100): Promise<unknown> {
+    try { return await this.request("getnamesbycategory", [category, limit]); } catch { return null; }
+  }
+
+  async reverseResolveName(address: string): Promise<unknown> {
+    try { return await this.request("reverseresolvename", [address]); } catch { return null; }
+  }
+
+  async treasuryGetStatus(): Promise<unknown> {
+    try { return await this.request("treasury_getStatus", []); } catch { return null; }
+  }
+
+  async treasuryGetConfig(): Promise<unknown> {
+    try { return await this.request("treasury_getConfig", []); } catch { return null; }
+  }
+
+  // ── Notarize / Escrow ─────────────────────────────────────────────────────
+
+  async verifyNotarize(docHash: string): Promise<unknown> {
+    try { return await this.request("verifynotarize", [{ doc_hash: docHash }]); } catch { return null; }
+  }
+
+  async getNotarizations(address: string): Promise<unknown> {
+    try { return await this.request("getnotarizations", [{ address }]); } catch { return null; }
+  }
+
+  async getEscrows(address: string): Promise<unknown> {
+    try { return await this.request("getescrows", [{ address }]); } catch { return null; }
+  }
+
+  async getEscrow(escrowId: string | number): Promise<unknown> {
+    try { return await this.request("getescrow", [{ escrow_id: escrowId }]); } catch { return null; }
+  }
+
+  // ── POAP ──────────────────────────────────────────────────────────────────
+
+  async getPoaps(address: string): Promise<unknown> {
+    try { return await this.request("getpoaps", [{ address }]); } catch { return null; }
+  }
+
+  async getPoapEvent(eventId: string | number): Promise<unknown> {
+    try { return await this.request("getpoapevent", [{ event_id: eventId }]); } catch { return null; }
+  }
+
+  // ── HTLC (read) ───────────────────────────────────────────────────────────
+
+  async htlcListByAddress(address: string): Promise<unknown[]> {
+    try {
+      const r = await this.request("htlc_listByAddress", [{ address }]);
+      return Array.isArray(r) ? r : [];
+    } catch { return []; }
+  }
+
+  async htlcGet(htlcId: string | number): Promise<unknown> {
+    try { return await this.request("htlc_get", [{ htlc_id: htlcId }]); } catch { return null; }
+  }
+
+  // ── Swap (read) ───────────────────────────────────────────────────────────
+
+  async swapListOpen(address?: string): Promise<unknown> {
+    const params = address ? [{ address }] : [];
+    try { return await this.request("swap_listOpen", params); } catch { return null; }
+  }
+
+  async swapStatus(swapId: string): Promise<unknown> {
+    try { return await this.request("swap_status", [{ swap_id: swapId }]); } catch { return null; }
+  }
+
+  // ── Wallet / PQ (read) ────────────────────────────────────────────────────
+
+  async getTransactions(): Promise<unknown> {
+    try { return await this.request("gettransactions", []); } catch { return null; }
+  }
+
+  async getPqIdentity(address: string): Promise<unknown> {
+    try { return await this.request("getpqidentity", [address]); } catch { return null; }
+  }
+
+  async pqBalance(address: string): Promise<unknown> {
+    try { return await this.request("pq_balance", [{ address }]); } catch { return null; }
+  }
+
+  async pqListSchemes(): Promise<unknown> {
+    try { return await this.request("pq_listSchemes", []); } catch { return null; }
+  }
 }
 
 export type ProfileFacet = "social" | "professional" | "cultural" | "economic";
@@ -1236,3 +1877,6 @@ export interface MultisigCreateResult {
 }
 
 export default OmniBusRpcClient;
+
+/** Module-level singleton — share one client across hooks that don't need a custom URL. */
+export const rpc = new OmniBusRpcClient();

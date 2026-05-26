@@ -1,0 +1,122 @@
+\doxysection{code\+\_\+metrics.\+Code\+Analyzer Class Reference}
+\hypertarget{classcode__metrics_1_1_code_analyzer}{}\label{classcode__metrics_1_1_code_analyzer}\index{code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a76773340d0d5b52be6cd5122147a2789}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, Path project\+\_\+root)
+\item 
+\doxymbox{\hyperlink{classcode__metrics_1_1_file_metrics}{File\+Metrics}} \doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_af10c84e1f878f18a99b3ac237e12c8e0}{analyze\+\_\+file}} (self, Path filepath)
+\item 
+\doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{Project\+Metrics}} \doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a95f4b12f5916b229b3c86f557c3be94d}{analyze\+\_\+project}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ac1792589adddd6e025ea207a5f55a19d}{project\+\_\+root}} = project\+\_\+root
+\item 
+list \doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}{file\+\_\+metrics}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer_a6ea786bd2a50fa9f6f8f590c439b3155}{\+\_\+calculate\+\_\+complexity}} (self, str content)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Analizează codul Zig pentru metrici.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00061}{61}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+
+
+\label{classcode__metrics_1_1_code_analyzer_doc-constructors}
+\Hypertarget{classcode__metrics_1_1_code_analyzer_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classcode__metrics_1_1_code_analyzer_a76773340d0d5b52be6cd5122147a2789}\index{code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classcode__metrics_1_1_code_analyzer_a76773340d0d5b52be6cd5122147a2789} 
+code\+\_\+metrics.\+Code\+Analyzer.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00064}{64}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+
+
+\label{classcode__metrics_1_1_code_analyzer_doc-func-members}
+\Hypertarget{classcode__metrics_1_1_code_analyzer_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classcode__metrics_1_1_code_analyzer_a6ea786bd2a50fa9f6f8f590c439b3155}\index{code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}!\_calculate\_complexity@{\_calculate\_complexity}}
+\index{\_calculate\_complexity@{\_calculate\_complexity}!code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}}
+\doxysubsubsection{\texorpdfstring{\_calculate\_complexity()}{\_calculate\_complexity()}}
+{\footnotesize\ttfamily \label{classcode__metrics_1_1_code_analyzer_a6ea786bd2a50fa9f6f8f590c439b3155} 
+ int code\+\_\+metrics.\+Code\+Analyzer.\+\_\+calculate\+\_\+complexity (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{content}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Calculează un scor de complexitate aproximativ.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00139}{139}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classcode__metrics_1_1_code_analyzer_af10c84e1f878f18a99b3ac237e12c8e0}\index{code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}!analyze\_file@{analyze\_file}}
+\index{analyze\_file@{analyze\_file}!code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}}
+\doxysubsubsection{\texorpdfstring{analyze\_file()}{analyze\_file()}}
+{\footnotesize\ttfamily \label{classcode__metrics_1_1_code_analyzer_af10c84e1f878f18a99b3ac237e12c8e0} 
+ \doxymbox{\hyperlink{classcode__metrics_1_1_file_metrics}{File\+Metrics}} code\+\_\+metrics.\+Code\+Analyzer.\+analyze\+\_\+file (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Analizează un singur fișier.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{classcode__metrics_1_1_code_analyzer_a95f4b12f5916b229b3c86f557c3be94d}\index{code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}!analyze\_project@{analyze\_project}}
+\index{analyze\_project@{analyze\_project}!code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}}
+\doxysubsubsection{\texorpdfstring{analyze\_project()}{analyze\_project()}}
+{\footnotesize\ttfamily \label{classcode__metrics_1_1_code_analyzer_a95f4b12f5916b229b3c86f557c3be94d} 
+ \doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{Project\+Metrics}} code\+\_\+metrics.\+Code\+Analyzer.\+analyze\+\_\+project (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Analizează întregul proiect.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00154}{154}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+
+
+\label{classcode__metrics_1_1_code_analyzer_doc-variable-members}
+\Hypertarget{classcode__metrics_1_1_code_analyzer_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475}\index{code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}!file\_metrics@{file\_metrics}}
+\index{file\_metrics@{file\_metrics}!code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}}
+\doxysubsubsection{\texorpdfstring{file\_metrics}{file\_metrics}}
+{\footnotesize\ttfamily \label{classcode__metrics_1_1_code_analyzer_ae26849181cfe1dcd0190e5951d226475} 
+list code\+\_\+metrics.\+Code\+Analyzer.\+file\+\_\+metrics = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00066}{66}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+\Hypertarget{classcode__metrics_1_1_code_analyzer_ac1792589adddd6e025ea207a5f55a19d}\index{code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!code\_metrics.CodeAnalyzer@{code\_metrics.CodeAnalyzer}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily \label{classcode__metrics_1_1_code_analyzer_ac1792589adddd6e025ea207a5f55a19d} 
+code\+\_\+metrics.\+Code\+Analyzer.\+project\+\_\+root = project\+\_\+root}
+
+
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00065}{65}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts/\+\doxymbox{\hyperlink{code__metrics_8py}{code\+\_\+metrics.\+py}}\end{DoxyCompactItemize}

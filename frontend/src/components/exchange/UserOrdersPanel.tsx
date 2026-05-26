@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import OmniBusRpcClient, { UserOrder } from "../../api/rpc-client";
+import { useEffect, useMemo, useState } from "react";
+import { rpc, UserOrder } from "../../api/rpc-client";
 import { signCancelOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
 import { useTraderMode } from "./TraderModeToggle";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOrderbookUpdateEvent } from "../../types";
+import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
-const MICRO_PER_USD = 1_000_000;
 
 interface Props {
   pairId: number;
@@ -37,17 +37,24 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
     }
     let cancelled = false;
     const refresh = async () => {
-      const list = await rpc.exchangeGetUserOrders({ trader: u.address, pairId, mode: traderMode });
-      if (!cancelled) {
-        setOrders(list);
-        setLoading(false);
+      try {
+        const list = await rpc.exchangeGetUserOrders({ trader: u.address, pairId, mode: traderMode });
+        if (!cancelled) { setOrders(list); setLoading(false); }
+      } catch {
+        if (!cancelled) setLoading(false);
       }
     };
-    refresh();
-    const id = setInterval(refresh, 4000);
+    void refresh();
+    // Live: orderbook_update fires whenever this pair's book changes.
+    const unsub = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
+      if (ev.pair_id === pairId) void refresh();
+    });
+    // Fallback poll at 15 s in case WS is not connected.
+    const id = setInterval(() => { void refresh(); }, 15_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [u?.address, pairId, refreshKey, traderMode]);
 
@@ -80,6 +87,14 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
     }
   };
 
+  const orderSummary = useMemo(() => {
+    const buys = orders.filter((o) => o.side.toLowerCase().includes("buy"));
+    const sells = orders.filter((o) => !o.side.toLowerCase().includes("buy"));
+    const lockedQuote = buys.reduce((s, o) => s + (o.price / MICRO_PER_USD) * (o.remaining / SAT_PER_OMNI), 0);
+    const lockedBase = sells.reduce((s, o) => s + o.remaining / SAT_PER_OMNI, 0);
+    return { buys, sells, lockedQuote, lockedBase };
+  }, [orders]);
+
   if (!u) {
     return (
       <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
@@ -93,9 +108,35 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4">
-      <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider mb-2">
-        My orders
-      </h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-mempool-text uppercase tracking-wider">
+          My orders
+        </h3>
+        {orders.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["order_id","side","price_usd","remaining_omni","status"].join(","),
+                ...orders.map((o) => [
+                  o.orderId,
+                  o.side,
+                  (o.price / MICRO_PER_USD).toFixed(6),
+                  (o.remaining / SAT_PER_OMNI).toFixed(8),
+                  o.status,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-my-orders.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        )}
+      </div>
       {loading ? (
         <p className="text-xs text-mempool-text-dim">Loading…</p>
       ) : orders.length === 0 ? (
@@ -143,6 +184,17 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
               </span>
             </div>
           ))}
+          {/* Summary row */}
+          {(orderSummary.buys.length > 0 || orderSummary.sells.length > 0) && (
+            <div className="mt-1 pt-1 border-t border-mempool-border/40 flex flex-wrap gap-x-3 text-[9px] font-mono text-mempool-text-dim px-1">
+              {orderSummary.buys.length > 0 && (
+                <span>Buys ({orderSummary.buys.length}): <span className="text-green-400">${orderSummary.lockedQuote.toFixed(2)} locked</span></span>
+              )}
+              {orderSummary.sells.length > 0 && (
+                <span>Sells ({orderSummary.sells.length}): <span className="text-orange-400">{orderSummary.lockedBase.toFixed(4)} base locked</span></span>
+              )}
+            </div>
+          )}
         </div>
       )}
       {err && (

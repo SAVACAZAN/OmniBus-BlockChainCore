@@ -1,0 +1,504 @@
+\chapter{Module:\+ {\ttfamily multisig} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig}{}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig}\index{Module: $<$tt$>$multisig$<$/tt$>$@{Module: $<$tt$>$multisig$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2165}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2165}%
+
+
+\begin{quote}
+M-\/of-\/N multisig — create multisig addresses, collect signatures, verify threshold, timelock contracts for delayed execution. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+multisig.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 664 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 14 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 5 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 21
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2167}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2167}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2168}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2168}
+
+\begin{DoxyItemize}
+\item \`{}\+Multisig\+Config\`{}{\ttfamily Multisig\+Config}
+\end{DoxyItemize}— M-\/of-\/N Multi\+Sig configuration Requires M out of N public keys to authorize a tra...
+\begin{DoxyItemize}
+\item \`{}\+Multisig\+Signature\`{}{\ttfamily Multisig\+Signature}
+\end{DoxyItemize}— Collected signature for multisig verification
+\begin{DoxyItemize}
+\item \`{}\+Timelock\+Multisig\`{}{\ttfamily Timelock\+Multisig}
+\end{DoxyItemize}— Timelock:\+ multisig with time constraints (for payment channels /\+ escrow)
+\begin{DoxyItemize}
+\item \`{}\+Multisig\+Wallet\`{}{\ttfamily Multisig\+Wallet}
+\end{DoxyItemize}— A Multisig\+Wallet holds the M-\/of-\/N configuration and derives an "{}ob\+\_\+ms\+\_\+"{} address....
+\begin{DoxyItemize}
+\item \`{}\+Multisig\+Tx\`{}{\ttfamily Multisig\+Tx}
+\end{DoxyItemize}— A multisig transaction that accumulates signatures from multiple signers.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2169}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2169}
+
+\begin{DoxyItemize}
+\item 3 constants defined3 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2170}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2170}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Create a new M-\/of-\/N multisig config
+\begin{DoxyItemize}
+\item \doxylink{namespaceaddress}{\`{}address()\`{}}{\ttfamily \doxylink{namespaceaddress}{address()}}
+\end{DoxyItemize}— Generate the multisig address (hash of config) address = "{}ob\+\_\+ms\+\_\+"{} + he...
+\begin{DoxyItemize}
+\item \`{}contains\+Pubkey()\`{}{\ttfamily contains\+Pubkey()}
+\end{DoxyItemize}— Check if a public key is part of this multisig
+\begin{DoxyItemize}
+\item \`{}serialize()\`{}{\ttfamily serialize()}
+\end{DoxyItemize}— Serialize config for storage/\+transmission
+\begin{DoxyItemize}
+\item \`{}is\+Locked()\`{}{\ttfamily is\+Locked()}
+\end{DoxyItemize}— Checks whether the locked condition is true.
+\begin{DoxyItemize}
+\item \`{}create()\`{}{\ttfamily create()}
+\end{DoxyItemize}— Create an M-\/of-\/N multisig wallet from a set of compressed public keys....
+\begin{DoxyItemize}
+\item \`{}get\+Address()\`{}{\ttfamily get\+Address()}
+\end{DoxyItemize}— Return the multisig address as a slice.
+\begin{DoxyItemize}
+\item \`{}create\+Tx()\`{}{\ttfamily create\+Tx()}
+\end{DoxyItemize}— Create an unsigned Multisig\+Tx from this wallet.
+\begin{DoxyItemize}
+\item \`{}add\+Signature()\`{}{\ttfamily add\+Signature()}
+\end{DoxyItemize}— Add a signature from a private key. Returns true when threshold is met...
+\begin{DoxyItemize}
+\item \`{}verify()\`{}{\ttfamily verify()}
+\end{DoxyItemize}— Verify all collected signatures on a Multisig\+Tx.
+\begin{DoxyItemize}
+\item \`{}tx\+Hash()\`{}{\ttfamily tx\+Hash()}
+\end{DoxyItemize}— Compute the transaction hash that signers sign over.
+\begin{DoxyItemize}
+\item \`{}is\+Complete()\`{}{\ttfamily is\+Complete()}
+\end{DoxyItemize}— Return true if enough signatures have been collected.
+\begin{DoxyItemize}
+\item \`{}from\+Address()\`{}{\ttfamily from\+Address()}
+\end{DoxyItemize}— Get the "{}from"{} address as a slice.
+\begin{DoxyItemize}
+\item \`{}to\+Address()\`{}{\ttfamily to\+Address()}
+\end{DoxyItemize}— Get the "{}to"{} address as a slice.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2172}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2172}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2173}{}\doxysubsection{\texorpdfstring{{\ttfamily Multisig\+Config}}{{\ttfamily Multisig\+Config}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2173}
+M-\/of-\/N Multi\+Sig configuration Requires M out of N public keys to authorize a transaction Compatible with Bitcoin P2\+SH multisig concept
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily threshold}  &{\ttfamily u8}  &Threshold  \\
+{\ttfamily total}  &{\ttfamily u8}  &Total  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 19}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2175}{}\doxysubsection{\texorpdfstring{{\ttfamily Multisig\+Signature}}{{\ttfamily Multisig\+Signature}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2175}
+Collected signature for multisig verification
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily signer\+\_\+index}  &{\ttfamily u8}  &Signer\+\_\+index  \\
+{\ttfamily signature}  &{\ttfamily \+[64]\+u8}  &Signature  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 86}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2177}{}\doxysubsection{\texorpdfstring{{\ttfamily Timelock\+Multisig}}{{\ttfamily Timelock\+Multisig}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2177}
+Timelock:\+ multisig with time constraints (for payment channels /\+ escrow)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Multisig\+Config}  &Config  \\
+{\ttfamily lock\+\_\+until\+\_\+block}  &{\ttfamily u64}  &Lock\+\_\+until\+\_\+block  \\
+{\ttfamily recovery\+\_\+pubkey}  &{\ttfamily \+[33]\+u8}  &Recovery\+\_\+pubkey  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Timelock\+Multisig}  &Self  \\
+{\ttfamily message\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Message\+\_\+hash  \\
+{\ttfamily signatures}  &{\ttfamily \+[]\+const Multisig\+Signature}  &Signatures  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 154}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2179}{}\doxysubsection{\texorpdfstring{{\ttfamily Multisig\+Wallet}}{{\ttfamily Multisig\+Wallet}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2179}
+A Multisig\+Wallet holds the M-\/of-\/N configuration and derives an "{}ob\+\_\+ms\+\_\+"{} address. It can create unsigned transactions and collect signatures until the threshold is met.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Multisig\+Config}  &Config  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[64]\+u8}  &Address  \\
+{\ttfamily address\+\_\+len}  &{\ttfamily u8}  &Address\+\_\+len  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 198}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2181}{}\doxysubsection{\texorpdfstring{{\ttfamily Multisig\+Tx}}{{\ttfamily Multisig\+Tx}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2181}
+A multisig transaction that accumulates signatures from multiple signers.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily from\+\_\+address}  &{\ttfamily \+[64]\+u8}  &From\+\_\+address  \\
+{\ttfamily from\+\_\+len}  &{\ttfamily u8}  &From\+\_\+len  \\
+{\ttfamily to\+\_\+address\+\_\+buf}  &{\ttfamily \+[64]\+u8}  &To\+\_\+address\+\_\+buf  \\
+{\ttfamily to\+\_\+len}  &{\ttfamily u8}  &To\+\_\+len  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+{\ttfamily fee}  &{\ttfamily u64}  &Fee  \\
+{\ttfamily tx\+\_\+id}  &{\ttfamily u32}  &Tx\+\_\+id  \\
+{\ttfamily signatures}  &{\ttfamily \+[MAX\+\_\+\+SIGNERS]\+\+[64]\+u8}  &Signatures  \\
+{\ttfamily signer\+\_\+indices}  &{\ttfamily \+[MAX\+\_\+\+SIGNERS]\+u8}  &Signer\+\_\+indices  \\
+{\ttfamily sig\+\_\+count}  &{\ttfamily u8}  &Sig\+\_\+count  \\
+{\ttfamily signed\+\_\+by}  &{\ttfamily \+[MAX\+\_\+\+SIGNERS]\+bool}  &Signed\+\_\+by  \\
+{\ttfamily config}  &{\ttfamily Multisig\+Config}  &Config  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 316}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2183}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2183}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily MAX\+\_\+\+SIGNERS}  &{\ttfamily usize = 16}  &M a x\+\_\+ s i g n e r s  \\
+{\ttfamily MAX\+\_\+\+SIGNATURES}  &{\ttfamily usize = 16}  &M a x\+\_\+ s i g n a t u r e s  \\
+{\ttfamily MULTISIG\+\_\+\+PREFIX}  &{\ttfamily "{}ob\+\_\+ms\+\_\+"{}}  &M u l t i s i g\+\_\+ p r e f i x  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2185}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2185}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2186}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2186}
+Create a new M-\/of-\/N multisig config
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(threshold:\ u8,\ pubkeys:\ []const\ [33]u8)\ !MultisigConfig\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily threshold}  &{\ttfamily u8}  &Threshold  \\
+{\ttfamily pubkeys}  &{\ttfamily \+[]\+const \+[33]\+u8}  &Pubkeys  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Multisig\+Config}
+
+{\itshape Defined at line 30}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2188}{}\doxysubsection{\texorpdfstring{{\ttfamily address()}}{{\ttfamily address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2188}
+Generate the multisig address (hash of config) address = "{}ob\+\_\+ms\+\_\+"{} + hex(SHA256(threshold \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} N \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} pk1 \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} pk2 \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} ... \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} pkN))\+[0..32]\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ address(self:\ *const\ MultisigConfig)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Config}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 52}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2190}{}\doxysubsection{\texorpdfstring{{\ttfamily contains\+Pubkey()}}{{\ttfamily contains\+Pubkey()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2190}
+Check if a public key is part of this multisig
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ containsPubkey(self:\ *const\ MultisigConfig,\ pubkey:\ [33]u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Config}  &The instance  \\
+{\ttfamily pubkey}  &{\ttfamily \+[33]\+u8}  &Pubkey  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 65}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2192}{}\doxysubsection{\texorpdfstring{{\ttfamily serialize()}}{{\ttfamily serialize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2192}
+Serialize config for storage/\+transmission
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ serialize(self:\ *const\ MultisigConfig)\ [2\ +\ MAX\_SIGNERS\ *\ 33]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Config}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[2 + MAX\+\_\+\+SIGNERS \texorpdfstring{$\ast$}{*} 33]\+u8}
+
+{\itshape Defined at line 73}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2194}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Locked()}}{{\ttfamily is\+Locked()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2194}
+Checks whether the locked condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isLocked(self:\ *const\ TimelockMultisig,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Timelock\+Multisig}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 161}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2196}{}\doxysubsection{\texorpdfstring{{\ttfamily create()}}{{\ttfamily create()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2196}
+Create an M-\/of-\/N multisig wallet from a set of compressed public keys. The address is derived as "{}ob\+\_\+ms\+\_\+"{} + hex(SHA256(M \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} N \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} sorted\+\_\+pubkeys))\+[0..32]\+.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ create(required:\ u8,\ pubkeys:\ []const\ [33]u8)\ !MultisigWallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily required}  &{\ttfamily u8}  &Required  \\
+{\ttfamily pubkeys}  &{\ttfamily \+[]\+const \+[33]\+u8}  &Pubkeys  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Multisig\+Wallet}
+
+{\itshape Defined at line 205}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2198}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address()}}{{\ttfamily get\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2198}
+Return the multisig address as a slice.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddress(self:\ *const\ MultisigWallet)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 251}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2200}{}\doxysubsection{\texorpdfstring{{\ttfamily create\+Tx()}}{{\ttfamily create\+Tx()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2200}
+Create an unsigned Multisig\+Tx from this wallet.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ createTx(self:\ *const\ MultisigWallet,\ to:\ []const\ u8,\ amount:\ u64,\ fee:\ u64,\ tx\_id:\ u32)\ MultisigTx\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Wallet}  &The instance  \\
+{\ttfamily to}  &{\ttfamily \+[]\+const u8}  &To  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+{\ttfamily fee}  &{\ttfamily u64}  &Fee  \\
+{\ttfamily tx\+\_\+id}  &{\ttfamily u32}  &Tx\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Multisig\+Tx}
+
+{\itshape Defined at line 256}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2202}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Signature()}}{{\ttfamily add\+Signature()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2202}
+Add a signature from a private key. Returns true when threshold is met.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addSignature(self:\ *const\ MultisigWallet,\ tx:\ *MultisigTx,\ privkey:\ [32]u8)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Wallet}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Multisig\+Tx}  &Tx  \\
+{\ttfamily privkey}  &{\ttfamily \+[32]\+u8}  &Privkey  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 279}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2204}{}\doxysubsection{\texorpdfstring{{\ttfamily verify()}}{{\ttfamily verify()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2204}
+Verify all collected signatures on a Multisig\+Tx.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verify(self:\ *const\ MultisigWallet,\ tx:\ *const\ MultisigTx)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Wallet}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Tx}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 292}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2206}{}\doxysubsection{\texorpdfstring{{\ttfamily tx\+Hash()}}{{\ttfamily tx\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2206}
+Compute the transaction hash that signers sign over.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ txHash(self:\ *const\ MultisigTx)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Tx}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 331}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2208}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Complete()}}{{\ttfamily is\+Complete()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2208}
+Return true if enough signatures have been collected.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isComplete(self:\ *const\ MultisigTx)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Tx}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 361}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2210}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Address()}}{{\ttfamily from\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2210}
+Get the "{}from"{} address as a slice.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromAddress(self:\ *const\ MultisigTx)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Tx}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 366}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2212}{}\doxysubsection{\texorpdfstring{{\ttfamily to\+Address()}}{{\ttfamily to\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2multisig_autotoc_md2212}
+Get the "{}to"{} address as a slice.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ toAddress(self:\ *const\ MultisigTx)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Multisig\+Tx}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 371}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

@@ -1,0 +1,278 @@
+\doxysection{build-\/failure-\/tracker Namespace Reference}
+\hypertarget{namespacebuild-failure-tracker}{}\label{namespacebuild-failure-tracker}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacebuild-failure-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuild-failure-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuild-failure-tracker_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebuild-failure-tracker_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_ade86b26ca9d0db00795c863bd17f6395}{extract\+\_\+zig\+\_\+errors}} (str text)
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacebuild-failure-tracker_a38070d1d76c26e6a96575884cec69906}{extract\+\_\+module\+\_\+from\+\_\+error}} (str line)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_ac63e4d635a9d544cfd6c1fa08eccda31}{scan\+\_\+log\+\_\+files}} (str log\+\_\+dir)
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_af75e1ce2fb614a29a830e10ed79788eb}{run\+\_\+git}} (list\+[str]\+ args, str cwd)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_a67825f85b5121d471419dc0f805e3a7e}{get\+\_\+changed\+\_\+files}} (str cwd, str commit\+\_\+hash)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_a5fb9a201f35bc5768554c3657262016e}{scan\+\_\+git\+\_\+build\+\_\+failures}} (str cwd, int max\+\_\+commits=200)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacebuild-failure-tracker_a6d3afc9b6307eb436c5ff605b68645b5}{find\+\_\+xy\+\_\+patterns}} (list\+[dict\+[str, Any]\+]\+ records)
+\item 
+int \doxymbox{\hyperlink{namespacebuild-failure-tracker_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_a4317aebada363d0d1f9107ff0ab54f4b}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_a627ec28744e7868587f2f9bcb51d7daf}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_ab365d160fbfac11b407f7f85438ea904}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_a96d0c632e9963cf1f685308fa15bbfed}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebuild-failure-tracker_afe22cdeafe87cc0a0dbbe6dd3c929ddf}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+list \doxymbox{\hyperlink{namespacebuild-failure-tracker_aa3e6135c14cbb8b05348f63b7aff7ebf}{ZIG\+\_\+\+ERROR\+\_\+\+PATTERNS}}
+\end{DoxyCompactItemize}
+
+
+\label{namespacebuild-failure-tracker_doc-func-members}
+\Hypertarget{namespacebuild-failure-tracker_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacebuild-failure-tracker_a38070d1d76c26e6a96575884cec69906}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!extract\_module\_from\_error@{extract\_module\_from\_error}}
+\index{extract\_module\_from\_error@{extract\_module\_from\_error}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{extract\_module\_from\_error()}{extract\_module\_from\_error()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a38070d1d76c26e6a96575884cec69906} 
+ str \texorpdfstring{$\vert$}{|} None extract\+\_\+module\+\_\+from\+\_\+error (\begin{DoxyParamCaption}\item[{str}]{line}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Heuristic: find 'core/Foo.zig' or similar in an error line.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00077}{77}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacebuild-failure-tracker_ade86b26ca9d0db00795c863bd17f6395}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!extract\_zig\_errors@{extract\_zig\_errors}}
+\index{extract\_zig\_errors@{extract\_zig\_errors}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{extract\_zig\_errors()}{extract\_zig\_errors()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_ade86b26ca9d0db00795c863bd17f6395} 
+ list\+[str]\+ extract\+\_\+zig\+\_\+errors (\begin{DoxyParamCaption}\item[{str}]{text}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00066}{66}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacebuild-failure-tracker_a6d3afc9b6307eb436c5ff605b68645b5}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!find\_xy\_patterns@{find\_xy\_patterns}}
+\index{find\_xy\_patterns@{find\_xy\_patterns}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{find\_xy\_patterns()}{find\_xy\_patterns()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a6d3afc9b6307eb436c5ff605b68645b5} 
+ list\+[dict\+[str, Any]\+]\+ find\+\_\+xy\+\_\+patterns (\begin{DoxyParamCaption}\item[{list\+[dict\+[str, Any]\+]\+}]{records}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find 'after X, Y breaks' patterns from consecutive build failure records.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00164}{164}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacebuild-failure-tracker_a67825f85b5121d471419dc0f805e3a7e}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!get\_changed\_files@{get\_changed\_files}}
+\index{get\_changed\_files@{get\_changed\_files}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{get\_changed\_files()}{get\_changed\_files()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a67825f85b5121d471419dc0f805e3a7e} 
+ list\+[str]\+ get\+\_\+changed\+\_\+files (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{str}]{commit\+\_\+hash}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00130}{130}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacebuild-failure-tracker_abf994b8269849d29e07697ea8a840f74}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+\Hypertarget{namespacebuild-failure-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacebuild-failure-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacebuild-failure-tracker_adf0e2aa4d06b5ca38e44721821eca783}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacebuild-failure-tracker_a7431cb90017e54fe695b23d4190db046}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!main@{main}}
+\index{main@{main}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00189}{189}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacebuild-failure-tracker_af75e1ce2fb614a29a830e10ed79788eb}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!run\_git@{run\_git}}
+\index{run\_git@{run\_git}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{run\_git()}{run\_git()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_af75e1ce2fb614a29a830e10ed79788eb} 
+ str run\+\_\+git (\begin{DoxyParamCaption}\item[{list\+[str]\+}]{args}{, }\item[{str}]{cwd}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00116}{116}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacebuild-failure-tracker_a5fb9a201f35bc5768554c3657262016e}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!scan\_git\_build\_failures@{scan\_git\_build\_failures}}
+\index{scan\_git\_build\_failures@{scan\_git\_build\_failures}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{scan\_git\_build\_failures()}{scan\_git\_build\_failures()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a5fb9a201f35bc5768554c3657262016e} 
+ list\+[dict\+[str, Any]\+]\+ scan\+\_\+git\+\_\+build\+\_\+failures (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{int }]{max\+\_\+commits}{ = {\ttfamily 200}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00135}{135}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 11
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacebuild-failure-tracker_ac63e4d635a9d544cfd6c1fa08eccda31}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!scan\_log\_files@{scan\_log\_files}}
+\index{scan\_log\_files@{scan\_log\_files}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{scan\_log\_files()}{scan\_log\_files()}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_ac63e4d635a9d544cfd6c1fa08eccda31} 
+ list\+[dict\+[str, Any]\+]\+ scan\+\_\+log\+\_\+files (\begin{DoxyParamCaption}\item[{str}]{log\+\_\+dir}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00091}{91}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14
+
+
+\label{namespacebuild-failure-tracker_doc-var-members}
+\Hypertarget{namespacebuild-failure-tracker_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacebuild-failure-tracker_a96d0c632e9963cf1f685308fa15bbfed}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a96d0c632e9963cf1f685308fa15bbfed} 
+str \doxymbox{\hyperlink{namespacebuild}{build}}-\/failure-\/tracker.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+\Hypertarget{namespacebuild-failure-tracker_a4317aebada363d0d1f9107ff0ab54f4b}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a4317aebada363d0d1f9107ff0ab54f4b} 
+str \doxymbox{\hyperlink{namespacebuild}{build}}-\/failure-\/tracker.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+\Hypertarget{namespacebuild-failure-tracker_a627ec28744e7868587f2f9bcb51d7daf}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!RED@{RED}}
+\index{RED@{RED}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_a627ec28744e7868587f2f9bcb51d7daf} 
+str \doxymbox{\hyperlink{namespacebuild}{build}}-\/failure-\/tracker.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+\Hypertarget{namespacebuild-failure-tracker_afe22cdeafe87cc0a0dbbe6dd3c929ddf}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!RESET@{RESET}}
+\index{RESET@{RESET}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_afe22cdeafe87cc0a0dbbe6dd3c929ddf} 
+str \doxymbox{\hyperlink{namespacebuild}{build}}-\/failure-\/tracker.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+\Hypertarget{namespacebuild-failure-tracker_ab365d160fbfac11b407f7f85438ea904}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_ab365d160fbfac11b407f7f85438ea904} 
+str \doxymbox{\hyperlink{namespacebuild}{build}}-\/failure-\/tracker.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+
+\Hypertarget{namespacebuild-failure-tracker_aa3e6135c14cbb8b05348f63b7aff7ebf}\index{build-\/failure-\/tracker@{build-\/failure-\/tracker}!ZIG\_ERROR\_PATTERNS@{ZIG\_ERROR\_PATTERNS}}
+\index{ZIG\_ERROR\_PATTERNS@{ZIG\_ERROR\_PATTERNS}!build-\/failure-\/tracker@{build-\/failure-\/tracker}}
+\doxysubsubsection{\texorpdfstring{ZIG\_ERROR\_PATTERNS}{ZIG\_ERROR\_PATTERNS}}
+{\footnotesize\ttfamily \label{namespacebuild-failure-tracker_aa3e6135c14cbb8b05348f63b7aff7ebf} 
+list \doxymbox{\hyperlink{namespacebuild}{build}}-\/failure-\/tracker.\+ZIG\+\_\+\+ERROR\+\_\+\+PATTERNS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}error:\(\backslash\)s*(.*)"{}}),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}error\(\backslash\)[(\(\backslash\)w+)\(\backslash\)]\(\backslash\)s*"{}}),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}undefined\(\backslash\)s+reference\(\backslash\)s+to\(\backslash\)s+(\(\backslash\)S+)"{}}),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}expected\(\backslash\)s+\(\backslash\)w+,\(\backslash\)s+found\(\backslash\)s+\(\backslash\)w+"{}}),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}no\(\backslash\)s+member\(\backslash\)s+named\(\backslash\)s+'(\(\backslash\)w+)'"{}}),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r"{}unable\(\backslash\)s+to\(\backslash\)s+\(\backslash\)w+"{}}),}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{build-failure-tracker_8py_source_l00056}{56}} of file \doxymbox{\hyperlink{build-failure-tracker_8py_source}{build-\/failure-\/tracker.\+py}}.
+

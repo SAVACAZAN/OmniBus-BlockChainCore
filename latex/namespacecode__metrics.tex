@@ -1,0 +1,83 @@
+\doxysection{code\+\_\+metrics Namespace Reference}
+\hypertarget{namespacecode__metrics}{}\label{namespacecode__metrics}\index{code\_metrics@{code\_metrics}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classcode__metrics_1_1_file_metrics}{File\+Metrics}}
+\item 
+class \doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{Project\+Metrics}}
+\item 
+class \doxymbox{\hyperlink{classcode__metrics_1_1_code_analyzer}{Code\+Analyzer}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacecode__metrics_a653ca4e0b7c88dca5c098c845f6849e2}{print\+\_\+metrics}} (\doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{Project\+Metrics}} metrics, List\+[\doxymbox{\hyperlink{classcode__metrics_1_1_file_metrics}{File\+Metrics}}]\+ file\+\_\+metrics)
+\item 
+\doxymbox{\hyperlink{namespacecode__metrics_af9f2e570f17c0f17eb66345ded7dfad3}{print\+\_\+summary}} (\doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{Project\+Metrics}} metrics)
+\item 
+\doxymbox{\hyperlink{namespacecode__metrics_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}OmniBus Blockchain - Code Metrics
+==================================
+
+Calculează metrici de cod: LOC, complexitate, raport teste/cod, etc.
+Ideal pentru a monitoriza creșterea proiectului.
+
+Utilizare:
+    python code_metrics.py              # Metrici complete
+    python code_metrics.py --summary    # Doar sumar
+    python code_metrics.py --trend      # Compară cu rularea anterioară
+    python code_metrics.py --json       # Output JSON
+
+Autor: OmniBus AI Collective
+Versiune: 1.0.0
+\end{DoxyVerb}
+ 
+
+\label{namespacecode__metrics_doc-func-members}
+\Hypertarget{namespacecode__metrics_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacecode__metrics_a51af30a60f9f02777c6396b8247e356f}\index{code\_metrics@{code\_metrics}!main@{main}}
+\index{main@{main}!code\_metrics@{code\_metrics}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacecode__metrics_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00272}{272}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacecode__metrics_a653ca4e0b7c88dca5c098c845f6849e2}\index{code\_metrics@{code\_metrics}!print\_metrics@{print\_metrics}}
+\index{print\_metrics@{print\_metrics}!code\_metrics@{code\_metrics}}
+\doxysubsubsection{\texorpdfstring{print\_metrics()}{print\_metrics()}}
+{\footnotesize\ttfamily \label{namespacecode__metrics_a653ca4e0b7c88dca5c098c845f6849e2} 
+print\+\_\+metrics (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{Project\+Metrics}}}]{metrics}{, }\item[{List\+[\doxymbox{\hyperlink{classcode__metrics_1_1_file_metrics}{File\+Metrics}}]\+}]{file\+\_\+metrics}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Afișează metricile într-un format uman-citibil.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00204}{204}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacecode__metrics_af9f2e570f17c0f17eb66345ded7dfad3}\index{code\_metrics@{code\_metrics}!print\_summary@{print\_summary}}
+\index{print\_summary@{print\_summary}!code\_metrics@{code\_metrics}}
+\doxysubsubsection{\texorpdfstring{print\_summary()}{print\_summary()}}
+{\footnotesize\ttfamily \label{namespacecode__metrics_af9f2e570f17c0f17eb66345ded7dfad3} 
+print\+\_\+summary (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classcode__metrics_1_1_project_metrics}{Project\+Metrics}}}]{metrics}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Afișează doar sumarul.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{code__metrics_8py_source_l00257}{257}} of file \doxymbox{\hyperlink{code__metrics_8py_source}{code\+\_\+metrics.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3

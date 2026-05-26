@@ -1,0 +1,102 @@
+\doxysection{difficulty-\/simulator.py}
+\hypertarget{difficulty-simulator_8py_source}{}\label{difficulty-simulator_8py_source}\index{tools/CONSENSUS/difficulty-\/simulator.py@{tools/CONSENSUS/difficulty-\/simulator.py}}
+\doxymbox{\hyperlink{difficulty-simulator_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00001}\doxymbox{\hyperlink{namespacedifficulty-simulator}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Difficulty\ Adjustment\ Simulator}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00005}00005\ \textcolor{stringliteral}{Simulates\ difficulty\ adjustment\ given\ block\ times\ history.}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00006}00006\ \textcolor{stringliteral}{Outputs\ predicted\ difficulty\ curve.}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00011}00011\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00012}00012\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00013}00013\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00015}\doxymbox{\hyperlink{namespacedifficulty-simulator_a1813a6e308f56320a122fec314c049de}{00015}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00016}\doxymbox{\hyperlink{namespacedifficulty-simulator_ae3a55231a160ecd3c01a3f3ee1a11342}{00016}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00017}\doxymbox{\hyperlink{namespacedifficulty-simulator_a9a59fe2d4b5930445989b09e6e203e0f}{00017}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00018}\doxymbox{\hyperlink{namespacedifficulty-simulator_a43e1d5e849b9168d42a1dd9e8bee0880}{00018}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00021}\doxymbox{\hyperlink{namespacedifficulty-simulator_acd59877dca2a9957888013a6f06aab6d}{00021}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-simulator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00022}00022\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00025}\doxymbox{\hyperlink{namespacedifficulty-simulator_a430f23e4659cb247f213cccfa5a01901}{00025}}\ TARGET\_BLOCK\_TIME\ =\ 120\ \ \textcolor{comment}{\#\ seconds}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00026}\doxymbox{\hyperlink{namespacedifficulty-simulator_acb18c88e8e2ed833a0d12d0ae4e6d525}{00026}}\ DIFF\_ADJUSTMENT\_INTERVAL\ =\ 144\ \ \textcolor{comment}{\#\ blocks}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00029}\doxymbox{\hyperlink{namespacedifficulty-simulator_a52122f7d7c00b6f07af9fdbab29d979e}{00029}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-simulator_a52122f7d7c00b6f07af9fdbab29d979e}{simulate\_difficulty}}(block\_times:\ List[float])\ -\/>\ List[Dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00030}00030\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Given\ a\ list\ of\ block\ times,\ return\ difficulty\ per\ interval."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00031}00031\ \ \ \ \ difficulties:\ List[Dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00032}00032\ \ \ \ \ current\_diff\ =\ 1.0}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00034}00034\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(0,\ len(block\_times),\ DIFF\_ADJUSTMENT\_INTERVAL):}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ interval\ =\ block\_times[i\ :\ i\ +\ DIFF\_ADJUSTMENT\_INTERVAL]}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(interval)\ <\ 2:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ avg\_time\ =\ sum(interval)\ /\ len(interval)}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Simple\ proportional\ adjustment}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ adjustment\ =\ TARGET\_BLOCK\_TIME\ /\ avg\_time\ \textcolor{keywordflow}{if}\ avg\_time\ >\ 0\ \textcolor{keywordflow}{else}\ 1.0}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ adjustment\ =\ max(0.25,\ min(4.0,\ adjustment))\ \ \textcolor{comment}{\#\ limit\ adjustment\ factor}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ current\_diff\ *=\ adjustment}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ difficulties.append(\{}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}interval\_start"{}}:\ i,}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}interval\_end"{}}:\ i\ +\ len(interval),}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}avg\_block\_time\_sec"{}}:\ round(avg\_time,\ 2),}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}adjustment\_factor"{}}:\ round(adjustment,\ 4),}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}new\_difficulty"{}}:\ round(current\_diff,\ 4),}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{return}\ difficulties}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00053}\doxymbox{\hyperlink{namespacedifficulty-simulator_aafceb19da947468dbe3faaecca8a1d32}{00053}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-simulator_aafceb19da947468dbe3faaecca8a1d32}{generate\_synthetic\_history}}(num\_blocks:\ int,\ noise\_factor:\ float\ =\ 0.2)\ -\/>\ List[float]:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00054}00054\ \ \ \ \ times\ =\ []}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(num\_blocks):}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ base\ =\ TARGET\_BLOCK\_TIME}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ noise\ =\ random.uniform(-\/noise\_factor\ *\ base,\ noise\_factor\ *\ base)}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ trend\ =\ math.sin(i\ /\ 500.0)\ *\ 20\ \ \textcolor{comment}{\#\ periodic\ trend}}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ times.append(max(10,\ base\ +\ noise\ +\ trend))}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{return}\ times}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00063}\doxymbox{\hyperlink{namespacedifficulty-simulator_a7431cb90017e54fe695b23d4190db046}{00063}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedifficulty-simulator_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00064}00064\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Simulate\ difficulty\ adjustment"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00065}00065\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/blocks"{}},\ type=int,\ default=1000,\ help=\textcolor{stringliteral}{"{}Number\ of\ blocks\ to\ simulate"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00066}00066\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/noise"{}},\ type=float,\ default=0.2,\ help=\textcolor{stringliteral}{"{}Noise\ factor\ (0-\/1)"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00067}00067\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/input"{}},\ help=\textcolor{stringliteral}{"{}JSON\ file\ with\ block\_times\ list"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00068}00068\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}difficulty-\/curve.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00069}00069\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00071}00071\ \ \ \ \ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{if}\ args.input:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.input,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ block\_times\ =\ data[\textcolor{stringliteral}{"{}block\_times"{}}]}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ block\_times\ =\ \doxymbox{\hyperlink{namespacedifficulty-simulator_aafceb19da947468dbe3faaecca8a1d32}{generate\_synthetic\_history}}(args.blocks,\ args.noise)}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00080}00080\ \ \ \ \ curve\ =\ \doxymbox{\hyperlink{namespacedifficulty-simulator_a52122f7d7c00b6f07af9fdbab29d979e}{simulate\_difficulty}}(block\_times)}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00082}00082\ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-simulator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Difficulty\ Simulator\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00083}00083\ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-simulator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Simulated\ \{len(block\_times)\}\ blocks\ -\/>\ \{len(curve)\}\ adjustment\ intervals"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00084}00084\ \ \ \ \ \textcolor{keywordflow}{for}\ point\ \textcolor{keywordflow}{in}\ curve[:5]:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-simulator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\ \ blocks\ \{point['interval\_start']\}-\/\{point['interval\_end']\}:\ diff=\{point['new\_difficulty']:.4f\}\ (avg\_time=\{point['avg\_block\_time\_sec']\}s)"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00086}00086\ \ \ \ \ \textcolor{keywordflow}{if}\ len(curve)\ >\ 5:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-simulator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}\ \ ...\ and\ \{len(curve)-\/5\}\ more\ intervals"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00089}00089\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ json.dump(\{\textcolor{stringliteral}{"{}target\_block\_time"{}}:\ TARGET\_BLOCK\_TIME,\ \textcolor{stringliteral}{"{}curve"{}}:\ curve\},\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00091}00091\ \ \ \ \ \doxymbox{\hyperlink{namespacedifficulty-simulator_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nCurve\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00092}00092\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00095}00095\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{difficulty-simulator_8py_source_l00096}00096\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacedifficulty-simulator_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

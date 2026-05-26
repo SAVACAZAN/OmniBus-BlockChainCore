@@ -1,0 +1,59 @@
+\doxysection{tools/\+\+EXPLOITS/\+differential-\/fuzzer.py File Reference}
+\hypertarget{differential-fuzzer_8py}{}\label{differential-fuzzer_8py}\index{tools/EXPLOITS/differential-\/fuzzer.py@{tools/EXPLOITS/differential-\/fuzzer.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacedifferential-fuzzer}{differential-\/fuzzer}}
+\item 
+namespace \doxymbox{\hyperlink{namespacedifferential}{differential}}
+\begin{DoxyCompactList}\small\item\em -\/fuzzer \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacedifferential-fuzzer_a79fbce730b1a31cd0e2f85911ca5381c}{differential-\/fuzzer.\+rpc\+\_\+call}} (str host, int port, str method, params=None)
+\item 
+bytes \doxymbox{\hyperlink{namespacedifferential-fuzzer_ad716f7b606105194745f3200dcf3d1f2}{differential-\/fuzzer.\+python\+\_\+sha256}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacedifferential-fuzzer_a3f6717f2217005e7104aedf8995222aa}{differential-\/fuzzer.\+python\+\_\+double\+\_\+sha256}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacedifferential-fuzzer_ab4133aac56d3386de7758ff297dca267}{differential-\/fuzzer.\+python\+\_\+ripemd160}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacedifferential-fuzzer_ad4cde71e2b13589166f66d2f6bc9bb55}{differential-\/fuzzer.\+python\+\_\+hash160}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacedifferential-fuzzer_aae7568e07b0d0587931ff660430467d9}{differential-\/fuzzer.\+generate\+\_\+private\+\_\+key}} ()
+\item 
+dict \doxymbox{\hyperlink{namespacedifferential-fuzzer_a3acedfa87f6c88077241a11de5864512}{differential-\/fuzzer.\+fuzz\+\_\+sha256}} (int iterations, str rpc\+\_\+host)
+\item 
+dict \doxymbox{\hyperlink{namespacedifferential-fuzzer_a7604ac7e761049754a9fcf12de0714b5}{differential-\/fuzzer.\+fuzz\+\_\+hash160}} (int iterations)
+\item 
+dict \doxymbox{\hyperlink{namespacedifferential-fuzzer_ae5ebae794dd41a9e68f6ebdaded1c957}{differential-\/fuzzer.\+fuzz\+\_\+secp256k1}} (int iterations)
+\item 
+\doxymbox{\hyperlink{namespacedifferential-fuzzer_aeedb2cf6a079cf6cf3b6e042a58361a6}{differential-\/fuzzer.\+run\+\_\+hypothesis\+\_\+tests}} ()
+\item 
+\doxymbox{\hyperlink{namespacedifferential-fuzzer_a51af30a60f9f02777c6396b8247e356f}{differential-\/fuzzer.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacedifferential-fuzzer_afecbe17405b77e75f0d4cbac6a8ae14d}{differential-\/fuzzer.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedifferential-fuzzer_a7d844bd4e489569624c2c60b9337999f}{differential-\/fuzzer.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedifferential-fuzzer_a237486e7a492cd92f871a757b69a35c0}{differential-\/fuzzer.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedifferential-fuzzer_a665e110f613287db9b85090fda5818ee}{differential-\/fuzzer.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedifferential-fuzzer_af8dcd1bba5f5f78dc47e046cf6026af5}{differential-\/fuzzer.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespacedifferential-fuzzer_a334abe62bf13d05336629756e4c2435d}{differential-\/fuzzer.\+RPC\+\_\+\+PORT}} = 8332
+\item 
+\doxymbox{\hyperlink{namespacedifferential-fuzzer_a6835a5ce1fce302fc18709da4fce2af5}{differential-\/fuzzer.\+NODE\+\_\+\+BINARY}} = os.\+path.\+join("{}zig-\/out"{}, "{}bin"{}, "{}omnibus-\/node.\+exe"{})
+\item 
+int \doxymbox{\hyperlink{namespacedifferential-fuzzer_a81a8836acca0bed0a3b350b8f86d7950}{differential-\/fuzzer.\+MAX\+\_\+\+SUPPLY}} = 21\+\_\+000\+\_\+000
+\item 
+\doxymbox{\hyperlink{namespacedifferential-fuzzer_aae6ed3e686b48df0f5d18a0cedec08c0}{differential-\/fuzzer.\+SAT}} = int(1e9)
+\item 
+bool \doxymbox{\hyperlink{namespacedifferential-fuzzer_a83ffb41bfe22cdd76f3b8b81f0472b07}{differential-\/fuzzer.\+HAS\+\_\+\+HYPOTHESIS}} = True
+\item 
+bool \doxymbox{\hyperlink{namespacedifferential-fuzzer_a86b58a4f6a1db37cb477884e7d273b37}{differential-\/fuzzer.\+HAS\+\_\+\+COINCURVE}} = True
+\end{DoxyCompactItemize}

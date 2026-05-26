@@ -1,0 +1,128 @@
+\doxysection{frontend/\+node\+\_\+modules/\+d3-\/path Directory Reference}
+\hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4}{}\label{dir_51bd0caaedff5409d5262fef2677e1d4}\index{frontend/node\_modules/d3-\/path Directory Reference@{frontend/node\_modules/d3-\/path Directory Reference}}
+Directory dependency graph for d3-\/path:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_autotoc_md5974}{}\doxysubsection{\texorpdfstring{d3-\/path}{d3-\/path}}\label{dir_51bd0caaedff5409d5262fef2677e1d4_autotoc_md5974}
+Say you have some code that draws to a 2D canvas:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{function\ drawCircle(context,\ radius)\ \{}
+\DoxyCodeLine{\ \ context.moveTo(radius,\ 0);}
+\DoxyCodeLine{\ \ context.arc(0,\ 0,\ radius,\ 0,\ 2\ *\ Math.PI);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+The d3-\/path module lets you take this exact code and additionally render to \href{http://www.w3.org/TR/SVG/paths.html}{\texttt{SVG}}. It works by \doxylink{dir_51bd0caaedff5409d5262fef2677e1d4_path_toString}{serializing}serializing \href{http://www.w3.org/TR/2dcontext/\#canvaspathmethods}{\texttt{Canvas\+Path\+Methods}} calls to \href{http://www.w3.org/TR/SVG/paths.html\#PathData}{\texttt{SVG path data}}. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ context\ =\ d3.path();}
+\DoxyCodeLine{drawCircle(context,\ 40);}
+\DoxyCodeLine{pathElement.setAttribute("{}d"{},\ context.toString());}
+
+\end{DoxyCode}
+
+
+Now code you write once can be used with both Canvas (for performance) and SVG (for convenience). For a practical example, see \href{https://github.com/d3/d3-shape}{\texttt{d3-\/shape}}.\hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_autotoc_md5975}{}\doxysubsection{\texorpdfstring{Installing}{Installing}}\label{dir_51bd0caaedff5409d5262fef2677e1d4_autotoc_md5975}
+If you use npm, {\ttfamily npm install d3-\/path}. You can also download the \href{https://github.com/d3/d3-path/releases/latest}{\texttt{latest release on Git\+Hub}}. In modern browsers, you can import d3-\/path from js\+Delivr:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ type="{}module"{}>}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ \{path\}\ from\ "{}https://cdn.jsdelivr.net/npm/d3-\/path@3/+esm"{};}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ p\ =\ path();}
+\DoxyCodeLine{p.moveTo(1,\ 2);}
+\DoxyCodeLine{p.lineTo(3,\ 4);}
+\DoxyCodeLine{p.closePath();}
+\DoxyCodeLine{}
+\DoxyCodeLine{</script>}
+
+\end{DoxyCode}
+
+
+For legacy environments, you can load d3-\/path’s UMD bundle from an npm-\/based CDN such as js\+Delivr; a {\ttfamily d3} global is exported:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ src="{}https://cdn.jsdelivr.net/npm/d3-\/path@3"{}></script>}
+\DoxyCodeLine{<script>}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ path\ =\ d3.path();}
+\DoxyCodeLine{}
+\DoxyCodeLine{</script>}
+
+\end{DoxyCode}
+\hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_autotoc_md5976}{}\doxysubsection{\texorpdfstring{API Reference}{API Reference}}\label{dir_51bd0caaedff5409d5262fef2677e1d4_autotoc_md5976}
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path}%
+\# d3.{\bfseries{path}}() · \href{https://github.com/d3/d3-path/blob/master/src/path.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-path}{\texttt{Examples}}
+
+Constructs a new path serializer that implements \href{http://www.w3.org/TR/2dcontext/\#canvaspathmethods}{\texttt{Canvas\+Path\+Methods}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_moveTo}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_moveTo}%
+\# {\itshape path}.{\bfseries{move\+To}}({\itshape x}, {\itshape y})
+
+Move to the specified point ⟨\texorpdfstring{$\ast$}{*}x\texorpdfstring{$\ast$}{*}, {\itshape y\texorpdfstring{$\ast$}{*}⟩. Equivalent to \+[\texorpdfstring{$\ast$}{*}context}.move\+To]\+(\href{http://www.w3.org/TR/2dcontext/\#dom-context-2d-moveto}{\texttt{http:\+/\+/\+www.\+w3.\+org/\+\+TR/\+2dcontext/\+\+\#dom-\/context-\/2d-\/moveto}}) and SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathDataMovetoCommands}{\texttt{“moveto” command}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_closePath}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_closePath}%
+\# {\itshape path}.{\bfseries{close\+Path}}()
+
+Ends the current subpath and causes an automatic straight line to be drawn from the current point to the initial point of the current subpath. Equivalent to \href{http://www.w3.org/TR/2dcontext/\#dom-context-2d-closepath}{\texttt{{\itshape context}.close\+Path}} and SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathDataClosePathCommand}{\texttt{“closepath” command}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_lineTo}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_lineTo}%
+\# {\itshape path}.{\bfseries{line\+To}}({\itshape x}, {\itshape y})
+
+Draws a straight line from the current point to the specified point ⟨\texorpdfstring{$\ast$}{*}x\texorpdfstring{$\ast$}{*}, {\itshape y\texorpdfstring{$\ast$}{*}⟩. Equivalent to \+[\texorpdfstring{$\ast$}{*}context}.line\+To]\+(\href{http://www.w3.org/TR/2dcontext/\#dom-context-2d-lineto}{\texttt{http:\+/\+/\+www.\+w3.\+org/\+\+TR/\+2dcontext/\+\+\#dom-\/context-\/2d-\/lineto}}) and SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathDataLinetoCommands}{\texttt{“lineto” command}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_quadraticCurveTo}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_quadraticCurveTo}%
+\# {\itshape path}.{\bfseries{quadratic\+Curve\+To}}({\itshape cpx}, {\itshape cpy}, {\itshape x}, {\itshape y})
+
+Draws a quadratic Bézier segment from the current point to the specified point ⟨\texorpdfstring{$\ast$}{*}x\texorpdfstring{$\ast$}{*}, {\itshape y\texorpdfstring{$\ast$}{*}⟩, with the specified control point ⟨\texorpdfstring{$\ast$}{*}cpx}, {\itshape cpy\texorpdfstring{$\ast$}{*}⟩. Equivalent to \+[\texorpdfstring{$\ast$}{*}context}.quadratic\+Curve\+To]\+(\href{http://www.w3.org/TR/2dcontext/\#dom-context-2d-quadraticcurveto}{\texttt{http:\+/\+/\+www.\+w3.\+org/\+\+TR/\+2dcontext/\+\+\#dom-\/context-\/2d-\/quadraticcurveto}}) and SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathDataQuadraticBezierCommands}{\texttt{quadratic Bézier curve commands}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_bezierCurveTo}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_bezierCurveTo}%
+\# {\itshape path}.{\bfseries{bezier\+Curve\+To}}({\itshape cpx1}, {\itshape cpy1}, {\itshape cpx2}, {\itshape cpy2}, {\itshape x}, {\itshape y})
+
+Draws a cubic Bézier segment from the current point to the specified point ⟨\texorpdfstring{$\ast$}{*}x\texorpdfstring{$\ast$}{*}, {\itshape y\texorpdfstring{$\ast$}{*}⟩, with the specified control points ⟨\texorpdfstring{$\ast$}{*}cpx1}, {\itshape cpy1\texorpdfstring{$\ast$}{*}⟩ and ⟨\texorpdfstring{$\ast$}{*}cpx2}, {\itshape cpy2\texorpdfstring{$\ast$}{*}⟩. Equivalent to \+[\texorpdfstring{$\ast$}{*}context}.bezier\+Curve\+To]\+(\href{http://www.w3.org/TR/2dcontext/\#dom-context-2d-beziercurveto}{\texttt{http:\+/\+/\+www.\+w3.\+org/\+\+TR/\+2dcontext/\+\+\#dom-\/context-\/2d-\/beziercurveto}}) and SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathDataCubicBezierCommands}{\texttt{cubic Bézier curve commands}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_arcTo}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_arcTo}%
+\# {\itshape path}.{\bfseries{arc\+To}}({\itshape x1}, {\itshape y1}, {\itshape x2}, {\itshape y2}, {\itshape radius})
+
+Draws a circular arc segment with the specified {\itshape radius} that starts tangent to the line between the current point and the specified point ⟨\texorpdfstring{$\ast$}{*}x1\texorpdfstring{$\ast$}{*}, {\itshape y1\texorpdfstring{$\ast$}{*}⟩ and ends tangent to the line between the specified points ⟨\texorpdfstring{$\ast$}{*}x1}, {\itshape y1\texorpdfstring{$\ast$}{*}⟩ and ⟨\texorpdfstring{$\ast$}{*}x2}, {\itshape y2\texorpdfstring{$\ast$}{*}⟩. If the first tangent point is not equal to the current point, a straight line is drawn between the current point and the first tangent point. Equivalent to \+[\texorpdfstring{$\ast$}{*}context}.arc\+To]\+(\href{http://www.w3.org/TR/2dcontext/\#dom-context-2d-arcto}{\texttt{http:\+/\+/\+www.\+w3.\+org/\+\+TR/\+2dcontext/\+\+\#dom-\/context-\/2d-\/arcto}}) and uses SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathDataEllipticalArcCommands}{\texttt{elliptical arc curve commands}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_arc}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_arc}%
+\# {\itshape path}.{\bfseries{arc}}({\itshape x}, {\itshape y}, {\itshape radius}, {\itshape start\+Angle}, {\itshape end\+Angle}\+[, {\itshape anticlockwise}]\+)
+
+Draws a circular arc segment with the specified center ⟨\texorpdfstring{$\ast$}{*}x\texorpdfstring{$\ast$}{*}, {\itshape y\texorpdfstring{$\ast$}{*}⟩, \texorpdfstring{$\ast$}{*}radius}, {\itshape start\+Angle} and {\itshape end\+Angle}. If {\itshape anticlockwise} is true, the arc is drawn in the anticlockwise direction; otherwise, it is drawn in the clockwise direction. If the current point is not equal to the starting point of the arc, a straight line is drawn from the current point to the start of the arc. Equivalent to \href{http://www.w3.org/TR/2dcontext/\#dom-context-2d-arc}{\texttt{{\itshape context}.arc}} and uses SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathDataEllipticalArcCommands}{\texttt{elliptical arc curve commands}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_rect}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_rect}%
+\# {\itshape path}.{\bfseries{rect}}({\itshape x}, {\itshape y}, {\itshape w}, {\itshape h})
+
+Creates a new subpath containing just the four points ⟨\texorpdfstring{$\ast$}{*}x\texorpdfstring{$\ast$}{*}, {\itshape y\texorpdfstring{$\ast$}{*}⟩, ⟨\texorpdfstring{$\ast$}{*}x} + {\itshape w}, {\itshape y\texorpdfstring{$\ast$}{*}⟩, ⟨\texorpdfstring{$\ast$}{*}x} + {\itshape w}, {\itshape y} + {\itshape h\texorpdfstring{$\ast$}{*}⟩, ⟨\texorpdfstring{$\ast$}{*}x}, {\itshape y} + {\itshape h\texorpdfstring{$\ast$}{*}⟩, with those four points connected by straight lines, and then marks the subpath as closed. Equivalent to \+[\texorpdfstring{$\ast$}{*}context}.rect]\+(\href{http://www.w3.org/TR/2dcontext/\#dom-context-2d-rect}{\texttt{http:\+/\+/\+www.\+w3.\+org/\+\+TR/\+2dcontext/\+\+\#dom-\/context-\/2d-\/rect}}) and uses SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathDataLinetoCommands}{\texttt{“lineto” commands}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_path_toString}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_path_toString}%
+\# {\itshape path}.{\bfseries{to\+String}}()
+
+Returns the string representation of this {\itshape path} according to SVG’s \href{http://www.w3.org/TR/SVG/paths.html\#PathData}{\texttt{path data specification}}.
+
+\label{dir_51bd0caaedff5409d5262fef2677e1d4_pathRound}%
+\Hypertarget{dir_51bd0caaedff5409d5262fef2677e1d4_pathRound}%
+\# d3.{\bfseries{path\+Round}}({\itshape digits} = 3) · \href{https://github.com/d3/d3-path/blob/master/src/path.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-path}{\texttt{Examples}}
+
+Like \doxylink{dir_51bd0caaedff5409d5262fef2677e1d4_path}{d3.path}d3.\+path, except limits the digits after the decimal to the specified number of {\itshape digits}. 

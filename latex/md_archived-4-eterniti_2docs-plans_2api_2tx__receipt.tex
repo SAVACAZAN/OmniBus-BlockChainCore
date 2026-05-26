@@ -1,0 +1,299 @@
+\chapter{Module:\+ {\ttfamily tx\+\_\+receipt} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt}{}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt}\index{Module: $<$tt$>$tx\_receipt$<$/tt$>$@{Module: $<$tt$>$tx\_receipt$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3414}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3414}%
+
+
+\begin{quote}
+Transaction receipts — event logs, gas used, status codes, Ethereum-\/compatible receipt format. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+tx\+\_\+receipt.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 217 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 8 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 8
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3416}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3416}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3417}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3417}
+
+\begin{DoxyItemize}
+\item \`{}\+Event\+Log\`{}{\ttfamily Event\+Log}
+\end{DoxyItemize}— Event log entry (ca Ethereum LOG0-\/\+LOG4)
+\begin{DoxyItemize}
+\item \`{}\+Tx\+Receipt\`{}{\ttfamily Tx\+Receipt}
+\end{DoxyItemize}— Transaction Receipt\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3418}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3418}
+
+\begin{DoxyItemize}
+\item 8 constants defined8 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3419}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3419}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Topic()\`{}{\ttfamily add\+Topic()}
+\end{DoxyItemize}— Add an indexed topic
+\begin{DoxyItemize}
+\item \`{}set\+Data()\`{}{\ttfamily set\+Data()}
+\end{DoxyItemize}— Set event data
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}success()\`{}{\ttfamily success()}
+\end{DoxyItemize}— Mark as successful
+\begin{DoxyItemize}
+\item \doxylink{test__load_8c_a68eaf9a59ffba031bf1dc152e3b023e0}{\`{}fail()\`{}}{\ttfamily \doxylink{test__load_8c_a68eaf9a59ffba031bf1dc152e3b023e0}{fail()}}
+\end{DoxyItemize}— Mark as failed
+\begin{DoxyItemize}
+\item \`{}add\+Event()\`{}{\ttfamily add\+Event()}
+\end{DoxyItemize}— Add event log
+\begin{DoxyItemize}
+\item \`{}hash()\`{}{\ttfamily hash()}
+\end{DoxyItemize}— Compute receipt hash (for receipt trie/\+merkle)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3421}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3421}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3422}{}\doxysubsection{\texorpdfstring{{\ttfamily Event\+Log}}{{\ttfamily Event\+Log}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3422}
+Event log entry (ca Ethereum LOG0-\/\+LOG4)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily event\+\_\+type}  &{\ttfamily \+[32]\+u8}  &Event\+\_\+type  \\
+{\ttfamily topics}  &{\ttfamily \+[MAX\+\_\+\+TOPICS]\+\+[32]\+u8}  &Topics  \\
+{\ttfamily topic\+\_\+count}  &{\ttfamily u8}  &Topic\+\_\+count  \\
+{\ttfamily data}  &{\ttfamily \+[MAX\+\_\+\+EVENT\+\_\+\+DATA]\+u8}  &Data  \\
+{\ttfamily data\+\_\+len}  &{\ttfamily u16}  &Data\+\_\+len  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily tx\+\_\+index}  &{\ttfamily u32}  &Tx\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 29}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3424}{}\doxysubsection{\texorpdfstring{{\ttfamily Tx\+Receipt}}{{\ttfamily Tx\+Receipt}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3424}
+Transaction Receipt
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily status}  &{\ttfamily Tx\+Status}  &Status  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily tx\+\_\+index}  &{\ttfamily u32}  &Tx\+\_\+index  \\
+{\ttfamily fee\+\_\+paid}  &{\ttfamily u64}  &Fee\+\_\+paid  \\
+{\ttfamily cumulative\+\_\+fee}  &{\ttfamily u64}  &Cumulative\+\_\+fee  \\
+{\ttfamily from\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &From\+\_\+hash  \\
+{\ttfamily to\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &To\+\_\+hash  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+{\ttfamily events}  &{\ttfamily \+[MAX\+\_\+\+EVENTS]\+Event\+Log}  &Events  \\
+{\ttfamily event\+\_\+count}  &{\ttfamily u8}  &Event\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 71}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3426}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3426}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily MAX\+\_\+\+EVENTS}  &{\ttfamily usize = 16}  &M a x\+\_\+ e v e n t s  \\
+{\ttfamily MAX\+\_\+\+TOPICS}  &{\ttfamily usize = 4}  &M a x\+\_\+ t o p i c s  \\
+{\ttfamily MAX\+\_\+\+EVENT\+\_\+\+DATA}  &{\ttfamily usize = 256}  &M a x\+\_\+ e v e n t\+\_\+ d a t a  \\
+{\ttfamily Tx\+Status}  &{\ttfamily enum(u8) \{}  &Tx status  \\
+{\ttfamily EVENT\+\_\+\+TRANSFER}  &{\ttfamily \+[32]\+u8 = \+[\+\_\+]\+u8\{ 0x\+A9, 0x05, 0x9C, 0x\+BB \} ++ \+[\+\_\+]\+u8\{0\} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 28}  &E v e n t\+\_\+ t r a n s f e r  \\
+{\ttfamily EVENT\+\_\+\+APPROVAL}  &{\ttfamily \+[32]\+u8 = \+[\+\_\+]\+u8\{ 0x8C, 0x5B, 0x\+E1, 0x\+E5 \} ++ \+[\+\_\+]\+u8\{0\} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 28}  &E v e n t\+\_\+ a p p r o v a l  \\
+{\ttfamily EVENT\+\_\+\+STAKE}  &{\ttfamily \+[32]\+u8 = \+[\+\_\+]\+u8\{ 0x\+E1, 0x\+FF, 0x\+FC, 0x\+C4 \} ++ \+[\+\_\+]\+u8\{0\} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 28}  &E v e n t\+\_\+ s t a k e  \\
+{\ttfamily EVENT\+\_\+\+SLASH}  &{\ttfamily \+[32]\+u8 = \+[\+\_\+]\+u8\{ 0x3B, 0x88, 0x1E, 0x5D \} ++ \+[\+\_\+]\+u8\{0\} \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} 28}  &E v e n t\+\_\+ s l a s h  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3428}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3428}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3429}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3429}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(event\_type:\ [32]u8,\ block\_height:\ u64,\ tx\_index:\ u32)\ EventLog\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily event\+\_\+type}  &{\ttfamily \+[32]\+u8}  &Event\+\_\+type  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily tx\+\_\+index}  &{\ttfamily u32}  &Tx\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Event\+Log}
+
+{\itshape Defined at line 43}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3431}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Topic()}}{{\ttfamily add\+Topic()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3431}
+Add an indexed topic
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addTopic(self:\ *EventLog,\ topic:\ [32]u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Event\+Log}  &The instance  \\
+{\ttfamily topic}  &{\ttfamily \+[32]\+u8}  &Topic  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 56}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3433}{}\doxysubsection{\texorpdfstring{{\ttfamily set\+Data()}}{{\ttfamily set\+Data()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3433}
+Set event data
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ setData(self:\ *EventLog,\ data\_bytes:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Event\+Log}  &The instance  \\
+{\ttfamily data\+\_\+bytes}  &{\ttfamily \+[]\+const u8}  &Data\+\_\+bytes  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 63}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3435}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3435}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(tx\_hash:\ [32]u8,\ block\_height:\ u64,\ tx\_index:\ u32)\ TxReceipt\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Tx\+\_\+hash  \\
+{\ttfamily block\+\_\+height}  &{\ttfamily u64}  &Block\+\_\+height  \\
+{\ttfamily tx\+\_\+index}  &{\ttfamily u32}  &Tx\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Tx\+Receipt}
+
+{\itshape Defined at line 94}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3437}{}\doxysubsection{\texorpdfstring{{\ttfamily success()}}{{\ttfamily success()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3437}
+Mark as successful
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ success(self:\ *TxReceipt,\ fee:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Tx\+Receipt}  &The instance  \\
+{\ttfamily fee}  &{\ttfamily u64}  &Fee  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 111}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3439}{}\doxysubsection{\texorpdfstring{{\ttfamily fail()}}{{\ttfamily fail()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3439}
+Mark as failed
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fail(self:\ *TxReceipt)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Tx\+Receipt}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 117}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3441}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Event()}}{{\ttfamily add\+Event()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3441}
+Add event log
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addEvent(self:\ *TxReceipt,\ event:\ EventLog)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Tx\+Receipt}  &The instance  \\
+{\ttfamily event}  &{\ttfamily Event\+Log}  &Event  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 122}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3443}{}\doxysubsection{\texorpdfstring{{\ttfamily hash()}}{{\ttfamily hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2tx__receipt_autotoc_md3443}
+Compute receipt hash (for receipt trie/\+merkle)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ hash(self:\ *const\ TxReceipt)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Tx\+Receipt}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 129}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

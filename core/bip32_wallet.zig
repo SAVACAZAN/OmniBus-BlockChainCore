@@ -676,6 +676,53 @@ pub const PQDomainDerivation = struct {
     }
 };
 
+// ─── HKDF-SHA512 derivation for PQ keys ──────────────────────────────────────
+//
+// Derives a deterministic 64-byte pseudo-random seed for liboqs PQ keypair
+// generation from a BIP-39 mnemonic seed. The derivation is binding to
+// (coin_type, scheme_id, index) so each PQ domain / sub-address gets its own
+// independent material while remaining 100% reproducible from the mnemonic.
+//
+// salt = "OMNIBUS-PQ-v1" (fixed, versioned for future migration)
+// ikm  = mnemonic_seed (64 bytes, output of BIP-39 PBKDF2)
+// info = coin_type (4 bytes LE) || scheme_id (1 byte) || index (4 bytes LE)
+//
+// scheme_id canonical mapping (also encoded by isolated_wallet.Scheme):
+//   0x01 ML-DSA-87       (LOVE, VACATION soulbound)
+//   0x02 Falcon-512      (FOOD soulbound)
+//   0x03 SLH-DSA-256s    (RENT soulbound)
+//   0x05 Quantum obk1_   (ML-DSA-87 transferable)
+//   0x06 Quantum obf5_   (Falcon-512 transferable)
+//   0x07 Quantum obs3_   (Dilithium-5 / ML-DSA-87 variant transferable)
+//   0x08 Quantum obd5_   (SLH-DSA-256s transferable)
+
+pub const PQ_HKDF_SALT: []const u8 = "OMNIBUS-PQ-v1";
+
+/// Derives a deterministic 64-byte seed for PQ keypair generation.
+/// Same (mnemonic_seed, coin_type, scheme_id, index) tuple ALWAYS yields the
+/// same 64 bytes — restore-from-mnemonic recovers PQ keys byte-identical.
+pub fn derivePQSeed(
+    mnemonic_seed: [64]u8,
+    coin_type: u32,
+    scheme_id: u8,
+    index: u32,
+) [64]u8 {
+    const HkdfSha512 = std.crypto.kdf.hkdf.HkdfSha512;
+    // info = coin_type (LE 4) || scheme_id (1) || index (LE 4) = 9 bytes
+    var info: [9]u8 = undefined;
+    std.mem.writeInt(u32, info[0..4], coin_type, .little);
+    info[4] = scheme_id;
+    std.mem.writeInt(u32, info[5..9], index, .little);
+
+    // HKDF-Extract → PRK (64 bytes)
+    const prk = HkdfSha512.extract(PQ_HKDF_SALT, &mnemonic_seed);
+
+    // HKDF-Expand → 64 bytes OKM
+    var okm: [64]u8 = undefined;
+    HkdfSha512.expand(&okm, &info, prk);
+    return okm;
+}
+
 // ─── Teste ───────────────────────────────────────────────────────────────────
 
 const testing = std.testing;
@@ -879,4 +926,70 @@ test "Change key — chain=1 vs chain=0 different keys" {
     const ext_key = try wallet.deriveChildKeyForPath(44, 777, 0);
     const chg_key = try wallet.deriveChangeKey(777, 0);
     try testing.expect(!std.mem.eql(u8, &ext_key, &chg_key));
+}
+
+// ─── derivePQSeed (HKDF-SHA512) tests ────────────────────────────────────────
+
+test "derivePQSeed — length is exactly 64 bytes" {
+    const seed: [64]u8 = .{0x42} ** 64;
+    const out = derivePQSeed(seed, 778, 0x01, 0);
+    try testing.expectEqual(@as(usize, 64), out.len);
+}
+
+test "derivePQSeed — deterministic (same input → same output, 100 iterations)" {
+    const seed: [64]u8 = .{0xAB} ** 64;
+    const first = derivePQSeed(seed, 778, 0x01, 0);
+    var i: usize = 0;
+    while (i < 100) : (i += 1) {
+        const again = derivePQSeed(seed, 778, 0x01, 0);
+        try testing.expectEqualSlices(u8, &first, &again);
+    }
+}
+
+test "derivePQSeed — different coin_type → different output" {
+    const seed: [64]u8 = .{0xCD} ** 64;
+    const a = derivePQSeed(seed, 778, 0x01, 0);
+    const b = derivePQSeed(seed, 779, 0x01, 0);
+    try testing.expect(!std.mem.eql(u8, &a, &b));
+}
+
+test "derivePQSeed — different scheme_id → different output" {
+    const seed: [64]u8 = .{0xCD} ** 64;
+    const a = derivePQSeed(seed, 778, 0x01, 0);
+    const b = derivePQSeed(seed, 778, 0x02, 0);
+    try testing.expect(!std.mem.eql(u8, &a, &b));
+}
+
+test "derivePQSeed — different index → different output" {
+    const seed: [64]u8 = .{0xCD} ** 64;
+    const a = derivePQSeed(seed, 778, 0x01, 0);
+    const b = derivePQSeed(seed, 778, 0x01, 1);
+    try testing.expect(!std.mem.eql(u8, &a, &b));
+}
+
+test "derivePQSeed — different mnemonic seed → different output" {
+    const a_seed: [64]u8 = .{0x01} ** 64;
+    const b_seed: [64]u8 = .{0x02} ** 64;
+    const a = derivePQSeed(a_seed, 778, 0x01, 0);
+    const b = derivePQSeed(b_seed, 778, 0x01, 0);
+    try testing.expect(!std.mem.eql(u8, &a, &b));
+}
+
+test "derivePQSeed — full BIP-39 → HKDF chain produces 64 deterministic bytes" {
+    const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+    const w = try BIP32Wallet.initFromMnemonicPassphrase(mnemonic, "", testing.allocator);
+    const a = derivePQSeed(w.master_seed, 778, 0x01, 0);
+    const b = derivePQSeed(w.master_seed, 778, 0x01, 0);
+    try testing.expectEqualSlices(u8, &a, &b);
+    // Also check independence across all 4 soulbound coin_types
+    const love     = derivePQSeed(w.master_seed, 778, 0x01, 0);
+    const food     = derivePQSeed(w.master_seed, 779, 0x02, 0);
+    const rent     = derivePQSeed(w.master_seed, 780, 0x03, 0);
+    const vacation = derivePQSeed(w.master_seed, 781, 0x01, 0);
+    try testing.expect(!std.mem.eql(u8, &love, &food));
+    try testing.expect(!std.mem.eql(u8, &love, &rent));
+    try testing.expect(!std.mem.eql(u8, &love, &vacation));
+    try testing.expect(!std.mem.eql(u8, &food, &rent));
+    try testing.expect(!std.mem.eql(u8, &food, &vacation));
+    try testing.expect(!std.mem.eql(u8, &rent, &vacation));
 }

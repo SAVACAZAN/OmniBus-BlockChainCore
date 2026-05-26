@@ -1,0 +1,9 @@
+{
+  "mainnet": {
+    "grids": [],
+    "statuses": []
+  },
+  "testnet": {
+    "grids": null
+  }
+}

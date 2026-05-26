@@ -1,0 +1,24 @@
+\doxysection{symbolic Namespace Reference}
+\hypertarget{namespacesymbolic}{}\label{namespacesymbolic}\index{symbolic@{symbolic}}
+
+
+-\/exec-\/helper  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/exec-\/helper 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Lightweight Symbolic Execution Helper.
+
+No angr dependency.  Performs static analysis on core/*.zig source files,
+scanning for:
+  - Unchecked arithmetic (missing @addWithOverflow, @mulWithOverflow)
+  - Array indexing without bounds checks
+  - Integer truncation (u64 -> u32, u256 -> u64, etc.)
+  - Potential null pointer dereference (optional unwrap without check)
+
+Reports suspicious patterns with file:line references.
+\end{DoxyVerb}
+ 

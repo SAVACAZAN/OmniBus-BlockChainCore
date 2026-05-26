@@ -1,0 +1,197 @@
+\chapter{Module:\+ {\ttfamily transaction} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction}{}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction}\index{Module: $<$tt$>$transaction$<$/tt$>$@{Module: $<$tt$>$transaction$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3390}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3390}%
+
+
+\begin{quote}
+Transaction structure and validation — defines TX fields (from, to, amount, fee, nonce, signature), signing via secp256k1, hash integrity checks, and fee calculations. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+transaction.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 388 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 5 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 14
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3392}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3392}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3393}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3393}
+
+\begin{DoxyItemize}
+\item \`{}\+Transaction\`{}{\ttfamily Transaction}
+\end{DoxyItemize}— A single transaction transferring value between addresses — includes sender, rec...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3394}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3394}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3395}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3395}
+
+\begin{DoxyItemize}
+\item \`{}calculate\+Hash()\`{}{\ttfamily calculate\+Hash()}
+\end{DoxyItemize}— Calculeaza hash-\/ul tranzactiei (SHA256d — Bitcoin style) Hash = SHA256...
+\begin{DoxyItemize}
+\item \`{}is\+Valid()\`{}{\ttfamily is\+Valid()}
+\end{DoxyItemize}— Valideaza tranzactia:\+ amount \texorpdfstring{$>$}{>} 0 (or op\+\_\+return TX), adrese cu prefix c...
+\begin{DoxyItemize}
+\item \`{}sign()\`{}{\ttfamily sign()}
+\end{DoxyItemize}— Semneaza tranzactia cu private key (secp256k1 ECDSA SHA256d — REAL) Se...
+\begin{DoxyItemize}
+\item \`{}verify()\`{}{\ttfamily verify()}
+\end{DoxyItemize}— Verifica semnatura tranzactiei cu public key (secp256k1 ECDSA — REAL)
+\begin{DoxyItemize}
+\item \`{}verify\+With\+Hex\+Pubkey()\`{}{\ttfamily verify\+With\+Hex\+Pubkey()}
+\end{DoxyItemize}— Verifica semnatura cu public key in format hex (66 chars)
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3397}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3397}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3398}{}\doxysubsection{\texorpdfstring{{\ttfamily Transaction}}{{\ttfamily Transaction}}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3398}
+A single transaction transferring value between addresses — includes sender, recipient, amount, fee, and cryptographic signature.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily id}  &{\ttfamily u32}  &Id  \\
+{\ttfamily from\+\_\+address}  &{\ttfamily \+[]\+const u8}  &From\+\_\+address  \\
+{\ttfamily to\+\_\+address}  &{\ttfamily \+[]\+const u8}  &To\+\_\+address  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+{\ttfamily fee}  &{\ttfamily u64}  &Fee  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily nonce}  &{\ttfamily u64}  &Nonce  \\
+{\ttfamily op\+\_\+return}  &{\ttfamily \+[]\+const u8}  &Op\+\_\+return  \\
+{\ttfamily locktime}  &{\ttfamily u64}  &Locktime  \\
+{\ttfamily script\+\_\+pubkey}  &{\ttfamily \+[]\+const u8}  &Script\+\_\+pubkey  \\
+{\ttfamily script\+\_\+sig}  &{\ttfamily \+[]\+const u8}  &Script\+\_\+sig  \\
+{\ttfamily signature}  &{\ttfamily \+[]\+const u8}  &Signature  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 9}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3400}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3400}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily MAX\+\_\+\+OP\+\_\+\+RETURN}  &{\ttfamily usize = 80}  &M a x\+\_\+ o p\+\_\+ r e t u r n  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3402}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3402}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3403}{}\doxysubsection{\texorpdfstring{{\ttfamily calculate\+Hash()}}{{\ttfamily calculate\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3403}
+Calculeaza hash-\/ul tranzactiei (SHA256d — Bitcoin style) Hash = SHA256(SHA256(id \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} from \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} to \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} amount \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} timestamp \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} nonce)) Nonce inclus in hash previne replay attacks (aceeasi TX cu nonce diferit = hash diferit)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calculateHash(self:\ *const\ Transaction)\ [32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[32]\+u8}
+
+{\itshape Defined at line 56}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3405}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Valid()}}{{\ttfamily is\+Valid()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3405}
+Valideaza tranzactia:\+ amount \texorpdfstring{$>$}{>} 0 (or op\+\_\+return TX), adrese cu prefix corect, op\+\_\+return \texorpdfstring{$<$}{<}= 80 bytes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isValid(self:\ *const\ Transaction)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 111}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3407}{}\doxysubsection{\texorpdfstring{{\ttfamily sign()}}{{\ttfamily sign()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3407}
+Semneaza tranzactia cu private key (secp256k1 ECDSA SHA256d — REAL) Seteaza self.\+signature = hex(R\texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}S) si self.\+hash = hex(tx\+\_\+hash)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ sign(self:\ *Transaction,\ private\_key:\ [32]u8,\ allocator:\ std.mem.Allocator)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Transaction}  &The instance  \\
+{\ttfamily private\+\_\+key}  &{\ttfamily \+[32]\+u8}  &Private\+\_\+key  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 134}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3409}{}\doxysubsection{\texorpdfstring{{\ttfamily verify()}}{{\ttfamily verify()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3409}
+Verifica semnatura tranzactiei cu public key (secp256k1 ECDSA — REAL)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verify(self:\ *const\ Transaction,\ compressed\_pubkey:\ [33]u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction}  &The instance  \\
+{\ttfamily compressed\+\_\+pubkey}  &{\ttfamily \+[33]\+u8}  &Compressed\+\_\+pubkey  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 147}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3411}{}\doxysubsection{\texorpdfstring{{\ttfamily verify\+With\+Hex\+Pubkey()}}{{\ttfamily verify\+With\+Hex\+Pubkey()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2transaction_autotoc_md3411}
+Verifica semnatura cu public key in format hex (66 chars)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ verifyWithHexPubkey(self:\ *const\ Transaction,\ pubkey\_hex:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction}  &The instance  \\
+{\ttfamily pubkey\+\_\+hex}  &{\ttfamily \+[]\+const u8}  &Pubkey\+\_\+hex  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 167}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

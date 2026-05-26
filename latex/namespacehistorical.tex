@@ -1,0 +1,24 @@
+\doxysection{historical Namespace Reference}
+\hypertarget{namespacehistorical}{}\label{namespacehistorical}\index{historical@{historical}}
+
+
+-\/attack-\/replayer  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/attack-\/replayer 
+
+\begin{DoxyVerb}historical-attack-replayer.py — OmniBus BlockChainCore Historical Attack Replayer
+
+Replay blockchain-level attacks against the OmniBus node via RPC:
+  1. Finney attack: simulate pre-mining a block with double-spend tx
+  2. Timejacking: submit blocks with extreme timestamps
+  3. Checkpoint manipulation: attempt to set a fake finality checkpoint
+  4. Double-spend via simultaneous submission (leverages double-spend-tester logic)
+
+Imports from existing tools when available, otherwise standalone.
+Output: historical-attack-results.json
+\end{DoxyVerb}
+ 

@@ -1,0 +1,281 @@
+\chapter{Module:\+ {\ttfamily synapse\+\_\+priority} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority}{}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority}\index{Module: $<$tt$>$synapse\_priority$<$/tt$>$@{Module: $<$tt$>$synapse\_priority$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3285}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3285}%
+
+
+\begin{quote}
+Synapse scheduler — priority queue for internal node operations, ensures critical tasks execute first. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+synapse\+\_\+priority.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 241 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 8 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 8
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3287}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3287}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3288}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3288}
+
+\begin{DoxyItemize}
+\item \`{}\+Synapse\+Task\`{}{\ttfamily Synapse\+Task}
+\end{DoxyItemize}— O sarcina (task) in coada de prioritati
+\begin{DoxyItemize}
+\item \`{}\+Synapse\+Scheduler\`{}{\ttfamily Synapse\+Scheduler}
+\end{DoxyItemize}— Data structure for synapse scheduler. Fields include:\+ tasks, task\+\_\+count, next\+\_\+ta...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3289}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3289}
+
+\begin{DoxyItemize}
+\item 3 constants defined3 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3290}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3290}
+
+\begin{DoxyItemize}
+\item \`{}can\+Preempt()\`{}{\ttfamily can\+Preempt()}
+\end{DoxyItemize}— Performs the can preempt operation on the synapse\+\_\+priority module.
+\begin{DoxyItemize}
+\item \`{}mode\+Priority()\`{}{\ttfamily mode\+Priority()}
+\end{DoxyItemize}— Mapare Os\+Mode → Priority
+\begin{DoxyItemize}
+\item \`{}is\+Overdue()\`{}{\ttfamily is\+Overdue()}
+\end{DoxyItemize}— Checks whether the overdue condition is true.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}dequeue()\`{}{\ttfamily dequeue()}
+\end{DoxyItemize}— Returneaza urmatoarea sarcina de executat (cea cu prioritatea cea mai ...
+\begin{DoxyItemize}
+\item \`{}overdue\+Count()\`{}{\ttfamily overdue\+Count()}
+\end{DoxyItemize}— Verifica daca exista sarcini cu deadline depasit
+\begin{DoxyItemize}
+\item \`{}is\+Empty()\`{}{\ttfamily is\+Empty()}
+\end{DoxyItemize}— Checks whether the empty condition is true.
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the synapse\+\_\+priority module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3292}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3292}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3293}{}\doxysubsection{\texorpdfstring{{\ttfamily Synapse\+Task}}{{\ttfamily Synapse\+Task}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3293}
+O sarcina (task) in coada de prioritati
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily task\+\_\+id}  &{\ttfamily u64}  &Task\+\_\+id  \\
+{\ttfamily mode}  &{\ttfamily Os\+Mode}  &Mode  \\
+{\ttfamily priority}  &{\ttfamily Priority}  &Priority  \\
+{\ttfamily queued\+\_\+at}  &{\ttfamily u64}  &Queued\+\_\+at  \\
+{\ttfamily deadline}  &{\ttfamily u64}  &Deadline  \\
+{\ttfamily label}  &{\ttfamily \+[32]\+u8}  &Label  \\
+{\ttfamily label\+\_\+len}  &{\ttfamily u8}  &Label\+\_\+len  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 48}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3295}{}\doxysubsection{\texorpdfstring{{\ttfamily Synapse\+Scheduler}}{{\ttfamily Synapse\+Scheduler}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3295}
+Data structure for synapse scheduler. Fields include:\+ tasks, task\+\_\+count, next\+\_\+task\+\_\+id, executed\+\_\+count, preemptions.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tasks}  &{\ttfamily \+[MAX\+\_\+\+TASKS]\+Synapse\+Task}  &Tasks  \\
+{\ttfamily task\+\_\+count}  &{\ttfamily usize}  &Task\+\_\+count  \\
+{\ttfamily next\+\_\+task\+\_\+id}  &{\ttfamily u64}  &Next\+\_\+task\+\_\+id  \\
+{\ttfamily executed\+\_\+count}  &{\ttfamily u64}  &Executed\+\_\+count  \\
+{\ttfamily preemptions}  &{\ttfamily u64}  &Preemptions  \\
+{\ttfamily mode}  &{\ttfamily Os\+Mode}  &Mode  \\
+{\ttfamily label}  &{\ttfamily \+[]\+const u8}  &Label  \\
+{\ttfamily queued\+\_\+at}  &{\ttfamily u64}  &Queued\+\_\+at  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 70}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3297}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3297}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Os\+Mode}  &{\ttfamily os\+\_\+mode.\+Os\+Mode}  &Os mode  \\
+{\ttfamily Priority}  &{\ttfamily enum(u8) \{}  &Priority  \\
+{\ttfamily MAX\+\_\+\+TASKS}  &{\ttfamily usize = 256}  &M a x\+\_\+ t a s k s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3299}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3299}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3300}{}\doxysubsection{\texorpdfstring{{\ttfamily can\+Preempt()}}{{\ttfamily can\+Preempt()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3300}
+Performs the can preempt operation on the synapse\+\_\+priority module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ canPreempt(self:\ Priority,\ other:\ Priority)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Priority}  &The instance  \\
+{\ttfamily other}  &{\ttfamily Priority}  &Other  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 29}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3302}{}\doxysubsection{\texorpdfstring{{\ttfamily mode\+Priority()}}{{\ttfamily mode\+Priority()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3302}
+Mapare Os\+Mode → Priority
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ modePriority(mode:\ OsMode)\ Priority\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mode}  &{\ttfamily Os\+Mode}  &Mode  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Priority}
+
+{\itshape Defined at line 35}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3304}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Overdue()}}{{\ttfamily is\+Overdue()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3304}
+Checks whether the overdue condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isOverdue(self:\ *const\ SynapseTask,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Synapse\+Task}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 60}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3306}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3306}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ SynapseScheduler\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Synapse\+Scheduler}
+
+{\itshape Defined at line 77}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3308}{}\doxysubsection{\texorpdfstring{{\ttfamily dequeue()}}{{\ttfamily dequeue()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3308}
+Returneaza urmatoarea sarcina de executat (cea cu prioritatea cea mai mare) In caz de egalitate:\+ FIFO (task\+\_\+id mai mic = primul intrat)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ dequeue(self:\ *SynapseScheduler)\ ?SynapseTask\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Synapse\+Scheduler}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Synapse\+Task}
+
+{\itshape Defined at line 118}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3310}{}\doxysubsection{\texorpdfstring{{\ttfamily overdue\+Count()}}{{\ttfamily overdue\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3310}
+Verifica daca exista sarcini cu deadline depasit
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ overdueCount(self:\ *const\ SynapseScheduler,\ current\_block:\ u64)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Synapse\+Scheduler}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 147}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3312}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Empty()}}{{\ttfamily is\+Empty()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3312}
+Checks whether the empty condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isEmpty(self:\ *const\ SynapseScheduler)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Synapse\+Scheduler}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 155}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3314}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2synapse__priority_autotoc_md3314}
+Performs the print status operation on the synapse\+\_\+priority module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ SynapseScheduler)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Synapse\+Scheduler}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 159}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

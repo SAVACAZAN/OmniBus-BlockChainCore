@@ -163,8 +163,8 @@ pub const Scheme = enum(u8) {
     omni_ecdsa = 0,
     love_dilithium = 1,
     food_falcon = 2,
-    rent_slh_dsa = 3,
-    vacation_kem = 4,
+    rent_ml_dsa = 3,
+    vacation_slh_dsa = 4,
     // PQ-OMNI transferable (Phase 1 — chain verifies PQ signature only):
     pq_omni_ml_dsa = 5,
     pq_omni_falcon = 6,
@@ -181,13 +181,14 @@ pub const Scheme = enum(u8) {
             .omni_ecdsa => "ob1q",
             .love_dilithium => "ob_k1_",
             .food_falcon => "ob_f5_",
-            .rent_slh_dsa => "ob_d5_",
-            .vacation_kem => "ob_s3_",
+            .rent_ml_dsa => "ob_d5_",
+            .vacation_slh_dsa => "ob_s3_",
             // FARA underscore initial — distinct vizual de soulbound
             .pq_omni_ml_dsa, .hybrid_q1 => "obk1_",
             .pq_omni_falcon, .hybrid_q2 => "obf5_",
-            .pq_omni_dilithium, .hybrid_q3 => "obs3_",
-            .pq_omni_slh_dsa, .hybrid_q4 => "obd5_",
+            // PREFIX REFLECTS SCHEME: d5_ = Dilithium-5 (ML-DSA-87), s3_ = SLH-DSA (SPHINCS+ L3)
+            .pq_omni_dilithium, .hybrid_q3 => "obd5_",
+            .pq_omni_slh_dsa, .hybrid_q4 => "obs3_",
         };
     }
 
@@ -197,15 +198,15 @@ pub const Scheme = enum(u8) {
         if (std.mem.startsWith(u8, addr, "ob1q")) return .omni_ecdsa;
         if (std.mem.startsWith(u8, addr, "ob_k1_")) return .love_dilithium;
         if (std.mem.startsWith(u8, addr, "ob_f5_")) return .food_falcon;
-        if (std.mem.startsWith(u8, addr, "ob_d5_")) return .rent_slh_dsa;
-        if (std.mem.startsWith(u8, addr, "ob_s3_")) return .vacation_kem;
+        if (std.mem.startsWith(u8, addr, "ob_d5_")) return .rent_ml_dsa;
+        if (std.mem.startsWith(u8, addr, "ob_s3_")) return .vacation_slh_dsa;
         // PQ-OMNI / Hybrid: fara underscore initial.
         // Returnam pq_omni_* aici; chain-ul distinge schema reala (PQ vs Hybrid)
         // din TX.scheme propriu, nu din prefixul adresei.
         if (std.mem.startsWith(u8, addr, "obk1_")) return .pq_omni_ml_dsa;
         if (std.mem.startsWith(u8, addr, "obf5_")) return .pq_omni_falcon;
-        if (std.mem.startsWith(u8, addr, "obs3_")) return .pq_omni_dilithium;
-        if (std.mem.startsWith(u8, addr, "obd5_")) return .pq_omni_slh_dsa;
+        if (std.mem.startsWith(u8, addr, "obd5_")) return .pq_omni_dilithium;
+        if (std.mem.startsWith(u8, addr, "obs3_")) return .pq_omni_slh_dsa;
         return null;
     }
 };
@@ -313,10 +314,10 @@ pub const Transaction = struct {
         "ob_ms_",      // Multisig (M-of-N P2SH-style) — legacy
         // PQ-OMNI transferable (Phase 1 PQ verify + Phase 2 hybrid ECDSA+PQ verify):
         // FARA underscore initial — distinct vizual de soulbound de mai sus.
-        "obk1_",       // PQ-OMNI ML-DSA-87  (FIPS 204)  / Hybrid Q1 (ECDSA + ML-DSA)
-        "obf5_",       // PQ-OMNI Falcon-512 (FIPS 206)  / Hybrid Q2 (ECDSA + Falcon)
-        "obs3_",       // PQ-OMNI Dilithium-5            / Hybrid Q3 (ECDSA + Dilithium)
-        "obd5_",       // PQ-OMNI SLH-DSA-256s (FIPS 205)/ Hybrid Q4 (ECDSA + SLH-DSA)
+        "obk1_",       // PQ-OMNI ML-DSA-87       (FIPS 204) / Hybrid Q1 (ECDSA + ML-DSA)
+        "obf5_",       // PQ-OMNI Falcon-512      (FIPS 206) / Hybrid Q2 (ECDSA + Falcon)
+        "obd5_",       // PQ-OMNI Dilithium-5/ML-DSA-87      / Hybrid Q3 (ECDSA + Dilithium-5)
+        "obs3_",       // PQ-OMNI SLH-DSA-256s    (FIPS 205) / Hybrid Q4 (ECDSA + SLH-DSA)
         "0x",          // ETH-compatible bridge
     };
 
@@ -619,7 +620,7 @@ pub const Transaction = struct {
                 hex_utils.hexToBytes(self.signature, sig_bytes[0..sig_len]) catch return false;
                 return kp.verify(&hash_bytes, sig_bytes[0..sig_len]);
             },
-            .rent_slh_dsa => {
+            .rent_ml_dsa => {
                 const pk = self.public_key;
                 if (pk.len == 0) return false;
                 var kp: pq_crypto.SlhDsa256s = undefined;
@@ -632,7 +633,7 @@ pub const Transaction = struct {
                 hex_utils.hexToBytes(self.signature, sig_bytes[0..sig_len]) catch return false;
                 return kp.verify(&hash_bytes, sig_bytes[0..sig_len]);
             },
-            .vacation_kem => false, // KEM nu semneaza
+            .vacation_slh_dsa => false, // KEM nu semneaza
             // PQ-OMNI transferable schemes — embedded pubkey, hex signature.
             // For now, defer full PQ verify on these to applyBlock; mempool
             // accepts PQ TXs (they already pass at chain level via the

@@ -1,17 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
-
-// ── Types ─────────────────────────────────────────────────────────────────
-
-interface PriceEntry {
-  exchange: string;
-  pair: string;
-  bidMicroUsd: number;
-  askMicroUsd: number;
-  timestampMs: number;
-  success: boolean;
-  stale: boolean;
-}
+import { rpc } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOraclePriceEvent, BlockPriceSnapshot as PriceEntry } from "../../types";
+import { MICRO_PER_USD, decimalsForUsd } from "../../utils/fmt";
 
 interface AllPricesResponse {
   prices: PriceEntry[];
@@ -19,7 +10,6 @@ interface AllPricesResponse {
   lastUpdateMs: number;
 }
 
-const POLL_MS = 3000;
 // Bumped from 1000 → 5000 to cover the full pair_registry (~1006 routes today,
 // could grow to ~3000 if exchanges list more shared pairs). Backend caps via
 // MAX_TOTAL_PAIRS=5000 in ws_exchange_feed.zig, so 5000 is a safe upper bound.
@@ -32,20 +22,11 @@ type SortDir = "asc" | "desc";
 // ── Format helpers ────────────────────────────────────────────────────────
 
 function formatUsd(microUsd: number, decimals: number): string {
-  const dollars = microUsd / 1_000_000;
+  const dollars = microUsd / MICRO_PER_USD;
   return dollars.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
-}
-
-// Pick decimals based on price magnitude — bigger prices get fewer decimals.
-function decimalsFor(microUsd: number): number {
-  const dollars = Math.abs(microUsd / 1_000_000);
-  if (dollars >= 1000) return 2;
-  if (dollars >= 1) return 2;
-  if (dollars >= 0.01) return 4;
-  return 4;
 }
 
 // Resolve the canonical exchange label (case-insensitive match).
@@ -88,18 +69,17 @@ function rowKey(base: string, bucket: string): string {
   return `${base} @ ${bucket}`;
 }
 
-// Bucket display label. USD*/EUR* are canonical (any stable).
-function bucketLabel(bucket: string): string {
-  return bucket;
-}
+
+const BUCKET_SYMBOL: Record<string, string> = {
+  "USD*": "$",
+  "EUR*": "€",
+  "GBP":  "£",
+  "JPY":  "¥",
+};
 
 // Pretty-print currency prefix for a bucket — $ for USD*, € for EUR*, etc.
 function bucketSymbol(bucket: string): string {
-  if (bucket === "USD*") return "$";
-  if (bucket === "EUR*") return "€";
-  if (bucket === "GBP") return "£";
-  if (bucket === "JPY") return "¥";
-  return "";
+  return BUCKET_SYMBOL[bucket] ?? "";
 }
 
 // ── Cell sub-component ────────────────────────────────────────────────────
@@ -123,8 +103,8 @@ function PriceCell({ entry, prefix }: { entry: CellEntry | undefined; prefix: st
   }
 
   const dimClass = entry.stale ? "opacity-50" : "";
-  const askDec = decimalsFor(entry.askMicroUsd);
-  const bidDec = decimalsFor(entry.bidMicroUsd);
+  const askDec = decimalsForUsd(entry.askMicroUsd);
+  const bidDec = decimalsForUsd(entry.bidMicroUsd);
   // Show real quote (USDC vs USD vs USDT) as a tiny suffix when it differs
   // from the bucket prefix — helps users spot stable mismatches.
   const realQuoteHint = entry.realQuote;
@@ -145,7 +125,6 @@ function PriceCell({ entry, prefix }: { entry: CellEntry | undefined; prefix: st
 // ── Main component ────────────────────────────────────────────────────────
 
 export default function AllPricesGrid() {
-  const rpc = useMemo(() => new OmniBusRpcClient(), []);
   const [prices, setPrices] = useState<PriceEntry[]>([]);
   const [count, setCount] = useState<number>(0);
   const [search, setSearch] = useState<string>("");
@@ -158,10 +137,7 @@ export default function AllPricesGrid() {
 
     const fetchAll = async () => {
       try {
-        const result = (await rpc.request_raw("omnibus_getallprices", [
-          0,
-          PAGE_LIMIT,
-        ])) as AllPricesResponse | null;
+        const result = (await rpc.getAllPrices([0, PAGE_LIMIT])) as AllPricesResponse | null;
         if (cancelled) return;
         if (result && Array.isArray(result.prices)) {
           setPrices(result.prices);
@@ -183,13 +159,20 @@ export default function AllPricesGrid() {
     };
 
     fetchAll();
-    const id = setInterval(fetchAll, POLL_MS);
+    // oracle_price fires whenever the node gets fresh prices from Chainlink/Pyth.
+    // This is the event that should drive price grid updates, not a 3 s timer.
+    const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => {
+      void fetchAll();
+    });
+    // Slow fallback poll (30 s) for when WS is disconnected.
+    const id = setInterval(() => { void fetchAll(); }, 30_000);
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
-  }, [rpc]);
+  }, []);
 
   // Pivot prices into a map keyed by `(base, bucket)` — same canonical
   // form used by pair_discovery.py. Same base + same bucket from different
@@ -281,6 +264,31 @@ export default function AllPricesGrid() {
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
         />
+        {visibleRows.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["asset","quote_bucket","coinbase_bid_usd","coinbase_ask_usd","kraken_bid_usd","kraken_ask_usd","lcx_bid_usd","lcx_ask_usd"].join(","),
+                ...visibleRows.map((r) => {
+                  const fmtCell = (ex: Exchange) => {
+                    const c = r.cells[ex];
+                    if (!c || !c.success) return ",";
+                    return `${(c.bidMicroUsd / MICRO_PER_USD).toFixed(6)},${(c.askMicroUsd / MICRO_PER_USD).toFixed(6)}`;
+                  };
+                  return [r.base, r.bucket, fmtCell("Coinbase"), fmtCell("Kraken"), fmtCell("LCX")].join(",");
+                }),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-prices-snapshot.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-2 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue whitespace-nowrap"
+          >
+            ⬇ CSV
+          </button>
+        )}
       </div>
 
       {!backendReady && loaded ? (
@@ -341,7 +349,7 @@ export default function AllPricesGrid() {
                         : row.bucket === "EUR*" ? "text-blue-400/80"
                         : "text-mempool-text-dim"
                       }>
-                        {bucketLabel(row.bucket)}
+                        {row.bucket}
                       </span>
                     </td>
                     {EXCHANGES.map((ex) => (

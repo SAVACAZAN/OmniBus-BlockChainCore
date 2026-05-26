@@ -1,0 +1,301 @@
+\doxysection{crypto-\/implementation-\/tracker Namespace Reference}
+\hypertarget{namespacecrypto-implementation-tracker}{}\label{namespacecrypto-implementation-tracker}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{run\+\_\+git}} (list\+[str]\+ args, str cwd)
+\item 
+list\+[dict\+[str, str]\+]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a325d15f9028f8a2ef5e35fc072270b13}{get\+\_\+crypto\+\_\+commits}} (str cwd, int max\+\_\+commits=300)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a67825f85b5121d471419dc0f805e3a7e}{get\+\_\+changed\+\_\+files}} (str cwd, str commit\+\_\+hash)
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af396f1f065658dd6bbbf17d8aa752837}{get\+\_\+file\+\_\+diff}} (str cwd, str commit\+\_\+hash, str file\+\_\+path)
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac}{get\+\_\+file\+\_\+at\+\_\+commit}} (str cwd, str commit\+\_\+hash, str file\+\_\+path)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a34f8790f86e0c2a5ab191d28ba09d434}{classify\+\_\+commit}} (str message)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_aa69cd138a139ff2183fd1ab69911a3e3}{extract\+\_\+bip32\+\_\+paths}} (str source)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a4b43486f1bc2c54cbcbbdc89c7518ab3}{extract\+\_\+secp256k1\+\_\+functions}} (str source)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a46937613af41ea6e3f8f3ca996864275}{extract\+\_\+test\+\_\+vectors}} (str source)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a077060df86b0a80c94c057c46dde52aa}{analyze\+\_\+crypto\+\_\+evolution}} (str cwd, int max\+\_\+commits)
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a62c2940823227b3e2fcd4f8f289d7e50}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a1d319bfebf85b9ecc11670bdb01d8c21}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a53eb97caa366fca1b7cc3b18afd7ee96}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a6ae08909cb7cad701bf31937904fb13c}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a56e480bfbe9a0ff3cdaf4a5b24dd4086}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacecrypto-implementation-tracker_doc-func-members}
+\Hypertarget{namespacecrypto-implementation-tracker_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacecrypto-implementation-tracker_a077060df86b0a80c94c057c46dde52aa}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!analyze\_crypto\_evolution@{analyze\_crypto\_evolution}}
+\index{analyze\_crypto\_evolution@{analyze\_crypto\_evolution}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{analyze\_crypto\_evolution()}{analyze\_crypto\_evolution()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a077060df86b0a80c94c057c46dde52aa} 
+ dict\+[str, Any]\+ analyze\+\_\+crypto\+\_\+evolution (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{int}]{max\+\_\+commits}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00136}{136}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacecrypto-implementation-tracker_a34f8790f86e0c2a5ab191d28ba09d434}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!classify\_commit@{classify\_commit}}
+\index{classify\_commit@{classify\_commit}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{classify\_commit()}{classify\_commit()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a34f8790f86e0c2a5ab191d28ba09d434} 
+ list\+[str]\+ classify\+\_\+commit (\begin{DoxyParamCaption}\item[{str}]{message}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00103}{103}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacecrypto-implementation-tracker_aa69cd138a139ff2183fd1ab69911a3e3}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!extract\_bip32\_paths@{extract\_bip32\_paths}}
+\index{extract\_bip32\_paths@{extract\_bip32\_paths}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{extract\_bip32\_paths()}{extract\_bip32\_paths()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_aa69cd138a139ff2183fd1ab69911a3e3} 
+ list\+[str]\+ extract\+\_\+bip32\+\_\+paths (\begin{DoxyParamCaption}\item[{str}]{source}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find BIP-32 derivation path strings in source code.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00121}{121}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacecrypto-implementation-tracker_a4b43486f1bc2c54cbcbbdc89c7518ab3}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!extract\_secp256k1\_functions@{extract\_secp256k1\_functions}}
+\index{extract\_secp256k1\_functions@{extract\_secp256k1\_functions}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{extract\_secp256k1\_functions()}{extract\_secp256k1\_functions()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a4b43486f1bc2c54cbcbbdc89c7518ab3} 
+ list\+[str]\+ extract\+\_\+secp256k1\+\_\+functions (\begin{DoxyParamCaption}\item[{str}]{source}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find public function names in secp256k1 source.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00126}{126}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacecrypto-implementation-tracker_a46937613af41ea6e3f8f3ca996864275}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!extract\_test\_vectors@{extract\_test\_vectors}}
+\index{extract\_test\_vectors@{extract\_test\_vectors}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{extract\_test\_vectors()}{extract\_test\_vectors()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a46937613af41ea6e3f8f3ca996864275} 
+ list\+[str]\+ extract\+\_\+test\+\_\+vectors (\begin{DoxyParamCaption}\item[{str}]{source}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find hard-coded hex test vectors (>= 32 hex chars).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00131}{131}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacecrypto-implementation-tracker_a67825f85b5121d471419dc0f805e3a7e}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!get\_changed\_files@{get\_changed\_files}}
+\index{get\_changed\_files@{get\_changed\_files}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{get\_changed\_files()}{get\_changed\_files()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a67825f85b5121d471419dc0f805e3a7e} 
+ list\+[str]\+ get\+\_\+changed\+\_\+files (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{str}]{commit\+\_\+hash}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00080}{80}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacecrypto-implementation-tracker_a325d15f9028f8a2ef5e35fc072270b13}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!get\_crypto\_commits@{get\_crypto\_commits}}
+\index{get\_crypto\_commits@{get\_crypto\_commits}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{get\_crypto\_commits()}{get\_crypto\_commits()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a325d15f9028f8a2ef5e35fc072270b13} 
+ list\+[dict\+[str, str]\+]\+ get\+\_\+crypto\+\_\+commits (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{int }]{max\+\_\+commits}{ = {\ttfamily 300}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00061}{61}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!get\_file\_at\_commit@{get\_file\_at\_commit}}
+\index{get\_file\_at\_commit@{get\_file\_at\_commit}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{get\_file\_at\_commit()}{get\_file\_at\_commit()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac} 
+ str get\+\_\+file\+\_\+at\+\_\+commit (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{str}]{commit\+\_\+hash}{, }\item[{str}]{file\+\_\+path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00096}{96}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacecrypto-implementation-tracker_af396f1f065658dd6bbbf17d8aa752837}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!get\_file\_diff@{get\_file\_diff}}
+\index{get\_file\_diff@{get\_file\_diff}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{get\_file\_diff()}{get\_file\_diff()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_af396f1f065658dd6bbbf17d8aa752837} 
+ str get\+\_\+file\+\_\+diff (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{str}]{commit\+\_\+hash}{, }\item[{str}]{file\+\_\+path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00085}{85}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+Here is the caller graph for this function:\+
+% FIG 13
+\Hypertarget{namespacecrypto-implementation-tracker_abf994b8269849d29e07697ea8a840f74}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 14
+\Hypertarget{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 15
+\Hypertarget{namespacecrypto-implementation-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 16
+\Hypertarget{namespacecrypto-implementation-tracker_adf0e2aa4d06b5ca38e44721821eca783}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+\Hypertarget{namespacecrypto-implementation-tracker_a7431cb90017e54fe695b23d4190db046}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!main@{main}}
+\index{main@{main}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00230}{230}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 17
+Here is the caller graph for this function:\+
+% FIG 18
+\Hypertarget{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!run\_git@{run\_git}}
+\index{run\_git@{run\_git}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{run\_git()}{run\_git()}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb} 
+ str run\+\_\+git (\begin{DoxyParamCaption}\item[{list\+[str]\+}]{args}{, }\item[{str}]{cwd}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 19
+
+
+\label{namespacecrypto-implementation-tracker_doc-var-members}
+\Hypertarget{namespacecrypto-implementation-tracker_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacecrypto-implementation-tracker_a6ae08909cb7cad701bf31937904fb13c}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a6ae08909cb7cad701bf31937904fb13c} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/implementation-\/tracker.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+\Hypertarget{namespacecrypto-implementation-tracker_a62c2940823227b3e2fcd4f8f289d7e50}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a62c2940823227b3e2fcd4f8f289d7e50} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/implementation-\/tracker.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+\Hypertarget{namespacecrypto-implementation-tracker_a1d319bfebf85b9ecc11670bdb01d8c21}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!RED@{RED}}
+\index{RED@{RED}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a1d319bfebf85b9ecc11670bdb01d8c21} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/implementation-\/tracker.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+\Hypertarget{namespacecrypto-implementation-tracker_a56e480bfbe9a0ff3cdaf4a5b24dd4086}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!RESET@{RESET}}
+\index{RESET@{RESET}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a56e480bfbe9a0ff3cdaf4a5b24dd4086} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/implementation-\/tracker.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+
+\Hypertarget{namespacecrypto-implementation-tracker_a53eb97caa366fca1b7cc3b18afd7ee96}\index{crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!crypto-\/implementation-\/tracker@{crypto-\/implementation-\/tracker}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacecrypto-implementation-tracker_a53eb97caa366fca1b7cc3b18afd7ee96} 
+str \doxymbox{\hyperlink{namespacecrypto}{crypto}}-\/implementation-\/tracker.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{crypto-implementation-tracker_8py_source}{crypto-\/implementation-\/tracker.\+py}}.
+

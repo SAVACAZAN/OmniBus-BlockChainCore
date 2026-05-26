@@ -1,0 +1,32 @@
+\doxysection{frontend/\+node\+\_\+modules/\+read-\/cache Directory Reference}
+\hypertarget{dir_edd6f20981ff6390a6f87dab05542168}{}\label{dir_edd6f20981ff6390a6f87dab05542168}\index{frontend/node\_modules/read-\/cache Directory Reference@{frontend/node\_modules/read-\/cache Directory Reference}}
+Directory dependency graph for read-\/cache:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8052}{}\doxysubsection{\texorpdfstring{read-\/cache \+[!\+[Build Status]\+(\href{https://travis-ci.org/TrySound/read-cache.svg?branch=master}{\texttt{https:\+/\+/\+travis-\/ci.\+org/\+\+Try\+Sound/\+read-\/cache.\+svg?branch=master}})]\+(\href{https://travis-ci.org/TrySound/read-cache}{\texttt{https:\+/\+/\+travis-\/ci.\+org/\+\+Try\+Sound/\+read-\/cache}})}{read-\/cache \+[!\+[Build Status]\+(\href{https://travis-ci.org/TrySound/read-cache.svg?branch=master}{\texttt{https:\+/\+/\+travis-\/ci.\+org/\+\+Try\+Sound/\+read-\/cache.\+svg?branch=master}})]\+(\href{https://travis-ci.org/TrySound/read-cache}{\texttt{https:\+/\+/\+travis-\/ci.\+org/\+\+Try\+Sound/\+read-\/cache}})}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8052}
+Reads and caches the entire contents of a file until it is modified.\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8053}{}\doxysubsection{\texorpdfstring{Install}{Install}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8053}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ npm\ i\ read-\/cache}
+
+\end{DoxyCode}
+\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8054}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8054}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ foo.js}
+\DoxyCodeLine{var\ readCache\ =\ require('read-\/cache');}
+\DoxyCodeLine{}
+\DoxyCodeLine{readCache('foo.js').then(function\ (contents)\ \{}
+\DoxyCodeLine{\ \ \ \ console.log(contents);}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8055}{}\doxysubsection{\texorpdfstring{API}{API}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8055}
+\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8056}{}\doxysubsubsection{\texorpdfstring{read\+Cache(path\+[, encoding]\+)}{read\+Cache(path\+[, encoding]\+)}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8056}
+Returns a promise that resolves with the file\textquotesingle{}s contents.\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8057}{}\doxysubsubsection{\texorpdfstring{read\+Cache.\+sync(path\+[, encoding]\+)}{read\+Cache.\+sync(path\+[, encoding]\+)}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8057}
+Returns the content of the file.\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8058}{}\doxysubsubsection{\texorpdfstring{read\+Cache.\+get(path\+[, encoding]\+)}{read\+Cache.\+get(path\+[, encoding]\+)}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8058}
+Returns the content of cached file or null.\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8059}{}\doxysubsubsection{\texorpdfstring{read\+Cache.\+clear()}{read\+Cache.\+clear()}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8059}
+Clears the contents of the cache.\hypertarget{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8060}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_edd6f20981ff6390a6f87dab05542168_autotoc_md8060}
+MIT © \href{mailto:trysound@yandex.ru}{\texttt{Bogdan Chadkin}} 

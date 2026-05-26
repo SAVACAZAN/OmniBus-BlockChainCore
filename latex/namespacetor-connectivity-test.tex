@@ -1,0 +1,257 @@
+\doxysection{tor-\/connectivity-\/test Namespace Reference}
+\hypertarget{namespacetor-connectivity-test}{}\label{namespacetor-connectivity-test}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+socket.\+socket \doxymbox{\hyperlink{namespacetor-connectivity-test_abdbe9a198ea3b42d0b7c5447e86ce9a9}{socks5\+\_\+connect}} (str proxy\+\_\+host, int proxy\+\_\+port, str target\+\_\+host, int target\+\_\+port, float timeout=10)
+\item 
+tuple \doxymbox{\hyperlink{namespacetor-connectivity-test_a7737b316e1ab7162f3a466bdef8792e0}{rpc\+\_\+via\+\_\+direct}} (str host, int port, str method)
+\item 
+tuple \doxymbox{\hyperlink{namespacetor-connectivity-test_a0068cfcb46442592caac03468974fe47}{rpc\+\_\+via\+\_\+tor}} (str proxy\+\_\+host, int proxy\+\_\+port, str target\+\_\+host, int target\+\_\+port, str method)
+\item 
+bool \doxymbox{\hyperlink{namespacetor-connectivity-test_a7195f44ae45eaa7b06bdb520425eb449}{check\+\_\+tor\+\_\+available}} (str proxy\+\_\+host, int proxy\+\_\+port)
+\item 
+tuple \doxymbox{\hyperlink{namespacetor-connectivity-test_a13f5404a45d31e40d14f071043ed88e8}{tcp\+\_\+connect\+\_\+test}} (str host, int port, str proxy\+\_\+host=None, int proxy\+\_\+port=None)
+\item 
+\doxymbox{\hyperlink{namespacetor-connectivity-test_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacetor-connectivity-test_a049db153793b52886d7901b78ffd11df}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetor-connectivity-test_a46699646933f47b5f72edc7427e4260d}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetor-connectivity-test_a09c86257d2007bc951148f2e4daa20f0}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetor-connectivity-test_a1cec573265a8da72a0d89135bc38bb07}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetor-connectivity-test_a838211ea2dff8a0e0b742e0025bfdae3}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetor-connectivity-test_aa31b2a7f59d534cdd785e2c1c2014bc6}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespacetor-connectivity-test_a6a90c99e3270b7799e525e1a9f402673}{RPC\+\_\+\+PORT}} = 8332
+\item 
+int \doxymbox{\hyperlink{namespacetor-connectivity-test_a74366f4e7cc9677b078bece8ee738c5e}{WS\+\_\+\+PORT}} = 8334
+\item 
+int \doxymbox{\hyperlink{namespacetor-connectivity-test_afe3fc70040866e4e9cbe99d8483e9174}{P2\+P\+\_\+\+PORT}} = 9000
+\item 
+int \doxymbox{\hyperlink{namespacetor-connectivity-test_a1bcf50ebfd891e210c0159f2875065f2}{SHARDS}} = 4
+\item 
+int \doxymbox{\hyperlink{namespacetor-connectivity-test_a342d02d39662da3157cc1049b00b7692}{MAX\+\_\+\+SUPPLY}} = 21\+\_\+000\+\_\+000
+\item 
+\doxymbox{\hyperlink{namespacetor-connectivity-test_a24f7f2fab7a9bc3491e4408f24b67e19}{SAT}} = int(1e9)
+\end{DoxyCompactItemize}
+
+
+\label{namespacetor-connectivity-test_doc-func-members}
+\Hypertarget{namespacetor-connectivity-test_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetor-connectivity-test_a7195f44ae45eaa7b06bdb520425eb449}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!check\_tor\_available@{check\_tor\_available}}
+\index{check\_tor\_available@{check\_tor\_available}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{check\_tor\_available()}{check\_tor\_available()}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a7195f44ae45eaa7b06bdb520425eb449} 
+ bool check\+\_\+tor\+\_\+available (\begin{DoxyParamCaption}\item[{str}]{proxy\+\_\+host}{, }\item[{int}]{proxy\+\_\+port}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if Tor SOCKS5 proxy is running.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00132}{132}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacetor-connectivity-test_a51af30a60f9f02777c6396b8247e356f}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!main@{main}}
+\index{main@{main}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00164}{164}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacetor-connectivity-test_a7737b316e1ab7162f3a466bdef8792e0}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!rpc\_via\_direct@{rpc\_via\_direct}}
+\index{rpc\_via\_direct@{rpc\_via\_direct}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{rpc\_via\_direct()}{rpc\_via\_direct()}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a7737b316e1ab7162f3a466bdef8792e0} 
+ tuple rpc\+\_\+via\+\_\+direct (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{str}]{method}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Direct JSON-RPC call. Returns (result_dict, latency_ms).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00065}{65}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacetor-connectivity-test_a0068cfcb46442592caac03468974fe47}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!rpc\_via\_tor@{rpc\_via\_tor}}
+\index{rpc\_via\_tor@{rpc\_via\_tor}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{rpc\_via\_tor()}{rpc\_via\_tor()}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a0068cfcb46442592caac03468974fe47} 
+ tuple rpc\+\_\+via\+\_\+tor (\begin{DoxyParamCaption}\item[{str}]{proxy\+\_\+host}{, }\item[{int}]{proxy\+\_\+port}{, }\item[{str}]{target\+\_\+host}{, }\item[{int}]{target\+\_\+port}{, }\item[{str}]{method}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}JSON-RPC call through Tor SOCKS5. Returns (result_dict, latency_ms).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00082}{82}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacetor-connectivity-test_abdbe9a198ea3b42d0b7c5447e86ce9a9}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!socks5\_connect@{socks5\_connect}}
+\index{socks5\_connect@{socks5\_connect}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{socks5\_connect()}{socks5\_connect()}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_abdbe9a198ea3b42d0b7c5447e86ce9a9} 
+ socket.\+socket socks5\+\_\+connect (\begin{DoxyParamCaption}\item[{str}]{proxy\+\_\+host}{, }\item[{int}]{proxy\+\_\+port}{, }\item[{str}]{target\+\_\+host}{, }\item[{int}]{target\+\_\+port}{, }\item[{float }]{timeout}{ = {\ttfamily 10}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Connect to target through SOCKS5 proxy (no auth).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacetor-connectivity-test_a13f5404a45d31e40d14f071043ed88e8}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!tcp\_connect\_test@{tcp\_connect\_test}}
+\index{tcp\_connect\_test@{tcp\_connect\_test}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{tcp\_connect\_test()}{tcp\_connect\_test()}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a13f5404a45d31e40d14f071043ed88e8} 
+ tuple tcp\+\_\+connect\+\_\+test (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{str }]{proxy\+\_\+host}{ = {\ttfamily None}, }\item[{int }]{proxy\+\_\+port}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Test TCP connectivity. Returns (success, latency_ms).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00147}{147}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+
+
+\label{namespacetor-connectivity-test_doc-var-members}
+\Hypertarget{namespacetor-connectivity-test_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetor-connectivity-test_a838211ea2dff8a0e0b742e0025bfdae3}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a838211ea2dff8a0e0b742e0025bfdae3} 
+str \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00023}{23}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a1cec573265a8da72a0d89135bc38bb07}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a1cec573265a8da72a0d89135bc38bb07} 
+str \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00022}{22}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a46699646933f47b5f72edc7427e4260d}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a46699646933f47b5f72edc7427e4260d} 
+str \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00020}{20}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a342d02d39662da3157cc1049b00b7692}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!MAX\_SUPPLY@{MAX\_SUPPLY}}
+\index{MAX\_SUPPLY@{MAX\_SUPPLY}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{MAX\_SUPPLY}{MAX\_SUPPLY}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a342d02d39662da3157cc1049b00b7692} 
+int \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+MAX\+\_\+\+SUPPLY = 21\+\_\+000\+\_\+000}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_afe3fc70040866e4e9cbe99d8483e9174}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!P2P\_PORT@{P2P\_PORT}}
+\index{P2P\_PORT@{P2P\_PORT}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{P2P\_PORT}{P2P\_PORT}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_afe3fc70040866e4e9cbe99d8483e9174} 
+int \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+P2\+P\+\_\+\+PORT = 9000}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a049db153793b52886d7901b78ffd11df}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!RED@{RED}}
+\index{RED@{RED}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a049db153793b52886d7901b78ffd11df} 
+str \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00019}{19}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_aa31b2a7f59d534cdd785e2c1c2014bc6}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!RESET@{RESET}}
+\index{RESET@{RESET}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_aa31b2a7f59d534cdd785e2c1c2014bc6} 
+str \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a6a90c99e3270b7799e525e1a9f402673}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!RPC\_PORT@{RPC\_PORT}}
+\index{RPC\_PORT@{RPC\_PORT}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{RPC\_PORT}{RPC\_PORT}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a6a90c99e3270b7799e525e1a9f402673} 
+int \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+RPC\+\_\+\+PORT = 8332}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a24f7f2fab7a9bc3491e4408f24b67e19}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!SAT@{SAT}}
+\index{SAT@{SAT}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{SAT}{SAT}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a24f7f2fab7a9bc3491e4408f24b67e19} 
+\doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+SAT = int(1e9)}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a1bcf50ebfd891e210c0159f2875065f2}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!SHARDS@{SHARDS}}
+\index{SHARDS@{SHARDS}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{SHARDS}{SHARDS}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a1bcf50ebfd891e210c0159f2875065f2} 
+int \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+SHARDS = 4}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a74366f4e7cc9677b078bece8ee738c5e}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!WS\_PORT@{WS\_PORT}}
+\index{WS\_PORT@{WS\_PORT}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{WS\_PORT}{WS\_PORT}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a74366f4e7cc9677b078bece8ee738c5e} 
+int \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+WS\+\_\+\+PORT = 8334}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+
+\Hypertarget{namespacetor-connectivity-test_a09c86257d2007bc951148f2e4daa20f0}\index{tor-\/connectivity-\/test@{tor-\/connectivity-\/test}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!tor-\/connectivity-\/test@{tor-\/connectivity-\/test}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacetor-connectivity-test_a09c86257d2007bc951148f2e4daa20f0} 
+str \doxymbox{\hyperlink{namespacetor}{tor}}-\/connectivity-\/test.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{tor-connectivity-test_8py_source_l00021}{21}} of file \doxymbox{\hyperlink{tor-connectivity-test_8py_source}{tor-\/connectivity-\/test.\+py}}.
+

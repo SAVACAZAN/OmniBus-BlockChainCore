@@ -32,13 +32,12 @@ import {
   XCircle,
   Lock,
 } from "lucide-react";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
+import { midTrunc, fmtInt } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -66,70 +65,49 @@ interface CloseResp { status: string; txid: string; closed: boolean }
 
 type SubTab = "my-poaps" | "lookup" | "create" | "claim";
 
+const POAP_TABS: { id: SubTab; label: string; icon: React.FC<{ className?: string }> }[] = [
+  { id: "my-poaps", label: "My POAPs",     icon: Award },
+  { id: "lookup",   label: "Lookup",       icon: Search },
+  { id: "create",   label: "Create Event", icon: PlusCircle },
+  { id: "claim",    label: "Claim",        icon: Download },
+];
+
 // ── Format helpers ────────────────────────────────────────────────────────
 
-const intFmt = new Intl.NumberFormat("en-US");
+const BADGE_TEXT_COLORS = [
+  "text-mempool-blue",
+  "text-mempool-green",
+  "text-mempool-orange",
+  "text-purple-400",
+  "text-pink-400",
+] as const;
+const BADGE_BG_COLORS = [
+  "bg-mempool-blue/20 border-mempool-blue/40",
+  "bg-mempool-green/20 border-mempool-green/40",
+  "bg-mempool-orange/20 border-mempool-orange/40",
+  "bg-purple-400/20 border-purple-400/40",
+  "bg-pink-400/20 border-pink-400/40",
+] as const;
 
-function shortAddr(addr: string): string {
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-4)}`;
-}
-
-function shortHash(hash: string): string {
-  if (hash.length <= 16) return hash;
-  return `${hash.slice(0, 10)}…${hash.slice(-6)}`;
+function hashEventId(eventId: string): number {
+  let h = 0;
+  for (let i = 0; i < eventId.length; i++) {
+    h = (h * 31 + eventId.charCodeAt(i)) >>> 0;
+  }
+  return h;
 }
 
 /** Derive a stable color class from an event_id string using a simple hash. */
 function badgeColor(eventId: string): string {
-  const COLORS = [
-    "text-mempool-blue",
-    "text-mempool-green",
-    "text-mempool-orange",
-    "text-purple-400",
-    "text-pink-400",
-  ];
-  const BG_COLORS = [
-    "bg-mempool-blue/20 border-mempool-blue/40",
-    "bg-mempool-green/20 border-mempool-green/40",
-    "bg-mempool-orange/20 border-mempool-orange/40",
-    "bg-purple-400/20 border-purple-400/40",
-    "bg-pink-400/20 border-pink-400/40",
-  ];
-  let h = 0;
-  for (let i = 0; i < eventId.length; i++) {
-    h = (h * 31 + eventId.charCodeAt(i)) >>> 0;
-  }
-  const idx = h % COLORS.length;
-  return `${COLORS[idx]} ${BG_COLORS[idx]}`;
+  const idx = hashEventId(eventId) % BADGE_TEXT_COLORS.length;
+  return `${BADGE_TEXT_COLORS[idx]} ${BADGE_BG_COLORS[idx]}`;
 }
 
 function badgeTextColor(eventId: string): string {
-  const COLORS = [
-    "text-mempool-blue",
-    "text-mempool-green",
-    "text-mempool-orange",
-    "text-purple-400",
-    "text-pink-400",
-  ];
-  let h = 0;
-  for (let i = 0; i < eventId.length; i++) {
-    h = (h * 31 + eventId.charCodeAt(i)) >>> 0;
-  }
-  return COLORS[h % COLORS.length];
+  return BADGE_TEXT_COLORS[hashEventId(eventId) % BADGE_TEXT_COLORS.length];
 }
 
 // ── Signing ───────────────────────────────────────────────────────────────
-
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  if (privKeyHex.startsWith("0x")) privKeyHex = privKeyHex.slice(2);
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
 
 function signCreateEvent(args: {
   privateKeyHex: string; from: string; event_id: string;
@@ -154,12 +132,6 @@ function signClose(args: {
 }
 
 // ── Nonce helper ──────────────────────────────────────────────────────────
-
-async function fetchNonce(address: string): Promise<number> {
-  const r = await rpc.request_raw("getnonce", [address]) as
-    { nonce?: number } | number | null;
-  return typeof r === "number" ? r : (r?.nonce ?? 0);
-}
 
 // ── Toast helper ──────────────────────────────────────────────────────────
 
@@ -209,7 +181,7 @@ function BadgeCard({
           {poap.event_id}
         </div>
         <div className="text-[10px] text-mempool-text-dim font-mono mt-0.5">
-          block #{intFmt.format(poap.claim_block)}
+          block #{fmtInt(poap.claim_block)}
         </div>
       </div>
     </button>
@@ -260,15 +232,17 @@ function EventInfoCard({
       {/* Meta rows */}
       <div className="space-y-1">
         <Row label="organizer" value={
-          <span className="text-mempool-blue" title={event.organizer}>{shortAddr(event.organizer)}</span>
+          <button onClick={() => { window.location.hash = `#/address/${event.organizer}`; }} className="text-mempool-blue hover:underline">
+            <AddressLabel address={event.organizer} showEmoji truncate={{ left: 8, right: 6 }} />
+          </button>
         } />
-        <Row label="created at block" value={intFmt.format(event.create_block)} />
+        <Row label="created at block" value={fmtInt(event.create_block)} />
         <Row
           label="claims"
           value={
             unlimited
-              ? `${intFmt.format(event.claims_count)} / unlimited`
-              : `${intFmt.format(event.claims_count)} / ${intFmt.format(event.max_claims)}`
+              ? `${fmtInt(event.claims_count)} / unlimited`
+              : `${fmtInt(event.claims_count)} / ${fmtInt(event.max_claims)}`
           }
         />
         {!unlimited && claimPct !== null && (
@@ -346,12 +320,7 @@ export function PoapPage() {
 
       {/* Sub-tab bar */}
       <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
-        {([
-          { id: "my-poaps", label: "My POAPs",    icon: Award },
-          { id: "lookup",   label: "Lookup",      icon: Search },
-          { id: "create",   label: "Create Event", icon: PlusCircle },
-          { id: "claim",    label: "Claim",        icon: Download },
-        ] as { id: SubTab; label: string; icon: React.FC<{ className?: string }> }[]).map((t) => {
+        {POAP_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button
@@ -416,7 +385,7 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
     setLoading(true);
     setErr(null);
     try {
-      const r = await rpc.request_raw("getpoaps", [{ address: effectiveAddress }]) as GetPoapsResp | null;
+      const r = await rpc.getPoaps(effectiveAddress) as GetPoapsResp | null;
       setPoaps(r?.poaps ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -433,7 +402,7 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
     setSelectedEvent(null);
     setEventLoading(true);
     try {
-      const ev = await rpc.request_raw("getpoapevent", [{ event_id }]) as PoapEvent | null;
+      const ev = await rpc.getPoapEvent(event_id) as PoapEvent | null;
       setSelectedEvent(ev);
     } catch { /* ignore */ } finally {
       setEventLoading(false);
@@ -444,7 +413,7 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
     if (!wallet || !selectedId) return;
     setBusyClose(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signClose({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -473,6 +442,8 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
     await loadEventDetail(id);
   };
 
+  const ownedPoap = poaps?.find((p) => p.event_id === selectedId) ?? null;
+
   return (
     <div className="space-y-4">
       {/* Address row */}
@@ -489,6 +460,28 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
             placeholder="ob1q… (paste address to view POAPs)"
             className="flex-1 min-w-0 sm:min-w-[280px] w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
           />
+        )}
+        {poaps !== null && poaps.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["event_id","claim_block","tx_hash"].join(","),
+                ...poaps.map((p) => [
+                  `"${p.event_id}"`,
+                  p.claim_block,
+                  `"${p.tx_hash}"`,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-poaps.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
         )}
         <button
           onClick={() => void refresh()}
@@ -570,21 +563,18 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
                 busyClose={busyClose}
               />
               {/* Show TX hash for the owned POAP if it's in our list */}
-              {poaps?.find((p) => p.event_id === selectedId) && (() => {
-                const p = poaps!.find((pp) => pp.event_id === selectedId)!;
-                return (
-                  <div className="text-[11px] text-mempool-text-dim font-mono">
-                    claim tx:{" "}
-                    <a
-                      href={`/blocks/${p.tx_hash}`}
-                      className="text-mempool-blue hover:underline"
-                      title={p.tx_hash}
-                    >
-                      {shortHash(p.tx_hash)}
-                    </a>
-                  </div>
-                );
-              })()}
+              {ownedPoap && (
+                <div className="text-[11px] text-mempool-text-dim font-mono">
+                  claim tx:{" "}
+                  <a
+                    href={`/blocks/${ownedPoap.tx_hash}`}
+                    className="text-mempool-blue hover:underline"
+                    title={ownedPoap.tx_hash}
+                  >
+                    {midTrunc(ownedPoap.tx_hash, 10, 6)}
+                  </a>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -619,7 +609,7 @@ function LookupTab({ wallet }: { wallet: WalletProp }) {
     setErr(null);
     setEvent(undefined);
     try {
-      const ev = await rpc.request_raw("getpoapevent", [{ event_id }]) as PoapEvent | null;
+      const ev = await rpc.getPoapEvent(event_id) as PoapEvent | null;
       setEvent(ev ?? null);
       if (ev === null) setErr("Event not found");
     } catch (e) {
@@ -634,7 +624,7 @@ function LookupTab({ wallet }: { wallet: WalletProp }) {
     if (!wallet || !event) return;
     setBusyClaim(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signClaim({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -662,7 +652,7 @@ function LookupTab({ wallet }: { wallet: WalletProp }) {
     if (!wallet || !event) return;
     setBusyClose(true);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signClose({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -775,7 +765,7 @@ function CreateEventTab({ wallet }: { wallet: WalletProp }) {
     setBusy(true);
     setSuccessInfo(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signCreateEvent({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -877,7 +867,7 @@ function CreateEventTab({ wallet }: { wallet: WalletProp }) {
           className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-sm font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue disabled:opacity-40"
         />
         <div className="text-[10px] text-mempool-text-dim font-mono">
-          {maxClaimsNum === 0 ? "Unlimited participants can claim this badge." : `Up to ${intFmt.format(maxClaimsNum)} participants.`}
+          {maxClaimsNum === 0 ? "Unlimited participants can claim this badge." : `Up to ${fmtInt(maxClaimsNum)} participants.`}
         </div>
       </div>
 
@@ -923,7 +913,7 @@ function CreateEventTab({ wallet }: { wallet: WalletProp }) {
             <Row label="event_id" value={<span className="text-mempool-text">{successInfo.event_id}</span>} />
             <Row label="txid" value={
               <a href={`/blocks/${successInfo.txid}`} className="text-mempool-blue hover:underline" title={successInfo.txid}>
-                {shortHash(successInfo.txid)}
+                {midTrunc(successInfo.txid, 10, 6)}
               </a>
             } />
             <Row label="fee" value={`${successInfo.fee_sat} sat`} />
@@ -964,7 +954,7 @@ function ClaimTab({ wallet }: { wallet: WalletProp }) {
     setPreviewEvent(undefined);
     setClaimResult(null);
     try {
-      const ev = await rpc.request_raw("getpoapevent", [{ event_id }]) as PoapEvent | null;
+      const ev = await rpc.getPoapEvent(event_id) as PoapEvent | null;
       setPreviewEvent(ev);
       if (!ev) setPreviewErr("Event not found");
     } catch (e) {
@@ -980,7 +970,7 @@ function ClaimTab({ wallet }: { wallet: WalletProp }) {
     setBusyClaim(true);
     setClaimResult(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signClaim({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -1081,7 +1071,7 @@ function ClaimTab({ wallet }: { wallet: WalletProp }) {
             <div>
               txid:{" "}
               <a href={`/blocks/${claimResult.txid}`} className="text-mempool-blue hover:underline" title={claimResult.txid}>
-                {shortHash(claimResult.txid)}
+                {midTrunc(claimResult.txid, 10, 6)}
               </a>
             </div>
             <div>Status: <span className="text-mempool-green">{claimResult.status}</span></div>

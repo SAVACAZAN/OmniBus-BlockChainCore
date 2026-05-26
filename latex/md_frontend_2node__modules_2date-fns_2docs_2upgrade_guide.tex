@@ -1,0 +1,100 @@
+\chapter{v2 Upgrade Guide }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide}{}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide}\index{v2 Upgrade Guide@{v2 Upgrade Guide}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6373}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6373}%
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6374}{}\doxysection{\texorpdfstring{Common changes}{Common changes}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6374}
+This page covers a few of the most common problems people face when updating from v1 to v2. For a more detailed list of changes, look at the \href{https://date-fns.org/docs/Change-Log}{\texttt{change log for version 2.\+0.\+0}}.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6375}{}\doxysubsection{\texorpdfstring{Camel case naming schema}{Camel case naming schema}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6375}
+Function submodules now use camel\+Case naming schema:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Before\ v2.0.0}
+\DoxyCodeLine{import\ differenceInCalendarISOYears\ from\ 'date-\/fns/difference\_in\_calendar\_iso\_years'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ v2.0.0\ onward}
+\DoxyCodeLine{import\ differenceInCalendarISOYears\ from\ 'date-\/fns/differenceInCalendarISOYears'}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6376}{}\doxysubsection{\texorpdfstring{New formatting tokens}{New formatting tokens}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6376}
+Starting with v2 {\ttfamily format} and {\ttfamily parse} uses \href{https://www.unicode.org/reports/tr35/tr35-dates.html\#Date_Field_Symbol_Table}{\texttt{Unicode tokens}}.
+
+See \href{https://date-fns.org/docs/Unicode-Tokens}{\texttt{Unicode Tokens doc}} for more details.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6377}{}\doxysubsection{\texorpdfstring{String arguments}{String arguments}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6377}
+Functions now don\textquotesingle{}t accept strings as date arguments. Strings should be parsed using {\ttfamily parse\+ISO} (ISO 8601) or {\ttfamily parse}.
+
+See \href{https://blog.date-fns.org/post/we-cut-date-fns-v2-minimal-build-size-down-to-300-bytes-and-now-its-the-smallest-date-library-18f2nvh2z0yal}{\texttt{this post}} for more details.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Before\ v2.0.0}
+\DoxyCodeLine{addDays('2016-\/01-\/01',\ 1)}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ v2.0.0\ onward}
+\DoxyCodeLine{addDays(parseISO('2016-\/01-\/01'),\ 1)}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6378}{}\doxysubsection{\texorpdfstring{Arguments conversion}{Arguments conversion}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6378}
+All functions now implicitly convert arguments by following rules:\+
+
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}&\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}date  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}number  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}string  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}boolean  \\
+0  &new Date(0)  &0  &\textquotesingle{}0\textquotesingle{}  &false  \\
+\textquotesingle{}0\textquotesingle{}  &Invalid Date  &0  &\textquotesingle{}0\textquotesingle{}  &false  \\
+1  &new Date(1)  &1  &\textquotesingle{}1\textquotesingle{}  &true  \\
+\textquotesingle{}1\textquotesingle{}  &Invalid Date  &1  &\textquotesingle{}1\textquotesingle{}  &true  \\
+true  &Invalid Date  &NaN  &\textquotesingle{}true\textquotesingle{}  &true  \\
+false  &Invalid Date  &NaN  &\textquotesingle{}false\textquotesingle{}  &false  \\
+null  &Invalid Date  &NaN  &\textquotesingle{}null\textquotesingle{}  &false  \\
+undefined  &Invalid Date  &NaN  &\textquotesingle{}undefined\textquotesingle{}  &false  \\
+NaN  &Invalid Date  &NaN  &\textquotesingle{}NaN\textquotesingle{}  &false  \\
+\end{DoxyTable}
+
+
+Notes:\+
+
+
+\begin{DoxyItemize}
+\item as before, arguments expected to be {\ttfamily Date} are converted to {\ttfamily Date} using {\itshape date-\/fns\textquotesingle{}} {\ttfamily to\+Date} function;
+\item arguments expected to be numbers are converted to integer numbers using our custom {\ttfamily to\+Integer} implementation (see \href{https://github.com/date-fns/date-fns/pull/765}{\texttt{\#765}});
+\item arguments expected to be strings are converted to strings using Java\+Script\textquotesingle{}s {\ttfamily String} function;
+\item arguments expected to be booleans are converted to boolean using Java\+Script\textquotesingle{}s {\ttfamily Boolean} function.
+\end{DoxyItemize}
+
+{\ttfamily null} and {\ttfamily undefined} passed to optional arguments (i.\+e. properties of {\ttfamily options} argument) are ignored as if no argument was passed.
+
+If any argument is invalid (i.\+e. {\ttfamily NaN} for numbers and {\ttfamily Invalid Date} for dates), an invalid value will be returned:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily false} for functions that return booleans (expect {\ttfamily is\+Valid});
+\item {\ttfamily Invalid Date} for functions that return dates;
+\item {\ttfamily NaN} for functions that return numbers;
+\item and {\ttfamily String(\textquotesingle{}Invalid Date\textquotesingle{})} for functions that return strings.
+\end{DoxyItemize}
+
+See tests and PRs \href{https://github.com/date-fns/date-fns/pull/460}{\texttt{\#460}} and \href{https://github.com/date-fns/date-fns/pull/765}{\texttt{\#765}} for exact behavior.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6379}{}\doxysubsection{\texorpdfstring{{\ttfamily null}}{{\ttfamily null}}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6379}
+{\ttfamily null} now is not a valid date. {\ttfamily is\+Valid(null)} returns {\ttfamily false}; {\ttfamily to\+Date(null)} returns an invalid date. Since {\ttfamily to\+Date} is used internally by all the functions, operations over {\ttfamily null} will also return an invalid date. \href{https://github.com/date-fns/date-fns/issues/537}{\texttt{See \#537}} for the reasoning.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6380}{}\doxysubsection{\texorpdfstring{{\ttfamily Range\+Error}}{{\ttfamily Range\+Error}}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6380}
+Functions now throw {\ttfamily Range\+Error} if optional values passed to {\ttfamily options} are not {\ttfamily undefined} or have expected values. This change is introduced for consistency with ECMAScript standard library which does the same.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6381}{}\doxysubsection{\texorpdfstring{{\ttfamily Type\+Error}}{{\ttfamily Type\+Error}}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6381}
+All functions now check if the passed number of arguments is less than the number of required arguments and throw {\ttfamily Type\+Error} exception if so.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6382}{}\doxysubsection{\texorpdfstring{UMD/\+\+CDN}{UMD/\+\+CDN}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6382}
+The Bower \& UMD/\+\+CDN package versions are no longer supported.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6383}{}\doxysubsection{\texorpdfstring{New locale format}{New locale format}}\label{md_frontend_2node__modules_2date-fns_2docs_2upgrade_guide_autotoc_md6383}
+See \href{https://date-fns.org/docs/Locale}{\texttt{docs/\+\+Locale}}.
+
+Locales renamed:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily en} → {\ttfamily en-\/\+US}
+\item {\ttfamily zh\+\_\+cn} → {\ttfamily zh-\/\+CN}
+\item {\ttfamily zh\+\_\+tw} → {\ttfamily zh-\/\+TW}
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Before\ v2.0.0}
+\DoxyCodeLine{import\ locale\ from\ 'date-\/fns/locale/zh\_cn'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ v2.0.0\ onward}
+\DoxyCodeLine{import\ locale\ from\ 'date-\/fns/locale/zh-\/CN'}
+
+\end{DoxyCode}
+ 

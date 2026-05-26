@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
-import { getActiveChain, setActiveChain, type ChainName } from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
+import { getActiveChain, setActiveChain, type ChainName, rpc as _searchRpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { PlasmaLogo } from "../effects/PlasmaLogo";
 import { PlasmaLogoOrange } from "../effects/PlasmaLogoOrange";
@@ -45,19 +46,53 @@ export function Header() {
   useEffect(() => {
     window.__openTx = (txid: string) => {
       const s = txid.trim();
+      if (!s) return;
       // Block number
       if (/^\d+$/.test(s)) { window.location.hash = `#/block/${s}`; return; }
       // Full TX hash
       if (/^[0-9a-fA-F]{64}$/.test(s)) { window.location.hash = `#/tx/${s}`; return; }
-      // Address or partial — fall back to legacy TxSearch
+      // Any OmniBus address (ECDSA ob1q/ob1p/ob1m, soulbound ob_k1_/ob_f5_/ob_d5_/ob_s3_,
+      // transferable PQ obk1_/obf5_/obd5_/obs3_) — navigate directly to address explorer.
+      if (/^ob[1_][a-z0-9_]{5,}/.test(s)) { window.location.hash = `#/address/${s}`; return; }
+      // ENS-style name — try resolveaddress, fall back to TxSearch
+      if (/^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9]+)?$/.test(s) && !/^[0-9a-fA-F]+$/.test(s)) {
+        _searchRpc.resolveAddress(s).then((r) => {
+          const resolved = typeof r === "string" ? r : r?.address;
+          if (resolved && resolved.length > 8) {
+            window.location.hash = `#/address/${resolved}`;
+          } else {
+            setSearchInitial(s); setShowSearch(true);
+          }
+        }).catch(() => { setSearchInitial(s); setShowSearch(true); });
+        return;
+      }
+      // Partial / direct address
+      if (s.length >= 8) { window.location.hash = `#/address/${s}`; return; }
       setSearchInitial(s);
       setShowSearch(true);
     };
     return () => { delete window.__openTx; };
   }, []);
 
+  const ibd = state.ibdProgress;
+
   return (
     <>
+      {/* IBD sync progress banner — visible only while node is catching up */}
+      {ibd && ibd.active && (
+        <div className="sticky top-0 z-[60] bg-mempool-orange/10 border-b border-mempool-orange/40 px-4 py-1.5 flex items-center gap-3">
+          <span className="text-[11px] text-mempool-orange font-medium animate-pulse">Syncing…</span>
+          <div className="flex-1 bg-mempool-bg rounded-full h-1.5 overflow-hidden">
+            <div
+              className="h-full bg-mempool-orange rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, ibd.progress)}%` }}
+            />
+          </div>
+          <span className="text-[10px] font-mono text-mempool-text-dim whitespace-nowrap">
+            {ibd.local_height.toLocaleString()} / {ibd.peer_height.toLocaleString()} ({ibd.progress}%)
+          </span>
+        </div>
+      )}
       <header className="sticky top-0 z-50 bg-mempool-bg-elev backdrop-blur-sm border-b border-mempool-border">
         {/* ── Desktop layout (sm+) ── */}
         <div className="hidden sm:flex max-w-7xl mx-auto px-4 py-3 items-center justify-between">
@@ -264,18 +299,55 @@ export function Header() {
 
 /**
  * ExplorerSearchBar — inline search in the desktop header.
- * Detects input type: block number → #/block/:n, 64-hex → #/tx/:h,
- * otherwise → #/address/:addr. Falls back to legacy TxSearch modal for
- * short queries that don't match a known pattern.
+ * Detects input type:
+ *   - block number → #/block/:n
+ *   - 64-hex       → #/tx/:h
+ *   - name.tld     → resolves via resolveaddress RPC → #/address/:resolved
+ *   - anything 8+  → #/address/:s (direct address or name the address page handles)
  */
 function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
   const [q, setQ] = useState("");
+  const [resolving, setResolving] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const navigate = (raw: string) => {
+  // "/" or Ctrl+K / Cmd+K → focus this search bar
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      const inInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+      if (inInput) return;
+      if (e.key === "/" || ((e.ctrlKey || e.metaKey) && e.key === "k")) {
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  const navigate = async (raw: string) => {
     const s = raw.trim();
     if (!s) { onFallback(); return; }
     if (/^\d+$/.test(s)) { window.location.hash = `#/block/${s}`; setQ(""); return; }
     if (/^[0-9a-fA-F]{64}$/.test(s)) { window.location.hash = `#/tx/${s}`; setQ(""); return; }
+    // ENS-style name (contains a dot, like "savacazan.omnibus")
+    if (/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$/.test(s)) {
+      setResolving(true);
+      if (abortRef.current) abortRef.current.abort();
+      abortRef.current = new AbortController();
+      try {
+        const r = await _searchRpc.resolveAddress(s);
+        const resolved = typeof r === "string" ? r : r?.address;
+        if (resolved && resolved.length > 8) {
+          window.location.hash = `#/address/${resolved}`;
+          setQ("");
+          return;
+        }
+      } catch { /* fall through to direct address lookup */ }
+      finally { setResolving(false); }
+    }
     if (s.length >= 8) { window.location.hash = `#/address/${s}`; setQ(""); return; }
     onFallback();
   };
@@ -291,14 +363,21 @@ function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
         <path d="M21 21l-4.35-4.35" />
       </svg>
       <input
+        ref={inputRef}
         type="text"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter") navigate(q); }}
-        placeholder="Block / TX / Address…"
-        className="bg-mempool-bg border border-mempool-border rounded-lg pl-8 pr-8 py-1.5 text-xs text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue w-52 lg:w-64 transition-colors"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") void navigate(q);
+          if (e.key === "Escape") { setQ(""); (e.target as HTMLInputElement).blur(); }
+        }}
+        placeholder="Block / TX / Address / name.tld…"
+        title="Press / or Ctrl+K to focus"
+        className="bg-mempool-bg border border-mempool-border rounded-lg pl-8 pr-8 py-1.5 text-xs text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue w-56 lg:w-72 transition-colors"
       />
-      {q ? (
+      {resolving ? (
+        <span className="absolute right-2 text-mempool-text-dim text-[10px] animate-pulse">…</span>
+      ) : q ? (
         <button
           onClick={() => setQ("")}
           className="absolute right-2 text-mempool-text-dim hover:text-mempool-text"
@@ -341,8 +420,8 @@ function ActiveSlotSelector() {
   // Find OMNI on the active slot for the inline chip; fall back to the
   // unlocked wallet's primary balance when the snapshot hasn't loaded yet.
   const activeRow = all.slots.find((s) => s.index === activeSlot);
-  const activeOmni = activeRow ? activeRow.wallet_sat / 1e9 : 0;
-  const totalOmni = all.total_wallet_sat / 1e9;
+  const activeOmni = activeRow ? activeRow.wallet_sat / SAT_PER_OMNI : 0;
+  const totalOmni = all.total_wallet_sat / SAT_PER_OMNI;
 
   return (
     <div className="hidden md:flex items-center gap-2 px-2 py-1 rounded-lg bg-mempool-bg-elev border border-mempool-border">
@@ -355,7 +434,7 @@ function ActiveSlotSelector() {
       >
         {Array.from({ length: slotsCount }, (_, i) => {
           const row = all.slots.find((s) => s.index === i);
-          const bal = row ? (row.wallet_sat / 1e9).toFixed(2) : "—";
+          const bal = row ? (row.wallet_sat / SAT_PER_OMNI).toFixed(2) : "—";
           return (
             <option key={i} value={i}>
               #{i} · {bal}

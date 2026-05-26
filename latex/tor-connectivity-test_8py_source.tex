@@ -1,0 +1,297 @@
+\doxysection{tor-\/connectivity-\/test.py}
+\hypertarget{tor-connectivity-test_8py_source}{}\label{tor-connectivity-test_8py_source}\index{tools/NETWORK/tor-\/connectivity-\/test.py@{tools/NETWORK/tor-\/connectivity-\/test.py}}
+\doxymbox{\hyperlink{tor-connectivity-test_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00001}\doxymbox{\hyperlink{namespacetor-connectivity-test}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00002}\doxymbox{\hyperlink{namespacetor}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ Tor\ Connectivity\ Test.}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00004}00004\ \textcolor{stringliteral}{Connects\ to\ node\ P2P\ port\ 9000\ and\ RPC\ port\ 8332\ through\ SOCKS5\ proxy}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00005}00005\ \textcolor{stringliteral}{(default\ 127.0.0.1:9050).\ \ Sends\ JSON-\/RPC\ getblockcount.}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00006}00006\ \textcolor{stringliteral}{If\ Tor\ not\ running,\ skips\ gracefully\ with\ YELLOW\ warning.}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00007}00007\ \textcolor{stringliteral}{Measures\ latency:\ direct\ vs\ Tor.}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00008}00008\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00010}00010\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00011}00011\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00012}00012\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00013}00013\ \textcolor{keyword}{import}\ socket}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00014}00014\ \textcolor{keyword}{import}\ struct}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00015}00015\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00016}00016\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00018}00018\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00019}\doxymbox{\hyperlink{namespacetor-connectivity-test_a049db153793b52886d7901b78ffd11df}{00019}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00020}\doxymbox{\hyperlink{namespacetor-connectivity-test_a46699646933f47b5f72edc7427e4260d}{00020}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00021}\doxymbox{\hyperlink{namespacetor-connectivity-test_a09c86257d2007bc951148f2e4daa20f0}{00021}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00022}\doxymbox{\hyperlink{namespacetor-connectivity-test_a1cec573265a8da72a0d89135bc38bb07}{00022}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00023}\doxymbox{\hyperlink{namespacetor-connectivity-test_a838211ea2dff8a0e0b742e0025bfdae3}{00023}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00024}\doxymbox{\hyperlink{namespacetor-connectivity-test_aa31b2a7f59d534cdd785e2c1c2014bc6}{00024}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00026}00026\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00027}\doxymbox{\hyperlink{namespacetor-connectivity-test_a6a90c99e3270b7799e525e1a9f402673}{00027}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00028}\doxymbox{\hyperlink{namespacetor-connectivity-test_a74366f4e7cc9677b078bece8ee738c5e}{00028}}\ WS\_PORT\ =\ 8334}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00029}\doxymbox{\hyperlink{namespacetor-connectivity-test_afe3fc70040866e4e9cbe99d8483e9174}{00029}}\ P2P\_PORT\ =\ 9000}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00030}\doxymbox{\hyperlink{namespacetor-connectivity-test_a1bcf50ebfd891e210c0159f2875065f2}{00030}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00031}\doxymbox{\hyperlink{namespacetor-connectivity-test_a342d02d39662da3157cc1049b00b7692}{00031}}\ MAX\_SUPPLY\ =\ 21\_000\_000}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00032}\doxymbox{\hyperlink{namespacetor-connectivity-test_a24f7f2fab7a9bc3491e4408f24b67e19}{00032}}\ SAT\ =\ int(1e9)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00035}\doxymbox{\hyperlink{namespacetor-connectivity-test_abdbe9a198ea3b42d0b7c5447e86ce9a9}{00035}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetor-connectivity-test_abdbe9a198ea3b42d0b7c5447e86ce9a9}{socks5\_connect}}(proxy\_host:\ str,\ proxy\_port:\ int,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ target\_host:\ str,\ target\_port:\ int,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ timeout:\ float\ =\ 10)\ -\/>\ socket.socket:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00038}00038\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Connect\ to\ target\ through\ SOCKS5\ proxy\ (no\ auth)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00039}00039\ \ \ \ \ sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00040}00040\ \ \ \ \ sock.settimeout(timeout)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00041}00041\ \ \ \ \ sock.connect((proxy\_host,\ proxy\_port))}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00043}00043\ \ \ \ \ \textcolor{comment}{\#\ SOCKS5\ greeting:\ version=5,\ 1\ method,\ no-\/auth=0}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00044}00044\ \ \ \ \ sock.sendall(b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x01\(\backslash\)x00"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00045}00045\ \ \ \ \ resp\ =\ sock.recv(2)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00046}00046\ \ \ \ \ \textcolor{keywordflow}{if}\ resp\ !=\ b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x00"{}}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ ConnectionError(f\textcolor{stringliteral}{"{}SOCKS5\ auth\ rejected:\ \{resp.hex()\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00050}00050\ \ \ \ \ \textcolor{comment}{\#\ SOCKS5\ connect\ request}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00051}00051\ \ \ \ \ \textcolor{comment}{\#\ VER=5,\ CMD=1(connect),\ RSV=0,\ ATYP=1(IPv4)}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00052}00052\ \ \ \ \ addr\_bytes\ =\ socket.inet\_aton(target\_host)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00053}00053\ \ \ \ \ port\_bytes\ =\ struct.pack(\textcolor{stringliteral}{"{}>H"{}},\ target\_port)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00054}00054\ \ \ \ \ sock.sendall(b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x01\(\backslash\)x00\(\backslash\)x01"{}}\ +\ addr\_bytes\ +\ port\_bytes)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00056}00056\ \ \ \ \ resp\ =\ sock.recv(10)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00057}00057\ \ \ \ \ \textcolor{keywordflow}{if}\ len(resp)\ <\ 2\ \textcolor{keywordflow}{or}\ resp[1]\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ status\ =\ resp[1]\ \textcolor{keywordflow}{if}\ len(resp)\ >\ 1\ \textcolor{keywordflow}{else}\ -\/1}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ ConnectionError(f\textcolor{stringliteral}{"{}SOCKS5\ connect\ failed,\ status=\{status\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{return}\ sock}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00065}\doxymbox{\hyperlink{namespacetor-connectivity-test_a7737b316e1ab7162f3a466bdef8792e0}{00065}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetor-connectivity-test_a7737b316e1ab7162f3a466bdef8792e0}{rpc\_via\_direct}}(host:\ str,\ port:\ int,\ method:\ str)\ -\/>\ tuple:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00066}00066\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Direct\ JSON-\/RPC\ call.\ Returns\ (result\_dict,\ latency\_ms)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00067}00067\ \ \ \ \ payload\ =\ json.dumps(\{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}params"{}}:\ []\})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00068}00068\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload,\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ data\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ latency\ =\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data,\ latency}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ latency\ =\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ str(exc)\},\ latency}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00082}\doxymbox{\hyperlink{namespacetor-connectivity-test_a0068cfcb46442592caac03468974fe47}{00082}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetor-connectivity-test_a0068cfcb46442592caac03468974fe47}{rpc\_via\_tor}}(proxy\_host:\ str,\ proxy\_port:\ int,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ target\_host:\ str,\ target\_port:\ int,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ method:\ str)\ -\/>\ tuple:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00085}00085\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}JSON-\/RPC\ call\ through\ Tor\ SOCKS5.\ Returns\ (result\_dict,\ latency\_ms)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00086}00086\ \ \ \ \ payload\ =\ json.dumps(\{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}params"{}}:\ []\})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00087}00087\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00088}00088\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ sock\ =\ \doxymbox{\hyperlink{namespacetor-connectivity-test_abdbe9a198ea3b42d0b7c5447e86ce9a9}{socks5\_connect}}(proxy\_host,\ proxy\_port,\ target\_host,\ target\_port)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Build\ HTTP\ request\ manually}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ http\_req\ =\ (}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}POST\ /\ HTTP/1.1\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Host:\ \{target\_host\}:\{target\_port\}\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Content-\/Type:\ application/json\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Content-\/Length:\ \{len(payload)\}\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Connection:\ close\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{payload\}"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ sock.sendall(http\_req.encode())}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Read\ response}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ response\ =\ b\textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chunk\ =\ sock.recv(4096)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ chunk:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ response\ +=\ chunk}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ socket.timeout:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ latency\ =\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Parse\ HTTP\ response}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ resp\_text\ =\ response.decode(\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ body\_start\ =\ resp\_text.find(\textcolor{stringliteral}{"{}\(\backslash\)r\(\backslash\)n\(\backslash\)r\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ body\_start\ >=\ 0:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ body\ =\ resp\_text[body\_start\ +\ 4:]}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ json.loads(body)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ \{\textcolor{stringliteral}{"{}error"{}}:\ \textcolor{stringliteral}{"{}no\ HTTP\ body"{}},\ \textcolor{stringliteral}{"{}raw"{}}:\ resp\_text[:200]\}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data,\ latency}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00127}00127\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ latency\ =\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ str(exc)\},\ latency}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00132}\doxymbox{\hyperlink{namespacetor-connectivity-test_a7195f44ae45eaa7b06bdb520425eb449}{00132}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetor-connectivity-test_a7195f44ae45eaa7b06bdb520425eb449}{check\_tor\_available}}(proxy\_host:\ str,\ proxy\_port:\ int)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00133}00133\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ if\ Tor\ SOCKS5\ proxy\ is\ running."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00134}00134\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ sock.settimeout(3)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ sock.connect((proxy\_host,\ proxy\_port))}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Send\ SOCKS5\ greeting}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ sock.sendall(b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x01\(\backslash\)x00"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ resp\ =\ sock.recv(2)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp\ ==\ b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x00"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00143}00143\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00146}00146\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00147}\doxymbox{\hyperlink{namespacetor-connectivity-test_a13f5404a45d31e40d14f071043ed88e8}{00147}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetor-connectivity-test_a13f5404a45d31e40d14f071043ed88e8}{tcp\_connect\_test}}(host:\ str,\ port:\ int,\ proxy\_host:\ str\ =\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proxy\_port:\ int\ =\ \textcolor{keywordtype}{None})\ -\/>\ tuple:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00149}00149\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Test\ TCP\ connectivity.\ Returns\ (success,\ latency\_ms)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00150}00150\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00151}00151\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ proxy\_host:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ sock\ =\ \doxymbox{\hyperlink{namespacetor-connectivity-test_abdbe9a198ea3b42d0b7c5447e86ce9a9}{socks5\_connect}}(proxy\_host,\ proxy\_port,\ host,\ port)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ sock.settimeout(10)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ sock.connect((host,\ port))}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True},\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00160}00160\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00164}\doxymbox{\hyperlink{namespacetor-connectivity-test_a51af30a60f9f02777c6396b8247e356f}{00164}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetor-connectivity-test_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00165}00165\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ Tor\ Connectivity\ Test"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00167}00167\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00168}00168\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/tor-\/proxy"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1:9050"{}},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Tor\ SOCKS5\ proxy\ (default:\ 127.0.0.1:9050)"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00170}00170\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Node\ RPC\ host\ (default:\ 127.0.0.1)"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00172}00172\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc-\/port"{}},\ type=int,\ default=RPC\_PORT,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}Node\ RPC\ port\ (default:\ \{RPC\_PORT\})"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00174}00174\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00175}00175\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00177}00177\ \ \ \ \ proxy\_parts\ =\ args.tor\_proxy.split(\textcolor{stringliteral}{"{}:"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00178}00178\ \ \ \ \ proxy\_host\ =\ proxy\_parts[0]}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00179}00179\ \ \ \ \ proxy\_port\ =\ int(proxy\_parts[1])\ \textcolor{keywordflow}{if}\ len(proxy\_parts)\ >\ 1\ \textcolor{keywordflow}{else}\ 9050}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00181}00181\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00182}00182\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ Tor\ Connectivity\ Test"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00183}00183\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Node:\ \{args.rpc\_host\}:\{args.rpc\_port\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00184}00184\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ P2P:\ \{args.rpc\_host\}:\{P2P\_PORT\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00185}00185\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Tor\ proxy:\ \{proxy\_host\}:\{proxy\_port\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00186}00186\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Shards:\ \{SHARDS\}\ |\ Max\ supply:\ \{MAX\_SUPPLY:,\}\ OMNI"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00187}00187\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00189}00189\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node"{}}:\ f\textcolor{stringliteral}{"{}\{args.rpc\_host\}:\{args.rpc\_port\}"{}},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tor\_proxy"{}}:\ f\textcolor{stringliteral}{"{}\{proxy\_host\}:\{proxy\_port\}"{}},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ [],}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00193}00193\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00195}00195\ \ \ \ \ \textcolor{comment}{\#\ 1.\ Check\ Tor\ availability}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00196}00196\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[1/5]\ Checking\ Tor\ proxy\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00197}00197\ \ \ \ \ tor\_available\ =\ \doxymbox{\hyperlink{namespacetor-connectivity-test_a7195f44ae45eaa7b06bdb520425eb449}{check\_tor\_available}}(proxy\_host,\ proxy\_port)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00198}00198\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ tor\_available:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}[SKIP]\ Tor\ SOCKS5\ not\ running\ at\ \{proxy\_host\}:\{proxy\_port\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}\ \ Install\ Tor\ and\ start:\ tor\ -\/-\/SOCKSPort\ \{proxy\_port\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}tor\_available"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00202}00202\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Tor\ SOCKS5\ proxy\ is\ running\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}tor\_available"{}}]\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00206}00206\ \ \ \ \ \textcolor{comment}{\#\ 2.\ Direct\ RPC\ test}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00207}00207\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[2/5]\ Direct\ RPC\ connection\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00208}00208\ \ \ \ \ direct\_result,\ direct\_latency\ =\ \doxymbox{\hyperlink{namespacetor-connectivity-test_a7737b316e1ab7162f3a466bdef8792e0}{rpc\_via\_direct}}(args.rpc\_host,\ args.rpc\_port,\ \textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00209}00209\ \ \ \ \ direct\_ok\ =\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ direct\_result\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ direct\_result}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00210}00210\ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}direct\_rpc"{}},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}success"{}}:\ direct\_ok,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}latency\_ms"{}}:\ round(direct\_latency,\ 2),}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00214}00214\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00215}00215\ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ direct\_ok\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00216}00216\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{color\}\{'OK'\ if\ direct\_ok\ else\ 'FAIL'\}\ —\ \{direct\_latency:.1f\}ms\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00218}00218\ \ \ \ \ \textcolor{comment}{\#\ 3.\ Direct\ P2P\ test}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00219}00219\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[3/5]\ Direct\ P2P\ connection\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00220}00220\ \ \ \ \ p2p\_ok,\ p2p\_latency\ =\ \doxymbox{\hyperlink{namespacetor-connectivity-test_a13f5404a45d31e40d14f071043ed88e8}{tcp\_connect\_test}}(args.rpc\_host,\ P2P\_PORT)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00221}00221\ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}direct\_p2p"{}},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}success"{}}:\ p2p\_ok,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}latency\_ms"{}}:\ round(p2p\_latency,\ 2),}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00225}00225\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00226}00226\ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ p2p\_ok\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00227}00227\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{color\}\{'OK'\ if\ p2p\_ok\ else\ 'FAIL'\}\ —\ \{p2p\_latency:.1f\}ms\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00229}00229\ \ \ \ \ \textcolor{keywordflow}{if}\ tor\_available:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ 4.\ Tor\ RPC\ test}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[4/5]\ Tor-\/routed\ RPC\ connection\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ tor\_result,\ tor\_latency\ =\ \doxymbox{\hyperlink{namespacetor-connectivity-test_a0068cfcb46442592caac03468974fe47}{rpc\_via\_tor}}(}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ proxy\_host,\ proxy\_port,\ args.rpc\_host,\ args.rpc\_port,\ \textcolor{stringliteral}{"{}getblockcount"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ tor\_ok\ =\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ tor\_result\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ tor\_result}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}tor\_rpc"{}},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}success"{}}:\ tor\_ok,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}latency\_ms"{}}:\ round(tor\_latency,\ 2),}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ tor\_ok\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{color\}\{'OK'\ if\ tor\_ok\ else\ 'FAIL'\}\ —\ \{tor\_latency:.1f\}ms\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00243}00243\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ 5.\ Tor\ P2P\ test}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[5/5]\ Tor-\/routed\ P2P\ connection\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ tor\_p2p\_ok,\ tor\_p2p\_latency\ =\ \doxymbox{\hyperlink{namespacetor-connectivity-test_a13f5404a45d31e40d14f071043ed88e8}{tcp\_connect\_test}}(}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \ \ \ \ args.rpc\_host,\ P2P\_PORT,\ proxy\_host,\ proxy\_port}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}tor\_p2p"{}},}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}success"{}}:\ tor\_p2p\_ok,}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}latency\_ms"{}}:\ round(tor\_p2p\_latency,\ 2),}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ tor\_p2p\_ok\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{color\}\{'OK'\ if\ tor\_p2p\_ok\ else\ 'FAIL'\}\ —\ \{tor\_p2p\_latency:.1f\}ms\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Latency\ comparison}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ direct\_ok\ \textcolor{keywordflow}{and}\ tor\_ok:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ overhead\ =\ tor\_latency\ -\/\ direct\_latency}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}latency\_overhead\_ms"{}}]\ =\ round(overhead,\ 2)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{CYAN\}Tor\ overhead:\ \{overhead:.1f\}ms\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00262}00262\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{YELLOW\}[4/5]\ SKIPPED\ —\ Tor\ not\ available\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[5/5]\ SKIPPED\ —\ Tor\ not\ available\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00265}00265\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00266}00266\ \ \ \ \ \textcolor{comment}{\#\ Verdict}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00267}00267\ \ \ \ \ all\_direct\_pass\ =\ all(t[\textcolor{stringliteral}{"{}success"{}}]\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ report[\textcolor{stringliteral}{"{}tests"{}}]}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ t[\textcolor{stringliteral}{"{}test"{}}].startswith(\textcolor{stringliteral}{"{}tor"{}}))}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00269}00269\ \ \ \ \ report[\textcolor{stringliteral}{"{}verdict"{}}]\ =\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ all\_direct\_pass\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00270}00270\ \ \ \ \ \textcolor{keywordflow}{if}\ tor\_available:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ all\_tor\_pass\ =\ all(t[\textcolor{stringliteral}{"{}success"{}}]\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ report[\textcolor{stringliteral}{"{}tests"{}}]}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ t[\textcolor{stringliteral}{"{}test"{}}].startswith(\textcolor{stringliteral}{"{}tor"{}}))}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}tor\_verdict"{}}]\ =\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ all\_tor\_pass\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}}}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00275}00275\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00277}00277\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ RESULTS"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ vc\ =\ GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Direct:\ \{vc\}\{report['verdict']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}tor\_verdict"{}}\ \textcolor{keywordflow}{in}\ report:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ tc\ =\ GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}tor\_verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Tor:\ \ \ \ \{tc\}\{report['tor\_verdict']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00286}00286\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00287}00287\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00290}00290\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{tor-connectivity-test_8py_source_l00291}00291\ \ \ \ \ \doxymbox{\hyperlink{namespacetor-connectivity-test_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

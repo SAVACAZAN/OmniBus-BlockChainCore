@@ -1,0 +1,316 @@
+\doxysection{api-\/surface-\/analyzer Namespace Reference}
+\hypertarget{namespaceapi-surface-analyzer}{}\label{namespaceapi-surface-analyzer}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a010d4ecb475a69d1e23c09a66c9e2696}{analyze\+\_\+file}} (Path filepath)
+\item 
+dict \doxymbox{\hyperlink{namespaceapi-surface-analyzer_ace940b810ca46da937f33202e0dbcf44}{find\+\_\+unused\+\_\+pub\+\_\+fns}} (list all\+\_\+results)
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_aeb5824001ff74ceaf5ba3d434eb18f99}{print\+\_\+api\+\_\+table}} (list all\+\_\+results)
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a15390fdcf04518058852ff17984ce45b}{print\+\_\+detailed}} (list all\+\_\+results, bool show\+\_\+params)
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a1dded4f53cc5945a50e479e7621f9b38}{print\+\_\+unused}} (dict unused)
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a07754216df3e2ae7708931176b8ce343}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_ad4211caa3943bcf620295619c8479025}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a1f937080261074f8c92ec4554f11c4ff}{DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_ac3a40827757877ac9c77dc8c63fd32e6}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a40ad96b30b22877c04e9bad7249a65fb}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a1d859115173577d94b5bc8b3ab975de1}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_ad825163d29f0f67a344aca15fcc45176}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_adc4f36c511518bcbc2f140ab85981909}{MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_aae1845ca18a7204e08833aaebe892bb9}{WHITE}} = "{}\textbackslash{}033\+[97m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceapi-surface-analyzer_a30b22930baf65cd532895dc4406877e1}{BG\+\_\+\+BLUE}} = "{}\textbackslash{}033\+[44m"{}
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a6082aa0bb4948853c5d39112d0c207d7}{PUB\+\_\+\+FN\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+(?:\+export\textbackslash{}s+)?fn\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{}((\+[\texorpdfstring{$^\wedge$}{\string^})]\+\texorpdfstring{$\ast$}{*})\textbackslash{})\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a5183b8db42adeb403a6671ab33149b23}{PUB\+\_\+\+CONST\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a3414d3d6add6ab7b7ed5daedd259ba91}{PUB\+\_\+\+VAR\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+var\textbackslash{}s+(\textbackslash{}w+)\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_ae103d49bc09de05da19f985941fdfe9f}{PUB\+\_\+\+STRUCT\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}=\textbackslash{}s\texorpdfstring{$\ast$}{*}(?:\+extern\textbackslash{}s+)?struct\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a95f932b4fbbc70ea3e09ac1ebceb5614}{PUB\+\_\+\+ENUM\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}=\textbackslash{}s\texorpdfstring{$\ast$}{*}enum\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_ac17d9b9830047ecc4f506f5ca9391186}{IMPORT\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}@import\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{}(\textbackslash{}s\texorpdfstring{$\ast$}{*}"{}(\+[\texorpdfstring{$^\wedge$}{\string^}"{}]\++)"{}\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{})\textquotesingle{})
+\item 
+\doxymbox{\hyperlink{namespaceapi-surface-analyzer_a46975ae9d5dd23bacebfef4031b080a2}{FIELD\+\_\+\+ACCESS\+\_\+\+RE}} = re.\+compile(r\textquotesingle{}\textbackslash{}.(\textbackslash{}w+)\textquotesingle{})
+\end{DoxyCompactItemize}
+
+
+\label{namespaceapi-surface-analyzer_doc-func-members}
+\Hypertarget{namespaceapi-surface-analyzer_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceapi-surface-analyzer_a010d4ecb475a69d1e23c09a66c9e2696}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!analyze\_file@{analyze\_file}}
+\index{analyze\_file@{analyze\_file}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{analyze\_file()}{analyze\_file()}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a010d4ecb475a69d1e23c09a66c9e2696} 
+ dict analyze\+\_\+file (\begin{DoxyParamCaption}\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract all public symbols from a .zig file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceapi-surface-analyzer_ace940b810ca46da937f33202e0dbcf44}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!find\_unused\_pub\_fns@{find\_unused\_pub\_fns}}
+\index{find\_unused\_pub\_fns@{find\_unused\_pub\_fns}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{find\_unused\_pub\_fns()}{find\_unused\_pub\_fns()}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_ace940b810ca46da937f33202e0dbcf44} 
+ dict find\+\_\+unused\+\_\+pub\+\_\+fns (\begin{DoxyParamCaption}\item[{list}]{all\+\_\+results}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find pub fn declarations that are never referenced in other modules.
+A pub fn is 'used' if another file imports the module AND references
+the function name.
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00097}{97}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceapi-surface-analyzer_a51af30a60f9f02777c6396b8247e356f}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!main@{main}}
+\index{main@{main}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00210}{210}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceapi-surface-analyzer_aeb5824001ff74ceaf5ba3d434eb18f99}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!print\_api\_table@{print\_api\_table}}
+\index{print\_api\_table@{print\_api\_table}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{print\_api\_table()}{print\_api\_table()}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_aeb5824001ff74ceaf5ba3d434eb18f99} 
+print\+\_\+api\+\_\+table (\begin{DoxyParamCaption}\item[{list}]{all\+\_\+results}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print grouped API surface.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00148}{148}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceapi-surface-analyzer_a15390fdcf04518058852ff17984ce45b}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!print\_detailed@{print\_detailed}}
+\index{print\_detailed@{print\_detailed}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{print\_detailed()}{print\_detailed()}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a15390fdcf04518058852ff17984ce45b} 
+print\+\_\+detailed (\begin{DoxyParamCaption}\item[{list}]{all\+\_\+results}{, }\item[{bool}]{show\+\_\+params}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print detailed function list per module.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00175}{175}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceapi-surface-analyzer_a1dded4f53cc5945a50e479e7621f9b38}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!print\_unused@{print\_unused}}
+\index{print\_unused@{print\_unused}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{print\_unused()}{print\_unused()}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a1dded4f53cc5945a50e479e7621f9b38} 
+print\+\_\+unused (\begin{DoxyParamCaption}\item[{dict}]{unused}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print unused public functions.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00190}{190}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+
+
+\label{namespaceapi-surface-analyzer_doc-var-members}
+\Hypertarget{namespaceapi-surface-analyzer_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceapi-surface-analyzer_a30b22930baf65cd532895dc4406877e1}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!BG\_BLUE@{BG\_BLUE}}
+\index{BG\_BLUE@{BG\_BLUE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{BG\_BLUE}{BG\_BLUE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a30b22930baf65cd532895dc4406877e1} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+BG\+\_\+\+BLUE = "{}\textbackslash{}033\+[44m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_ad4211caa3943bcf620295619c8479025}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_ad4211caa3943bcf620295619c8479025} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_ad825163d29f0f67a344aca15fcc45176}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_ad825163d29f0f67a344aca15fcc45176} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a1f937080261074f8c92ec4554f11c4ff}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!DIM@{DIM}}
+\index{DIM@{DIM}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{DIM}{DIM}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a1f937080261074f8c92ec4554f11c4ff} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+DIM = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a46975ae9d5dd23bacebfef4031b080a2}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!FIELD\_ACCESS\_RE@{FIELD\_ACCESS\_RE}}
+\index{FIELD\_ACCESS\_RE@{FIELD\_ACCESS\_RE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{FIELD\_ACCESS\_RE}{FIELD\_ACCESS\_RE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a46975ae9d5dd23bacebfef4031b080a2} 
+\doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+FIELD\+\_\+\+ACCESS\+\_\+\+RE = re.\+compile(r\textquotesingle{}\textbackslash{}.(\textbackslash{}w+)\textquotesingle{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a40ad96b30b22877c04e9bad7249a65fb}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a40ad96b30b22877c04e9bad7249a65fb} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_ac17d9b9830047ecc4f506f5ca9391186}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!IMPORT\_RE@{IMPORT\_RE}}
+\index{IMPORT\_RE@{IMPORT\_RE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{IMPORT\_RE}{IMPORT\_RE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_ac17d9b9830047ecc4f506f5ca9391186} 
+\doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+IMPORT\+\_\+\+RE = re.\+compile(r\textquotesingle{}@import\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{}(\textbackslash{}s\texorpdfstring{$\ast$}{*}"{}(\+[\texorpdfstring{$^\wedge$}{\string^}"{}]\++)"{}\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{})\textquotesingle{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_adc4f36c511518bcbc2f140ab85981909}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!MAGENTA@{MAGENTA}}
+\index{MAGENTA@{MAGENTA}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{MAGENTA}{MAGENTA}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_adc4f36c511518bcbc2f140ab85981909} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+MAGENTA = "{}\textbackslash{}033\+[95m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a5183b8db42adeb403a6671ab33149b23}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!PUB\_CONST\_RE@{PUB\_CONST\_RE}}
+\index{PUB\_CONST\_RE@{PUB\_CONST\_RE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{PUB\_CONST\_RE}{PUB\_CONST\_RE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a5183b8db42adeb403a6671ab33149b23} 
+\doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+PUB\+\_\+\+CONST\+\_\+\+RE = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textquotesingle{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a95f932b4fbbc70ea3e09ac1ebceb5614}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!PUB\_ENUM\_RE@{PUB\_ENUM\_RE}}
+\index{PUB\_ENUM\_RE@{PUB\_ENUM\_RE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{PUB\_ENUM\_RE}{PUB\_ENUM\_RE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a95f932b4fbbc70ea3e09ac1ebceb5614} 
+\doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+PUB\+\_\+\+ENUM\+\_\+\+RE = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}=\textbackslash{}s\texorpdfstring{$\ast$}{*}enum\textquotesingle{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a6082aa0bb4948853c5d39112d0c207d7}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!PUB\_FN\_RE@{PUB\_FN\_RE}}
+\index{PUB\_FN\_RE@{PUB\_FN\_RE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{PUB\_FN\_RE}{PUB\_FN\_RE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a6082aa0bb4948853c5d39112d0c207d7} 
+\doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+PUB\+\_\+\+FN\+\_\+\+RE = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+(?:\+export\textbackslash{}s+)?fn\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}\textbackslash{}((\+[\texorpdfstring{$^\wedge$}{\string^})]\+\texorpdfstring{$\ast$}{*})\textbackslash{})\textquotesingle{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_ae103d49bc09de05da19f985941fdfe9f}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!PUB\_STRUCT\_RE@{PUB\_STRUCT\_RE}}
+\index{PUB\_STRUCT\_RE@{PUB\_STRUCT\_RE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{PUB\_STRUCT\_RE}{PUB\_STRUCT\_RE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_ae103d49bc09de05da19f985941fdfe9f} 
+\doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+PUB\+\_\+\+STRUCT\+\_\+\+RE = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+const\textbackslash{}s+(\textbackslash{}w+)\textbackslash{}s\texorpdfstring{$\ast$}{*}=\textbackslash{}s\texorpdfstring{$\ast$}{*}(?:\+extern\textbackslash{}s+)?struct\textquotesingle{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a3414d3d6add6ab7b7ed5daedd259ba91}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!PUB\_VAR\_RE@{PUB\_VAR\_RE}}
+\index{PUB\_VAR\_RE@{PUB\_VAR\_RE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{PUB\_VAR\_RE}{PUB\_VAR\_RE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a3414d3d6add6ab7b7ed5daedd259ba91} 
+\doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+PUB\+\_\+\+VAR\+\_\+\+RE = re.\+compile(r\textquotesingle{}pub\textbackslash{}s+var\textbackslash{}s+(\textbackslash{}w+)\textquotesingle{})}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_ac3a40827757877ac9c77dc8c63fd32e6}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!RED@{RED}}
+\index{RED@{RED}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_ac3a40827757877ac9c77dc8c63fd32e6} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a07754216df3e2ae7708931176b8ce343}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!RESET@{RESET}}
+\index{RESET@{RESET}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a07754216df3e2ae7708931176b8ce343} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_aae1845ca18a7204e08833aaebe892bb9}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!WHITE@{WHITE}}
+\index{WHITE@{WHITE}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{WHITE}{WHITE}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_aae1845ca18a7204e08833aaebe892bb9} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+WHITE = "{}\textbackslash{}033\+[97m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+
+\Hypertarget{namespaceapi-surface-analyzer_a1d859115173577d94b5bc8b3ab975de1}\index{api-\/surface-\/analyzer@{api-\/surface-\/analyzer}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!api-\/surface-\/analyzer@{api-\/surface-\/analyzer}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespaceapi-surface-analyzer_a1d859115173577d94b5bc8b3ab975de1} 
+str \doxymbox{\hyperlink{namespaceapi}{api}}-\/surface-\/analyzer.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{api-surface-analyzer_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{api-surface-analyzer_8py_source}{api-\/surface-\/analyzer.\+py}}.
+

@@ -1,0 +1,220 @@
+\doxysection{generate-\/agent.py}
+\hypertarget{generate-agent_8py_source}{}\label{generate-agent_8py_source}\index{scripts/skills/generate-\/agent.py@{scripts/skills/generate-\/agent.py}}
+\doxymbox{\hyperlink{generate-agent_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00001}\doxymbox{\hyperlink{namespacegenerate-agent}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Claude\ Agent\ Generator}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00005}00005\ \textcolor{stringliteral}{Generates\ a\ .claude/agents/<name>.md\ file\ from\ a\ template\ with}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00006}00006\ \textcolor{stringliteral}{proper\ YAML\ frontmatter.\ Takes\ -\/-\/name,\ -\/-\/model,\ -\/-\/description\ args.}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00010}00010\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00011}00011\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00012}00012\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00014}00014\ \textcolor{comment}{\#\ ANSI\ colors}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00015}\doxymbox{\hyperlink{namespacegenerate-agent_a9de4b34f2d005788055c913da7e76f7c}{00015}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00016}\doxymbox{\hyperlink{namespacegenerate-agent_ad37518123119c4a9716adf6c1383ca28}{00016}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00017}\doxymbox{\hyperlink{namespacegenerate-agent_adf194c3cc1e6cab28f5836bfc18a1d98}{00017}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00018}\doxymbox{\hyperlink{namespacegenerate-agent_a684a4c5d10d3556c8252e428b4473cc9}{00018}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00019}\doxymbox{\hyperlink{namespacegenerate-agent_a96d28886978ba98f4768aa956e19ed54}{00019}}\ DIM\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00020}\doxymbox{\hyperlink{namespacegenerate-agent_a49504bb54f90e3e27d7687e4476b71f4}{00020}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00023}\doxymbox{\hyperlink{namespacegenerate-agent_a44d85dd43f0be9eca688604dc7f1b171}{00023}}\ AGENT\_TEMPLATE\ =\ \textcolor{stringliteral}{"{}"{}"{}-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00024}00024\ \textcolor{stringliteral}{name:\ "{}\{name\}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00025}00025\ \textcolor{stringliteral}{model:\ "{}\{model\}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00026}00026\ \textcolor{stringliteral}{description:\ "{}\{description\}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00027}00027\ \textcolor{stringliteral}{created:\ "{}\{created\}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00028}00028\ \textcolor{stringliteral}{version:\ "{}1.0"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00029}00029\ \textcolor{stringliteral}{tags:}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00030}00030\ \textcolor{stringliteral}{\ \ -\/\ omnibus}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00031}00031\ \textcolor{stringliteral}{\ \ -\/\ blockchain}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00032}00032\ \textcolor{stringliteral}{\ \ -\/\ \{domain\}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00033}00033\ \textcolor{stringliteral}{-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00034}00034\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00035}00035\ \textcolor{stringliteral}{\#\ \{title\}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00036}00036\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00037}00037\ \textcolor{stringliteral}{\#\#\ Role}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00038}00038\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00039}00039\ \textcolor{stringliteral}{\{description\}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00040}00040\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00041}00041\ \textcolor{stringliteral}{\#\#\ Model}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00042}00042\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00043}00043\ \textcolor{stringliteral}{\`{}\{model\}\`{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00044}00044\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00045}00045\ \textcolor{stringliteral}{\#\#\ Capabilities}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00046}00046\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00047}00047\ \textcolor{stringliteral}{-\/\ Analyze\ and\ improve\ OmniBus\ blockchain\ components\ in\ \`{}core/\`{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00048}00048\ \textcolor{stringliteral}{-\/\ Generate\ tests,\ benchmarks,\ and\ documentation}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00049}00049\ \textcolor{stringliteral}{-\/\ Review\ Zig\ 0.15.2\ code\ for\ correctness,\ safety,\ and\ performance}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00050}00050\ \textcolor{stringliteral}{-\/\ Work\ with\ secp256k1,\ BIP-\/32/39,\ post-\/quantum\ crypto\ (liboqs)}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00051}00051\ \textcolor{stringliteral}{-\/\ Understand\ Casper\ FFG\ consensus\ and\ 4-\/shard\ architecture}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00052}00052\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00053}00053\ \textcolor{stringliteral}{\#\#\ Tools}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00054}00054\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00055}00055\ \textcolor{stringliteral}{-\/\ **Zig\ 0.15.2**\ —\ bare-\/metal\ blockchain\ core}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00056}00056\ \textcolor{stringliteral}{-\/\ **Python\ 3.12**\ —\ scripts,\ testing,\ tooling}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00057}00057\ \textcolor{stringliteral}{-\/\ **Bash\ /\ PowerShell**\ —\ devops,\ deployment}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00058}00058\ \textcolor{stringliteral}{-\/\ **Node.js**\ —\ miner\ client,\ frontend\ tooling}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00059}00059\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00060}00060\ \textcolor{stringliteral}{\#\#\ Workspace}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00061}00061\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00062}00062\ \textcolor{stringliteral}{\`{}\`{}\`{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00063}00063\ \textcolor{stringliteral}{OmniBus-\/BlockChainCore/}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00064}00064\ \textcolor{stringliteral}{├──\ core/\ \ \ \ \ \ \ \ \ \ \#\ Zig\ modules\ (secp256k1,\ p2p,\ rpc,\ wallet,\ etc.)}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00065}00065\ \textcolor{stringliteral}{├──\ frontend/\ \ \ \ \ \ \#\ React\ +\ TypeScript\ dashboard}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00066}00066\ \textcolor{stringliteral}{├──\ scripts/\ \ \ \ \ \ \ \#\ Python/Bash\ devops\ \&\ tools}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00067}00067\ \textcolor{stringliteral}{├──\ test/\ \ \ \ \ \ \ \ \ \ \#\ Standalone\ test\ files}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00068}00068\ \textcolor{stringliteral}{└──\ build.zig\ \ \ \ \ \ \#\ Build\ system}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00069}00069\ \textcolor{stringliteral}{\`{}\`{}\`{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00070}00070\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00071}00071\ \textcolor{stringliteral}{\#\#\ Guidelines}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00072}00072\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00073}00073\ \textcolor{stringliteral}{1.\ **No\ malloc/free\ in\ Zig**\ —\ use\ fixed-\/size\ arrays\ or\ stack\ allocations}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00074}00074\ \textcolor{stringliteral}{2.\ **No\ floating-\/point**\ —\ use\ fixed-\/point\ scaled\ integers\ for\ prices\ (1\ OMNI\ =\ 1e9\ sat)}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00075}00075\ \textcolor{stringliteral}{3.\ **Pure\ Zig\ crypto**\ —\ secp256k1,\ RIPEMD-\/160,\ BIP-\/32\ are\ all\ implemented\ from\ scratch}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00076}00076\ \textcolor{stringliteral}{4.\ **Tests\ inline**\ —\ each\ \`{}core/*.zig\`{}\ file\ contains\ its\ own\ \`{}test\`{}\ blocks}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00077}00077\ \textcolor{stringliteral}{5.\ **JSON-\/RPC\ 2.0**\ —\ all\ RPC\ methods\ follow\ the\ standard,\ port\ 8332}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00078}00078\ \textcolor{stringliteral}{6.\ **Minimal\ changes**\ —\ focused,\ single-\/purpose\ commits}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00079}00079\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00080}00080\ \textcolor{stringliteral}{\#\#\ Ports}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00081}00081\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00082}00082\ \textcolor{stringliteral}{|\ Service\ \ \ |\ Port\ |}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00083}00083\ \textcolor{stringliteral}{|-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/|}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00084}00084\ \textcolor{stringliteral}{|\ RPC\ HTTP\ \ |\ 8332\ |}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00085}00085\ \textcolor{stringliteral}{|\ WebSocket\ |\ 8334\ |}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00086}00086\ \textcolor{stringliteral}{|\ P2P\ \ \ \ \ \ \ |\ 9000+|}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00087}00087\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00088}00088\ \textcolor{stringliteral}{\#\#\ Key\ Commands}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00089}00089\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00090}00090\ \textcolor{stringliteral}{\`{}\`{}\`{}bash}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00091}00091\ \textcolor{stringliteral}{zig\ build\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Build\ node\ binary}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00092}00092\ \textcolor{stringliteral}{zig\ build\ test\ \ \ \ \ \ \ \ \ \#\ Run\ all\ tests}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00093}00093\ \textcolor{stringliteral}{zig\ build\ run\ \ \ \ \ \ \ \ \ \ \#\ Start\ node}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00094}00094\ \textcolor{stringliteral}{\`{}\`{}\`{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00095}00095\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00096}00096\ \textcolor{stringliteral}{\#\#\ Created}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00097}00097\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00098}00098\ \textcolor{stringliteral}{\{created\}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00099}00099\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00102}\doxymbox{\hyperlink{namespacegenerate-agent_ab787044c00673ad8f97d7a8db3a11ea5}{00102}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-agent_ab787044c00673ad8f97d7a8db3a11ea5}{generate\_agent}}(}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00103}00103\ \ \ \ \ name:\ str,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00104}00104\ \ \ \ \ model:\ str,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00105}00105\ \ \ \ \ description:\ str,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00106}00106\ \ \ \ \ output\_dir:\ str,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00107}00107\ )\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00108}00108\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ agent\ file\ and\ return\ the\ output\ path."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00109}00109\ \ \ \ \ \textcolor{comment}{\#\ Derive\ title\ from\ name}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00110}00110\ \ \ \ \ title\ =\ name.replace(\textcolor{stringliteral}{"{}-\/"{}},\ \textcolor{stringliteral}{"{}\ "{}}).replace(\textcolor{stringliteral}{"{}\_"{}},\ \textcolor{stringliteral}{"{}\ "{}}).title()}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00112}00112\ \ \ \ \ \textcolor{comment}{\#\ Derive\ domain\ tag\ from\ name}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00113}00113\ \ \ \ \ domain\_keywords\ =\ \{}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crypto"{}}:\ \textcolor{stringliteral}{"{}cryptography"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}wallet"{}}:\ \textcolor{stringliteral}{"{}wallet"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}p2p"{}}:\ \textcolor{stringliteral}{"{}networking"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}network"{}}:\ \textcolor{stringliteral}{"{}networking"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rpc"{}}:\ \textcolor{stringliteral}{"{}rpc"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mining"{}}:\ \textcolor{stringliteral}{"{}mining"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}miner"{}}:\ \textcolor{stringliteral}{"{}mining"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}consensus"{}}:\ \textcolor{stringliteral}{"{}consensus"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}shard"{}}:\ \textcolor{stringliteral}{"{}sharding"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}storage"{}}:\ \textcolor{stringliteral}{"{}storage"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}frontend"{}}:\ \textcolor{stringliteral}{"{}frontend"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}testing"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00126}00126\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00127}00127\ \ \ \ \ domain\ =\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00128}00128\ \ \ \ \ name\_lower\ =\ name.lower()}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00129}00129\ \ \ \ \ \textcolor{keywordflow}{for}\ keyword,\ tag\ \textcolor{keywordflow}{in}\ domain\_keywords.items():}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ keyword\ \textcolor{keywordflow}{in}\ name\_lower:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ domain\ =\ tag}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00134}00134\ \ \ \ \ created\ =\ datetime.now(timezone.utc).strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%dT\%H:\%M:\%SZ"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00136}00136\ \ \ \ \ content\ =\ AGENT\_TEMPLATE.format(}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ name=name,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ title=title,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ model=model,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ description=description,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ domain=domain,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ created=created,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00143}00143\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00145}00145\ \ \ \ \ \textcolor{comment}{\#\ Create\ output\ directory}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00146}00146\ \ \ \ \ os.makedirs(output\_dir,\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00148}00148\ \ \ \ \ \textcolor{comment}{\#\ Write\ file}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00149}00149\ \ \ \ \ filename\ =\ f\textcolor{stringliteral}{"{}\{name\}.md"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00150}00150\ \ \ \ \ filepath\ =\ os.path.join(output\_dir,\ filename)}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00151}00151\ \ \ \ \ \textcolor{keyword}{with}\ open(filepath,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ f.write(content)}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00154}00154\ \ \ \ \ \textcolor{keywordflow}{return}\ filepath}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00157}\doxymbox{\hyperlink{namespacegenerate-agent_a7431cb90017e54fe695b23d4190db046}{00157}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-agent_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00158}00158\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}Generate\ a\ Claude\ agent\ .md\ file\ with\ YAML\ frontmatter"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00160}00160\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00161}00161\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/name"{}},\ required=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Agent\ slug\ name\ (e.g.,\ blockchain-\/auditor,\ crypto-\/reviewer)"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00164}00164\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00165}00165\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/model"{}},\ default=\textcolor{stringliteral}{"{}claude-\/sonnet-\/4-\/20250514"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Model\ identifier\ (default:\ claude-\/sonnet-\/4-\/20250514)"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00168}00168\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00169}00169\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/description"{}},\ default=\textcolor{stringliteral}{"{}OmniBus\ Blockchain\ Core\ specialist\ agent"{}},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Agent\ description\ /\ role\ summary"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00172}00172\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00173}00173\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/output-\/dir"{}},\ default=\textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Output\ directory\ (default:\ .claude/agents/\ relative\ to\ project\ root)"{}}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00176}00176\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00177}00177\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00179}00179\ \ \ \ \ \textcolor{comment}{\#\ Resolve\ output\ directory}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00180}00180\ \ \ \ \ \textcolor{keywordflow}{if}\ args.output\_dir:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ out\_dir\ =\ args.output\_dir}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00182}00182\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ script\_dir\ =\ os.path.dirname(os.path.abspath(\_\_file\_\_))}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ project\_root\ =\ os.path.abspath(os.path.join(script\_dir,\ \textcolor{stringliteral}{"{}.."{}},\ \textcolor{stringliteral}{"{}.."{}}))}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ out\_dir\ =\ os.path.join(project\_root,\ \textcolor{stringliteral}{"{}.claude"{}},\ \textcolor{stringliteral}{"{}agents"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00187}00187\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}===\ OmniBus\ Agent\ Generator\ ===\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00188}00188\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Name:\ \ \ \ \ \ \ \ \{args.name\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00189}00189\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Model:\ \ \ \ \ \ \ \{args.model\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00190}00190\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Description:\ \{args.description\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00191}00191\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Output\ dir:\ \ \{out\_dir\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00192}00192\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00194}00194\ \ \ \ \ filepath\ =\ \doxymbox{\hyperlink{namespacegenerate-agent_ab787044c00673ad8f97d7a8db3a11ea5}{generate\_agent}}(}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ name=args.name,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ model=args.model,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ description=args.description,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ output\_dir=out\_dir,}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00199}00199\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00201}00201\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[DONE]\{RESET\}\ Agent\ created:\ \{filepath\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00202}00202\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Preview\ the\ first\ few\ lines:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00203}00203\ \ \ \ \ \textcolor{keyword}{with}\ open(filepath,\ \textcolor{stringliteral}{"{}r"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ line\ \textcolor{keywordflow}{in}\ enumerate(f):}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ i\ >=\ 12:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}\ \ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}\ \ \{line.rstrip()\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00210}00210\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00211}00211\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00213}00213\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{generate-agent_8py_source_l00214}00214\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacegenerate-agent_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

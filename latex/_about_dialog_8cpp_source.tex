@@ -1,0 +1,64 @@
+\doxysection{About\+Dialog.\+cpp}
+\hypertarget{_about_dialog_8cpp_source}{}\label{_about_dialog_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/AboutDialog.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/dialogs/AboutDialog.cpp}}
+\doxymbox{\hyperlink{_about_dialog_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_about_dialog_8h}{dialogs/AboutDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QVBoxLayout>}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00007}00007\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00009}\doxymbox{\hyperlink{classomni_1_1_about_dialog_a113df1fab5501eec1bab854b8a666b04}{00009}}\ \doxymbox{\hyperlink{classomni_1_1_about_dialog_a113df1fab5501eec1bab854b8a666b04}{AboutDialog::AboutDialog}}(QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00010}00010\ \ \ \ \ :\ QDialog(parent)}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00011}00011\ \{}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00012}00012\ \ \ \ \ setWindowTitle(\textcolor{stringliteral}{"{}About\ OmniBus-\/Qt"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00013}00013\ \ \ \ \ setFixedSize(420,\ 320);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00014}00014\ \ \ \ \ setModal(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00016}00016\ \ \ \ \ \textcolor{keyword}{auto}*\ layout\ =\ \textcolor{keyword}{new}\ QVBoxLayout(\textcolor{keyword}{this});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00017}00017\ \ \ \ \ layout-\/>setSpacing(12);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00018}00018\ \ \ \ \ layout-\/>setContentsMargins(32,\ 24,\ 32,\ 24);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00019}00019\ \ \ \ \ layout-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00021}00021\ \ \ \ \ \textcolor{keyword}{auto}*\ titleLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}OmniBus-\/Qt"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00022}00022\ \ \ \ \ titleLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}font-\/size:\ 24px;\ font-\/weight:\ bold;\ color:\ \#4a90d9;"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00023}00023\ \ \ \ \ titleLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00025}00025\ \ \ \ \ \textcolor{keyword}{auto}*\ versionLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Version\ 1.0.0"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00026}00026\ \ \ \ \ versionLabel-\/>setObjectName(\textcolor{stringliteral}{"{}dimLabel"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00027}00027\ \ \ \ \ versionLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00029}00029\ \ \ \ \ \textcolor{keyword}{auto}*\ descLabel\ =\ \textcolor{keyword}{new}\ QLabel(}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00030}00030\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Native\ Qt\ desktop\ wallet\ for\ the\ OmniBus\ blockchain.\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00031}00031\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}JSON-\/RPC\ 2.0\ on\ port\ 8332\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00032}00032\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}WebSocket\ events\ on\ port\ 8334\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}21M\ OMNI\ max\ supply\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}1\ OMNI\ =\ 1,000,000,000\ SAT\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}10s\ block\ time\ (10\ sub-\/blocks)\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00036}00036\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Post-\/quantum\ ready\ (ML-\/DSA,\ Falcon,\ SLH-\/DSA)"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00037}00037\ \ \ \ \ descLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00038}00038\ \ \ \ \ descLabel-\/>setWordWrap(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00039}00039\ \ \ \ \ descLabel-\/>setObjectName(\textcolor{stringliteral}{"{}dimLabel"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00041}00041\ \ \ \ \ \textcolor{keyword}{auto}*\ copyrightLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}OmniBus\ Project\ -\/\ 2024-\/2026"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00042}00042\ \ \ \ \ copyrightLabel-\/>setAlignment(Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00043}00043\ \ \ \ \ copyrightLabel-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#555566;\ font-\/size:\ 11px;"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00045}00045\ \ \ \ \ \textcolor{keyword}{auto}*\ closeBtn\ =\ \textcolor{keyword}{new}\ QPushButton(\textcolor{stringliteral}{"{}Close"{}});}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00046}00046\ \ \ \ \ closeBtn-\/>setFixedWidth(120);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00048}00048\ \ \ \ \ layout-\/>addWidget(titleLabel);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00049}00049\ \ \ \ \ layout-\/>addWidget(versionLabel);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00050}00050\ \ \ \ \ layout-\/>addWidget(descLabel);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00051}00051\ \ \ \ \ layout-\/>addStretch();}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00052}00052\ \ \ \ \ layout-\/>addWidget(copyrightLabel);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00053}00053\ \ \ \ \ layout-\/>addWidget(closeBtn,\ 0,\ Qt::AlignCenter);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00055}00055\ \ \ \ \ connect(closeBtn,\ \&QPushButton::clicked,\ \textcolor{keyword}{this},\ \&QDialog::accept);}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00056}00056\ \}}
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{_about_dialog_8cpp_source_l00058}00058\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

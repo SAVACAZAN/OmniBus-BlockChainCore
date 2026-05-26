@@ -1,0 +1,77 @@
+\doxysection{generate-\/synthetic-\/chain.py}
+\hypertarget{generate-synthetic-chain_8py_source}{}\label{generate-synthetic-chain_8py_source}\index{tools/AI/generate-\/synthetic-\/chain.py@{tools/AI/generate-\/synthetic-\/chain.py}}
+\doxymbox{\hyperlink{generate-synthetic-chain_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00001}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Synthetic\ Chain\ Generator}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00005}00005\ \textcolor{stringliteral}{Generates\ synthetic\ blockchain\ data\ for\ ML\ model\ testing.}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00006}00006\ \textcolor{stringliteral}{Outputs\ JSONL\ file\ with\ blocks\ and\ transactions.}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00011}00011\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00012}00012\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00013}00013\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00015}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a546716d53b6c7d7ff59a245d9b6c70b3}{00015}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00016}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_aa080a9fc9691d331a4d6dbdf0356a314}{00016}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00017}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a8e0524135485c34382cd93e63f5013f9}{00017}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00018}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a87d50b293ce8c513b08bd5580ac7395c}{00018}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00021}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_acd59877dca2a9957888013a6f06aab6d}{00021}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00022}00022\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00025}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a34286083a0d48aee35d8157868306e5a}{00025}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a34286083a0d48aee35d8157868306e5a}{generate\_block}}(height:\ int,\ prev\_hash:\ str,\ num\_txs:\ int)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00026}00026\ \ \ \ \ txs\ =\ []}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00027}00027\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(num\_txs):}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ txs.append(\{}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}txid"{}}:\ f\textcolor{stringliteral}{"{}tx\{height:06d\}\{i:04d\}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}inputs"{}}:\ [\{\textcolor{stringliteral}{"{}prev"{}}:\ prev\_hash,\ \textcolor{stringliteral}{"{}vout"{}}:\ random.randint(0,\ 5)\}],}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}outputs"{}}:\ [\{\textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}om1\{random.randint(0,\ 0xFFFF):04x\}"{}},\ \textcolor{stringliteral}{"{}value"{}}:\ random.randint(1000,\ 500000)\}],}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fee"{}}:\ random.randint(100,\ 10000),}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00034}00034\ \ \ \ \ block\ =\ \{}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ height,}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}hash"{}}:\ f\textcolor{stringliteral}{"{}blk\{height:08x\}"{}},}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}prev\_hash"{}}:\ prev\_hash,}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ 1609459200\ +\ height\ *\ 120\ +\ random.randint(-\/30,\ 30),}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}difficulty"{}}:\ round(1.0\ +\ height\ *\ 0.001\ +\ random.gauss(0,\ 0.05),\ 4),}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tx\_count"{}}:\ num\_txs,}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}transactions"{}}:\ txs,}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00042}00042\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00043}00043\ \ \ \ \ \textcolor{keywordflow}{return}\ block}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00046}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_ab749bc68f72cb014ab4721f8cbc09836}{00046}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_ab749bc68f72cb014ab4721f8cbc09836}{generate\_chain}}(num\_blocks:\ int,\ output\_path:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00047}00047\ \ \ \ \ prev\ =\ \textcolor{stringliteral}{"{}0"{}}\ *\ 64}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00048}00048\ \ \ \ \ \textcolor{keyword}{with}\ open(output\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ range(num\_blocks):}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ num\_txs\ =\ random.randint(100,\ 4000)}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ block\ =\ \doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a34286083a0d48aee35d8157868306e5a}{generate\_block}}(h,\ prev,\ num\_txs)}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ f.write(json.dumps(block)\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ prev\ =\ block[\textcolor{stringliteral}{"{}hash"{}}]}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ h\ \%\ 1000\ ==\ 0\ \textcolor{keywordflow}{and}\ h\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacegenerate-synthetic-chain_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Generated\ \{h\}\ blocks..."{}})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00058}\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a7431cb90017e54fe695b23d4190db046}{00058}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00059}00059\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Generate\ synthetic\ blockchain\ data"{}})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00060}00060\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/blocks"{}},\ type=int,\ default=10000,\ help=\textcolor{stringliteral}{"{}Number\ of\ blocks"{}})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00061}00061\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}synthetic-\/chain.jsonl"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSONL\ path"{}})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00062}00062\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00064}00064\ \ \ \ \ \doxymbox{\hyperlink{namespacegenerate-synthetic-chain_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}===\ OmniBus\ Synthetic\ Chain\ Generator\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00065}00065\ \ \ \ \ \doxymbox{\hyperlink{namespacegenerate-synthetic-chain_ab749bc68f72cb014ab4721f8cbc09836}{generate\_chain}}(args.blocks,\ args.output)}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00066}00066\ \ \ \ \ \doxymbox{\hyperlink{namespacegenerate-synthetic-chain_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Generated\ \{args.blocks\}\ blocks\ -\/>\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00067}00067\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00070}00070\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{generate-synthetic-chain_8py_source_l00071}00071\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacegenerate-synthetic-chain_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

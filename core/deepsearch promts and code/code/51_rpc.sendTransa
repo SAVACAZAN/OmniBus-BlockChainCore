@@ -1,0 +1,5 @@
+const fees = try rpc.estimateFee();
+// fees.slow = ~2 sat/vbyte (30+ blocks)
+// fees.normal = ~5 sat/vbyte (10 blocks)
+// fees.fast = ~10 sat/vbyte (2 blocks)
+// fees.urgent = ~20 sat/vbyte (next block)

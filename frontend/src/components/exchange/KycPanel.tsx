@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { KycVerifyFlow } from "./KycVerifyFlow";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
-const rpc = new OmniBusRpcClient();
 
 const TIERS = [
   {
@@ -57,6 +58,17 @@ export function KycPanel() {
     expires?: number;
   } | null>(null);
   const [verifyTier, setVerifyTier] = useState<1 | 2 | 3 | null>(null);
+  const [issuers, setIssuers] = useState<Array<{ address: string; role: string; slot: number }>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    rpc.kycListIssuers()
+      .then((r) => {
+        if (!cancelled) setIssuers(r);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!u) {
@@ -68,9 +80,12 @@ export function KycPanel() {
       const r = await rpc.kycGetStatus(u.address);
       if (!cancelled) setStatus(r);
     };
-    refresh();
-    const id = setInterval(refresh, 5000);
-    return () => { cancelled = true; clearInterval(id); };
+    void refresh();
+    // KYC status changes are rare but critical — use new_block for instant
+    // notification when an attestation lands on chain.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(() => { void refresh(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [u?.address]);
 
   if (!u) {
@@ -189,9 +204,95 @@ export function KycPanel() {
           );
         })}
       </div>
+
+      {issuers.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-mempool-border">
+          <h4 className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-2">Registered KYC Issuers</h4>
+          <div className="space-y-1">
+            {issuers.map((iss) => (
+              <div key={iss.address} className="flex items-center gap-2 text-[11px]">
+                <span className="text-mempool-text-dim">·</span>
+                <span className="font-mono text-mempool-text truncate">{iss.address}</span>
+                <span className="text-mempool-blue shrink-0">{iss.role}</span>
+                <span className="text-mempool-text-dim shrink-0">slot {iss.slot}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <KycStatusLookup />
     </div>
   );
 }
+
+function KycStatusLookup() {
+  const [address, setAddress] = useState("");
+  const [status, setStatus] = useState<{
+    address: string; level: number; label: string;
+    issuer?: string; issued?: number; expires?: number;
+  } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    if (!address) return;
+    setLoading(true);
+    setErr(null);
+    setStatus(null);
+    try {
+      const r = await rpc.kycGetStatus(address);
+      setStatus(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 pt-4 border-t border-mempool-border space-y-3">
+      <h4 className="text-[10px] uppercase tracking-wider text-mempool-text-dim">KYC Status Lookup</h4>
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="ob1q… address"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <button
+          onClick={onLookup}
+          disabled={loading || !address}
+          className="px-3 py-1.5 text-xs bg-mempool-blue/20 hover:bg-mempool-blue/30 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "…" : "Check"}
+        </button>
+      </div>
+      {err && <p className="text-[11px] text-red-400">{err}</p>}
+      {status && (
+        <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+          {[
+            ["Level", `L${status.level} ${status.label}`],
+            ["Issuer", status.issuer ? status.issuer.slice(0, 16) + "…" : "—"],
+            ["Issued", status.issued ? new Date(status.issued * 1000).toLocaleDateString() : "—"],
+            ["Expires", status.expires ? new Date(status.expires * 1000).toLocaleDateString() : "—"],
+          ].map(([k, v]) => (
+            <div key={k} className="bg-mempool-bg rounded p-1.5">
+              <div className="text-mempool-text-dim text-[9px]">{k}</div>
+              <div className="font-mono text-mempool-text">{v}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const KYC_BADGE_COLORS = ["", "bg-blue-500/20 text-blue-200", "bg-green-500/20 text-green-200", "bg-purple-500/20 text-purple-200"] as const;
+const KYC_BADGE_LABELS = ["", "Starter", "Verified", "Pro"] as const;
 
 export function KycBadge({ level }: { level: 0 | 1 | 2 | 3 }) {
   if (level === 0) {
@@ -201,11 +302,9 @@ export function KycBadge({ level }: { level: 0 | 1 | 2 | 3 }) {
       </span>
     );
   }
-  const colors = ["", "bg-blue-500/20 text-blue-200", "bg-green-500/20 text-green-200", "bg-purple-500/20 text-purple-200"];
-  const labels = ["", "Starter", "Verified", "Pro"];
   return (
-    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${colors[level]}`}>
-      🛡 KYC L{level} · {labels[level]}
+    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${KYC_BADGE_COLORS[level]}`}>
+      🛡 KYC L{level} · {KYC_BADGE_LABELS[level]}
     </span>
   );
 }

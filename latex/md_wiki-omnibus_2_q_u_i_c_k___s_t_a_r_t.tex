@@ -1,0 +1,437 @@
+\chapter{Omni\+Bus Mining Pool -\/ Quick Start Guide }
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t}{}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t}\index{OmniBus Mining Pool -\/ Quick Start Guide@{OmniBus Mining Pool -\/ Quick Start Guide}}
+\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11781}%
+\Hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11781}%
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11782}{}\doxysection{\texorpdfstring{🚀 3-\/Step Network Bootstrap}{🚀 3-\/Step Network Bootstrap}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11782}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11783}{}\doxysubsection{\texorpdfstring{Step 1:\+ Start Genesis (10 miners + Pool)}{Step 1:\+ Start Genesis (10 miners + Pool)}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11783}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ /home/kiss/OmniBus-\/BlockChainCore}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+
+\end{DoxyCode}
+
+
+{\bfseries{What happens:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{✓\ Generates\ 10\ miner\ wallets\ with\ BIP-\/39\ seeds}
+\DoxyCodeLine{✓\ Starts\ mining\ pool\ on\ port\ 8332}
+\DoxyCodeLine{✓\ Launches\ 10\ miners\ (miner-\/0\ to\ miner-\/9)}
+\DoxyCodeLine{✓\ Mining\ begins\ immediately}
+\DoxyCodeLine{}
+\DoxyCodeLine{[GENESIS]\ ✓\ Pool\ started\ and\ listening\ on\ 127.0.0.1:8332}
+\DoxyCodeLine{[MINER]\ ✓\ Successfully\ registered!}
+\DoxyCodeLine{[MINER]\ Miner\ ID:\ miner-\/0}
+\DoxyCodeLine{[MINER]\ Sending\ keepalive\ every\ 5\ seconds...}
+\DoxyCodeLine{[POOL]\ ✓\ Miner\ joined:\ Miner-\/0\ (1000\ H/s)}
+\DoxyCodeLine{[POOL]\ ✓\ Miner\ joined:\ Miner-\/1\ (1000\ H/s)}
+\DoxyCodeLine{...}
+
+\end{DoxyCode}
+
+
+{\bfseries{Pool will mine automatically:\+}}
+\begin{DoxyItemize}
+\item Block \#1 (50 OMNI ÷ 10 miners = 5 OMNI each)
+\item Block \#2 (50 OMNI ÷ 10 miners = 5 OMNI each)
+\item ... continuing indefinitely
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11785}{}\doxysubsection{\texorpdfstring{Step 2:\+ Scale Test (Add 100 Extra Miners)}{Step 2:\+ Scale Test (Add 100 Extra Miners)}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11785}
+{\bfseries{In a new terminal:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ /home/kiss/OmniBus-\/BlockChainCore}
+\DoxyCodeLine{bash\ launch-\/extra-\/miners.sh\ 100}
+
+\end{DoxyCode}
+
+
+{\bfseries{What happens:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[EXTRA]\ Generating\ wallets\ for\ 100\ extra\ miners...}
+\DoxyCodeLine{[EXTRA]\ ✓\ Wallets\ generated}
+\DoxyCodeLine{[EXTRA]\ Starting\ 100\ miners...}
+\DoxyCodeLine{}
+\DoxyCodeLine{[POOL]\ ✓\ Miner\ joined:\ ExtraMiner-\/10\ (1000\ H/s)}
+\DoxyCodeLine{[POOL]\ ✓\ Miner\ joined:\ ExtraMiner-\/11\ (1000\ H/s)}
+\DoxyCodeLine{...}
+\DoxyCodeLine{[POOL]\ Pool\ has\ 110\ registered\ miners\ (110\ active)}
+
+\end{DoxyCode}
+
+
+{\bfseries{Reward distribution automatically adjusts:\+}}
+\begin{DoxyItemize}
+\item Block \+\#N (50 OMNI ÷ 110 miners = 0.\+4545 OMNI each)
+\item No code changes needed, pool adapts instantly
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11787}{}\doxysubsection{\texorpdfstring{Step 3:\+ Monitor Network}{Step 3:\+ Monitor Network}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11787}
+{\bfseries{Check pool status:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/s\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getpoolstats"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ jq\ .}
+
+\end{DoxyCode}
+
+
+{\bfseries{Output:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}version"{}:\ "{}1.0"{},}
+\DoxyCodeLine{\ \ "{}status"{}:\ "{}operational"{},}
+\DoxyCodeLine{\ \ "{}registeredMiners"{}:\ 110,}
+\DoxyCodeLine{\ \ "{}activeMiningMiners"{}:\ 110,}
+\DoxyCodeLine{\ \ "{}blockHeight"{}:\ 2150,}
+\DoxyCodeLine{\ \ "{}totalRewards"{}:\ 450000000000,}
+\DoxyCodeLine{\ \ "{}totalTransactions"{}:\ 236500,}
+\DoxyCodeLine{\ \ "{}uptime"{}:\ 45231}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+{\bfseries{View active miners:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/s\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getminers"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ jq\ '.[0:3]'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Output (first 3):\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[}
+\DoxyCodeLine{\ \ \{}
+\DoxyCodeLine{\ \ \ \ "{}id"{}:\ "{}miner-\/0"{},}
+\DoxyCodeLine{\ \ \ \ "{}name"{}:\ "{}Miner-\/0"{},}
+\DoxyCodeLine{\ \ \ \ "{}address"{}:\ "{}ob1qx787af2p22knzjlakn7ehz9r77p3ak2w..."{},}
+\DoxyCodeLine{\ \ \ \ "{}status"{}:\ "{}mining"{},}
+\DoxyCodeLine{\ \ \ \ "{}hashrate"{}:\ 1000,}
+\DoxyCodeLine{\ \ \ \ "{}balanceOmni"{}:\ 450.0,}
+\DoxyCodeLine{\ \ \ \ "{}blocksMined"{}:\ 450,}
+\DoxyCodeLine{\ \ \ \ "{}isActive"{}:\ true}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ \{}
+\DoxyCodeLine{\ \ \ \ "{}id"{}:\ "{}miner-\/1"{},}
+\DoxyCodeLine{\ \ \ \ "{}name"{}:\ "{}Miner-\/1"{},}
+\DoxyCodeLine{\ \ \ \ "{}address"{}:\ "{}ob\_omni\_def456..."{},}
+\DoxyCodeLine{\ \ \ \ "{}status"{}:\ "{}mining"{},}
+\DoxyCodeLine{\ \ \ \ "{}hashrate"{}:\ 1000,}
+\DoxyCodeLine{\ \ \ \ "{}balanceOmni"{}:\ 450.0,}
+\DoxyCodeLine{\ \ \ \ "{}blocksMined"{}:\ 450,}
+\DoxyCodeLine{\ \ \ \ "{}isActive"{}:\ true}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ ...}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11789}{}\doxysection{\texorpdfstring{📊 Monitoring in Real-\/\+Time}{📊 Monitoring in Real-\/\+Time}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11789}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11790}{}\doxysubsection{\texorpdfstring{Pool Logs}{Pool Logs}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11790}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{tail\ -\/f\ logs/pool.log}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11791}{}\doxysubsection{\texorpdfstring{Miner Logs}{Miner Logs}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11791}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{tail\ -\/f\ logs/miner-\/0.log\ \ \ \ \ \ \ \ \#\ Genesis\ miner}
+\DoxyCodeLine{tail\ -\/f\ logs/extra-\/miner-\/10.log\ \#\ Extra\ miner}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11792}{}\doxysubsection{\texorpdfstring{Block Mining}{Block Mining}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11792}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Watch\ blocks\ mined\ (every\ 2\ seconds)}
+\DoxyCodeLine{watch\ -\/n\ 0.5\ 'curl\ -\/s\ http://127.0.0.1:8332\ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ "{}\{\(\backslash\)"{}jsonrpc\(\backslash\)"{}:\(\backslash\)"{}2.0\(\backslash\)"{},\(\backslash\)"{}method\(\backslash\)"{}:\(\backslash\)"{}getblockcount\(\backslash\)"{},\(\backslash\)"{}params\(\backslash\)"{}:[],\(\backslash\)"{}id\(\backslash\)"{}:1\}"{}\ |\ jq\ .result'}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11793}{}\doxysubsection{\texorpdfstring{Transaction Count}{Transaction Count}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11793}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}gettransactioncount"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ jq\ .result}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11795}{}\doxysection{\texorpdfstring{🎯 Key Concepts}{🎯 Key Concepts}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11795}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11796}{}\doxysubsection{\texorpdfstring{✅ What Changed}{✅ What Changed}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11796}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Before  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}After  \\
+110 miners hardcoded in genesis-\/allocation.\+json  &0 miners at startup  \\
+Genesis file loaded, then never changed  &Miners register dynamically  \\
+Can\textquotesingle{}t test with different miner counts  &Scale from 10 to 1000+ instantly  \\
+Pool restart needed for changes  &Add/\+remove miners without restart  \\
+Unclear who gets rewards  &Transparent:\+ 50 OMNI ÷ active miners  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11797}{}\doxysubsection{\texorpdfstring{✅ How Rewards Work}{✅ How Rewards Work}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11797}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Block\ Mined\ (every\ 2\ seconds)}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Pool\ divides\ 50\ OMNI\ equally}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{110\ active\ miners\ →\ each\ gets\ 0.4545\ OMNI}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Stored\ as\ 110\ coinbase\ transactions}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Each\ miner's\ balance\ increases\ by\ 0.4545\ OMNI}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Total\ pool\ balance\ increases\ by\ 50\ OMNI}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11798}{}\doxysubsection{\texorpdfstring{✅ How Miner Discovery Works}{✅ How Miner Discovery Works}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11798}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Miner\ starts}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Calls:\ registerminer(\{id,\ name,\ address,\ hashrate\})}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Pool\ adds\ to\ minerRegistry\ Map}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Pool\ adds\ to\ activeMinerSet}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Miner\ starts\ sending\ keepalive\ every\ 5\ seconds}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Pool\ keeps\ resetting\ 30-\/second\ timeout}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{If\ no\ keepalive\ for\ 30s\ →\ removed\ from\ activeMinerSet}
+\DoxyCodeLine{\ \ \ \ ↓}
+\DoxyCodeLine{Rewards\ go\ to\ remaining\ miners\ instead}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11800}{}\doxysection{\texorpdfstring{🔧 Common Commands}{🔧 Common Commands}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11800}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11801}{}\doxysubsection{\texorpdfstring{Start Everything}{Start Everything}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11801}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{bash\ start-\/genesis.sh\ \ \ \ \ \ \ \ \ \ \ \#\ Pool\ +\ 10\ miners}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11802}{}\doxysubsection{\texorpdfstring{Add More Miners}{Add More Miners}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11802}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{bash\ launch-\/extra-\/miners.sh\ 50\ \ \ \#\ Add\ 50\ more}
+\DoxyCodeLine{bash\ launch-\/extra-\/miners.sh\ 100\ \ \#\ Add\ 100\ more}
+\DoxyCodeLine{bash\ launch-\/extra-\/miners.sh\ 1000\ \#\ Add\ 1000\ (stress\ test)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11803}{}\doxysubsection{\texorpdfstring{Stop All Miners}{Stop All Miners}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11803}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cat\ .miners\_pids\ |\ xargs\ kill}
+\DoxyCodeLine{cat\ .extra\_miners\_pids\ |\ xargs\ kill}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11804}{}\doxysubsection{\texorpdfstring{Stop Pool}{Stop Pool}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11804}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{kill\ \$(pgrep\ -\/f\ "{}rpc-\/server.js"{})}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11805}{}\doxysubsection{\texorpdfstring{Check Miner Count}{Check Miner Count}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11805}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getminers"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ jq\ 'length'}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11806}{}\doxysubsection{\texorpdfstring{Get Specific Miner Balance}{Get Specific Miner Balance}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11806}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getminerbalances"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ jq\ '.[]\ |\ select(.minerName\ ==\ "{}miner-\/0"{})'}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11808}{}\doxysection{\texorpdfstring{📝 File Organization}{📝 File Organization}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11808}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Wallets\ (auto-\/generated):}
+\DoxyCodeLine{\ \ wallets/genesis\_miners\_10.json\ \ \ \ \ \ ←\ BIP-\/39\ seeds\ for\ genesis}
+\DoxyCodeLine{\ \ wallets/extra\_miners\_100.json\ \ \ \ \ \ \ ←\ BIP-\/39\ seeds\ for\ extra}
+\DoxyCodeLine{}
+\DoxyCodeLine{Logs\ (real-\/time\ monitoring):}
+\DoxyCodeLine{\ \ logs/pool.log\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Pool\ mining\ activity}
+\DoxyCodeLine{\ \ logs/miner-\/0.log\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Individual\ miner\ logs}
+\DoxyCodeLine{\ \ logs/extra-\/miner-\/10.log\ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Extra\ miner\ logs}
+\DoxyCodeLine{}
+\DoxyCodeLine{PID\ Files\ (for\ cleanup):}
+\DoxyCodeLine{\ \ .miners\_pids\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ PIDs\ of\ genesis\ miners}
+\DoxyCodeLine{\ \ .extra\_miners\_pids\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ PIDs\ of\ extra\ miners}
+\DoxyCodeLine{}
+\DoxyCodeLine{Source\ Code:}
+\DoxyCodeLine{\ \ rpc-\/server.js\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Mining\ pool\ (0\ hardcoding)}
+\DoxyCodeLine{\ \ miner-\/client.js\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Miner\ executable}
+\DoxyCodeLine{\ \ create-\/wallet.js\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Wallet\ generator}
+\DoxyCodeLine{}
+\DoxyCodeLine{Scripts:}
+\DoxyCodeLine{\ \ start-\/genesis.sh\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ All-\/in-\/one\ bootstrap}
+\DoxyCodeLine{\ \ launch-\/extra-\/miners.sh\ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Scale\ up}
+\DoxyCodeLine{\ \ launch-\/pool-\/miners.sh\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Generic\ launcher}
+\DoxyCodeLine{}
+\DoxyCodeLine{Docs:}
+\DoxyCodeLine{\ \ POOL.md\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ Full\ API\ reference}
+\DoxyCodeLine{\ \ QUICK\_START.md\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ←\ This\ file}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11810}{}\doxysection{\texorpdfstring{🧪 Testing Scenarios}{🧪 Testing Scenarios}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11810}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11811}{}\doxysubsection{\texorpdfstring{Scenario 1:\+ Verify Equal Distribution (10 miners)}{Scenario 1:\+ Verify Equal Distribution (10 miners)}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11811}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Start\ genesis}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Wait\ 30\ seconds\ for\ blocks\ to\ mine}
+\DoxyCodeLine{sleep\ 30}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ all\ miners\ have\ equal\ balance}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getminerbalances"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ jq\ '.[]\ |\ .balanceOmni'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Expected output:\+}} All miners show same balance (e.\+g., 30.\+5 OMNI)\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11812}{}\doxysubsection{\texorpdfstring{Scenario 2:\+ Dynamic Scaling (10 → 110 miners)}{Scenario 2:\+ Dynamic Scaling (10 → 110 miners)}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11812}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Terminal\ 1:\ Start\ genesis}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Wait\ a\ few\ blocks}
+\DoxyCodeLine{sleep\ 10}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Terminal\ 2:\ Add\ 100\ miners}
+\DoxyCodeLine{bash\ launch-\/extra-\/miners.sh\ 100}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Watch\ reward\ per\ miner\ decrease}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getminerbalances"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ jq\ '.[0]\ |\ \{name:\ .minerName,\ balance:\ .balanceOmni\}'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Observation:\+}} New miners start at 0 OMNI, then gain \texorpdfstring{$\sim$}{\string~}0.4545 OMNI/\+block\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11813}{}\doxysubsection{\texorpdfstring{Scenario 3:\+ Miner Disconnect \& Failover}{Scenario 3:\+ Miner Disconnect \& Failover}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11813}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Terminal\ 1:\ Start\ genesis}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Terminal\ 2:\ Stop\ one\ miner}
+\DoxyCodeLine{kill\ \$(head\ -\/1\ .miners\_pids)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Pool\ detects\ timeout\ (30s)\ and\ reallocates\ rewards}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Remaining\ 9\ miners\ now\ get:\ 50\ OMNI\ ÷\ 9\ =\ 5.555\ OMNI/block}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getminerstatus"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ jq\ '.activeMiningMiners'}
+
+\end{DoxyCode}
+
+
+{\bfseries{Expected:\+}} active\+Mining\+Miners drops from 10 → 9, rewards increase for remaining
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11815}{}\doxysection{\texorpdfstring{💡 Why This Design?}{💡 Why This Design?}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11815}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11816}{}\doxysubsection{\texorpdfstring{Problem Solved}{Problem Solved}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11816}
+
+\begin{DoxyItemize}
+\item ❌ Before:\+ "{}ca la noi daor sunt harcodate nu?!"{} (everything is hardcoded!)
+\item ✅ After:\+ Pool accepts miners dynamically, no restart needed
+\end{DoxyItemize}\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11817}{}\doxysubsection{\texorpdfstring{Benefits}{Benefits}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11817}
+
+\begin{DoxyItemize}
+\item {\bfseries{Zero Hardcoding}}:\+ Miners register at runtime
+\item {\bfseries{Scalable}}:\+ From 10 to 1000+ without code changes
+\item {\bfseries{Fair}}:\+ Automatic equal distribution
+\item {\bfseries{Resilient}}:\+ Automatic disconnect detection
+\item {\bfseries{Deterministic}}:\+ Every miner can verify their own rewards
+\item {\bfseries{Verifiable}}:\+ All wallets have BIP-\/39 seeds (exportable)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11819}{}\doxysection{\texorpdfstring{🚨 Troubleshooting}{🚨 Troubleshooting}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11819}
+{\bfseries{"{}\+Pool won\textquotesingle{}t start"{}}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Check\ if\ port\ 8332\ is\ in\ use}
+\DoxyCodeLine{lsof\ -\/i\ :8332}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Kill\ any\ existing\ process}
+\DoxyCodeLine{kill\ \$(lsof\ -\/t\ -\/i\ :8332)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Try\ again}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+
+\end{DoxyCode}
+
+
+{\bfseries{"{}\+Miners won\textquotesingle{}t register"{}}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Check\ pool\ is\ running}
+\DoxyCodeLine{curl\ http://127.0.0.1:8332\ -\/d\ '...'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ logs}
+\DoxyCodeLine{tail\ logs/pool.log}
+\DoxyCodeLine{tail\ logs/miner-\/0.log}
+
+\end{DoxyCode}
+
+
+{\bfseries{"{}\+Balance not increasing"{}}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Check\ blockCount\ increasing}
+\DoxyCodeLine{curl\ ...\ getblockcount\ |\ jq\ .result}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Check\ miner\ is\ in\ active\ set}
+\DoxyCodeLine{curl\ ...\ getminers\ |\ jq\ 'length'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ If\ 0:\ pool\ has\ no\ active\ miners\ (check\ logs)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11821}{}\doxysection{\texorpdfstring{📚 More Info}{📚 More Info}}\label{md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t_autotoc_md11821}
+See \doxysectlink{md_wiki-omnibus_2_p_o_o_l}{POOL.md}{0} for:\+
+\begin{DoxyItemize}
+\item Complete RPC API reference
+\item Wallet generation details
+\item Reward distribution formulas
+\item BIP-\/39 mnemonic structure
+\item Performance metrics
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Ready?}} → {\ttfamily bash start-\/genesis.\+sh} 🚀 

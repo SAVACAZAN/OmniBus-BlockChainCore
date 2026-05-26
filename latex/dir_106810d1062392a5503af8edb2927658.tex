@@ -1,0 +1,70 @@
+\doxysection{archived-\/4-\/eterniti/\+gui-\/qt-\/ada-\/hybrid Directory Reference}
+\hypertarget{dir_106810d1062392a5503af8edb2927658}{}\label{dir_106810d1062392a5503af8edb2927658}\index{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid Directory Reference@{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid Directory Reference}}
+Directory dependency graph for gui-\/qt-\/ada-\/hybrid:\+
+% FIG 0
+\doxysubsubsection*{Directories}
+\begin{DoxyCompactItemize}
+\item 
+directory \doxymbox{\hyperlink{dir_d2fb1571a39efa8c97c7fd93ff8d86e4}{ada-\/vault}}
+\item 
+directory \doxymbox{\hyperlink{dir_694aa66c6c4e071d6a7a4e0ae4299243}{build}}
+\item 
+directory \doxymbox{\hyperlink{dir_799692f32b256fcc1ca4c1f722ed7c61}{qt-\/gui}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Files}
+\begin{DoxyCompactItemize}
+\item 
+file \doxymbox{\hyperlink{test__load_8c}{test\+\_\+load.\+c}}
+\item 
+file \doxymbox{\hyperlink{test__mini_8c}{test\+\_\+mini.\+c}}
+\item 
+file \doxymbox{\hyperlink{test__vault_8c}{test\+\_\+vault.\+c}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_106810d1062392a5503af8edb2927658_autotoc_md3979}{}\doxysubsection{\texorpdfstring{Omni\+Bus Qt+\+Ada Hybrid GUI}{Omni\+Bus Qt+\+Ada Hybrid GUI}}\label{dir_106810d1062392a5503af8edb2927658_autotoc_md3979}
+{\bfseries{Qt6 C++ GUI}} + {\bfseries{Ada SPARK vault library}} (.dll)
+
+Best of both worlds:\+
+\begin{DoxyItemize}
+\item {\bfseries{Qt6}}:\+ Battle-\/tested GUI framework, native Windows look, DPI scaling, hardware rendering
+\item {\bfseries{Ada SPARK}}:\+ Mathematically proven vault crypto (DPAPI encrypt/\+decrypt, secure wipe)
+\end{DoxyItemize}\hypertarget{dir_106810d1062392a5503af8edb2927658_autotoc_md3980}{}\doxysubsection{\texorpdfstring{Architecture}{Architecture}}\label{dir_106810d1062392a5503af8edb2927658_autotoc_md3980}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{omnibus-\/qt-\/ada.exe\ \ (Qt6\ C++)}
+\DoxyCodeLine{\ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ ├──\ RPC\ Client\ ─────→\ Zig\ blockchain\ node\ (port\ 8332)}
+\DoxyCodeLine{\ \ \ \ ├──\ WebSocket\ ──────→\ Push\ events\ (port\ 8334)}
+\DoxyCodeLine{\ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ └──\ AdaVaultBridge\ ─→\ omnibus\_vault.dll\ (Ada\ SPARK)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ├──\ DPAPI\ Encrypt/Decrypt\ (SPARK\ verified)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ├──\ Secure\ Memory\ Wipe\ \ \ (SPARK\ proven)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ├──\ Exchange\ Key\ Storage\ \ (SPARK\ contracts)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ └──\ Binary\ vault\ format\ v4\ (SuperVault\ compatible)}
+
+\end{DoxyCode}
+\hypertarget{dir_106810d1062392a5503af8edb2927658_autotoc_md3981}{}\doxysubsection{\texorpdfstring{Build}{Build}}\label{dir_106810d1062392a5503af8edb2927658_autotoc_md3981}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{build.bat}
+
+\end{DoxyCode}
+
+
+Requires:\+
+\begin{DoxyItemize}
+\item Qt6 (with cmake integration)
+\item GNAT (Ada compiler, via Alire)
+\item CMake 3.\+21+ and Ninja
+\end{DoxyItemize}\hypertarget{dir_106810d1062392a5503af8edb2927658_autotoc_md3982}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_106810d1062392a5503af8edb2927658_autotoc_md3982}
+The Ada SPARK vault library provides:\+
+\begin{DoxyItemize}
+\item {\bfseries{Pre/\+\+Post conditions}} on every function (verified at compile time)
+\item {\bfseries{DPAPI encryption}} tied to Windows user account
+\item {\bfseries{Secure wipe}} guaranteed not optimized away (SPARK postcondition)
+\item {\bfseries{No heap allocation}} in crypto paths
+\item Same binary vault format as Omnibus\+Sidebar Super\+Vault (OMNV v4) 
+\end{DoxyItemize}

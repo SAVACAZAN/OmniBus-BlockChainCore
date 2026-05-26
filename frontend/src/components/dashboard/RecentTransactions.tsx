@@ -1,19 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
+import { midTrunc, SAT_PER_OMNI, fmtAge } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
-
-// Trunchiaza hash/adresa la mijloc cu '**' (gen 0000abcd**1234ef).
-function midTrunc(s: string | undefined | null, head = 8, tail = 6): string {
-  if (!s) return "—";
-  if (s.length <= head + tail + 2) return s;
-  return `${s.slice(0, head)}**${s.slice(-tail)}`;
-}
 
 // Click pe hash → deschide modal cu detalii TX (in TxSearch, mai jos)
 declare global {
   interface Window { __openTx?: (txid: string) => void }
+}
+
+function SchemeTag({ scheme }: { scheme?: string }) {
+  if (!scheme) return null;
+  const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
+  const isSoulbound = scheme.includes("soulbound");
+  const cls = isSoulbound
+    ? "bg-purple-400/10 text-purple-300 border-purple-400/30"
+    : isPQ
+    ? "bg-blue-400/10 text-blue-300 border-blue-400/30"
+    : "bg-green-400/10 text-green-300 border-green-400/30";
+  const short = isSoulbound ? "PQ🔒" : isPQ ? "PQ" : "EC";
+  return (
+    <span className={`inline-block px-1.5 py-0 rounded border text-[9px] font-mono flex-shrink-0 ${cls}`} title={scheme}>
+      {short}
+    </span>
+  );
+}
+
+const KIND_DOT: Record<string, string> = {
+  coinbase:   "text-yellow-300",
+  faucet:     "text-cyan-300",
+  registrar:  "text-purple-300",
+  exchange:   "text-blue-300",
+  stake:      "text-green-300",
+  unstake:        "text-amber-300",
+  ns_claim:       "text-violet-300",
+  agent_register: "text-indigo-300",
+  notarize:       "text-rose-300",
+  demo_grant:     "text-pink-300",
+};
+function KindBadge({ kind }: { kind?: string }) {
+  if (!kind || kind === "transfer") return null;
+  const cls = KIND_DOT[kind] ?? "text-gray-400";
+  return (
+    <span className={`text-[9px] font-mono uppercase ${cls}`}>{kind}</span>
+  );
 }
 
 function ConfirmationBadge({ count }: { count: number }) {
@@ -56,54 +87,75 @@ export function RecentTransactions() {
       setRecentTxs([]);
     };
     fetchRecent();
-    const id = setInterval(fetchRecent, 6000);
-    return () => clearInterval(id);
+    // state.blockCount is WS-driven — no interval needed.
   }, [state.blockCount]);
 
-  // Combine: new endpoint TXs + fallback pending + block rewards
-  const items = recentTxs.length > 0
-    ? recentTxs.slice(0, 15).map((tx: any) => ({
-        id: tx.txid || tx.id,
-        from: tx.from || "",
-        to: tx.to || "",
-        amount: tx.amount || 0,
-        fee: tx.fee || 0,
-        status: tx.status || "pending",
-        confirmations: tx.confirmations ?? 0,
-        time: tx.timestamp || Date.now(),
-      }))
-    : [
-        ...state.pendingTxs.slice(0, 10).map((tx) => ({
-          id: tx.txid,
-          from: tx.from,
-          to: "",
-          amount: tx.amount_sat,
-          fee: 0,
-          status: "pending" as const,
-          confirmations: 0,
-          time: tx.timestamp,
-        })),
-        ...state.recentBlocks.slice(0, 10).map((block) => ({
-          id: `coinbase-${block.height}`,
-          from: "coinbase",
-          to: block.miner || state.address,
-          amount: block.rewardSAT || 0,
-          fee: 0,
-          status: "confirmed" as const,
-          confirmations: Math.max(1, state.blockCount - block.height),
-          time: block.timestamp ? block.timestamp * 1000 : Date.now(),
-        })),
-      ].slice(0, 15);
+  type TxItem = {
+    id: string;
+    from: string;
+    to: string;
+    amount: number;
+    fee: number;
+    status: "pending" | "confirmed";
+    confirmations: number;
+    time: number;
+    scheme?: string;
+    kind?: string;
+  };
 
-  // Dedupe by id — pending TX + coinbase reward at same block can collide.
-  const uniqueItems = [...new Map(items.map((it) => [it.id, it])).values()];
+  // Combine: new endpoint TXs + fallback pending + block rewards
+  const uniqueItems = useMemo<TxItem[]>(() => {
+    const items: TxItem[] = recentTxs.length > 0
+      ? recentTxs.slice(0, 15).map((tx: any): TxItem => ({
+          id: tx.txid || tx.id,
+          from: tx.from || "",
+          to: tx.to || "",
+          amount: tx.amount || 0,
+          fee: tx.fee || 0,
+          status: (tx.status === "confirmed" ? "confirmed" : "pending"),
+          confirmations: tx.confirmations ?? 0,
+          time: tx.timestamp || Date.now(),
+          scheme: tx.scheme,
+          kind: tx.kind,
+        }))
+      : [
+          ...state.pendingTxs.slice(0, 10).map((tx): TxItem => ({
+            id: tx.txid,
+            from: tx.from,
+            to: "",
+            amount: tx.amount_sat,
+            fee: 0,
+            status: "pending",
+            confirmations: 0,
+            time: tx.timestamp,
+          })),
+          ...state.recentBlocks.slice(0, 10).map((block): TxItem => ({
+            id: `coinbase-${block.height}`,
+            from: "coinbase",
+            to: block.miner || state.address,
+            amount: block.rewardSAT || 0,
+            fee: 0,
+            status: "confirmed",
+            confirmations: Math.max(1, state.blockCount - block.height),
+            time: block.timestamp ? block.timestamp * 1000 : Date.now(),
+          })),
+        ].slice(0, 15);
+    // Dedupe by id — pending TX + coinbase reward at same block can collide.
+    return [...new Map<string, TxItem>(items.map((it) => [it.id, it])).values()];
+  }, [recentTxs, state.pendingTxs, state.recentBlocks, state.blockCount, state.address]);
 
   return (
     <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border backdrop-blur-sm">
-      <div className="px-4 py-3 border-b border-mempool-border">
+      <div className="px-4 py-3 border-b border-mempool-border flex items-center justify-between">
         <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Recent Activity
         </h3>
+        <button
+          onClick={() => { window.location.hash = "#/mempool"; }}
+          className="text-[10px] text-mempool-blue hover:underline font-mono"
+        >
+          View mempool →
+        </button>
       </div>
       <div className="divide-y divide-mempool-border/50 max-h-80 overflow-y-auto">
         {uniqueItems.length === 0 ? (
@@ -152,26 +204,28 @@ export function RecentTransactions() {
                     {item.status}
                   </span>
                   <ConfirmationBadge count={item.confirmations} />
+                  <KindBadge kind={item.kind} />
+                  {item.scheme && <SchemeTag scheme={item.scheme} />}
                 </div>
                 <p className="text-[10px] text-mempool-text-dim truncate" title={`${item.from}${item.to ? " -> " + item.to : ""}`}>
                   {item.from === "coinbase" ? (
                     item.to ? (
                       <button onClick={() => { window.location.hash = `#/address/${item.to}`; }}
                         className="font-mono text-mempool-green hover:underline">
-                        → {midTrunc(item.to, 8, 6)}
+                        → <AddressLabel address={item.to} showEmoji truncate={{ left: 8, right: 6 }} />
                       </button>
                     ) : null
                   ) : (
                     <>
                       <button onClick={() => { window.location.hash = `#/address/${item.from}`; }}
                         className="font-mono hover:text-mempool-blue hover:underline transition-colors">
-                        {midTrunc(item.from, 8, 6)}
+                        <AddressLabel address={item.from} showEmoji truncate={{ left: 8, right: 6 }} />
                       </button>
                       {item.to ? (
                         <> &nbsp;→&nbsp;{" "}
                           <button onClick={() => { window.location.hash = `#/address/${item.to}`; }}
                             className="font-mono hover:text-mempool-blue hover:underline transition-colors">
-                            {midTrunc(item.to, 8, 6)}
+                            <AddressLabel address={item.to} showEmoji truncate={{ left: 8, right: 6 }} />
                           </button>
                         </>
                       ) : null}
@@ -180,14 +234,20 @@ export function RecentTransactions() {
                 </p>
               </div>
 
-              {/* Amount + Fee */}
+              {/* Amount + Fee + Age */}
               <div className="text-right flex-shrink-0">
                 <span className="text-xs font-mono text-mempool-text">
-                  {(item.amount / 1e9).toFixed(8)}
+                  {(item.amount / SAT_PER_OMNI).toFixed(8)}
                 </span>
                 {item.fee > 0 && (
                   <p className="text-[9px] text-mempool-text-dim font-mono">
                     fee: {item.fee} SAT
+                  </p>
+                )}
+                {item.time > 0 && (
+                  <p className="text-[9px] text-mempool-text-dim/70 font-mono"
+                     title={new Date(item.time).toLocaleString()}>
+                    {fmtAge(item.time)}
                   </p>
                 )}
               </div>

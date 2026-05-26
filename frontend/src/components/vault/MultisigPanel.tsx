@@ -13,18 +13,21 @@
  * connection. Only use this on a trusted local or VPN-secured node.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Users, Send, Plus, X, AlertTriangle, Copy, RefreshCw } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
+
 
 type SubTab = "create" | "send" | "balance";
+
+const MULTISIG_TABS: { id: SubTab; label: string }[] = [
+  { id: "create",  label: "Create Multisig" },
+  { id: "send",    label: "Send from Multisig" },
+  { id: "balance", label: "Balance" },
+];
 
 export function MultisigPanel() {
   const [tab, setTab] = useState<SubTab>("create");
@@ -41,11 +44,7 @@ export function MultisigPanel() {
 
       {/* Sub-tabs */}
       <div className="flex gap-1 border-b border-mempool-border overflow-x-auto scrollbar-none">
-        {([
-          { id: "create" as SubTab, label: "Create Multisig" },
-          { id: "send"   as SubTab, label: "Send from Multisig" },
-          { id: "balance" as SubTab, label: "Balance" },
-        ]).map((t) => {
+        {MULTISIG_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button
@@ -104,8 +103,7 @@ function CreateMultisigTab() {
     setErr(null);
     setResult(null);
     try {
-      const res = await rpc.request_raw("createmultisig", [{ m, pubkeys: validKeys }]) as
-        { address?: string; redeemScript?: string } | null;
+      const res = await rpc.createMultisig(m, validKeys) as { address?: string; redeemScript?: string } | null;
       if (res?.address) {
         setResult({ address: res.address, redeemScript: res.redeemScript ?? "" });
       } else {
@@ -259,13 +257,13 @@ function SendMultisigTab() {
     setErr(null);
     setResult(null);
     try {
-      const res = await rpc.request_raw("sendmultisig", [{
+      const res = await rpc.sendMultisig({
         from: fromAddr.trim(),
         to: toAddr.trim(),
         amount_sat: amountSat,
         fee_sat: feeSat,
         privkeys: validKeys,
-      }]) as { txid?: string } | null;
+      }) as { txid?: string } | null;
       setResult(res?.txid ?? "OK");
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -410,8 +408,8 @@ function BalanceTab() {
     setErr(null);
     setBalance(null);
     try {
-      const res = await rpc.request_raw("getbalance", [a]) as number | { balance?: number } | null;
-      const sat = typeof res === "number" ? res : (res?.balance ?? 0);
+      const res = await rpc.getAddressBalance(a);
+      const sat = res?.balance ?? 0;
       setBalance(sat);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -451,7 +449,7 @@ function BalanceTab() {
         <div className="bg-mempool-bg border border-mempool-border rounded p-4">
           <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1">Balance</div>
           <div className="text-2xl font-mono text-mempool-text">
-            {fmtOmni(balance)}
+            {satToOmni(balance, 4)}
             <span className="text-sm text-mempool-text-dim ml-2">OMNI</span>
           </div>
           <div className="text-[10px] font-mono text-mempool-text-dim mt-1">

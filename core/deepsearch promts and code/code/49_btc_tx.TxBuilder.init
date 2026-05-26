@@ -1,0 +1,2 @@
+try builder.sign(&result.tx, utxos, private_keys);
+const raw_tx = try result.tx.serialize();

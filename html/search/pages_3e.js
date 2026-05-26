@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['🎯_20arhitectură_20hibridă_20unificată_3a_20omnibus_20universal_20wallet_0',['🎯 ARHITECTURĂ HIBRIDĂ UNIFICATĂ: &quot;OmniBus Universal Wallet&quot;',['../md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p.html#autotoc_md3688',1,'']]],
+  ['🎯_20arhitectura_20recomandată_3a_20omnibus_203_20wallet_20system_1',['🎯 Arhitectura Recomandată: &quot;OmniBus 3-Wallet System&quot;',['../md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_u_m_m_a_r_y.html#autotoc_md3793',1,'']]],
+  ['🎯_20ce_20am_20realizat_2',['🎯 Ce Am Realizat',['../md_archived-4-eterniti_2tools-python_2_f_i_n_a_l___s_t_a_t_u_s.html#autotoc_md4114',1,'']]],
+  ['🎯_20command_20reference_3',['🎯 Command Reference',['../md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___l_a_u_n_c_h___g_u_i_d_e.html#autotoc_md493',1,'']]],
+  ['🎯_20key_20concepts_4',['🎯 Key Concepts',['../md_wiki-omnibus_2_q_u_i_c_k___s_t_a_r_t.html#autotoc_md11795',1,'']]],
+  ['🎯_20opțiuni_20pentru_20extindere_5',['🎯 OPȚIUNI PENTRU EXTINDERE',['../md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___s_t_a_t_e___v_s___a_l_l.html#autotoc_md3759',1,'']]],
+  ['🎯_20performance_20summary_6',['🎯 Performance Summary',['../md_wiki-omnibus_2_p_h_a_s_e__6__7___s_u_m_m_a_r_y.html#autotoc_md11599',1,'']]],
+  ['🎯_20principiul_20de_20bază_7',['🎯 Principiul de Bază',['../md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_r_o_p_e_r_a_b_i_l_i_t_y.html#autotoc_md3718',1,'']]],
+  ['🎯_20priorități_20ordinea_20implementării_8',['🎯 Priorități (Ordinea Implementării)',['../md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n.html#autotoc_md659',1,'']]],
+  ['🎯_20prioritate_20implementare_9',['🎯 Prioritate Implementare',['../md_archived-4-eterniti_2tools-python_2_a_i___a_g_e_n_t___t_o_o_l_s.html#autotoc_md4105',1,'']]],
+  ['🎯_20problem_20solved_10',['🎯 Problem Solved',['../md_wiki-omnibus_2_p_h_a_s_e__6__7___s_u_m_m_a_r_y.html#autotoc_md11571',1,'🎯 Problem Solved'],['../md_wiki-omnibus_2_p_h_a_s_e__8___s_u_m_m_a_r_y.html#autotoc_md11605',1,'🎯 Problem Solved']]],
+  ['🎯_20quick_20navigation_11',['🎯 Quick Navigation',['../md_wiki-kimi-omnibus_2_i_n_d_e_x.html#autotoc_md11161',1,'']]],
+  ['🎯_20quick_20start_12',['🎯 Quick Start',['../md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e.html#autotoc_md392',1,'']]],
+  ['🎯_20recomandare_20finală_13',['🎯 RECOMANDARE FINALĂ',['../md_archived-4-eterniti_2docs-plans_2_o_m_n_i_b_u_s___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n___r_o_a_d_m_a_p.html#autotoc_md3709',1,'']]],
+  ['🎯_20rezultate_20scanare_20securitate_20real_14',['🎯 Rezultate Scanare Securitate (Real)',['../md_archived-4-eterniti_2docs-extra_2_t_o_o_l_s___s_t_a_t_u_s.html#autotoc_md615',1,'']]],
+  ['🎯_20rezultate_20tool_20uri_15',['🎯 Rezultate Tool-uri',['../md_archived-4-eterniti_2tools-python_2_s_t_r_u_c_t_u_r_e.html#autotoc_md4161',1,'']]],
+  ['🎯_20scopul_20acestui_20director_16',['🎯 Scopul acestui director',['../dir_229bde8bb62127fcdf2fc55d1eed4612.html#autotoc_md349',1,'']]],
+  ['🎯_20use_20cases_17',['🎯 Use Cases',['../md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___c_o_u_n_t_d_o_w_n___g_u_i_d_e.html#autotoc_md438',1,'']]],
+  ['🎯_20viziunea_20mea_3a_20ce_20mai_20trebuie_20adăugat_18',['🎯 VIZIUNEA MEA: Ce Mai Trebuie Adăugat',['../md_archived-4-eterniti_2docs-extra_2_v_i_s_i_o_n___o_m_n_i_b_u_s___b_l_o_c_k_c_h_a_i_n.html#autotoc_md635',1,'']]],
+  ['🎯_20what_20happens_20when_20you_20launch_20genesis_19',['🎯 What Happens When You Launch Genesis?',['../md_archived-4-eterniti_2docs-extra_2_g_e_n_e_s_i_s___l_a_u_n_c_h___g_u_i_d_e.html#autotoc_md452',1,'']]],
+  ['🎯_20what_20this_20enables_20',['🎯 What This Enables',['../md_wiki-omnibus_2_p_h_a_s_e__8___s_u_m_m_a_r_y.html#autotoc_md11647',1,'']]],
+  ['🎯_20what_20was_20created_21',['🎯 WHAT WAS CREATED',['../md_archived-4-eterniti_2docs-extra_2_n_e_t_w_o_r_k___s_e_t_u_p.html#autotoc_md570',1,'🎯 WHAT WAS CREATED'],['../md_wiki-omnibus_2_p_h_a_s_e__2___s_u_m_m_a_r_y.html#autotoc_md11465',1,'🎯 WHAT WAS CREATED'],['../md_wiki-omnibus_2_p_h_a_s_e__3___s_u_m_m_a_r_y.html#autotoc_md11499',1,'🎯 WHAT WAS CREATED'],['../md_wiki-omnibus_2_p_h_a_s_e__4___s_u_m_m_a_r_y.html#autotoc_md11532',1,'🎯 WHAT WAS CREATED']]],
+  ['🎯_20workflow_20recomandat_22',['🎯 Workflow Recomandat',['../dir_d147bc643bfa9de686471d4bfc540fd5.html#autotoc_md4011',1,'🎯 Workflow Recomandat'],['../dir_e4cbadfb3e79e02b6d416116f179bad2.html#autotoc_md4142',1,'🎯 Workflow Recomandat']]]
+];

@@ -1,0 +1,27 @@
+var upgrade_manager_8py =
+[
+    [ "upgrade-manager.backup_files", "namespaceupgrade-manager.html#a22db53cb880e41e686955799ad2067c0", null ],
+    [ "upgrade-manager.find_binary", "namespaceupgrade-manager.html#a45b82bfaa7597f587cfc620dc1a0a73c", null ],
+    [ "upgrade-manager.find_project_root", "namespaceupgrade-manager.html#ac8e5f0a7730f8396cce2214741332182", null ],
+    [ "upgrade-manager.get_binary_info", "namespaceupgrade-manager.html#abc244bb6dcf2df537e22eb49b77ca234", null ],
+    [ "upgrade-manager.main", "namespaceupgrade-manager.html#a51af30a60f9f02777c6396b8247e356f", null ],
+    [ "upgrade-manager.rebuild", "namespaceupgrade-manager.html#ac338524c54c9ea6b986910db5c06914c", null ],
+    [ "upgrade-manager.restart_node", "namespaceupgrade-manager.html#afb5f1d609191b31a07f9e33453673029", null ],
+    [ "upgrade-manager.rollback", "namespaceupgrade-manager.html#a08b591374d4578c62de0b9ba7163a004", null ],
+    [ "upgrade-manager.stop_node", "namespaceupgrade-manager.html#acc631af2a1d14379ebda4e618dc5e1d6", null ],
+    [ "upgrade-manager.verify_binary", "namespaceupgrade-manager.html#a030debd8a0bb80848c143f73fbcec848", null ],
+    [ "upgrade-manager.BG_RED", "namespaceupgrade-manager.html#a602fd87ec2209a5009721fb894aa8fa9", null ],
+    [ "upgrade-manager.BOLD", "namespaceupgrade-manager.html#a362da12483c395498ff597666d9c7b40", null ],
+    [ "upgrade-manager.CYAN", "namespaceupgrade-manager.html#a1737dffdfb0c1581bece6f8c9895b52c", null ],
+    [ "upgrade-manager.DIM", "namespaceupgrade-manager.html#a6c365c291dc54557a5e7dbea2274fc9c", null ],
+    [ "upgrade-manager.FAIL", "namespaceupgrade-manager.html#a1b8d28a734c20e1a8217c13cae51584a", null ],
+    [ "upgrade-manager.GREEN", "namespaceupgrade-manager.html#a92ec9821ad91d95f702c9315b563dbef", null ],
+    [ "upgrade-manager.MAGENTA", "namespaceupgrade-manager.html#a81aaa93fe635abeb23d09a072a8be1ce", null ],
+    [ "upgrade-manager.OK", "namespaceupgrade-manager.html#a30ce1bab084bd9f5ddf43f90fedee2f8", null ],
+    [ "upgrade-manager.RED", "namespaceupgrade-manager.html#a828f9c589679b89d0bb3f62ec4765296", null ],
+    [ "upgrade-manager.RESET", "namespaceupgrade-manager.html#acc5bdeb5d9ca8f860b5f78f5e9fcddf6", null ],
+    [ "upgrade-manager.STEP", "namespaceupgrade-manager.html#a5a37a040f390fad011fabd91c6535a8e", null ],
+    [ "upgrade-manager.WARN", "namespaceupgrade-manager.html#a4d6c7d9ee9fd876c08a7c401b5223311", null ],
+    [ "upgrade-manager.WHITE", "namespaceupgrade-manager.html#a2805a0715151f0eaf0138bf0cf47043e", null ],
+    [ "upgrade-manager.YELLOW", "namespaceupgrade-manager.html#a895bf5d10cce6670100cace2f232ae1e", null ]
+];

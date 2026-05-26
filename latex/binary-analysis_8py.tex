@@ -1,0 +1,57 @@
+\doxysection{tools/\+\+EXPLOITS/\+binary-\/analysis.py File Reference}
+\hypertarget{binary-analysis_8py}{}\label{binary-analysis_8py}\index{tools/EXPLOITS/binary-\/analysis.py@{tools/EXPLOITS/binary-\/analysis.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacebinary-analysis}{binary-\/analysis}}
+\item 
+namespace \doxymbox{\hyperlink{namespacebinary}{binary}}
+\begin{DoxyCompactList}\small\item\em -\/analysis \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacebinary-analysis_a54b6ddaf7ffa1fe8575da1c58ab597e2}{binary-\/analysis.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebinary-analysis_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{binary-\/analysis.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebinary-analysis_abf994b8269849d29e07697ea8a840f74}{binary-\/analysis.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacebinary-analysis_adf0e2aa4d06b5ca38e44721821eca783}{binary-\/analysis.\+log\+\_\+warn}} (str msg)
+\item 
+tuple\+[int, str, str]\+ \doxymbox{\hyperlink{namespacebinary-analysis_a1899da31c15fff2d55cb0caf9ac8dca4}{binary-\/analysis.\+run\+\_\+cmd}} (list\+[str]\+ cmd, int timeout=30)
+\item 
+dict \doxymbox{\hyperlink{namespacebinary-analysis_a4c4b1dcf967f1735f041a526cb6dbcda}{binary-\/analysis.\+get\+\_\+file\+\_\+info}} (str binary\+\_\+path)
+\item 
+dict \doxymbox{\hyperlink{namespacebinary-analysis_a4ff3b21c09535007e101b3664d45ad4a}{binary-\/analysis.\+parse\+\_\+pe\+\_\+header}} (str binary\+\_\+path)
+\item 
+list\+[dict]\+ \doxymbox{\hyperlink{namespacebinary-analysis_a1ba300a3001ab67ddec3d5946332bb19}{binary-\/analysis.\+analyze\+\_\+sections\+\_\+objdump}} (str binary\+\_\+path)
+\item 
+dict \doxymbox{\hyperlink{namespacebinary-analysis_a6944e82a1c1a107610f5525515328ea4}{binary-\/analysis.\+scan\+\_\+strings}} (str binary\+\_\+path)
+\item 
+dict \doxymbox{\hyperlink{namespacebinary-analysis_a771747b3ff6fe7d96ed564f0e4dfa855}{binary-\/analysis.\+check\+\_\+canaries}} (str binary\+\_\+path)
+\item 
+dict\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacebinary-analysis_a6ffc768ca43815b4e5e476b83f4e64c3}{binary-\/analysis.\+try\+\_\+pwntools\+\_\+checksec}} (str binary\+\_\+path)
+\item 
+int \doxymbox{\hyperlink{namespacebinary-analysis_a7431cb90017e54fe695b23d4190db046}{binary-\/analysis.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_a49accedad87f3f4d5708e045ac5291cc}{binary-\/analysis.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_a7c472af26e5a6cd47e96d74b52e156ab}{binary-\/analysis.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_ad2b547a90f3d1aa37d26ed53286f183a}{binary-\/analysis.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_a858fd88e309de4a42b00d4ca05611cab}{binary-\/analysis.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_aa93c9e5285e4b7343b4c79f179f6fe85}{binary-\/analysis.\+BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacebinary-analysis_a9176e8b6a6165be1765d21b2bce4682c}{binary-\/analysis.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+list \doxymbox{\hyperlink{namespacebinary-analysis_a1921473a1771810f6b551781d2b51ec5}{binary-\/analysis.\+UNSAFE\+\_\+\+PATTERNS}}
+\item 
+\doxymbox{\hyperlink{namespacebinary-analysis_a264e41339269201a49de74920fc38096}{binary-\/analysis.\+SCRIPT\+\_\+\+DIR}} = os.\+path.\+dirname(os.\+path.\+abspath(\+\_\+\+\_\+file\+\_\+\+\_\+))
+\item 
+\doxymbox{\hyperlink{namespacebinary-analysis_a8e7313c0825cbb242516ba7bdcd2ae43}{binary-\/analysis.\+DEFAULT\+\_\+\+BINARY}} = os.\+path.\+normpath(os.\+path.\+join(\doxymbox{\hyperlink{namespacebinary-analysis_a264e41339269201a49de74920fc38096}{SCRIPT\+\_\+\+DIR}}, "{}.."{}, "{}.."{}, "{}zig-\/out"{}, "{}bin"{}, "{}omnibus-\/node.\+exe"{}))
+\end{DoxyCompactItemize}

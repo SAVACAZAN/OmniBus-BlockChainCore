@@ -1,0 +1,268 @@
+\doxysection{bridge\+\_\+validator.\+Bridge\+Validator Class Reference}
+\hypertarget{classbridge__validator_1_1_bridge_validator}{}\label{classbridge__validator_1_1_bridge_validator}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a242c17af2e6a68781b6776c7233102a1}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\item 
+bool \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_ad74a48c5c366be43b77f0a594565b5f4}{verify\+\_\+merkle\+\_\+proof}} (self, str tx\+\_\+hash, str merkle\+\_\+root, List\+[str]\+ proof)
+\item 
+Tuple\+[bool, str]\+ \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a3ed411fef894de906d7207dc9bd06c9d}{verify\+\_\+bitcoin\+\_\+spv}} (self, \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}} tx, Dict block\+\_\+header, List\+[str]\+ merkle\+\_\+proof)
+\item 
+Tuple\+[bool, str]\+ \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_af90771f4cf359c846894f2bcc9829d95}{verify\+\_\+ethereum\+\_\+proof}} (self, \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}} tx, Dict receipt)
+\item 
+Tuple\+[bool, str]\+ \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a5728f512dc44c4459afa83fe0fc8a4de}{verify\+\_\+solana\+\_\+proof}} (self, \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}} tx, Dict signature\+\_\+status)
+\item 
+Tuple\+[bool, str]\+ \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a225ff753da0d1b3e7d322f2d550e2e00}{validate\+\_\+bridge\+\_\+tx}} (self, \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}} tx, Dict proof\+\_\+data)
+\item 
+bool \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a08b364a37aec4ca2521a7b8f5ce227dd}{check\+\_\+double\+\_\+spend}} (self, \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}} tx)
+\item 
+Dict \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_ad62600281f415b80ef50b2a00ce6fb0a}{estimate\+\_\+completion\+\_\+time}} (self, \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}} tx)
+\item 
+Dict \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a1802e6645abb11a20523a1c1bdd7638a}{load\+\_\+proof\+\_\+from\+\_\+file}} (self, Path filepath)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+list \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a3ab45166e0de38e629a66221400a6ad4}{pending\+\_\+txs}} = \+[$\,$]\+
+\item 
+list \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_abbc3c192011ea52023ee64ebdb26fac6}{validated\+\_\+txs}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a23cd8d3b23e63c16189a331779b275b7}{MIN\+\_\+\+CONFIRMATIONS}}
+\item 
+dict \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_ae89f996beeb57a3328d04f8bce1da0d0}{BRIDGE\+\_\+\+CONTRACTS}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Tuple\+[bool, str]\+ \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_a0708f0765bafa407c56a13caf89b8379}{\+\_\+verify\+\_\+omnibus\+\_\+tx}} (self, \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}} tx, Dict proof\+\_\+data)
+\item 
+bool \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator_ab78bcbf8ce96c89603d25122755067eb}{\+\_\+is\+\_\+valid\+\_\+hash}} (self, str hash\+\_\+str, int length)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Validates cross-chain bridge transactions.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00062}{62}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+
+
+\label{classbridge__validator_1_1_bridge_validator_doc-constructors}
+\Hypertarget{classbridge__validator_1_1_bridge_validator_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a242c17af2e6a68781b6776c7233102a1}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a242c17af2e6a68781b6776c7233102a1} 
+bridge\+\_\+validator.\+Bridge\+Validator.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00081}{81}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+
+
+\label{classbridge__validator_1_1_bridge_validator_doc-func-members}
+\Hypertarget{classbridge__validator_1_1_bridge_validator_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classbridge__validator_1_1_bridge_validator_ab78bcbf8ce96c89603d25122755067eb}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!\_is\_valid\_hash@{\_is\_valid\_hash}}
+\index{\_is\_valid\_hash@{\_is\_valid\_hash}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{\_is\_valid\_hash()}{\_is\_valid\_hash()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_ab78bcbf8ce96c89603d25122755067eb} 
+ bool bridge\+\_\+validator.\+Bridge\+Validator.\+\_\+is\+\_\+valid\+\_\+hash (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{hash\+\_\+str}{, }\item[{int}]{length}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Check if string is a valid hex hash.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00262}{262}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a0708f0765bafa407c56a13caf89b8379}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!\_verify\_omnibus\_tx@{\_verify\_omnibus\_tx}}
+\index{\_verify\_omnibus\_tx@{\_verify\_omnibus\_tx}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{\_verify\_omnibus\_tx()}{\_verify\_omnibus\_tx()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a0708f0765bafa407c56a13caf89b8379} 
+ Tuple\+[bool, str]\+ bridge\+\_\+validator.\+Bridge\+Validator.\+\_\+verify\+\_\+omnibus\+\_\+tx (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}}}]{tx}{, }\item[{Dict}]{proof\+\_\+data}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Verify internal OmniBus transaction.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00213}{213}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a08b364a37aec4ca2521a7b8f5ce227dd}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!check\_double\_spend@{check\_double\_spend}}
+\index{check\_double\_spend@{check\_double\_spend}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{check\_double\_spend()}{check\_double\_spend()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a08b364a37aec4ca2521a7b8f5ce227dd} 
+ bool bridge\+\_\+validator.\+Bridge\+Validator.\+check\+\_\+double\+\_\+spend (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}}}]{tx}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if this transaction is a double-spend.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00222}{222}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+\Hypertarget{classbridge__validator_1_1_bridge_validator_ad62600281f415b80ef50b2a00ce6fb0a}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!estimate\_completion\_time@{estimate\_completion\_time}}
+\index{estimate\_completion\_time@{estimate\_completion\_time}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{estimate\_completion\_time()}{estimate\_completion\_time()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_ad62600281f415b80ef50b2a00ce6fb0a} 
+ Dict bridge\+\_\+validator.\+Bridge\+Validator.\+estimate\+\_\+completion\+\_\+time (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}}}]{tx}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Estimate time until transaction is finalized.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00239}{239}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a1802e6645abb11a20523a1c1bdd7638a}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!load\_proof\_from\_file@{load\_proof\_from\_file}}
+\index{load\_proof\_from\_file@{load\_proof\_from\_file}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{load\_proof\_from\_file()}{load\_proof\_from\_file()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a1802e6645abb11a20523a1c1bdd7638a} 
+ Dict bridge\+\_\+validator.\+Bridge\+Validator.\+load\+\_\+proof\+\_\+from\+\_\+file (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Load proof data from JSON file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00272}{272}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a225ff753da0d1b3e7d322f2d550e2e00}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!validate\_bridge\_tx@{validate\_bridge\_tx}}
+\index{validate\_bridge\_tx@{validate\_bridge\_tx}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{validate\_bridge\_tx()}{validate\_bridge\_tx()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a225ff753da0d1b3e7d322f2d550e2e00} 
+ Tuple\+[bool, str]\+ bridge\+\_\+validator.\+Bridge\+Validator.\+validate\+\_\+bridge\+\_\+tx (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}}}]{tx}{, }\item[{Dict}]{proof\+\_\+data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Validate a complete bridge transaction.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00185}{185}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a3ed411fef894de906d7207dc9bd06c9d}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!verify\_bitcoin\_spv@{verify\_bitcoin\_spv}}
+\index{verify\_bitcoin\_spv@{verify\_bitcoin\_spv}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{verify\_bitcoin\_spv()}{verify\_bitcoin\_spv()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a3ed411fef894de906d7207dc9bd06c9d} 
+ Tuple\+[bool, str]\+ bridge\+\_\+validator.\+Bridge\+Validator.\+verify\+\_\+bitcoin\+\_\+spv (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}}}]{tx}{, }\item[{Dict}]{block\+\_\+header}{, }\item[{List\+[str]\+}]{merkle\+\_\+proof}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify Bitcoin SPV (Simplified Payment Verification) proof.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00099}{99}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{classbridge__validator_1_1_bridge_validator_af90771f4cf359c846894f2bcc9829d95}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!verify\_ethereum\_proof@{verify\_ethereum\_proof}}
+\index{verify\_ethereum\_proof@{verify\_ethereum\_proof}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{verify\_ethereum\_proof()}{verify\_ethereum\_proof()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_af90771f4cf359c846894f2bcc9829d95} 
+ Tuple\+[bool, str]\+ bridge\+\_\+validator.\+Bridge\+Validator.\+verify\+\_\+ethereum\+\_\+proof (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}}}]{tx}{, }\item[{Dict}]{receipt}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify Ethereum transaction receipt and logs.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00131}{131}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{classbridge__validator_1_1_bridge_validator_ad74a48c5c366be43b77f0a594565b5f4}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!verify\_merkle\_proof@{verify\_merkle\_proof}}
+\index{verify\_merkle\_proof@{verify\_merkle\_proof}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{verify\_merkle\_proof()}{verify\_merkle\_proof()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_ad74a48c5c366be43b77f0a594565b5f4} 
+ bool bridge\+\_\+validator.\+Bridge\+Validator.\+verify\+\_\+merkle\+\_\+proof (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{tx\+\_\+hash}{, }\item[{str}]{merkle\+\_\+root}{, }\item[{List\+[str]\+}]{proof}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify a Merkle proof for a transaction.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00085}{85}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a5728f512dc44c4459afa83fe0fc8a4de}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!verify\_solana\_proof@{verify\_solana\_proof}}
+\index{verify\_solana\_proof@{verify\_solana\_proof}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{verify\_solana\_proof()}{verify\_solana\_proof()}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a5728f512dc44c4459afa83fe0fc8a4de} 
+ Tuple\+[bool, str]\+ bridge\+\_\+validator.\+Bridge\+Validator.\+verify\+\_\+solana\+\_\+proof (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}}}]{tx}{, }\item[{Dict}]{signature\+\_\+status}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify Solana transaction signature.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00165}{165}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+
+
+\label{classbridge__validator_1_1_bridge_validator_doc-variable-members}
+\Hypertarget{classbridge__validator_1_1_bridge_validator_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classbridge__validator_1_1_bridge_validator_ae89f996beeb57a3328d04f8bce1da0d0}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!BRIDGE\_CONTRACTS@{BRIDGE\_CONTRACTS}}
+\index{BRIDGE\_CONTRACTS@{BRIDGE\_CONTRACTS}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{BRIDGE\_CONTRACTS}{BRIDGE\_CONTRACTS}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_ae89f996beeb57a3328d04f8bce1da0d0} 
+dict bridge\+\_\+validator.\+Bridge\+Validator.\+BRIDGE\+\_\+\+CONTRACTS\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ChainType.BITCOIN:\ \textcolor{stringliteral}{"{}bc1q..."{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ChainType.ETHEREUM:\ \textcolor{stringliteral}{"{}0x..."{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ChainType.SOLANA:\ \textcolor{stringliteral}{"{}..."{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ChainType.OMNIBUS:\ \textcolor{stringliteral}{"{}ob\_omni\_bridge..."{}},}
+\DoxyCodeLine{\ \ \ \ \}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a23cd8d3b23e63c16189a331779b275b7}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!MIN\_CONFIRMATIONS@{MIN\_CONFIRMATIONS}}
+\index{MIN\_CONFIRMATIONS@{MIN\_CONFIRMATIONS}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{MIN\_CONFIRMATIONS}{MIN\_CONFIRMATIONS}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a23cd8d3b23e63c16189a331779b275b7} 
+dict bridge\+\_\+validator.\+Bridge\+Validator.\+MIN\+\_\+\+CONFIRMATIONS\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ChainType.BITCOIN:\ 6,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ChainType.ETHEREUM:\ 12,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ChainType.SOLANA:\ 32,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ChainType.OMNIBUS:\ 1,}
+\DoxyCodeLine{\ \ \ \ \}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00066}{66}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+\Hypertarget{classbridge__validator_1_1_bridge_validator_a3ab45166e0de38e629a66221400a6ad4}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!pending\_txs@{pending\_txs}}
+\index{pending\_txs@{pending\_txs}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{pending\_txs}{pending\_txs}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_a3ab45166e0de38e629a66221400a6ad4} 
+list bridge\+\_\+validator.\+Bridge\+Validator.\+pending\+\_\+txs = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00082}{82}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+\Hypertarget{classbridge__validator_1_1_bridge_validator_abbc3c192011ea52023ee64ebdb26fac6}\index{bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}!validated\_txs@{validated\_txs}}
+\index{validated\_txs@{validated\_txs}!bridge\_validator.BridgeValidator@{bridge\_validator.BridgeValidator}}
+\doxysubsubsection{\texorpdfstring{validated\_txs}{validated\_txs}}
+{\footnotesize\ttfamily \label{classbridge__validator_1_1_bridge_validator_abbc3c192011ea52023ee64ebdb26fac6} 
+list bridge\+\_\+validator.\+Bridge\+Validator.\+validated\+\_\+txs = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00083}{83}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+\+BRIDGE/\+\doxymbox{\hyperlink{bridge__validator_8py}{bridge\+\_\+validator.\+py}}\end{DoxyCompactItemize}

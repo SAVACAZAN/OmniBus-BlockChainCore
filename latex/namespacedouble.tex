@@ -1,0 +1,26 @@
+\doxysection{double Namespace Reference}
+\hypertarget{namespacedouble}{}\label{namespacedouble}\index{double@{double}}
+
+
+-\/spend-\/tester  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/spend-\/tester 
+
+\begin{DoxyVerb}double-spend-tester.py
+
+Test double-spend protection on a BlockChainCore network:
+  1. Create two conflicting transactions spending the same input
+     to two different recipients.
+  2. Send tx-A to node group A and tx-B to node group B
+     simultaneously (or as fast as possible).
+  3. Wait for block inclusion / confirmation.
+  4. Verify that only one transaction survives consensus;
+     the other is evicted from mempool or never confirmed.
+
+Outputs: double-spend-report.json
+\end{DoxyVerb}
+ 

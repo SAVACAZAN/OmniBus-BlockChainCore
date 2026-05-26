@@ -1,0 +1,282 @@
+\chapter{Integrare Hardware Wallet (Ledger/\+\+Trezor) pentru Omni\+Bus }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n}{}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n}\index{Integrare Hardware Wallet (Ledger/Trezor) pentru OmniBus@{Integrare Hardware Wallet (Ledger/Trezor) pentru OmniBus}}
+\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3666}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3666}%
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3667}{}\doxysection{\texorpdfstring{Sumar arhitectură Omni\+Bus PQ}{Sumar arhitectură Omni\+Bus PQ}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3667}
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Domeniu  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prefix  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coin Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Algoritm PQ  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Ledger  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Trezor  \\
+omnibus.\+omni  &ob\+\_\+omni\+\_\+  &777  &ML-\/\+DSA-\/87  &⚠️ Custom app  &✅ Open source  \\
+omnibus.\+love  &ob\+\_\+k1\+\_\+  &778  &ML-\/\+DSA-\/87  &⚠️ Custom app  &✅ Open source  \\
+omnibus.\+food  &ob\+\_\+f5\+\_\+  &779  &Falcon-\/512  &⚠️ Custom app  &✅ Open source  \\
+omnibus.\+rent  &ob\+\_\+d5\+\_\+  &780  &ML-\/\+DSA-\/87  &⚠️ Custom app  &✅ Open source  \\
+omnibus.\+vacation  &ob\+\_\+s3\+\_\+  &781  &SLH-\/\+DSA-\/256s  &⚠️ Custom app  &✅ Open source  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3668}{}\doxysection{\texorpdfstring{Opțiunea 3A:\+ Trezor Safe 7 (Recomandat -\/ Open Source)}{Opțiunea 3A:\+ Trezor Safe 7 (Recomandat -\/ Open Source)}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3668}
+Trezor Safe 7 este {\bfseries{complet open source}} și are deja suport pentru SLH-\/\+DSA-\/128 (SPHINCS+) în bootloader.\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3669}{}\doxysubsection{\texorpdfstring{Pași implementare:\+}{Pași implementare:\+}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3669}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{//\ Integrare\ în\ firmware-\/ul\ Trezor\ (simplificat)}}
+\DoxyCodeLine{\textcolor{comment}{//\ vendor/omnibus.c}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ "{}omnibus.h"{}}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ "{}bip32.h"{}}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ "{}curves.h"{}}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ "{}sha2.h"{}}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ "{}sha3.h"{}}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Derivează\ cheie\ OmniBus\ din\ seed\ BIP-\/39}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ omnibus\_derive\_key(\textcolor{keyword}{const}\ uint32\_t\ *path,\ uint32\_t\ path\_len,\ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ *private\_key,\ uint8\_t\ *public\_key)\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Path\ standard:\ m/44'/777'/0'/0/0}}
+\DoxyCodeLine{\ \ \ \ HDNode\ \doxymbox{\hyperlink{namespacenode}{node}};}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{if}\ (!hdnode\_from\_seed(seed,\ seed\_len,\ SECP256K1\_NAME,\ \&\doxymbox{\hyperlink{namespacenode}{node}}))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{for}\ (uint32\_t\ i\ =\ 0;\ i\ <\ path\_len;\ i++)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!hdnode\_private\_ckd(\&\doxymbox{\hyperlink{namespacenode}{node}},\ path[i]))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ memcpy(private\_key,\ \doxymbox{\hyperlink{namespacenode}{node}}.private\_key,\ 32);}
+\DoxyCodeLine{\ \ \ \ hdnode\_fill\_public\_key(\&\doxymbox{\hyperlink{namespacenode}{node}});}
+\DoxyCodeLine{\ \ \ \ memcpy(public\_key,\ \doxymbox{\hyperlink{namespacenode}{node}}.public\_key,\ 33);\ \textcolor{comment}{//\ compressed}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Generează\ adresă\ OmniBus:\ prefix\ +\ Base58Check(0x4F\ ||\ hash160)}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ omnibus\_get\_address(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *prefix,\ \textcolor{keywordtype}{char}\ *\doxymbox{\hyperlink{namespaceaddress}{address}},\ \textcolor{keywordtype}{size\_t}\ max\_len)\ \{}
+\DoxyCodeLine{\ \ \ \ uint8\_t\ public\_key[33];}
+\DoxyCodeLine{\ \ \ \ uint8\_t\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{hash160}}[20];}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Derivează\ cheie}}
+\DoxyCodeLine{\ \ \ \ uint32\_t\ path[]\ =\ \{44\ |\ BIP32\_HARDENED,\ 777\ |\ BIP32\_HARDENED,\ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ |\ BIP32\_HARDENED,\ 0,\ 0\};}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{if}\ (!omnibus\_derive\_key(path,\ 5,\ NULL,\ public\_key))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Calculează\ hash160}}
+\DoxyCodeLine{\ \ \ \ hasher\_Raw(HASHER\_SHA2,\ public\_key,\ 33,\ hash160);\ \textcolor{comment}{//\ SHA256}}
+\DoxyCodeLine{\ \ \ \ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a14ffdb97a40bf9b3046dea5e64596565}{ripemd160}}(hash160,\ 32,\ hash160);\ \textcolor{comment}{//\ RIPEMD160}}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Base58Check\ cu\ version\ 0x4F}}
+\DoxyCodeLine{\ \ \ \ b58enc\_check(\doxymbox{\hyperlink{namespaceaddress}{address}},\ \&max\_len,\ 0x4F,\ hash160,\ 20);}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Adaugă\ prefix}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordtype}{char}\ prefixed[128];}
+\DoxyCodeLine{\ \ \ \ snprintf(prefixed,\ \textcolor{keyword}{sizeof}(prefixed),\ \textcolor{stringliteral}{"{}\%s\%s"{}},\ prefix,\ \doxymbox{\hyperlink{namespaceaddress}{address}});}
+\DoxyCodeLine{\ \ \ \ strncpy(\doxymbox{\hyperlink{namespaceaddress}{address}},\ prefixed,\ max\_len);}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Semnează\ tranzacție\ OmniBus\ cu\ secp256k1}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ omnibus\_sign\_tx(\textcolor{keyword}{const}\ uint8\_t\ *tx\_hash,\ \textcolor{keyword}{const}\ uint32\_t\ *path,\ uint32\_t\ path\_len,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ *signature,\ \textcolor{keywordtype}{size\_t}\ *sig\_len)\ \{}
+\DoxyCodeLine{\ \ \ \ uint8\_t\ private\_key[32];}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{if}\ (!omnibus\_derive\_key(path,\ path\_len,\ private\_key,\ NULL))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ ECDSA\ sign\ cu\ secp256k1}}
+\DoxyCodeLine{\ \ \ \ ecdsa\_sign\_digest(\&secp256k1,\ private\_key,\ tx\_hash,\ signature,\ sig\_len,\ NULL);}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3670}{}\doxysubsection{\texorpdfstring{Aplicație Trezor pentru Omni\+Bus:\+}{Aplicație Trezor pentru Omni\+Bus:\+}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3670}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{\#\ Aplicație\ Python\ pentru\ Trezor\ (model\ după\ QRL)}}
+\DoxyCodeLine{\textcolor{comment}{\#\ trezor-\/omnibus/app.py}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{from}\ trezorlib\ \textcolor{keyword}{import}\ client,\ btc}
+\DoxyCodeLine{\textcolor{keyword}{from}\ trezorlib.transport\ \textcolor{keyword}{import}\ get\_transport}
+\DoxyCodeLine{\textcolor{keyword}{from}\ trezorlib.tools\ \textcolor{keyword}{import}\ parse\_path}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{def\ }get\_omnibus\_address(coin\_type=777,\ prefix="{}ob1q"{}):}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generează\ adresă\ OmniBus\ pe\ Trezor"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ transport\ =\ get\_transport()}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ c\ =\ client.TrezorClient(transport)}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ }}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \#\ Path\ BIP-\/44:\ m/44'/777'/0'/0/0}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ path\ =\ parse\_path("{}44'/777'/0'/0/0"{})}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ }}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \#\ Adresa}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ address\ =\ btc.get\_address(}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ c,\ }}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ coin\_name="{}OmniBus"{},}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ n=path,}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ script\_type=0,\ \ //\ P2PKH}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ show\_display=True}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ )}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ }}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ return\ f"{}\{prefix\}\{address\}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{}}
+\DoxyCodeLine{\textcolor{stringliteral}{def\ sign\_omnibus\_transaction(tx\_hash:\ bytes,\ coin\_type=777):}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}Semnează\ tranzacție\ pe\ Trezo\textcolor{stringliteral}{r"{}"{}"{}}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ transport\ =\ get\_transport()}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ c\ =\ client.TrezorClient(transport)}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ }}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ path\ =\ parse\_path(f"{}44'/\{coin\_type\}'/0'/0/0"{})}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ }}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ signature\ =\ btc.sign\_tx(}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ c,}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ coin\_name="{}OmniBus"{},}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ inputs=[...],}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ outputs=[...],}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ \ \ \ \ prev\_txes=\{\}}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ )}}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ }}
+\DoxyCodeLine{\textcolor{stringliteral}{\ \ \ \ return\ signature}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3671}{}\doxysection{\texorpdfstring{Opțiunea 3B:\+ Ledger (Necesită aplicație custom)}{Opțiunea 3B:\+ Ledger (Necesită aplicație custom)}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3671}
+Ledger necesită dezvoltarea unei aplicații C sau Rust pentru dispozitiv.\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3672}{}\doxysubsection{\texorpdfstring{Structură aplicație Ledger:\+}{Structură aplicație Ledger:\+}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3672}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{//\ src/omnibus\_app.c}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ "{}os.h"{}}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ "{}cx.h"{}}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ "{}ux.h"{}}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Coin\ types\ OmniBus}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ COIN\_OMNI\ 777}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ COIN\_LOVE\ 778}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ COIN\_FOOD\ 779}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ COIN\_RENT\ 780}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ COIN\_VACATION\ 781}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Derivează\ cheie\ pentru\ coin\ type\ specific}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ derive\_omnibus\_keypair(uint32\_t\ coin\_type,\ cx\_ecfp\_public\_key\_t\ *pubkey,\ cx\_ecfp\_private\_key\_t\ *privkey)\ \{}
+\DoxyCodeLine{\ \ \ \ uint32\_t\ path[5]\ =\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 0x8000002C,\ \textcolor{comment}{//\ 44'\ hardened}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 0x80000000\ +\ coin\_type,\ \textcolor{comment}{//\ coin\_type'\ hardened}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 0x80000000,\ \textcolor{comment}{//\ 0'\ hardened}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 0,\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 0}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 0}}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ uint8\_t\ raw\_privkey[32];}
+\DoxyCodeLine{\ \ \ \ os\_perso\_derive\_node\_bip32(CX\_CURVE\_SECP256K1,\ path,\ 5,\ raw\_privkey,\ NULL);}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ cx\_ecfp\_init\_private\_key(CX\_CURVE\_SECP256K1,\ raw\_privkey,\ 32,\ privkey);}
+\DoxyCodeLine{\ \ \ \ cx\_ecfp\_generate\_pair(CX\_CURVE\_SECP256K1,\ pubkey,\ privkey,\ 1);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Generează\ adresă\ OmniBus}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ get\_omnibus\_address(uint32\_t\ coin\_type,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *prefix,\ \textcolor{keywordtype}{char}\ *output)\ \{}
+\DoxyCodeLine{\ \ \ \ cx\_ecfp\_public\_key\_t\ pubkey;}
+\DoxyCodeLine{\ \ \ \ cx\_ecfp\_private\_key\_t\ privkey;}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ derive\_omnibus\_keypair(coin\_type,\ \&pubkey,\ \&privkey);}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Hash160}}
+\DoxyCodeLine{\ \ \ \ uint8\_t\ \doxymbox{\hyperlink{namespacesha256}{sha256}}[32];}
+\DoxyCodeLine{\ \ \ \ uint8\_t\ \doxymbox{\hyperlink{namespaceomni_1_1crypto_abd5c0d80ba9ef8143abd273615e261a3}{hash160}}[20];}
+\DoxyCodeLine{\ \ \ \ cx\_hash\_sha256(pubkey.W,\ 33,\ \doxymbox{\hyperlink{namespacesha256}{sha256}},\ 32);}
+\DoxyCodeLine{\ \ \ \ \doxymbox{\hyperlink{namespaceomni_1_1crypto_a14ffdb97a40bf9b3046dea5e64596565}{ripemd160}}(\doxymbox{\hyperlink{namespacesha256}{sha256}},\ 32,\ hash160);}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Base58Check\ cu\ version\ 0x4F}}
+\DoxyCodeLine{\ \ \ \ base58\_encode\_check(hash160,\ 20,\ 0x4F,\ output);}
+\DoxyCodeLine{\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Adaugă\ prefix}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordtype}{char}\ temp[128];}
+\DoxyCodeLine{\ \ \ \ snprintf(temp,\ \textcolor{keyword}{sizeof}(temp),\ \textcolor{stringliteral}{"{}\%s\%s"{}},\ prefix,\ output);}
+\DoxyCodeLine{\ \ \ \ strcpy(output,\ temp);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3673}{}\doxysubsection{\texorpdfstring{Costuri Ledger:\+}{Costuri Ledger:\+}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3673}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Cost  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Durată  \\
+Audit securitate  &€15,000 -\/ €50,000  &2-\/3 luni  \\
+Developer license  &Gratuit  &-\/  \\
+Listing Ledger Live  &Negociere  &3-\/6 luni  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3674}{}\doxysection{\texorpdfstring{Opțiunea 3C:\+ Meta\+Mask Snap Post-\/\+Quantum (Revoluționar)}{Opțiunea 3C:\+ Meta\+Mask Snap Post-\/\+Quantum (Revoluționar)}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3674}
+Cea mai modernă abordare pentru PQ -\/ fără hardware modificat.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ snaps/omnibus-\/pq-\/snap/src/index.ts}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ \{\ OnRpcRequestHandler\ \}\ from\ '@metamask/snaps-\/types';}
+\DoxyCodeLine{import\ \{\ SLIP10Node\ \}\ from\ '@metamask/key-\/tree';}
+\DoxyCodeLine{import\ \{\ derivePath,\ getPublicKey\ \}\ from\ 'ed25519-\/hd-\/key';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ liboqs\ WASM\ bindings}
+\DoxyCodeLine{import\ *\ as\ oqs\ from\ './liboqs-\/wasm';}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ const\ onRpcRequest:\ OnRpcRequestHandler\ =\ async\ (\{\ origin,\ request\ \})\ =>\ \{}
+\DoxyCodeLine{\ \ switch\ (request.method)\ \{}
+\DoxyCodeLine{\ \ \ \ case\ 'getOmniBusAddress':}
+\DoxyCodeLine{\ \ \ \ \ \ return\ await\ getOmniBusAddress(request.params.coinType);}
+\DoxyCodeLine{\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ case\ 'signWithMlDsa87':}
+\DoxyCodeLine{\ \ \ \ \ \ return\ await\ signWithMlDsa87(request.params.message);}
+\DoxyCodeLine{\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ case\ 'signWithFalcon512':}
+\DoxyCodeLine{\ \ \ \ \ \ return\ await\ signWithFalcon512(request.params.message);}
+\DoxyCodeLine{\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ case\ 'signWithSlhDsa256s':}
+\DoxyCodeLine{\ \ \ \ \ \ return\ await\ signWithSlhDsa256s(request.params.message);}
+\DoxyCodeLine{\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ default:}
+\DoxyCodeLine{\ \ \ \ \ \ throw\ new\ Error('Method\ not\ found');}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{async\ function\ getOmniBusAddress(coinType:\ number):\ Promise<string>\ \{}
+\DoxyCodeLine{\ \ //\ Derivează\ din\ seed\ MetaMask}
+\DoxyCodeLine{\ \ const\ node\ =\ await\ snap.request(\{}
+\DoxyCodeLine{\ \ \ \ method:\ 'snap\_getBip32Entropy',}
+\DoxyCodeLine{\ \ \ \ params:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ path:\ ['m',\ "{}44'"{},\ \`{}\$\{coinType\}'`,\ "{}0'"{},\ '0',\ '0'],}
+\DoxyCodeLine{\ \ \ \ \ \ curve:\ 'secp256k1',}
+\DoxyCodeLine{\ \ \ \ \},}
+\DoxyCodeLine{\ \ \});}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ //\ Calculează\ adresă\ OmniBus}
+\DoxyCodeLine{\ \ const\ publicKey\ =\ node.publicKey;}
+\DoxyCodeLine{\ \ const\ hash160\ =\ await\ sha256ripemd160(publicKey);}
+\DoxyCodeLine{\ \ const\ base58\ =\ base58CheckEncode(hash160,\ 0x4F);}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ const\ prefix\ =\ getPrefixForCoinType(coinType);}
+\DoxyCodeLine{\ \ return\ \`{}\$\{prefix\}\$\{base58\}`;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{async\ function\ signWithMlDsa87(message:\ string):\ Promise<string>\ \{}
+\DoxyCodeLine{\ \ //\ Inițializează\ liboqs}
+\DoxyCodeLine{\ \ await\ oqs.init();}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ //\ Generează\ keypair\ PQ\ din\ entropie\ derivată}
+\DoxyCodeLine{\ \ const\ entropy\ =\ await\ snap.request(\{}
+\DoxyCodeLine{\ \ \ \ method:\ 'snap\_getEntropy',}
+\DoxyCodeLine{\ \ \ \ params:\ \{\ version:\ 1\ \},}
+\DoxyCodeLine{\ \ \});}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ //\ ML-\/DSA-\/87\ sign}
+\DoxyCodeLine{\ \ const\ signature\ =\ await\ oqs.mldsa87\_sign(}
+\DoxyCodeLine{\ \ \ \ Buffer.from(message,\ 'utf8'),}
+\DoxyCodeLine{\ \ \ \ entropy}
+\DoxyCodeLine{\ \ );}
+\DoxyCodeLine{\ \ }
+\DoxyCodeLine{\ \ return\ signature.toString('hex');}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3675}{}\doxysection{\texorpdfstring{Recomandare pentru Omni\+Bus}{Recomandare pentru Omni\+Bus}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3675}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prioritate  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Integrare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Efort  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Impact  \\
+1  &EVM Adapter  &Mediu  &Maxim -\/ toate wallet-\/urile EVM  \\
+2  &Wallet\+Connect  &Mediu  &Maxim -\/ mobile wallets  \\
+3  &Trezor (open source)  &Mare  &Mediu -\/ utilizatori avansați  \\
+4  &Meta\+Mask Snap PQ  &Mare  &Mediu -\/ early adopters PQ  \\
+5  &Ledger custom  &Foarte mare  &Mic -\/ cost ridicat  \\
+\end{DoxyTable}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3676}{}\doxysection{\texorpdfstring{Resurse Open Source Relevante}{Resurse Open Source Relevante}}\label{md_archived-4-eterniti_2docs-plans_2_h_a_r_d_w_a_r_e___w_a_l_l_e_t___i_n_t_e_g_r_a_t_i_o_n_autotoc_md3676}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Trezor Firmware}}:\+ github.\+com/\+trezor/\+trezor-\/firmware
+\item {\bfseries{QRL Ledger App}}:\+ github.\+com/\+the\+QRL/\+ledger-\/qrl
+\item {\bfseries{Meta\+Mask Snaps}}:\+ docs.\+metamask.\+io/\+snaps
+\item {\bfseries{Wallet\+Connect}}:\+ github.\+com/\+\+Wallet\+Connect 
+\end{DoxyEnumerate}

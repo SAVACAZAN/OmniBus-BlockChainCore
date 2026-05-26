@@ -1,0 +1,46 @@
+\doxysection{Block\+Explorer\+Tab.\+h}
+\hypertarget{_block_explorer_tab_8h_source}{}\label{_block_explorer_tab_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/BlockExplorerTab.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/BlockExplorerTab.h}}
+\doxymbox{\hyperlink{_block_explorer_tab_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QLineEdit>}}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QTableView>}}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QTextEdit>}}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00008}00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00010}00010\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00012}00012\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_block_table_model}{BlockTableModel}};}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00014}\doxymbox{\hyperlink{classomni_1_1_block_explorer_tab}{00014}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_block_explorer_tab_a0071272daf892a79509f46c8bc477f16}{BlockExplorerTab}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00015}00015\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00016}00016\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00017}00017\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_block_explorer_tab_a0071272daf892a79509f46c8bc477f16}{BlockExplorerTab}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00019}00019\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00020}00020\ \ \ \ \ \textcolor{keywordtype}{void}\ onSearch();}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ loadBlocks(\textcolor{keywordtype}{int}\ fromHeight);}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{void}\ onBlockClicked(\textcolor{keyword}{const}\ QModelIndex\&\ index);}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00023}00023\ \ \ \ \ \textcolor{keywordtype}{void}\ onNextPage();}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00024}00024\ \ \ \ \ \textcolor{keywordtype}{void}\ onPrevPage();}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00026}00026\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00027}00027\ \ \ \ \ \textcolor{keywordtype}{void}\ setupUi();}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00029}00029\ \ \ \ \ QLineEdit*\ \ \ \ \ \ \ m\_searchEdit;}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00030}00030\ \ \ \ \ QTableView*\ \ \ \ \ \ m\_blockTable;}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00031}00031\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_block_table_model}{BlockTableModel}}*\ m\_blockModel;}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00032}00032\ \ \ \ \ QTextEdit*\ \ \ \ \ \ \ m\_detailView;}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00033}00033\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ \ m\_pageLabel;}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00035}00035\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_currentPage\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00036}00036\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_blocksPerPage\ =\ 20;}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00037}00037\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_totalBlocks\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00038}00038\ \};}
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{_block_explorer_tab_8h_source_l00040}00040\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

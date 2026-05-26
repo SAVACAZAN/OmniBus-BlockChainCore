@@ -45,6 +45,15 @@ const USDC_AVAX_FUJI    = hexToAddr("5425890298aed601595a70AB815c96711a31Bc65");
 const EURC_SEPOLIA      = hexToAddr("08210F9170F89Ab7658F0B5E3fF39b0E03C594D4");
 const EURC_BASE_SEPOLIA = hexToAddr("808456652fdb597867f38412077A9182bf77359F");
 
+/// LINK (Chainlink) per testnet. ERC-677 (super-set of ERC-20), 18 decimals.
+const LINK_SEPOLIA      = hexToAddr("779877A7B0D9E8603169DdbD7836e478b4624789");
+const LINK_BASE_SEPOLIA = hexToAddr("E4aB69C077896252FAFBD49EFD26B5D171A32410");
+const LINK_ARB_SEPOLIA  = hexToAddr("b1D4538B4571d411F07960EF2838Ce337FE1E80E");
+const LINK_OP_SEPOLIA   = hexToAddr("E4aB69C077896252FAFBD49EFD26B5D171A32410");
+const LINK_AVAX_FUJI    = hexToAddr("0b9d5D9136855f6FEc3c0993feE6E9CE8a297846");
+const LINK_BNB_TESTNET  = hexToAddr("84b9B910527Ad5C03A9Ca831909E21e236EA7b06");
+const LINK_GNOSIS_CHIADO = hexToAddr("DCA67FD8324990792C0bfaE95903B8A64097754F");
+
 /// The whitelist. Keep alphabetical-by-pair_id; group multi-chain entries.
 pub const WHITELIST = [_]Entry{
     // pair_id 0 — OMNI/USDC (Circle official on every chain).
@@ -76,6 +85,23 @@ pub const WHITELIST = [_]Entry{
     // pair_id 1 — OMNI/EURC (Circle euro stablecoin).
     .{ .pair_id = 1, .chain_id = 11155111, .token = EURC_SEPOLIA,      .label = "EURC (Circle, Sepolia)" },
     .{ .pair_id = 1, .chain_id = 84532,    .token = EURC_BASE_SEPOLIA, .label = "EURC (Circle, Base Sepolia)" },
+
+    // pair_id 7 — OMNI/LINK (Chainlink, ERC-677, 18 decimals).
+    // Chains with DEX deployed AND user has LINK from Chainlink faucet:
+    .{ .pair_id = 7, .chain_id = 11155111, .token = LINK_SEPOLIA,      .label = "LINK (Sepolia)" },
+    .{ .pair_id = 7, .chain_id = 84532,    .token = LINK_BASE_SEPOLIA, .label = "LINK (Base Sepolia)" },
+    .{ .pair_id = 7, .chain_id = 421614,   .token = LINK_ARB_SEPOLIA,  .label = "LINK (Arb Sepolia)" },
+    .{ .pair_id = 7, .chain_id = 11155420, .token = LINK_OP_SEPOLIA,   .label = "LINK (OP Sepolia)" },
+    // Chains with LINK but DEX NOT yet deployed (future: deploy DEX + bind):
+    //   Avax Fuji 43113 → LINK_AVAX_FUJI (whitelisted for future)
+    //   BNB Testnet 97 → LINK_BNB_TESTNET (whitelisted)
+    //   Gnosis Chiado 10200 → LINK_GNOSIS_CHIADO (whitelisted)
+    //   Scroll Sepolia 534351 — LINK addr TBD
+    //   WEMIX Testnet 1112 — LINK addr TBD
+    //   ZKsync Sepolia 300 — LINK addr TBD
+    .{ .pair_id = 7, .chain_id = 43113,    .token = LINK_AVAX_FUJI,    .label = "LINK (Avax Fuji, no DEX yet)" },
+    .{ .pair_id = 7, .chain_id = 97,       .token = LINK_BNB_TESTNET,  .label = "LINK (BNB Testnet, no DEX yet)" },
+    .{ .pair_id = 7, .chain_id = 10200,    .token = LINK_GNOSIS_CHIADO, .label = "LINK (Gnosis Chiado, no DEX yet)" },
 
     // Future: pair_id 5 OMNI/LCX on Liberty when RPC is back online.
 };

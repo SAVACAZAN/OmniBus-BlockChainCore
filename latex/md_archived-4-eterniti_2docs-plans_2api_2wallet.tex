@@ -1,0 +1,335 @@
+\chapter{Module:\+ {\ttfamily wallet} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet}{}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet}\index{Module: $<$tt$>$wallet$<$/tt$>$@{Module: $<$tt$>$wallet$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3518}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3518}%
+
+
+\begin{quote}
+HD Wallet with Post-\/\+Quantum support — derives keys from BIP-\/39 mnemonic via BIP-\/32 (HMAC-\/\+SHA512), generates 5 PQ address domains (ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA-\/256s, ML-\/\+KEM-\/768), and creates signed transactions. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+wallet.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 477 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 10 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 5
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3520}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3520}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3521}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3521}
+
+\begin{DoxyItemize}
+\item \doxylink{namespacewallet}{\`{}\+Wallet\`{}}{\ttfamily Wallet}
+\end{DoxyItemize}— Omni\+Bus Wallet — derivare reala BIP32 + secp256k1
+\begin{DoxyItemize}
+\item \doxylink{namespaceaddress}{\`{}\+Address\`{}}{\ttfamily Address}
+\end{DoxyItemize}— A blockchain address — includes the algorithm type, public key, and formatted ad...
+\begin{DoxyItemize}
+\item \`{}\+PQSign\+Result\`{}{\ttfamily PQSign\+Result}
+\end{DoxyItemize}— Rezultatul semnarii pentru un domeniu PQ\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3522}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3522}
+
+\begin{DoxyItemize}
+\item \`{}from\+Mnemonic()\`{}{\ttfamily from\+Mnemonic()}
+\end{DoxyItemize}— Creeaza wallet din mnemonic (BIP-\/39) si passphrase
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}get\+Balance()\`{}{\ttfamily get\+Balance()}
+\end{DoxyItemize}— Returns the current balance.
+\begin{DoxyItemize}
+\item \`{}get\+Balance\+OMNI()\`{}{\ttfamily get\+Balance\+OMNI()}
+\end{DoxyItemize}— Returns the current balance o m n i.
+\begin{DoxyItemize}
+\item \`{}can\+Send()\`{}{\ttfamily can\+Send()}
+\end{DoxyItemize}— Verifica daca ai suficienta balanta pentru un transfer
+\begin{DoxyItemize}
+\item \`{}update\+Balance()\`{}{\ttfamily update\+Balance()}
+\end{DoxyItemize}— Actualizeaza balanta (apelat din RPC fetch)
+\begin{DoxyItemize}
+\item \`{}get\+Address()\`{}{\ttfamily get\+Address()}
+\end{DoxyItemize}— Returns the address for the given index.
+\begin{DoxyItemize}
+\item \`{}get\+All\+Addresses()\`{}{\ttfamily get\+All\+Addresses()}
+\end{DoxyItemize}— Returns the current all addresses.
+\begin{DoxyItemize}
+\item \`{}pubkey\+Hash160()\`{}{\ttfamily pubkey\+Hash160()}
+\end{DoxyItemize}— Compute Hash160(pubkey) = RIPEMD160(\+SHA256(pubkey)) Used for P2\+PKH scr...
+\begin{DoxyItemize}
+\item \`{}print\+Addresses()\`{}{\ttfamily print\+Addresses()}
+\end{DoxyItemize}— Performs the print addresses operation on the wallet module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3524}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3524}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3525}{}\doxysubsection{\texorpdfstring{{\ttfamily Wallet}}{{\ttfamily Wallet}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3525}
+Omni\+Bus Wallet — derivare reala BIP32 + secp256k1
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+u8}  &Address  \\
+{\ttfamily balance}  &{\ttfamily u64}  &Balance  \\
+{\ttfamily private\+\_\+key\+\_\+bytes}  &{\ttfamily \+[32]\+u8}  &Private\+\_\+key\+\_\+bytes  \\
+{\ttfamily addresses}  &{\ttfamily \+[5]\+Address}  &Addresses  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 15}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3527}{}\doxysubsection{\texorpdfstring{{\ttfamily Address}}{{\ttfamily Address}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3527}
+A blockchain address — includes the algorithm type, public key, and formatted address string.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily domain}  &{\ttfamily \+[]\+const u8}  &Domain  \\
+{\ttfamily algorithm}  &{\ttfamily \+[]\+const u8}  &Algorithm  \\
+{\ttfamily omni\+\_\+address}  &{\ttfamily \+[]\+u8}  &Omni\+\_\+address  \\
+{\ttfamily coin\+\_\+type}  &{\ttfamily u32}  &Coin\+\_\+type  \\
+{\ttfamily security\+\_\+level}  &{\ttfamily u32}  &Security\+\_\+level  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 28}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3529}{}\doxysubsection{\texorpdfstring{{\ttfamily PQSign\+Result}}{{\ttfamily PQSign\+Result}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3529}
+Rezultatul semnarii pentru un domeniu PQ
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily domain}  &{\ttfamily \+[]\+const u8}  &Domain  \\
+{\ttfamily algorithm}  &{\ttfamily \+[]\+const u8}  &Algorithm  \\
+{\ttfamily signature}  &{\ttfamily \+[]\+u8}  &Signature  \\
+{\ttfamily success}  &{\ttfamily bool}  &Success  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 380}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3531}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3531}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3532}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Mnemonic()}}{{\ttfamily from\+Mnemonic()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3532}
+Creeaza wallet din mnemonic (BIP-\/39) si passphrase
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromMnemonic(mnemonic:\ []const\ u8,\ passphrase:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !Wallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mnemonic}  &{\ttfamily \+[]\+const u8}  &Mnemonic  \\
+{\ttfamily passphrase}  &{\ttfamily \+[]\+const u8}  &Passphrase  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Wallet}
+
+{\itshape Defined at line 38}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3534}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3534}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *Wallet)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 91}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3536}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance()}}{{\ttfamily get\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3536}
+Returns the current balance.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalance(self:\ *const\ Wallet)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 101}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3538}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Balance\+OMNI()}}{{\ttfamily get\+Balance\+OMNI()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3538}
+Returns the current balance o m n i.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBalanceOMNI(self:\ *const\ Wallet)\ f64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily f64}
+
+{\itshape Defined at line 105}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3540}{}\doxysubsection{\texorpdfstring{{\ttfamily can\+Send()}}{{\ttfamily can\+Send()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3540}
+Verifica daca ai suficienta balanta pentru un transfer
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ canSend(self:\ *const\ Wallet,\ amount\_sat:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}  &The instance  \\
+{\ttfamily amount\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 110}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3542}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Balance()}}{{\ttfamily update\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3542}
+Actualizeaza balanta (apelat din RPC fetch)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateBalance(self:\ *Wallet,\ new\_balance\_sat:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Wallet}  &The instance  \\
+{\ttfamily new\+\_\+balance\+\_\+sat}  &{\ttfamily u64}  &New\+\_\+balance\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 115}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3544}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address()}}{{\ttfamily get\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3544}
+Returns the address for the given index.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddress(self:\ *const\ Wallet,\ index:\ u32)\ ?Address\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Address}
+
+{\itshape Defined at line 119}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3546}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+All\+Addresses()}}{{\ttfamily get\+All\+Addresses()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3546}
+Returns the current all addresses.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAllAddresses(self:\ *const\ Wallet)\ [5]Address\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[5]\+Address}
+
+{\itshape Defined at line 124}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3548}{}\doxysubsection{\texorpdfstring{{\ttfamily pubkey\+Hash160()}}{{\ttfamily pubkey\+Hash160()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3548}
+Compute Hash160(pubkey) = RIPEMD160(\+SHA256(pubkey)) Used for P2\+PKH script generation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ pubkeyHash160(compressed\_pubkey:\ [33]u8)\ [20]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily compressed\+\_\+pubkey}  &{\ttfamily \+[33]\+u8}  &Compressed\+\_\+pubkey  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[20]\+u8}
+
+{\itshape Defined at line 227}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3550}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Addresses()}}{{\ttfamily print\+Addresses()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2wallet_autotoc_md3550}
+Performs the print addresses operation on the wallet module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printAddresses(self:\ *const\ Wallet)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Wallet}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 289}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

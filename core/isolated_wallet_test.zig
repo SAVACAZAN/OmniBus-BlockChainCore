@@ -89,8 +89,8 @@ test "03 Scheme.fromAddress identifies all 5 prefixes" {
     try testing.expectEqual(Scheme.omni_ecdsa, Scheme.fromAddress("ob1qxxxxxxx").?);
     try testing.expectEqual(Scheme.love_dilithium, Scheme.fromAddress("ob_k1_xxxxx").?);
     try testing.expectEqual(Scheme.food_falcon, Scheme.fromAddress("ob_f5_xxxxx").?);
-    try testing.expectEqual(Scheme.rent_slh_dsa, Scheme.fromAddress("ob_d5_xxxxx").?);
-    try testing.expectEqual(Scheme.vacation_kem, Scheme.fromAddress("ob_s3_xxxxx").?);
+    try testing.expectEqual(Scheme.rent_ml_dsa, Scheme.fromAddress("ob_d5_xxxxx").?);
+    try testing.expectEqual(Scheme.vacation_slh_dsa, Scheme.fromAddress("ob_s3_xxxxx").?);
     try testing.expect(Scheme.fromAddress("invalid_addr") == null);
     try testing.expect(Scheme.fromAddress("") == null);
 }
@@ -99,7 +99,7 @@ test "03 Scheme.fromAddress identifies all 5 prefixes" {
 // Test 4 — Scheme.prefix() round-trip cu fromAddress
 // ─────────────────────────────────────────────────────────────────────────
 test "04 Scheme.prefix round-trips via fromAddress" {
-    const schemes = [_]Scheme{ .omni_ecdsa, .love_dilithium, .food_falcon, .rent_slh_dsa, .vacation_kem };
+    const schemes = [_]Scheme{ .omni_ecdsa, .love_dilithium, .food_falcon, .rent_ml_dsa, .vacation_slh_dsa };
     for (schemes) |s| {
         const pre = s.prefix();
         // Construieste o adresa minima cu prefix-ul si verifica fromAddress
@@ -335,8 +335,8 @@ test "16 verifySignature dispatcher routes correctly per scheme" {
     // RENT path
     const rent_sig = try wallet.signRent(msg, testing.allocator);
     defer testing.allocator.free(rent_sig);
-    try testing.expect(isolated_wallet.verifySignature(.rent_slh_dsa, msg, rent_sig, wallet.rent.pq_public_key.?));
+    try testing.expect(isolated_wallet.verifySignature(.rent_ml_dsa, msg, rent_sig, wallet.rent.pq_public_key.?));
 
     // VACATION path — KEM nu poate semna; verifySignature returneaza false
-    try testing.expect(!isolated_wallet.verifySignature(.vacation_kem, msg, omni_sig, wallet.vacation.pq_public_key.?));
+    try testing.expect(!isolated_wallet.verifySignature(.vacation_slh_dsa, msg, omni_sig, wallet.vacation.pq_public_key.?));
 }

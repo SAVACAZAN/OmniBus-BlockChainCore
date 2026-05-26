@@ -1,0 +1,351 @@
+\chapter{Module:\+ {\ttfamily peer\+\_\+scoring} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring}{}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring}\index{Module: $<$tt$>$peer\_scoring$<$/tt$>$@{Module: $<$tt$>$peer\_scoring$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2651}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2651}%
+
+
+\begin{quote}
+Peer reputation system — score peers based on behavior, ban misbehaving peers, reward good behavior. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+peer\+\_\+scoring.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 281 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 11 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2653}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2653}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2654}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2654}
+
+\begin{DoxyItemize}
+\item \`{}\+Peer\+Score\`{}{\ttfamily Peer\+Score}
+\end{DoxyItemize}— Peer score record
+\begin{DoxyItemize}
+\item \`{}\+Peer\+Scoring\+Engine\`{}{\ttfamily Peer\+Scoring\+Engine}
+\end{DoxyItemize}— Peer Scoring Engine\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2655}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2655}
+
+\begin{DoxyItemize}
+\item 4 constants defined4 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2656}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2656}
+
+\begin{DoxyItemize}
+\item \`{}delta()\`{}{\ttfamily delta()}
+\end{DoxyItemize}— Performs the delta operation on the peer\+\_\+scoring module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}apply\+Event()\`{}{\ttfamily apply\+Event()}
+\end{DoxyItemize}— Apply a scoring event
+\begin{DoxyItemize}
+\item \`{}is\+Ban\+Expired()\`{}{\ttfamily is\+Ban\+Expired()}
+\end{DoxyItemize}— Check if ban has expired
+\begin{DoxyItemize}
+\item \`{}check\+Unban()\`{}{\ttfamily check\+Unban()}
+\end{DoxyItemize}— Unban if expired
+\begin{DoxyItemize}
+\item \`{}trust\+Level()\`{}{\ttfamily trust\+Level()}
+\end{DoxyItemize}— Trust level (0-\/100)
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}get\+Or\+Create()\`{}{\ttfamily get\+Or\+Create()}
+\end{DoxyItemize}— Get or create peer score
+\begin{DoxyItemize}
+\item \`{}score\+Event()\`{}{\ttfamily score\+Event()}
+\end{DoxyItemize}— Score an event for a peer
+\begin{DoxyItemize}
+\item \`{}is\+Allowed()\`{}{\ttfamily is\+Allowed()}
+\end{DoxyItemize}— Check if peer is allowed to connect
+\begin{DoxyItemize}
+\item \`{}banned\+Count()\`{}{\ttfamily banned\+Count()}
+\end{DoxyItemize}— Get number of currently banned peers
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2658}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2658}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2659}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer\+Score}}{{\ttfamily Peer\+Score}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2659}
+Peer score record
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily peer\+\_\+id}  &{\ttfamily \+[16]\+u8}  &Peer\+\_\+id  \\
+{\ttfamily score}  &{\ttfamily i32}  &Score  \\
+{\ttfamily valid\+\_\+blocks}  &{\ttfamily u32}  &Valid\+\_\+blocks  \\
+{\ttfamily violations}  &{\ttfamily u32}  &Violations  \\
+{\ttfamily banned}  &{\ttfamily bool}  &Banned  \\
+{\ttfamily ban\+\_\+until}  &{\ttfamily i64}  &Ban\+\_\+until  \\
+{\ttfamily first\+\_\+seen}  &{\ttfamily i64}  &First\+\_\+seen  \\
+{\ttfamily last\+\_\+active}  &{\ttfamily i64}  &Last\+\_\+active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 53}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2661}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer\+Scoring\+Engine}}{{\ttfamily Peer\+Scoring\+Engine}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2661}
+Peer Scoring Engine
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily peers}  &{\ttfamily \+[MAX\+\_\+\+TRACKED\+\_\+\+PEERS]\+Peer\+Score}  &Peers  \\
+{\ttfamily peer\+\_\+count}  &{\ttfamily usize}  &Peer\+\_\+count  \\
+{\ttfamily total\+\_\+bans}  &{\ttfamily u32}  &Total\+\_\+bans  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 128}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2663}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2663}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily BAN\+\_\+\+THRESHOLD}  &{\ttfamily i32 = -\/100}  &B a n\+\_\+ t h r e s h o l d  \\
+{\ttfamily BAN\+\_\+\+DURATION\+\_\+\+SEC}  &{\ttfamily i64 = 86400}  &B a n\+\_\+ d u r a t i o n\+\_\+ s e c  \\
+{\ttfamily MAX\+\_\+\+TRACKED\+\_\+\+PEERS}  &{\ttfamily usize = 256}  &M a x\+\_\+ t r a c k e d\+\_\+ p e e r s  \\
+{\ttfamily Score\+Event}  &{\ttfamily enum \{}  &Score event  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2665}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2665}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2666}{}\doxysubsection{\texorpdfstring{{\ttfamily delta()}}{{\ttfamily delta()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2666}
+Performs the delta operation on the peer\+\_\+scoring module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ delta(self:\ ScoreEvent)\ i32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Score\+Event}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily i32}
+
+{\itshape Defined at line 36}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2668}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2668}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(peer\_id:\ [16]u8)\ PeerScore\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily peer\+\_\+id}  &{\ttfamily \+[16]\+u8}  &Peer\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Peer\+Score}
+
+{\itshape Defined at line 71}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2670}{}\doxysubsection{\texorpdfstring{{\ttfamily apply\+Event()}}{{\ttfamily apply\+Event()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2670}
+Apply a scoring event
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ applyEvent(self:\ *PeerScore,\ event:\ ScoreEvent)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Score}  &The instance  \\
+{\ttfamily event}  &{\ttfamily Score\+Event}  &Event  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 85}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2672}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Ban\+Expired()}}{{\ttfamily is\+Ban\+Expired()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2672}
+Check if ban has expired
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isBanExpired(self:\ *const\ PeerScore)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Peer\+Score}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 104}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2674}{}\doxysubsection{\texorpdfstring{{\ttfamily check\+Unban()}}{{\ttfamily check\+Unban()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2674}
+Unban if expired
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkUnban(self:\ *PeerScore)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Score}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 110}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2676}{}\doxysubsection{\texorpdfstring{{\ttfamily trust\+Level()}}{{\ttfamily trust\+Level()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2676}
+Trust level (0-\/100)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ trustLevel(self:\ *const\ PeerScore)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Peer\+Score}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 119}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2678}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2678}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ PeerScoringEngine\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Peer\+Scoring\+Engine}
+
+{\itshape Defined at line 133}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2680}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Or\+Create()}}{{\ttfamily get\+Or\+Create()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2680}
+Get or create peer score
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getOrCreate(self:\ *PeerScoringEngine,\ peer\_id:\ [16]u8)\ *PeerScore\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Scoring\+Engine}  &The instance  \\
+{\ttfamily peer\+\_\+id}  &{\ttfamily \+[16]\+u8}  &Peer\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Score}
+
+{\itshape Defined at line 142}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2682}{}\doxysubsection{\texorpdfstring{{\ttfamily score\+Event()}}{{\ttfamily score\+Event()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2682}
+Score an event for a peer
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ scoreEvent(self:\ *PeerScoringEngine,\ peer\_id:\ [16]u8,\ event:\ ScoreEvent)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Scoring\+Engine}  &The instance  \\
+{\ttfamily peer\+\_\+id}  &{\ttfamily \+[16]\+u8}  &Peer\+\_\+id  \\
+{\ttfamily event}  &{\ttfamily Score\+Event}  &Event  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 167}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2684}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Allowed()}}{{\ttfamily is\+Allowed()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2684}
+Check if peer is allowed to connect
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isAllowed(self:\ *PeerScoringEngine,\ peer\_id:\ [16]u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Scoring\+Engine}  &The instance  \\
+{\ttfamily peer\+\_\+id}  &{\ttfamily \+[16]\+u8}  &Peer\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 177}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2686}{}\doxysubsection{\texorpdfstring{{\ttfamily banned\+Count()}}{{\ttfamily banned\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2peer__scoring_autotoc_md2686}
+Get number of currently banned peers
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ bannedCount(self:\ *const\ PeerScoringEngine)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Peer\+Scoring\+Engine}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 188}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

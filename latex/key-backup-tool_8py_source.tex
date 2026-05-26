@@ -1,0 +1,124 @@
+\doxysection{key-\/backup-\/tool.py}
+\hypertarget{key-backup-tool_8py_source}{}\label{key-backup-tool_8py_source}\index{tools/WALLET/key-\/backup-\/tool.py@{tools/WALLET/key-\/backup-\/tool.py}}
+\doxymbox{\hyperlink{key-backup-tool_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00001}\doxymbox{\hyperlink{namespacekey-backup-tool}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00002}\doxymbox{\hyperlink{namespacekey}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Key\ Backup\ Tool}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00005}00005\ \textcolor{stringliteral}{Encrypted\ backup/restore\ for\ wallet\ keys\ using\ AES-\/256-\/GCM\ +\ PBKDF2.}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00009}00009\ \textcolor{keyword}{import}\ base64}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00010}00010\ \textcolor{keyword}{import}\ getpass}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00011}00011\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00012}00012\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00013}00013\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00014}00014\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00016}\doxymbox{\hyperlink{namespacekey-backup-tool_a560e1b74b0e4121ee16ddc316209b4ec}{00016}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00017}\doxymbox{\hyperlink{namespacekey-backup-tool_ab31f078a33d3df0dec51299e8f051b41}{00017}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00018}\doxymbox{\hyperlink{namespacekey-backup-tool_a01be6317f6347575c8affa62396a44f3}{00018}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00019}\doxymbox{\hyperlink{namespacekey-backup-tool_a6b88811842c61b8f849e0b23b3ca55b3}{00019}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00022}\doxymbox{\hyperlink{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}{00022}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00023}00023\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00026}00026\ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00027}00027\ \ \ \ \ \textcolor{keyword}{from}\ cryptography.hazmat.primitives.ciphers.aead\ \textcolor{keyword}{import}\ AESGCM}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00028}00028\ \ \ \ \ \textcolor{keyword}{from}\ cryptography.hazmat.primitives.kdf.pbkdf2\ \textcolor{keyword}{import}\ PBKDF2HMAC}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00029}00029\ \ \ \ \ \textcolor{keyword}{from}\ cryptography.hazmat.primitives\ \textcolor{keyword}{import}\ hashes}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00030}\doxymbox{\hyperlink{namespacekey-backup-tool_ac97b4641df1202cecdf1352bcbf41560}{00030}}\ \ \ \ \ HAS\_CRYPTO\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00031}00031\ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00032}00032\ \ \ \ \ HAS\_CRYPTO\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00033}00033\ \ \ \ \ \doxymbox{\hyperlink{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}cryptography\ library\ not\ installed.\ Using\ stub\ crypto\ (NOT\ for\ production)."{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00036}\doxymbox{\hyperlink{namespacekey-backup-tool_a7fa113946d730a85f210cb5b8c57639b}{00036}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacekey-backup-tool_a7fa113946d730a85f210cb5b8c57639b}{\_derive\_key}}(password:\ str,\ salt:\ bytes)\ -\/>\ bytes:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00037}00037\ \ \ \ \ \textcolor{keywordflow}{if}\ HAS\_CRYPTO:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ kdf\ =\ PBKDF2HMAC(}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \ \ \ \ algorithm=hashes.SHA256(),}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \ \ \ \ length=32,}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ salt=salt,}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ iterations=100\_000,}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ kdf.derive(password.encode())}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00045}00045\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ hashlib}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ hashlib.pbkdf2\_hmac(\textcolor{stringliteral}{"{}sha256"{}},\ password.encode(),\ salt,\ 100\_000,\ 32)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00050}\doxymbox{\hyperlink{namespacekey-backup-tool_a37e06e5e419198b00d86e278c16368cc}{00050}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacekey-backup-tool_a37e06e5e419198b00d86e278c16368cc}{encrypt}}(plaintext:\ bytes,\ password:\ str)\ -\/>\ Dict[str,\ str]:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00051}00051\ \ \ \ \ salt\ =\ os.urandom(16)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00052}00052\ \ \ \ \ nonce\ =\ os.urandom(12)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00053}00053\ \ \ \ \ key\ =\ \doxymbox{\hyperlink{namespacekey-backup-tool_a7fa113946d730a85f210cb5b8c57639b}{\_derive\_key}}(password,\ salt)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00054}00054\ \ \ \ \ \textcolor{keywordflow}{if}\ HAS\_CRYPTO:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ aesgcm\ =\ AESGCM(key)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ ciphertext\ =\ aesgcm.encrypt(nonce,\ plaintext,\ \textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00057}00057\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ hmac}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ ciphertext\ =\ bytes(b\ \string^\ key[i\ \%\ len(key)]\ \textcolor{keywordflow}{for}\ i,\ b\ \textcolor{keywordflow}{in}\ enumerate(plaintext))}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ ciphertext\ =\ nonce\ +\ ciphertext\ \ \textcolor{comment}{\#\ stub}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}salt"{}}:\ base64.b64encode(salt).decode(),}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nonce"{}}:\ base64.b64encode(nonce).decode(),}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ciphertext"{}}:\ base64.b64encode(ciphertext).decode(),}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00065}00065\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00068}\doxymbox{\hyperlink{namespacekey-backup-tool_a8c7a1d124b41a34e46ed3774bcb85475}{00068}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacekey-backup-tool_a8c7a1d124b41a34e46ed3774bcb85475}{decrypt}}(payload:\ Dict[str,\ str],\ password:\ str)\ -\/>\ bytes:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00069}00069\ \ \ \ \ salt\ =\ base64.b64decode(payload[\textcolor{stringliteral}{"{}salt"{}}])}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00070}00070\ \ \ \ \ nonce\ =\ base64.b64decode(payload[\textcolor{stringliteral}{"{}nonce"{}}])}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00071}00071\ \ \ \ \ ciphertext\ =\ base64.b64decode(payload[\textcolor{stringliteral}{"{}ciphertext"{}}])}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00072}00072\ \ \ \ \ key\ =\ \doxymbox{\hyperlink{namespacekey-backup-tool_a7fa113946d730a85f210cb5b8c57639b}{\_derive\_key}}(password,\ salt)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{if}\ HAS\_CRYPTO:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ aesgcm\ =\ AESGCM(key)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ aesgcm.decrypt(nonce,\ ciphertext,\ \textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ bytes(b\ \string^\ key[i\ \%\ len(key)]\ \textcolor{keywordflow}{for}\ i,\ b\ \textcolor{keywordflow}{in}\ enumerate(ciphertext[12:]))}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00080}\doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{00080}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{backup}}(key\_file:\ str,\ password:\ str,\ out\_file:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00081}00081\ \ \ \ \ \textcolor{keyword}{with}\ open(key\_file,\ \textcolor{stringliteral}{"{}rb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ plaintext\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00083}00083\ \ \ \ \ enc\ =\ \doxymbox{\hyperlink{namespacekey-backup-tool_a37e06e5e419198b00d86e278c16368cc}{encrypt}}(plaintext,\ password)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00084}00084\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_file,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ json.dump(enc,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00086}00086\ \ \ \ \ \doxymbox{\hyperlink{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Encrypted\ backup\ saved\ to\ \{out\_file\}"{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00090}\doxymbox{\hyperlink{namespacekey-backup-tool_ad24fa3f87fbc5036c44f4dc9cf761a1c}{00090}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacekey-backup-tool_ad24fa3f87fbc5036c44f4dc9cf761a1c}{restore}}(backup\_file:\ str,\ password:\ str,\ out\_file:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00091}00091\ \ \ \ \ \textcolor{keyword}{with}\ open(backup\_file,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ payload\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00093}00093\ \ \ \ \ plaintext\ =\ \doxymbox{\hyperlink{namespacekey-backup-tool_a8c7a1d124b41a34e46ed3774bcb85475}{decrypt}}(payload,\ password)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00094}00094\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_file,\ \textcolor{stringliteral}{"{}wb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ f.write(plaintext)}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00096}00096\ \ \ \ \ \doxymbox{\hyperlink{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Restored\ key\ to\ \{out\_file\}"{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00097}00097\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00100}\doxymbox{\hyperlink{namespacekey-backup-tool_a7431cb90017e54fe695b23d4190db046}{00100}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacekey-backup-tool_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00101}00101\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Encrypted\ wallet\ key\ backup/restore"{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00102}00102\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}action"{}},\ choices=[\textcolor{stringliteral}{"{}backup"{}},\ \textcolor{stringliteral}{"{}restore"{}}],\ help=\textcolor{stringliteral}{"{}Action\ to\ perform"{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00103}00103\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/input"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Input\ file\ (key\ or\ backup)"{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00104}00104\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}Output\ file"{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00105}00105\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/password"{}},\ help=\textcolor{stringliteral}{"{}Password\ (prompt\ if\ omitted)"{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00106}00106\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00108}00108\ \ \ \ \ password\ =\ args.password\ \textcolor{keywordflow}{or}\ getpass.getpass(\textcolor{stringliteral}{"{}Password:\ "{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00109}00109\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00110}00110\ \ \ \ \ \doxymbox{\hyperlink{namespacekey-backup-tool_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}===\ OmniBus\ Key\ Backup\ Tool\ (\{args.action\})\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00111}00111\ \ \ \ \ \textcolor{keywordflow}{if}\ args.action\ ==\ \textcolor{stringliteral}{"{}backup"{}}:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0\ \textcolor{keywordflow}{if}\ \doxymbox{\hyperlink{namespacekey-backup-tool_ad6758c8f7ec385107a11bfd0b4645145}{backup}}(args.input,\ password,\ args.output)\ \textcolor{keywordflow}{else}\ 1}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00113}00113\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0\ \textcolor{keywordflow}{if}\ \doxymbox{\hyperlink{namespacekey-backup-tool_ad24fa3f87fbc5036c44f4dc9cf761a1c}{restore}}(args.input,\ password,\ args.output)\ \textcolor{keywordflow}{else}\ 1}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00117}00117\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{key-backup-tool_8py_source_l00118}00118\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacekey-backup-tool_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

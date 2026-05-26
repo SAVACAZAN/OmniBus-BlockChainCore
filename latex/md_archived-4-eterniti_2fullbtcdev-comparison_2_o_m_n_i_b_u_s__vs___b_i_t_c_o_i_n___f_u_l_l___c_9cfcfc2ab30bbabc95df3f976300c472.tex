@@ -1,0 +1,52 @@
+\chapter{
+\begin{DoxyEnumerate}
+\item Cryptography 
+\end{DoxyEnumerate}}
+\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_9cfcfc2ab30bbabc95df3f976300c472}{}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_9cfcfc2ab30bbabc95df3f976300c472}\index{3. Cryptography@{3. Cryptography}}
+\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_9cfcfc2ab30bbabc95df3f976300c472_autotoc_md3920}%
+\Hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_9cfcfc2ab30bbabc95df3f976300c472_autotoc_md3920}%
+
+
+\begin{quote}
+Omni\+Bus vs Bitcoin — Category 3/\+10 Generated:\+ 2026-\/03-\/31 19:\+42 \end{quote}
+
+
+
+\begin{DoxyTable}{6}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}\#  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Component  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}BTC  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}OMNI  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}File  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notes  \\
+\SetCell{c}41  &SHA-\/256  &\SetCell{c}Y  &\SetCell{c}Y  &crypto.\+zig  &std.\+crypto.\+hash.\+sha2  \\
+\SetCell{c}42  &Double SHA-\/256 (SHA256d)  &\SetCell{c}Y  &\SetCell{c}Y  &transaction.\+zig  &TX hash, block hash  \\
+\SetCell{c}43  &RIPEMD-\/160  &\SetCell{c}Y  &\SetCell{c}Y  &ripemd160.\+zig  &Pure Zig implementation  \\
+\SetCell{c}44  &ECDSA (secp256k1)  &\SetCell{c}Y  &\SetCell{c}Y  &secp256k1.\+zig  &Pure Zig, no FFI  \\
+\SetCell{c}45  &Schnorr Signatures  &\SetCell{c}Y  &\SetCell{c}Y  &schnorr.\+zig  &BIP-\/340 compatible  \\
+\SetCell{c}46  &BLS Signatures  &\SetCell{c}N  &\SetCell{c}+  &bls\+\_\+signatures.\+zig  &Aggregate sigs \+[EXTRA]\+  \\
+\SetCell{c}47  &Multisig (M-\/of-\/N)  &\SetCell{c}Y  &\SetCell{c}Y  &multisig.\+zig  &Script-\/based multisig  \\
+\SetCell{c}48  &Hash160  &\SetCell{c}Y  &\SetCell{c}Y  &secp256k1.\+zig  &RIPEMD160(\+SHA256(x))  \\
+\SetCell{c}49  &Base58\+Check  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &Full encoder/\+decoder  \\
+\SetCell{c}50  &Bech32 (BIP-\/173)  &\SetCell{c}Y  &\SetCell{c}Y  &bech32.\+zig  &Seg\+Wit v0 addresses  \\
+\SetCell{c}51  &Bech32m (BIP-\/350)  &\SetCell{c}Y  &\SetCell{c}Y  &bech32.\+zig  &Taproot v1 addresses  \\
+\SetCell{c}52  &HMAC-\/\+SHA256  &\SetCell{c}Y  &\SetCell{c}Y  &crypto.\+zig  &Key derivation  \\
+\SetCell{c}53  &HMAC-\/\+SHA512  &\SetCell{c}Y  &\SetCell{c}Y  &crypto.\+zig  &BIP-\/32 master key  \\
+\SetCell{c}54  &PBKDF2-\/\+HMAC-\/\+SHA512  &\SetCell{c}Y  &\SetCell{c}Y  &bip32\+\_\+wallet.\+zig  &BIP-\/39 seed, 2048 iter  \\
+\SetCell{c}55  &AES-\/256-\/\+GCM  &\SetCell{c}N  &\SetCell{c}+  &crypto.\+zig  &Key encryption \+[EXTRA]\+  \\
+\SetCell{c}56  &ML-\/\+DSA-\/87 (Dilithium)  &\SetCell{c}N  &\SetCell{c}+  &pq\+\_\+crypto.\+zig  &Post-\/quantum sig \+[EXTRA]\+  \\
+\SetCell{c}57  &Falcon-\/512  &\SetCell{c}N  &\SetCell{c}+  &pq\+\_\+crypto.\+zig  &Compact PQ sig \+[EXTRA]\+  \\
+\SetCell{c}58  &SLH-\/\+DSA (SPHINCS+)  &\SetCell{c}N  &\SetCell{c}+  &pq\+\_\+crypto.\+zig  &Hash-\/based PQ \+[EXTRA]\+  \\
+\SetCell{c}59  &ML-\/\+KEM-\/768 (Kyber)  &\SetCell{c}N  &\SetCell{c}+  &pq\+\_\+crypto.\+zig  &PQ key encapsulation \+[EXTRA]\+  \\
+\SetCell{c}60  &Key Compression  &\SetCell{c}Y  &\SetCell{c}Y  &secp256k1.\+zig  &33-\/byte compressed pubkeys  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{BTC has:\+ 14 items}} {\bfseries{Omni\+Bus:\+ 20 implemented, 0 partial, 0 missing, 6 extras}} {\bfseries{Score:\+ 142\%}} (20/\+14 BTC features + 6 unique extras)\hypertarget{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_9cfcfc2ab30bbabc95df3f976300c472_autotoc_md3922}{}\doxysubsection{\texorpdfstring{Extras (Omni\+Bus-\/only):\+}{Extras (Omni\+Bus-\/only):\+}}\label{md_archived-4-eterniti_2fullbtcdev-comparison_2_o_m_n_i_b_u_s__vs___b_i_t_c_o_i_n___f_u_l_l___c_9cfcfc2ab30bbabc95df3f976300c472_autotoc_md3922}
+
+\begin{DoxyItemize}
+\item BLS Signatures — Aggregate sigs \+[EXTRA]\+
+\item AES-\/256-\/\+GCM — Key encryption \+[EXTRA]\+
+\item ML-\/\+DSA-\/87 (Dilithium) — Post-\/quantum sig \+[EXTRA]\+
+\item Falcon-\/512 — Compact PQ sig \+[EXTRA]\+
+\item SLH-\/\+DSA (SPHINCS+) — Hash-\/based PQ \+[EXTRA]\+
+\item ML-\/\+KEM-\/768 (Kyber) — PQ key encapsulation \+[EXTRA]\+ 
+\end{DoxyItemize}

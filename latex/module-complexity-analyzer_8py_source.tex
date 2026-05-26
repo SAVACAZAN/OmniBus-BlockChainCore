@@ -1,0 +1,247 @@
+\doxysection{module-\/complexity-\/analyzer.py}
+\hypertarget{module-complexity-analyzer_8py_source}{}\label{module-complexity-analyzer_8py_source}\index{tools/ANALYSIS/module-\/complexity-\/analyzer.py@{tools/ANALYSIS/module-\/complexity-\/analyzer.py}}
+\doxymbox{\hyperlink{module-complexity-analyzer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00001}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00002}\doxymbox{\hyperlink{namespacemodule}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ BlockChainCore\ —\ Module\ Complexity\ Analyzer}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00004}00004\ \textcolor{stringliteral}{====================================================}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00005}00005\ \textcolor{stringliteral}{Analyzes\ all\ core/*.zig\ source\ files\ and\ computes\ complexity\ metrics:}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00006}00006\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Lines\ of\ code\ (total\ /\ non-\/blank\ /\ non-\/comment)}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Function\ count\ (fn\ keyword)}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Test\ block\ count\ (test\ "{}..."{}\ blocks)}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ Import\ count\ (@import\ statements)}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ Complexity\ score\ (weighted\ formula)}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00013}00013\ \textcolor{stringliteral}{Outputs\ a\ ranked\ table\ and\ optional\ JSON\ export.}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00014}00014\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00015}00015\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ \ \ python\ module-\/complexity-\/analyzer.py}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00017}00017\ \textcolor{stringliteral}{\ \ \ \ python\ module-\/complexity-\/analyzer.py\ -\/-\/source-\/dir\ ../../core}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ \ \ python\ module-\/complexity-\/analyzer.py\ -\/-\/json-\/output\ complexity.json\ -\/-\/top\ 20}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00019}00019\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00021}00021\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00022}00022\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00023}00023\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00024}00024\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00025}00025\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00026}00026\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00028}00028\ \textcolor{comment}{\#\ ──\ ANSI\ colours\ ─────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00029}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_ad7c0ab2f6d9665bc23011609c7bb043e}{00029}}\ RESET\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00030}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_aa11d2f42d80dbe8ab0c3c97f8f5fe8e0}{00030}}\ BOLD\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00031}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a08df5f285e7f45105049c3654b19e49d}{00031}}\ DIM\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[2m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00032}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_ac1c5627d976e0006cd2a8ec1721c66b8}{00032}}\ RED\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00033}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_aec11bd0404289a75bfbdf35aebd9e6c6}{00033}}\ GREEN\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00034}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a35b5901f070aa5313c79c6a4dd101077}{00034}}\ YELLOW\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00035}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_ada64b987ffe4af348cdfd8e4d41c4695}{00035}}\ CYAN\ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00036}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a3492638d93b59b358e53f994fc3d3659}{00036}}\ MAGENTA\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00037}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a38eb3bea24fc6574f7b974e2c772399a}{00037}}\ WHITE\ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00038}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a9ef1a4b7e018e06fd213eb93ff44e603}{00038}}\ BG\_BLUE\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[44m"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00040}00040\ \textcolor{comment}{\#\ Complexity\ weights}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00041}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a327a5aafb3bd19c58a951ec0aec26f7d}{00041}}\ W\_LINES\ \ \ \ \ =\ 1.0}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00042}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a76141a6f172bcabbf29889a4c26eaf3e}{00042}}\ W\_FUNCTIONS\ =\ 5.0}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00043}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_ab1f1b7de9aedd248e137e082a40d6b9f}{00043}}\ W\_TESTS\ \ \ \ \ =\ 2.0}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00044}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_aba678f79d63bca42e3eac1b624918cbb}{00044}}\ W\_IMPORTS\ \ \ =\ 1.5}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00047}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a010d4ecb475a69d1e23c09a66c9e2696}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a010d4ecb475a69d1e23c09a66c9e2696}{analyze\_file}}(filepath:\ Path)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00048}00048\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Analyze\ a\ single\ .zig\ file\ and\ return\ metrics."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ content\ =\ filepath.read\_text(encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00051}00051\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00054}00054\ \ \ \ \ lines\ =\ content.split(\textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00055}00055\ \ \ \ \ total\_lines\ =\ len(lines)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00056}00056\ \ \ \ \ blank\_lines\ =\ sum(1\ \textcolor{keywordflow}{for}\ l\ \textcolor{keywordflow}{in}\ lines\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ l.strip())}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00057}00057\ \ \ \ \ comment\_lines\ =\ sum(1\ \textcolor{keywordflow}{for}\ l\ \textcolor{keywordflow}{in}\ lines\ \textcolor{keywordflow}{if}\ l.strip().startswith(\textcolor{stringliteral}{"{}//"{}}))}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00058}00058\ \ \ \ \ code\_lines\ =\ total\_lines\ -\/\ blank\_lines\ -\/\ comment\_lines}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00060}00060\ \ \ \ \ \textcolor{comment}{\#\ Count\ functions:\ pub\ fn,\ fn,\ export\ fn}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00061}00061\ \ \ \ \ fn\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'\(\backslash\)b(?:pub\(\backslash\)s+)?(?:export\(\backslash\)s+)?fn\(\backslash\)s+\(\backslash\)w+'})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00062}00062\ \ \ \ \ functions\ =\ len(fn\_pattern.findall(content))}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00064}00064\ \ \ \ \ \textcolor{comment}{\#\ Count\ test\ blocks:\ test\ "{}name"{}\ \{}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00065}00065\ \ \ \ \ test\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'\(\backslash\)btest\(\backslash\)s+"{}[\string^"{}]*"{}'})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00066}00066\ \ \ \ \ tests\ =\ len(test\_pattern.findall(content))}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00068}00068\ \ \ \ \ \textcolor{comment}{\#\ Count\ imports:\ @import("{}..."{})}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00069}00069\ \ \ \ \ import\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'@import\(\backslash\)s*\(\backslash\)(\(\backslash\)s*"{}([\string^"{}]+)"{}\(\backslash\)s*\(\backslash\))'})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00070}00070\ \ \ \ \ imports\_raw\ =\ import\_pattern.findall(content)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00071}00071\ \ \ \ \ imports\ =\ len(imports\_raw)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00072}00072\ \ \ \ \ import\_names\ =\ list(set(imports\_raw))}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00074}00074\ \ \ \ \ \textcolor{comment}{\#\ Count\ pub\ fn\ specifically}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00075}00075\ \ \ \ \ pub\_fn\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'\(\backslash\)bpub\(\backslash\)s+fn\(\backslash\)s+\(\backslash\)w+'})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00076}00076\ \ \ \ \ pub\_functions\ =\ len(pub\_fn\_pattern.findall(content))}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00078}00078\ \ \ \ \ \textcolor{comment}{\#\ Complexity\ score}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00079}00079\ \ \ \ \ score\ =\ (}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ code\_lines\ *\ W\_LINES\ +}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ functions\ *\ W\_FUNCTIONS\ +}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ tests\ *\ W\_TESTS\ +}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ imports\ *\ W\_IMPORTS}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00084}00084\ \ \ \ \ )\ /\ 100.0}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00086}00086\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}file"{}}:\ filepath.name,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}path"{}}:\ str(filepath),}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_lines"{}}:\ total\_lines,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}code\_lines"{}}:\ code\_lines,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}blank\_lines"{}}:\ blank\_lines,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}comment\_lines"{}}:\ comment\_lines,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}functions"{}}:\ functions,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}pub\_functions"{}}:\ pub\_functions,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ tests,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}imports"{}}:\ imports,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}import\_names"{}}:\ import\_names,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}complexity\_score"{}}:\ round(score,\ 2),}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00099}00099\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00102}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_af56a6fed36830ff23ba45f4b0eee91aa}{00102}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_af56a6fed36830ff23ba45f4b0eee91aa}{print\_table}}(results:\ list,\ top\_n:\ int\ |\ \textcolor{keywordtype}{None}):}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00103}00103\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ a\ formatted\ table\ of\ results."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00104}00104\ \ \ \ \ \textcolor{comment}{\#\ Sort\ by\ complexity\ descending}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00105}00105\ \ \ \ \ results.sort(key=\textcolor{keyword}{lambda}\ r:\ r.get(\textcolor{stringliteral}{"{}complexity\_score"{}},\ 0),\ reverse=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00106}00106\ \ \ \ \ \textcolor{keywordflow}{if}\ top\_n:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ results\ =\ results[:top\_n]}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00109}00109\ \ \ \ \ \textcolor{comment}{\#\ Header}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00110}00110\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BG\_BLUE\}\{WHITE\}\{BOLD\}\ OmniBus\ Module\ Complexity\ Analysis\ \{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00111}00111\ \ \ \ \ header\ =\ (}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ \{'\#':>3s\}\ \ \{'Module':<35s\}\ \ \{'Lines':>6s\}\ \ \{'Code':>6s\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{'Funcs':>5s\}\ \ \{'PubFn':>5s\}\ \ \{'Tests':>5s\}\ \ \{'Imps':>4s\}\ \ \{'Score':>7s\}"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00114}00114\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00115}00115\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{header\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00116}00116\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 95\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00118}00118\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ r\ \textcolor{keywordflow}{in}\ enumerate(results,\ 1):}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ r:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{i:3d\}\ \ \{r['file']:<35s\}\ \ \{RED\}ERROR:\ \{r['error']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Colour\ score}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ score\ =\ r[\textcolor{stringliteral}{"{}complexity\_score"{}}]}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ score\ >\ 20:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ score\_col\ =\ RED}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ score\ >\ 10:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ score\_col\ =\ YELLOW}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ score\_col\ =\ GREEN}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ name\ =\ r[\textcolor{stringliteral}{"{}file"{}}]}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(name)\ >\ 35:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ name\ =\ name[:32]\ +\ \textcolor{stringliteral}{"{}..."{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ print(}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\ \ \{i:3d\}\ \ \{CYAN\}\{name:<35s\}\{RESET\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{r['total\_lines']:6d\}\ \ \{r['code\_lines']:6d\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{r['functions']:5d\}\ \ \{r['pub\_functions']:5d\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{r['tests']:5d\}\ \ \{r['imports']:4d\}\ \ "{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{score\_col\}\{score:7.2f\}\{RESET\}"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00144}00144\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 95\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00146}00146\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00147}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a69e64e53953662d43b4d09d7b634f246}{00147}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a69e64e53953662d43b4d09d7b634f246}{print\_summary}}(results:\ list):}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00148}00148\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ aggregate\ summary."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00149}00149\ \ \ \ \ valid\ =\ [r\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ r]}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ valid:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}No\ valid\ files\ analyzed.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00154}00154\ \ \ \ \ total\_lines\ =\ sum(r[\textcolor{stringliteral}{"{}total\_lines"{}}]\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ valid)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00155}00155\ \ \ \ \ total\_code\ =\ sum(r[\textcolor{stringliteral}{"{}code\_lines"{}}]\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ valid)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00156}00156\ \ \ \ \ total\_funcs\ =\ sum(r[\textcolor{stringliteral}{"{}functions"{}}]\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ valid)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00157}00157\ \ \ \ \ total\_pub\ =\ sum(r[\textcolor{stringliteral}{"{}pub\_functions"{}}]\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ valid)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00158}00158\ \ \ \ \ total\_tests\ =\ sum(r[\textcolor{stringliteral}{"{}tests"{}}]\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ valid)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00159}00159\ \ \ \ \ total\_imports\ =\ sum(r[\textcolor{stringliteral}{"{}imports"{}}]\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ valid)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00160}00160\ \ \ \ \ avg\_score\ =\ sum(r[\textcolor{stringliteral}{"{}complexity\_score"{}}]\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ valid)\ /\ len(valid)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00162}00162\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{MAGENTA\}\{BOLD\}Summary\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00163}00163\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{DIM\}\{'─'\ *\ 40\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00164}00164\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Files\ analyzed:\ \ \ \{BOLD\}\{len(valid)\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00165}00165\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Total\ lines:\ \ \ \ \ \ \{total\_lines:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00166}00166\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Code\ lines:\ \ \ \ \ \ \ \{total\_code:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00167}00167\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Functions:\ \ \ \ \ \ \ \ \{total\_funcs:,\}\ (\{total\_pub:,\}\ public)"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00168}00168\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Test\ blocks:\ \ \ \ \ \ \{total\_tests:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00169}00169\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Imports:\ \ \ \ \ \ \ \ \ \ \{total\_imports:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00170}00170\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Avg\ complexity:\ \ \ \{avg\_score:.2f\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00171}00171\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Most\ complex:\ \ \ \ \ \{YELLOW\}\{valid[0]['file']\}\{RESET\}\ (score:\ \{valid[0]['complexity\_score']\})"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00172}00172\ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00173}00173\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00175}\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a51af30a60f9f02777c6396b8247e356f}{00175}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00176}00176\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}Analyze\ Zig\ module\ complexity\ in\ OmniBus\ BlockChainCore"{}},}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ epilog=(}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Complexity\ score\ =\ (code\_lines*1.0\ +\ functions*5.0\ +\ tests*2.0\ +\ imports*1.5)\ /\ 100\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Examples:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ module-\/complexity-\/analyzer.py\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ module-\/complexity-\/analyzer.py\ -\/-\/top\ 10\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ python\ module-\/complexity-\/analyzer.py\ -\/-\/json-\/output\ results.json"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ ),}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00186}00186\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00187}00187\ \ \ \ \ script\_dir\ =\ Path(\_\_file\_\_).resolve().parent}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00188}00188\ \ \ \ \ default\_src\ =\ script\_dir.parent.parent\ /\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00190}00190\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/source-\/dir"{}},\ type=str,\ default=str(default\_src),}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}Source\ directory\ to\ scan\ (default:\ \{default\_src\})"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00192}00192\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/top"{}},\ type=int,\ default=\textcolor{keywordtype}{None},\ help=\textcolor{stringliteral}{"{}Show\ only\ top\ N\ results"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00193}00193\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json-\/output"{}},\ type=str,\ default=\textcolor{keywordtype}{None},\ help=\textcolor{stringliteral}{"{}Export\ results\ to\ JSON\ file"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00194}00194\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/sort-\/by"{}},\ choices=[\textcolor{stringliteral}{"{}score"{}},\ \textcolor{stringliteral}{"{}lines"{}},\ \textcolor{stringliteral}{"{}functions"{}},\ \textcolor{stringliteral}{"{}tests"{}}],}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}score"{}},\ help=\textcolor{stringliteral}{"{}Sort\ criterion\ (default:\ score)"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00196}00196\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00198}00198\ \ \ \ \ source\_dir\ =\ Path(args.source\_dir)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00199}00199\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ source\_dir.exists():}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}ERROR:\{RESET\}\ Source\ directory\ not\ found:\ \{source\_dir\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{DIM\}Make\ sure\ you're\ running\ from\ the\ correct\ location.\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00204}00204\ \ \ \ \ zig\_files\ =\ sorted(source\_dir.glob(\textcolor{stringliteral}{"{}*.zig"{}}))}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00205}00205\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Try\ recursive}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ zig\_files\ =\ sorted(source\_dir.rglob(\textcolor{stringliteral}{"{}*.zig"{}}))}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00209}00209\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}ERROR:\{RESET\}\ No\ .zig\ files\ found\ in\ \{source\_dir\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00213}00213\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}Scanning\ \{len(zig\_files)\}\ Zig\ files\ in\ \{source\_dir\}...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00215}00215\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00216}00216\ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ zig\_files:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ results.append(\doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a010d4ecb475a69d1e23c09a66c9e2696}{analyze\_file}}(f))}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00219}00219\ \ \ \ \ \textcolor{comment}{\#\ Sort}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00220}00220\ \ \ \ \ sort\_keys\ =\ \{}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}score"{}}:\ \textcolor{stringliteral}{"{}complexity\_score"{}},}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lines"{}}:\ \textcolor{stringliteral}{"{}code\_lines"{}},}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}functions"{}}:\ \textcolor{stringliteral}{"{}functions"{}},}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ \textcolor{stringliteral}{"{}tests"{}},}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00225}00225\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00226}00226\ \ \ \ \ key\ =\ sort\_keys.get(args.sort\_by,\ \textcolor{stringliteral}{"{}complexity\_score"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00227}00227\ \ \ \ \ results.sort(key=\textcolor{keyword}{lambda}\ r:\ r.get(key,\ 0),\ reverse=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00229}00229\ \ \ \ \ \doxymbox{\hyperlink{namespacemodule-complexity-analyzer_af56a6fed36830ff23ba45f4b0eee91aa}{print\_table}}(results,\ args.top)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00230}00230\ \ \ \ \ \doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a69e64e53953662d43b4d09d7b634f246}{print\_summary}}(results)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00232}00232\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json\_output:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Remove\ non-\/serializable\ bits}}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ output\ =\ [dict(r)\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results]}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.json\_output,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(output,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}JSON\ exported\ to\ \{args.json\_output\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00240}00240\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{module-complexity-analyzer_8py_source_l00241}00241\ \ \ \ \ \doxymbox{\hyperlink{namespacemodule-complexity-analyzer_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

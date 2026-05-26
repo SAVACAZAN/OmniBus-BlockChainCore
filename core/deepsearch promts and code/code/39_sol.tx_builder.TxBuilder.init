@@ -1,0 +1,3 @@
+const addr = ton.address.TonAddress.init(workchain, hash);
+const bounceable = try addr.toBounceable();
+const non_bounceable = try addr.toNonBounceable();

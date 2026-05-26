@@ -1,0 +1,297 @@
+\doxysection{doc\+\_\+generator Namespace Reference}
+\hypertarget{namespacedoc__generator}{}\label{namespacedoc__generator}\index{doc\_generator@{doc\_generator}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classdoc__generator_1_1_function_doc}{Function\+Doc}}
+\item 
+class \doxymbox{\hyperlink{classdoc__generator_1_1_struct_doc}{Struct\+Doc}}
+\item 
+class \doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a8c338d81ff26cd9c872b378e75a84009}{infer\+\_\+function\+\_\+description}} (str func\+\_\+name, List\+[Tuple\+[str, str]\+]\+ params, str returns, str module\+\_\+name, List\+[str]\+ body\+\_\+lines)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_afb6688a90a1f27ac7f22d4d0d6a05fc9}{infer\+\_\+struct\+\_\+description}} (str struct\+\_\+name, List\+[Tuple\+[str, str]\+]\+ fields, str module\+\_\+name)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}{camel\+\_\+to\+\_\+words}} (str name)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a37740e47ff9a440a4a858a307233751c}{extract\+\_\+doc\+\_\+comments}} (str content, int start\+\_\+line)
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{namespacedoc__generator_ac6d709371eab2179ca2b6d67052bd529}{extract\+\_\+body\+\_\+lines}} (str content, int start\+\_\+line, int max\+\_\+lines=15)
+\item 
+List\+[Tuple\+[str, str]\+]\+ \doxymbox{\hyperlink{namespacedoc__generator_a6bd9510228d45b9f6b4d3894dc365ef9}{extract\+\_\+struct\+\_\+fields}} (str content, int start\+\_\+line)
+\item 
+Optional\+[Tuple\+[str, str, List\+[Tuple\+[str, str]\+]\+]\+]\+ \doxymbox{\hyperlink{namespacedoc__generator_ad78ac702de4ce8523e7a90b8e94c38cd}{parse\+\_\+function}} (str line)
+\item 
+Optional\+[str]\+ \doxymbox{\hyperlink{namespacedoc__generator_ac2262fd610f45d420573944724eed983}{parse\+\_\+struct}} (str line)
+\item 
+\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}} \doxymbox{\hyperlink{namespacedoc__generator_a6e198bbc904953f3f9d528638fb1be64}{parse\+\_\+module}} (Path filepath)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a84f3b7f785b459a723ee86aaaacbc7d1}{generate\+\_\+markdown}} (\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}} module)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a7be65388ac661c82dde9642fdcd6c990}{generate\+\_\+html\+\_\+index}} (List\+[\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}}]\+ modules)
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a21b302799823a913d20ca0646b2b06c6}{generate\+\_\+html}} (\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}} module)
+\item 
+\doxymbox{\hyperlink{namespacedoc__generator_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_afba2af4d4fa5a0def5e98bb265892b1d}{CORE}} = \doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespacedoc__generator_a2fbe88bbb3c6c9cb4ee545afa63df02e}{OUTPUT}} = \doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{ROOT}} /\+ "{}docs"{} /\+ "{}api"{}
+\item 
+dict \doxymbox{\hyperlink{namespacedoc__generator_ac918b2ab10430397178b8891fb6d7dee}{MODULE\+\_\+\+DESCRIPTIONS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}doc_generator.py - OmniBus API Documentation Generator v2.0
+
+Generează documentație API din codul Zig cu descrieri auto-generate:
+  - Extrage comentarii /// (doc comments)
+  - Parsează funcții publice, structuri, constante
+  - AUTO-GENEREAZĂ descrieri bazate pe context (nume, parametri, modul, corp funcție)
+  - Generează markdown și HTML cu TOC, exemple, categorii
+  - Creează index navigabil
+
+Usage:
+  python tools/DOCUMENTATION/doc_generator.py              # Generează toată docs
+  python tools/DOCUMENTATION/doc_generator.py --module wallet  # Doar un modul
+  python tools/DOCUMENTATION/doc_generator.py --format html    # Format HTML
+  python tools/DOCUMENTATION/doc_generator.py --output ./docs  # Director output
+\end{DoxyVerb}
+ 
+
+\label{namespacedoc__generator_doc-func-members}
+\Hypertarget{namespacedoc__generator_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6}\index{doc\_generator@{doc\_generator}!camel\_to\_words@{camel\_to\_words}}
+\index{camel\_to\_words@{camel\_to\_words}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{camel\_to\_words()}{camel\_to\_words()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_ac8687562c35d4854346e717561d5d9a6} 
+ str camel\+\_\+to\+\_\+words (\begin{DoxyParamCaption}\item[{str}]{name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Convert camelCase or PascalCase to readable words.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00374}{374}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacedoc__generator_ac6d709371eab2179ca2b6d67052bd529}\index{doc\_generator@{doc\_generator}!extract\_body\_lines@{extract\_body\_lines}}
+\index{extract\_body\_lines@{extract\_body\_lines}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{extract\_body\_lines()}{extract\_body\_lines()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_ac6d709371eab2179ca2b6d67052bd529} 
+ List\+[str]\+ extract\+\_\+body\+\_\+lines (\begin{DoxyParamCaption}\item[{str}]{content}{, }\item[{int}]{start\+\_\+line}{, }\item[{int }]{max\+\_\+lines}{ = {\ttfamily 15}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract the first N lines of a function body for context.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00429}{429}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacedoc__generator_a37740e47ff9a440a4a858a307233751c}\index{doc\_generator@{doc\_generator}!extract\_doc\_comments@{extract\_doc\_comments}}
+\index{extract\_doc\_comments@{extract\_doc\_comments}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{extract\_doc\_comments()}{extract\_doc\_comments()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a37740e47ff9a440a4a858a307233751c} 
+ str extract\+\_\+doc\+\_\+comments (\begin{DoxyParamCaption}\item[{str}]{content}{, }\item[{int}]{start\+\_\+line}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract consecutive /// comments before a line.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00416}{416}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacedoc__generator_a6bd9510228d45b9f6b4d3894dc365ef9}\index{doc\_generator@{doc\_generator}!extract\_struct\_fields@{extract\_struct\_fields}}
+\index{extract\_struct\_fields@{extract\_struct\_fields}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{extract\_struct\_fields()}{extract\_struct\_fields()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a6bd9510228d45b9f6b4d3894dc365ef9} 
+ List\+[Tuple\+[str, str]\+]\+ extract\+\_\+struct\+\_\+fields (\begin{DoxyParamCaption}\item[{str}]{content}{, }\item[{int}]{start\+\_\+line}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract fields from a struct definition.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00449}{449}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacedoc__generator_a21b302799823a913d20ca0646b2b06c6}\index{doc\_generator@{doc\_generator}!generate\_html@{generate\_html}}
+\index{generate\_html@{generate\_html}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{generate\_html()}{generate\_html()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a21b302799823a913d20ca0646b2b06c6} 
+ str generate\+\_\+html (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}}}]{module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate HTML documentation for a module.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00784}{784}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacedoc__generator_a7be65388ac661c82dde9642fdcd6c990}\index{doc\_generator@{doc\_generator}!generate\_html\_index@{generate\_html\_index}}
+\index{generate\_html\_index@{generate\_html\_index}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{generate\_html\_index()}{generate\_html\_index()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a7be65388ac661c82dde9642fdcd6c990} 
+ str generate\+\_\+html\+\_\+index (\begin{DoxyParamCaption}\item[{List\+[\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}}]\+}]{modules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate HTML index page with categories.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00668}{668}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacedoc__generator_a84f3b7f785b459a723ee86aaaacbc7d1}\index{doc\_generator@{doc\_generator}!generate\_markdown@{generate\_markdown}}
+\index{generate\_markdown@{generate\_markdown}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{generate\_markdown()}{generate\_markdown()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a84f3b7f785b459a723ee86aaaacbc7d1} 
+ str generate\+\_\+markdown (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}}}]{module}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate rich markdown documentation for a module.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00578}{578}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacedoc__generator_a8c338d81ff26cd9c872b378e75a84009}\index{doc\_generator@{doc\_generator}!infer\_function\_description@{infer\_function\_description}}
+\index{infer\_function\_description@{infer\_function\_description}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{infer\_function\_description()}{infer\_function\_description()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a8c338d81ff26cd9c872b378e75a84009} 
+ str infer\+\_\+function\+\_\+description (\begin{DoxyParamCaption}\item[{str}]{func\+\_\+name}{, }\item[{List\+[Tuple\+[str, str]\+]\+}]{params}{, }\item[{str}]{returns}{, }\item[{str}]{module\+\_\+name}{, }\item[{List\+[str]\+}]{body\+\_\+lines}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate a human-readable description from function name, params, and context.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00175}{175}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacedoc__generator_afb6688a90a1f27ac7f22d4d0d6a05fc9}\index{doc\_generator@{doc\_generator}!infer\_struct\_description@{infer\_struct\_description}}
+\index{infer\_struct\_description@{infer\_struct\_description}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{infer\_struct\_description()}{infer\_struct\_description()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_afb6688a90a1f27ac7f22d4d0d6a05fc9} 
+ str infer\+\_\+struct\+\_\+description (\begin{DoxyParamCaption}\item[{str}]{struct\+\_\+name}{, }\item[{List\+[Tuple\+[str, str]\+]\+}]{fields}{, }\item[{str}]{module\+\_\+name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate description for a struct based on its name and fields.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00349}{349}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacedoc__generator_a51af30a60f9f02777c6396b8247e356f}\index{doc\_generator@{doc\_generator}!main@{main}}
+\index{main@{main}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00879}{879}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+Here is the caller graph for this function:\+
+% FIG 13
+\Hypertarget{namespacedoc__generator_ad78ac702de4ce8523e7a90b8e94c38cd}\index{doc\_generator@{doc\_generator}!parse\_function@{parse\_function}}
+\index{parse\_function@{parse\_function}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{parse\_function()}{parse\_function()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_ad78ac702de4ce8523e7a90b8e94c38cd} 
+ Optional\+[Tuple\+[str, str, List\+[Tuple\+[str, str]\+]\+]\+]\+ parse\+\_\+function (\begin{DoxyParamCaption}\item[{str}]{line}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse a function signature.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00473}{473}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 14
+\Hypertarget{namespacedoc__generator_a6e198bbc904953f3f9d528638fb1be64}\index{doc\_generator@{doc\_generator}!parse\_module@{parse\_module}}
+\index{parse\_module@{parse\_module}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{parse\_module()}{parse\_module()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a6e198bbc904953f3f9d528638fb1be64} 
+ \doxymbox{\hyperlink{classdoc__generator_1_1_module_doc}{Module\+Doc}} parse\+\_\+module (\begin{DoxyParamCaption}\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse a Zig module and extract documentation with smart descriptions.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00499}{499}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 15
+Here is the caller graph for this function:\+
+% FIG 16
+\Hypertarget{namespacedoc__generator_ac2262fd610f45d420573944724eed983}\index{doc\_generator@{doc\_generator}!parse\_struct@{parse\_struct}}
+\index{parse\_struct@{parse\_struct}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{parse\_struct()}{parse\_struct()}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_ac2262fd610f45d420573944724eed983} 
+ Optional\+[str]\+ parse\+\_\+struct (\begin{DoxyParamCaption}\item[{str}]{line}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Parse struct name.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00491}{491}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 17
+
+
+\label{namespacedoc__generator_doc-var-members}
+\Hypertarget{namespacedoc__generator_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacedoc__generator_afba2af4d4fa5a0def5e98bb265892b1d}\index{doc\_generator@{doc\_generator}!CORE@{CORE}}
+\index{CORE@{CORE}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{CORE}{CORE}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_afba2af4d4fa5a0def5e98bb265892b1d} 
+str doc\+\_\+generator.\+CORE = \doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+\Hypertarget{namespacedoc__generator_ac918b2ab10430397178b8891fb6d7dee}\index{doc\_generator@{doc\_generator}!MODULE\_DESCRIPTIONS@{MODULE\_DESCRIPTIONS}}
+\index{MODULE\_DESCRIPTIONS@{MODULE\_DESCRIPTIONS}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{MODULE\_DESCRIPTIONS}{MODULE\_DESCRIPTIONS}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_ac918b2ab10430397178b8891fb6d7dee} 
+dict doc\+\_\+generator.\+MODULE\+\_\+\+DESCRIPTIONS}
+
+
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+\Hypertarget{namespacedoc__generator_a2fbe88bbb3c6c9cb4ee545afa63df02e}\index{doc\_generator@{doc\_generator}!OUTPUT@{OUTPUT}}
+\index{OUTPUT@{OUTPUT}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{OUTPUT}{OUTPUT}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_a2fbe88bbb3c6c9cb4ee545afa63df02e} 
+str doc\+\_\+generator.\+OUTPUT = \doxymbox{\hyperlink{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}{ROOT}} /\+ "{}docs"{} /\+ "{}api"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+
+\Hypertarget{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db}\index{doc\_generator@{doc\_generator}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!doc\_generator@{doc\_generator}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespacedoc__generator_ac654836730836b105d8d8a29f9d446db} 
+doc\+\_\+generator.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{doc__generator_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{doc__generator_8py_source}{doc\+\_\+generator.\+py}}.
+

@@ -1,0 +1,383 @@
+\doxysection{fips-\/140-\/compliance.py}
+\hypertarget{fips-140-compliance_8py_source}{}\label{fips-140-compliance_8py_source}\index{tools/SECURITY/fips-\/140-\/compliance.py@{tools/SECURITY/fips-\/140-\/compliance.py}}
+\doxymbox{\hyperlink{fips-140-compliance_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00001}\doxymbox{\hyperlink{namespacefips-140-compliance}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00002}\doxymbox{\hyperlink{namespacefips}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ FIPS\ 140-\/2\ Statistical\ Randomness\ Tests.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00004}00004\ \textcolor{stringliteral}{Generates\ 20000\ bits\ (2500\ bytes)\ of\ random\ data\ and\ runs:}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00005}00005\ \textcolor{stringliteral}{\ \ -\/\ Monobit\ test:\ count\ of\ 1s\ should\ be\ 9725-\/10275\ (out\ of\ 20000)}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Poker\ test:\ divide\ into\ 5000\ 4-\/bit\ groups,\ chi-\/squared}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Runs\ test:\ count\ sequences\ of\ consecutive\ same\ bits}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Long\ runs\ test:\ no\ run\ of\ 26+\ same\ bits}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00010}00010\ \textcolor{stringliteral}{If\ node\ has\ no\ RPC\ for\ random,\ uses\ /dev/urandom\ as\ baseline.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00011}00011\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00013}00013\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00014}00014\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00015}00015\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00016}00016\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00017}00017\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00018}00018\ \textcolor{keyword}{import}\ secrets}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00020}00020\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00022}00022\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00023}\doxymbox{\hyperlink{namespacefips-140-compliance_a8573776644b75f1750664fe9026e72f4}{00023}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00024}\doxymbox{\hyperlink{namespacefips-140-compliance_a1d404777da430077352cd415eaefeb6f}{00024}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00025}\doxymbox{\hyperlink{namespacefips-140-compliance_a8bff24aa78c60ab41656952ea92ca245}{00025}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00026}\doxymbox{\hyperlink{namespacefips-140-compliance_af665526f0a143479b66791e70c214fb2}{00026}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00027}\doxymbox{\hyperlink{namespacefips-140-compliance_aaf910c4d9f81410cc94eb8f8468d2334}{00027}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00028}\doxymbox{\hyperlink{namespacefips-140-compliance_a9fe2c62320af79cf844c1f0d5f89f0f0}{00028}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00030}00030\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00031}\doxymbox{\hyperlink{namespacefips-140-compliance_a49e17827ef5d8474f1fe65d402ac12cd}{00031}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00032}\doxymbox{\hyperlink{namespacefips-140-compliance_ade95b6cafcc8e39458783185eb222d7f}{00032}}\ P2P\_PORT\ =\ 9000}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00033}\doxymbox{\hyperlink{namespacefips-140-compliance_ad887c8b32d30858395790126123af77c}{00033}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00034}\doxymbox{\hyperlink{namespacefips-140-compliance_a33daef1e1f4d931e778e30e63526273f}{00034}}\ SUB\_BLOCKS\ =\ 10\ \ \textcolor{comment}{\#\ 10\ x\ 0.1s}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00035}\doxymbox{\hyperlink{namespacefips-140-compliance_acb489c154b289c7c5aa8406fe91bf0ba}{00035}}\ MAX\_SUPPLY\ =\ 21\_000\_000}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00036}\doxymbox{\hyperlink{namespacefips-140-compliance_a17645d4f8fc82e091f8bbec00ca063c6}{00036}}\ SAT\ =\ int(1e9)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00037}\doxymbox{\hyperlink{namespacefips-140-compliance_a9f780af9e0940435a5dd4d2d34f5a51f}{00037}}\ BLOCK\_REWARD\ =\ 50}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00038}\doxymbox{\hyperlink{namespacefips-140-compliance_a48fc5ad6c2b3b1e485540831f7bb1e2a}{00038}}\ HALVING\_INTERVAL\ =\ 210\_000}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00039}\doxymbox{\hyperlink{namespacefips-140-compliance_a29af76437b68b37055f2a8c6c2276af1}{00039}}\ CHAIN\_DATA\ =\ \textcolor{stringliteral}{"{}omnibus-\/chain.dat"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00041}00041\ \textcolor{comment}{\#\ FIPS\ 140-\/2\ constants}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00042}\doxymbox{\hyperlink{namespacefips-140-compliance_a2f0c174ce4417801cef77ea7908d1abf}{00042}}\ BITS\_REQUIRED\ =\ 20000}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00043}\doxymbox{\hyperlink{namespacefips-140-compliance_afaea938b75d724d48408458acb6e478c}{00043}}\ BYTES\_REQUIRED\ =\ BITS\_REQUIRED\ //\ 8\ \ \textcolor{comment}{\#\ 2500}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00046}\doxymbox{\hyperlink{namespacefips-140-compliance_a12cf1788daca2bf2ca6c3c947c0f6154}{00046}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_a12cf1788daca2bf2ca6c3c947c0f6154}{bytes\_to\_bits}}(data:\ bytes)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00047}00047\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Convert\ bytes\ to\ list\ of\ bits."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00048}00048\ \ \ \ \ bits\ =\ []}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{for}\ byte\ \textcolor{keywordflow}{in}\ data:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(7,\ -\/1,\ -\/1):}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ bits.append((byte\ >>\ i)\ \&\ 1)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00052}00052\ \ \ \ \ \textcolor{keywordflow}{return}\ bits}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00055}\doxymbox{\hyperlink{namespacefips-140-compliance_a27919bd34b84f1655e831866a22e18e0}{00055}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_a27919bd34b84f1655e831866a22e18e0}{get\_random\_from\_node}}(host:\ str,\ port:\ int,\ num\_bytes:\ int)\ -\/>\ bytes:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00056}00056\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Try\ to\ get\ random\ bytes\ from\ node\ RPC."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00057}00057\ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}getrandom"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ [num\_bytes],}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00061}00061\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=5)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload,\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ data\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{in}\ data\ \textcolor{keywordflow}{and}\ data[\textcolor{stringliteral}{"{}result"{}}]:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ bytes.fromhex(data[\textcolor{stringliteral}{"{}result"{}}])}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00075}\doxymbox{\hyperlink{namespacefips-140-compliance_a42a6b45e8d763440b36f1bf2267e497e}{00075}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_a42a6b45e8d763440b36f1bf2267e497e}{get\_random\_from\_urandom}}(num\_bytes:\ int)\ -\/>\ bytes:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00076}00076\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Get\ random\ bytes\ from\ OS\ CSPRNG."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{return}\ secrets.token\_bytes(num\_bytes)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00080}00080\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00081}00081\ \textcolor{comment}{\#\ FIPS\ 140-\/2\ Statistical\ Tests}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00082}00082\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00083}\doxymbox{\hyperlink{namespacefips-140-compliance_adbccf886a125d7ce46955add9c6f9841}{00083}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_adbccf886a125d7ce46955add9c6f9841}{monobit\_test}}(bits:\ list)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00084}00084\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}FIPS\ 140-\/2\ Monobit\ Test.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00085}00085\ \textcolor{stringliteral}{\ \ \ \ Count\ of\ 1-\/bits\ in\ 20000\ bits\ should\ be\ 9725..10275.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00086}00086\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00087}00087\ \ \ \ \ ones\ =\ sum(bits)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00088}00088\ \ \ \ \ passed\ =\ 9725\ <=\ ones\ <=\ 10275}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}monobit"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ones"{}}:\ ones,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}zeros"{}}:\ len(bits)\ -\/\ ones,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}range"{}}:\ \textcolor{stringliteral}{"{}9725-\/10275"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ passed,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00095}00095\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00098}\doxymbox{\hyperlink{namespacefips-140-compliance_a54eb01629bc9fd5446ec6c0a28962d08}{00098}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_a54eb01629bc9fd5446ec6c0a28962d08}{poker\_test}}(bits:\ list)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00099}00099\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}FIPS\ 140-\/2\ Poker\ Test.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00100}00100\ \textcolor{stringliteral}{\ \ \ \ Divide\ 20000\ bits\ into\ 5000\ 4-\/bit\ groups.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00101}00101\ \textcolor{stringliteral}{\ \ \ \ Compute\ chi-\/squared:\ X\ =\ (16/5000)\ *\ sum(f\_i\string^2)\ -\/\ 5000}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00102}00102\ \textcolor{stringliteral}{\ \ \ \ Must\ be\ 2.16\ <\ X\ <\ 46.17}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00103}00103\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{if}\ len(bits)\ <\ 20000:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}poker"{}},\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}error"{}}:\ \textcolor{stringliteral}{"{}insufficient\ bits"{}}\}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00107}00107\ \ \ \ \ \textcolor{comment}{\#\ Count\ frequencies\ of\ each\ 4-\/bit\ pattern}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00108}00108\ \ \ \ \ freq\ =\ [0]\ *\ 16}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(0,\ 20000,\ 4):}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ nibble\ =\ (bits[i]\ <<\ 3)\ |\ (bits[i+1]\ <<\ 2)\ |\ (bits[i+2]\ <<\ 1)\ |\ bits[i+3]}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ freq[nibble]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00113}00113\ \ \ \ \ \textcolor{comment}{\#\ Chi-\/squared}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00114}00114\ \ \ \ \ sum\_sq\ =\ sum(f\ *\ f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ freq)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00115}00115\ \ \ \ \ X\ =\ (16.0\ /\ 5000.0)\ *\ sum\_sq\ -\/\ 5000.0}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00117}00117\ \ \ \ \ passed\ =\ 2.16\ <\ X\ <\ 46.17}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}poker"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}chi\_squared"{}}:\ round(X,\ 4),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}range"{}}:\ \textcolor{stringliteral}{"{}2.16-\/46.17"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ passed,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}freq\_distribution"{}}:\ freq,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00125}00125\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00128}\doxymbox{\hyperlink{namespacefips-140-compliance_af81aeebc7b029492ee89c9abbd0c1021}{00128}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_af81aeebc7b029492ee89c9abbd0c1021}{runs\_test}}(bits:\ list)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00129}00129\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}FIPS\ 140-\/2\ Runs\ Test.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00130}00130\ \textcolor{stringliteral}{\ \ \ \ Count\ runs\ (sequences\ of\ same\ bit)\ of\ length\ 1-\/6+.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00131}00131\ \textcolor{stringliteral}{\ \ \ \ Each\ length\ must\ fall\ within\ specified\ range.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00132}00132\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00133}00133\ \ \ \ \ \textcolor{comment}{\#\ FIPS\ 140-\/2\ ranges\ for\ 20000\ bits}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00134}00134\ \ \ \ \ ranges\ =\ \{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ 1:\ (2315,\ 2685),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ 2:\ (1114,\ 1386),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ 3:\ (527,\ 723),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ 4:\ (240,\ 384),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ 5:\ (103,\ 209),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ 6:\ (103,\ 209),\ \ \textcolor{comment}{\#\ 6+\ grouped}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00141}00141\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00143}00143\ \ \ \ \ runs\_0\ =\ \{i:\ 0\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,\ 7)\}\ \ \textcolor{comment}{\#\ runs\ of\ 0s}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00144}00144\ \ \ \ \ runs\_1\ =\ \{i:\ 0\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,\ 7)\}\ \ \textcolor{comment}{\#\ runs\ of\ 1s}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00146}00146\ \ \ \ \ current\_bit\ =\ bits[0]}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00147}00147\ \ \ \ \ run\_length\ =\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00149}00149\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,\ len(bits)):}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ bits[i]\ ==\ current\_bit:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ run\_length\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Record\ the\ run}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ capped\ =\ min(run\_length,\ 6)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ current\_bit\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ runs\_0[capped]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ runs\_1[capped]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ current\_bit\ =\ bits[i]}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ run\_length\ =\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00162}00162\ \ \ \ \ \textcolor{comment}{\#\ Record\ final\ run}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00163}00163\ \ \ \ \ capped\ =\ min(run\_length,\ 6)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00164}00164\ \ \ \ \ \textcolor{keywordflow}{if}\ current\_bit\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ runs\_0[capped]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00166}00166\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ runs\_1[capped]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00169}00169\ \ \ \ \ \textcolor{comment}{\#\ Check\ ranges}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00170}00170\ \ \ \ \ all\_passed\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00171}00171\ \ \ \ \ details\ =\ []}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00172}00172\ \ \ \ \ \textcolor{keywordflow}{for}\ length\ \textcolor{keywordflow}{in}\ range(1,\ 7):}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ low,\ high\ =\ ranges[length]}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ count\_0\ =\ runs\_0[length]}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ count\_1\ =\ runs\_1[length]}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ pass\_0\ =\ low\ <=\ count\_0\ <=\ high}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ pass\_1\ =\ low\ <=\ count\_1\ <=\ high}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ pass\_0\ \textcolor{keywordflow}{or}\ \textcolor{keywordflow}{not}\ pass\_1:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ all\_passed\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ details.append(\{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}length"{}}:\ length\ \textcolor{keywordflow}{if}\ length\ <\ 6\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}6+"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}runs\_of\_0"{}}:\ count\_0,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}runs\_of\_1"{}}:\ count\_1,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}range"{}}:\ f\textcolor{stringliteral}{"{}\{low\}-\/\{high\}"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ pass\_0\ \textcolor{keywordflow}{and}\ pass\_1,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00188}00188\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}runs"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ all\_passed,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}details"{}}:\ details,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00192}00192\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00195}\doxymbox{\hyperlink{namespacefips-140-compliance_a0b05067a87ab09dd4a9cb9474e436903}{00195}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_a0b05067a87ab09dd4a9cb9474e436903}{long\_runs\_test}}(bits:\ list)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00196}00196\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}FIPS\ 140-\/2\ Long\ Runs\ Test.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00197}00197\ \textcolor{stringliteral}{\ \ \ \ No\ run\ of\ 26\ or\ more\ consecutive\ identical\ bits.}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00198}00198\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00199}00199\ \ \ \ \ max\_run\ =\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00200}00200\ \ \ \ \ current\_run\ =\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00201}00201\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00202}00202\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,\ len(bits)):}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ bits[i]\ ==\ bits[i-\/1]:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ current\_run\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ max\_run\ =\ max(max\_run,\ current\_run)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ current\_run\ =\ 1}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00209}00209\ \ \ \ \ passed\ =\ max\_run\ <\ 26}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}long\_runs"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}max\_run\_length"{}}:\ max\_run,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}threshold"{}}:\ 26,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ passed,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00216}00216\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00219}\doxymbox{\hyperlink{namespacefips-140-compliance_abc0502c26838979d61617ad26d7e955e}{00219}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_abc0502c26838979d61617ad26d7e955e}{autocorrelation\_test}}(bits:\ list,\ shift:\ int\ =\ 1)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00220}00220\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Additional:\ autocorrelation\ test\ (not\ FIPS\ required\ but\ useful)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00221}00221\ \ \ \ \ n\ =\ len(bits)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00222}00222\ \ \ \ \ matches\ =\ sum(1\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(n\ -\/\ shift)\ \textcolor{keywordflow}{if}\ bits[i]\ ==\ bits[i\ +\ shift])}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00223}00223\ \ \ \ \ ratio\ =\ matches\ /\ (n\ -\/\ shift)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00224}00224\ \ \ \ \ \textcolor{comment}{\#\ Should\ be\ close\ to\ 0.5}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00225}00225\ \ \ \ \ deviation\ =\ abs(ratio\ -\/\ 0.5)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00226}00226\ \ \ \ \ passed\ =\ deviation\ <\ 0.02\ \ \textcolor{comment}{\#\ Within\ 2\%}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00227}00227\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00228}00228\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}autocorrelation"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}shift"{}}:\ shift,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}match\_ratio"{}}:\ round(ratio,\ 6),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}deviation\_from\_half"{}}:\ round(deviation,\ 6),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ passed,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00234}00234\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00237}\doxymbox{\hyperlink{namespacefips-140-compliance_a51af30a60f9f02777c6396b8247e356f}{00237}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefips-140-compliance_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00238}00238\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ FIPS\ 140-\/2\ Randomness\ Tests"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00240}00240\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00241}00241\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/rpc-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}Node\ RPC\ host"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00242}00242\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/source"{}},\ choices=[\textcolor{stringliteral}{"{}node"{}},\ \textcolor{stringliteral}{"{}urandom"{}},\ \textcolor{stringliteral}{"{}both"{}}],}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}both"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Random\ source\ (default:\ both)"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00245}00245\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00246}00246\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00248}00248\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00249}00249\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ FIPS\ 140-\/2\ Randomness\ Tests"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00250}00250\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Bits:\ \{BITS\_REQUIRED\}\ |\ Bytes:\ \{BYTES\_REQUIRED\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00251}00251\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ RPC:\ \{args.rpc\_host\}:\{RPC\_PORT\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00252}00252\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Source:\ \{args.source\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00253}00253\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Chain:\ \{CHAIN\_DATA\}\ |\ Shards:\ \{SHARDS\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00254}00254\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00256}00256\ \ \ \ \ sources\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00257}00257\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00258}00258\ \ \ \ \ \textcolor{comment}{\#\ Try\ node\ RPC}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00259}00259\ \ \ \ \ \textcolor{keywordflow}{if}\ args.source\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}node"{}},\ \textcolor{stringliteral}{"{}both"{}}):}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[SOURCE]\ Attempting\ node\ RPC\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ node\_random\ =\ \doxymbox{\hyperlink{namespacefips-140-compliance_a27919bd34b84f1655e831866a22e18e0}{get\_random\_from\_node}}(args.rpc\_host,\ RPC\_PORT,\ BYTES\_REQUIRED)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ node\_random:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ sources[\textcolor{stringliteral}{"{}node\_rpc"{}}]\ =\ node\_random}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Got\ \{len(node\_random)\}\ bytes\ from\ node\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Node\ PRNG\ not\ available\ via\ RPC\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.source\ ==\ \textcolor{stringliteral}{"{}node"{}}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Node\ needs\ getrandom\ RPC\ method\ for\ PRNG\ testing\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00269}00269\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00270}00270\ \ \ \ \ \textcolor{comment}{\#\ OS\ CSPRNG}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00271}00271\ \ \ \ \ \textcolor{keywordflow}{if}\ args.source\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}urandom"{}},\ \textcolor{stringliteral}{"{}both"{}}):}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[SOURCE]\ OS\ CSPRNG\ (urandom)\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ sources[\textcolor{stringliteral}{"{}urandom"{}}]\ =\ \doxymbox{\hyperlink{namespacefips-140-compliance_a42a6b45e8d763440b36f1bf2267e497e}{get\_random\_from\_urandom}}(BYTES\_REQUIRED)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Got\ \{BYTES\_REQUIRED\}\ bytes\ from\ OS\ CSPRNG\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00275}00275\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00276}00276\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ sources:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[ERROR]\ No\ random\ source\ available\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00280}00280\ \ \ \ \ all\_results\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00281}00281\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00283}00283\ \ \ \ \ \textcolor{keywordflow}{for}\ source\_name,\ random\_bytes\ \textcolor{keywordflow}{in}\ sources.items():}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{BOLD\}-\/-\/-\/\ Testing\ source:\ \{source\_name\}\ -\/-\/-\/\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00285}00285\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ bits\ =\ \doxymbox{\hyperlink{namespacefips-140-compliance_a12cf1788daca2bf2ca6c3c947c0f6154}{bytes\_to\_bits}}(random\_bytes)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(bits)\ <\ BITS\_REQUIRED:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}\ \ Insufficient\ bits:\ \{len(bits)\}\ <\ \{BITS\_REQUIRED\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00290}00290\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ bits\ =\ bits[:BITS\_REQUIRED]\ \ \textcolor{comment}{\#\ Trim\ to\ exactly\ 20000}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ 1.\ Monobit}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00296}00296\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}[1/5]\ Monobit\ test\ ...\{RESET\}"{}},\ end=\textcolor{stringliteral}{"{}\ "{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespacefips-140-compliance_adbccf886a125d7ce46955add9c6f9841}{monobit\_test}}(bits)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{'PASS'\ if\ r['passed']\ else\ 'FAIL'\}\ (ones=\{r['ones']\})\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00301}00301\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ 2.\ Poker}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}[2/5]\ Poker\ test\ ...\{RESET\}"{}},\ end=\textcolor{stringliteral}{"{}\ "{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespacefips-140-compliance_a54eb01629bc9fd5446ec6c0a28962d08}{poker\_test}}(bits)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{'PASS'\ if\ r['passed']\ else\ 'FAIL'\}\ (X=\{r.get('chi\_squared',\ 'N/A')\})\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00308}00308\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ 3.\ Runs}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}[3/5]\ Runs\ test\ ...\{RESET\}"{}},\ end=\textcolor{stringliteral}{"{}\ "{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespacefips-140-compliance_af81aeebc7b029492ee89c9abbd0c1021}{runs\_test}}(bits)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{'PASS'\ if\ r['passed']\ else\ 'FAIL'\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00315}00315\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ 4.\ Long\ runs}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}[4/5]\ Long\ runs\ test\ ...\{RESET\}"{}},\ end=\textcolor{stringliteral}{"{}\ "{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespacefips-140-compliance_a0b05067a87ab09dd4a9cb9474e436903}{long\_runs\_test}}(bits)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00321}00321\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{'PASS'\ if\ r['passed']\ else\ 'FAIL'\}\ (max=\{r['max\_run\_length']\})\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ 5.\ Autocorrelation\ (bonus)}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}[5/5]\ Autocorrelation\ test\ ...\{RESET\}"{}},\ end=\textcolor{stringliteral}{"{}\ "{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00325}00325\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespacefips-140-compliance_abc0502c26838979d61617ad26d7e955e}{autocorrelation\_test}}(bits)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{'PASS'\ if\ r['passed']\ else\ 'FAIL'\}\ "{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}(deviation=\{r['deviation\_from\_half']\})\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00331}00331\ \ \ \ \ \ \ \ \ all\_passed\ =\ all(r[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00332}00332\ \ \ \ \ \ \ \ \ all\_results[source\_name]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00334}00334\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}all\_passed"{}}:\ all\_passed,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00335}00335\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00336}00336\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00337}00337\ \ \ \ \ elapsed\ =\ time.time()\ -\/\ t0}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00338}00338\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00339}00339\ \ \ \ \ \textcolor{comment}{\#\ Overall\ verdict}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00340}00340\ \ \ \ \ overall\_pass\ =\ all(v[\textcolor{stringliteral}{"{}all\_passed"{}}]\ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ all\_results.values())}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00341}00341\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00342}00342\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tool"{}}:\ \textcolor{stringliteral}{"{}OmniBus\ FIPS\ 140-\/2\ compliance"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bits\_tested"{}}:\ BITS\_REQUIRED,}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00345}00345\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sources"{}}:\ \{k:\ \{\textcolor{stringliteral}{"{}all\_passed"{}}:\ v[\textcolor{stringliteral}{"{}all\_passed"{}}],}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ [t[\textcolor{stringliteral}{"{}test"{}}]\ +\ \textcolor{stringliteral}{"{}:\ "{}}\ +\ (\textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ t[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00347}00347\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ v[\textcolor{stringliteral}{"{}tests"{}}]]\}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00348}00348\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ all\_results.items()\},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00349}00349\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}elapsed\_seconds"{}}:\ round(elapsed,\ 2),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00350}00350\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}verdict"{}}:\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ overall\_pass\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}},}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00351}00351\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}note"{}}:\ (\textcolor{stringliteral}{"{}Node\ PRNG\ testing\ requires\ integration\ —\ "{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}add\ getrandom\ RPC\ to\ omnibus-\/node"{}}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}node\_rpc"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ all\_results\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}}),}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00354}00354\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00355}00355\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00356}00356\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00357}00357\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Include\ full\ test\ details\ in\ JSON}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}full\_results"{}}]\ =\ \{k:\ v[\textcolor{stringliteral}{"{}tests"{}}]\ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ all\_results.items()\}}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00359}00359\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00360}00360\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00361}00361\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00362}00362\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ FIPS\ 140-\/2\ COMPLIANCE\ RESULTS"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00363}00363\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00364}00364\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ src,\ data\ \textcolor{keywordflow}{in}\ all\_results.items():}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00365}00365\ \ \ \ \ \ \ \ \ \ \ \ \ sc\ =\ GREEN\ \textcolor{keywordflow}{if}\ data[\textcolor{stringliteral}{"{}all\_passed"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00366}00366\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{src\}:\ \{sc\}\{BOLD\}\{'PASS'\ if\ data['all\_passed']\ else\ 'FAIL'\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00367}00367\ \ \ \ \ \ \ \ \ vc\ =\ GREEN\ \textcolor{keywordflow}{if}\ overall\_pass\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00368}00368\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Overall:\ \{vc\}\{BOLD\}\{report['verdict']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00369}00369\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}note"{}}]:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00370}00370\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Note:\ \{report['note']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00371}00371\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Elapsed:\ \{elapsed:.2f\}s"{}})}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00372}00372\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00373}00373\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ overall\_pass\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00374}00374\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00375}00375\ }
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00376}00376\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{fips-140-compliance_8py_source_l00377}00377\ \ \ \ \ \doxymbox{\hyperlink{namespacefips-140-compliance_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

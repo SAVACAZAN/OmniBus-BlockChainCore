@@ -1,0 +1,93 @@
+omnibus/
+├── core/ (existente 45+ fișiere, completăm ce lipsește)
+│   ├── sighash.zig                 🔴 LIPSEȘTE - SIGHASH flags
+│   ├── coin_control.zig            🔴 LIPSEȘTE - UTXO control manual
+│   ├── fee_estimator_dynamic.zig   🟡 REPLACE - înlocuiește cel basic
+│   ├── segwit.zig                  🔴 LIPSEȘTE - segwit native support
+│   ├── taproot.zig                 🔴 LIPSEȘTE - taproot integration
+│   ├── ed25519_wrapper.zig         🔴 LIPSEȘTE - pentru SOL/TON
+│   └── eip1559.zig                 🔴 LIPSEȘTE - pentru ETH
+│
+├── wallet/ (nou - pentru multi-chain)
+│   ├── common/ (interfețe generice)
+│   │   ├── traits.zig              🔴 LIPSEȘTE - AddressGenerator, TxBuilder, Signer, RpcClient
+│   │   ├── errors.zig              🔴 LIPSEȘTE - erori comune
+│   │   └── types.zig               🔴 LIPSEȘTE - tipuri comune (Amount, TxHash, etc.)
+│   │
+│   ├── btc/ (Bitcoin - 70% complet după ce adăugăm)
+│   │   ├── address.zig             ✅ GENERAT AZI
+│   │   ├── tx_builder.zig          🔴 LIPSEȘTE - construcție TX BTC
+│   │   ├── rpc_client.zig          🔴 LIPSEȘTE - bitcoind RPC
+│   │   ├── psbt.zig                🟡 ADAPT - din core/psbt.zig
+│   │   ├── fee_estimator.zig       🔴 LIPSEȘTE - estimare fee BTC
+│   │   ├── sync.zig                🔴 LIPSEȘTE - sync cu blockchain
+│   │   └── utils.zig               🔴 LIPSEȘTE - helper functions
+│   │
+│   ├── eth/ (Ethereum - 70% complet)
+│   │   ├── address.zig             🟡 EXISTĂ parțial (evm_signer.zig)
+│   │   ├── tx_builder.zig          🟡 EXISTĂ (legacy only)
+│   │   ├── eip1559.zig             🔴 LIPSEȘTE - dynamic fees
+│   │   ├── rpc_client.zig          ✅ EXISTĂ (evm_rpc_client.zig)
+│   │   ├── erc20.zig               🔴 LIPSEȘTE - token support
+│   │   └── contract.zig            🔴 LIPSEȘTE - contract interaction
+│   │
+│   ├── sol/ (Solana - 0% complet)
+│   │   ├── address.zig             🔴 LIPSEȘTE - m/44'/501' derivation
+│   │   ├── tx_builder.zig          🔴 LIPSEȘTE - Borsh serialize
+│   │   ├── rpc_client.zig          🔴 LIPSEȘTE - Solana RPC
+│   │   ├── instruction.zig         🔴 LIPSEȘTE - Solana instructions
+│   │   ├── program.zig             🔴 LIPSEȘTE - SPL tokens
+│   │   ├── ed25519.zig             🔴 LIPSEȘTE - Ed25519 signing
+│   │   ├── borsh.zig               🔴 LIPSEȘTE - serialization
+│   │   └── commitment.zig          🔴 LIPSEȘTE - commitment levels
+│   │
+│   ├── ton/ (TON - 0% complet)
+│   │   ├── address.zig             🔴 LIPSEȘTE - bounceable EQ/UQ
+│   │   ├── tx_builder.zig          🔴 LIPSEȘTE - TL-B + cells
+│   │   ├── rpc_client.zig          🔴 LIPSEȘTE - ADNL/HTTP
+│   │   ├── cell.zig                🔴 LIPSEȘTE - TON cell serialization
+│   │   ├── contract.zig            🔴 LIPSEȘTE - TON contracts
+│   │   ├── jetton.zig              🔴 LIPSEȘTE - Jettons (TON tokens)
+│   │   └── tl_b.zig                🔴 LIPSEȘTE - TL-B schema
+│   │
+│   ├── lcx/ (LCX Liberty - 90% complet)
+│   │   ├── address.zig             ✅ EXISTĂ (EVM compatible)
+│   │   ├── tx_builder.zig          ✅ EXISTĂ (EVM)
+│   │   ├── rpc_client.zig          ✅ EXISTĂ (EVM RPC)
+│   │   └── native.zig              🔴 LIPSEȘTE - dacă LCX are protocol propriu
+│   │
+│   └── cosmos/ (optional - pentru viitor)
+│       ├── address.zig             🔴 LIPSEȘTE - bech32
+│       ├── tx_builder.zig          🔴 LIPSEȘTE - cosmos-sdk
+│       └── rpc_client.zig          🔴 LIPSEȘTE - Tendermint RPC
+│
+├── tests/ (teste pentru tot ce e nou)
+│   ├── wallet/
+│   │   ├── btc/
+│   │   │   ├── test_address.zig    🔴 LIPSEȘTE
+│   │   │   ├── test_tx_builder.zig 🔴 LIPSEȘTE
+│   │   │   └── test_rpc.zig        🔴 LIPSEȘTE
+│   │   ├── eth/
+│   │   │   ├── test_eip1559.zig    🔴 LIPSEȘTE
+│   │   │   └── test_erc20.zig      🔴 LIPSEȘTE
+│   │   ├── sol/
+│   │   │   └── test_address.zig    🔴 LIPSEȘTE
+│   │   └── ton/
+│   │       └── test_cell.zig       🔴 LIPSEȘTE
+│   │
+│   └── core/
+│       ├── test_sighash.zig        🔴 LIPSEȘTE
+│       ├── test_coin_control.zig   🔴 LIPSEȘTE
+│       └── test_segwit.zig         🔴 LIPSEȘTE
+│
+├── examples/ (exemple de utilizare)
+│   ├── btc_wallet_demo.zig         🔴 LIPSEȘTE
+│   ├── eth_eip1559_demo.zig        🔴 LIPSEȘTE
+│   ├── sol_wallet_demo.zig         🔴 LIPSEȘTE
+│   └── ton_wallet_demo.zig         🔴 LIPSEȘTE
+│
+└── docs/ (documentație)
+    ├── WALLET_API.md               🔴 LIPSEȘTE
+    ├── BTC_INTEGRATION.md          🔴 LIPSEȘTE
+    ├── SOL_INTEGRATION.md          🔴 LIPSEȘTE
+    └── TON_INTEGRATION.md          🔴 LIPSEȘTE

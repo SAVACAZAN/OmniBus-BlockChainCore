@@ -1,0 +1,99 @@
+\doxysection{Web\+Socket\+Client.\+cpp}
+\hypertarget{_web_socket_client_8cpp_source}{}\label{_web_socket_client_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/core/WebSocketClient.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/core/WebSocketClient.cpp}}
+\doxymbox{\hyperlink{_web_socket_client_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_web_socket_client_8h}{core/WebSocketClient.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <QJsonDocument>}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QJsonObject>}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00005}00005\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00007}\doxymbox{\hyperlink{classomni_1_1_web_socket_client_a892ae3fc8e0053deb7fdbf265e39f5b9}{00007}}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a892ae3fc8e0053deb7fdbf265e39f5b9}{WebSocketClient::WebSocketClient}}(QObject*\ parent)}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00008}00008\ \ \ \ \ :\ QObject(parent)}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00009}00009\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00010}00010\ \ \ \ \ connect(\&m\_ws,\ \&QWebSocket::connected,\ \textcolor{keyword}{this},\ \&WebSocketClient::onConnected);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00011}00011\ \ \ \ \ connect(\&m\_ws,\ \&QWebSocket::disconnected,\ \textcolor{keyword}{this},\ \&WebSocketClient::onDisconnected);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00012}00012\ \ \ \ \ connect(\&m\_ws,\ \&QWebSocket::textMessageReceived,\ \textcolor{keyword}{this},\ \&WebSocketClient::onTextMessage);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00013}00013\ \ \ \ \ connect(\&m\_ws,\ \&QWebSocket::errorOccurred,\ \textcolor{keyword}{this},\ \&WebSocketClient::onError);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00015}00015\ \ \ \ \ m\_reconnectTimer.setSingleShot(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00016}00016\ \ \ \ \ connect(\&m\_reconnectTimer,\ \&QTimer::timeout,\ \textcolor{keyword}{this},\ \&WebSocketClient::tryReconnect);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00017}00017\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00019}\doxymbox{\hyperlink{classomni_1_1_web_socket_client_ab9f46dd0450cee4c5280b33628459888}{00019}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_ab9f46dd0450cee4c5280b33628459888}{WebSocketClient::connectToNode}}(\textcolor{keyword}{const}\ QString\&\ host,\ \textcolor{keywordtype}{int}\ port)\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00020}00020\ \ \ \ \ m\_intentionalDisconnect\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00021}00021\ \ \ \ \ m\_url\ =\ QString(\textcolor{stringliteral}{"{}ws://\%1:\%2"{}}).arg(host).arg(port);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00022}00022\ \ \ \ \ m\_reconnectDelay\ =\ 3000;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00023}00023\ \ \ \ \ m\_ws.open(QUrl(m\_url));}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00024}00024\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00026}\doxymbox{\hyperlink{classomni_1_1_web_socket_client_ad659d4915dea674482f22f90907cf35b}{00026}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_ad659d4915dea674482f22f90907cf35b}{WebSocketClient::disconnect}}()\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00027}00027\ \ \ \ \ m\_intentionalDisconnect\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00028}00028\ \ \ \ \ m\_reconnectTimer.stop();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00029}00029\ \ \ \ \ m\_ws.close();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00030}00030\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00032}\doxymbox{\hyperlink{classomni_1_1_web_socket_client_a7a916883ae7c3f2ccad863734b685a79}{00032}}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a7a916883ae7c3f2ccad863734b685a79}{WebSocketClient::isConnected}}()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00033}00033\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_connected;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00034}00034\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00036}00036\ \textcolor{keywordtype}{void}\ WebSocketClient::onConnected()\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00037}00037\ \ \ \ \ m\_connected\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00038}00038\ \ \ \ \ m\_reconnectDelay\ =\ 3000;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00039}00039\ \ \ \ \ emit\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a6bbe493b9f41b4863f39ccfd2bebdb8a}{connectionChanged}}(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00040}00040\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00042}00042\ \textcolor{keywordtype}{void}\ WebSocketClient::onDisconnected()\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00043}00043\ \ \ \ \ m\_connected\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00044}00044\ \ \ \ \ emit\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a6bbe493b9f41b4863f39ccfd2bebdb8a}{connectionChanged}}(\textcolor{keyword}{false});}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00046}00046\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_intentionalDisconnect)\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00047}00047\ \ \ \ \ \ \ \ \ m\_reconnectTimer.start(m\_reconnectDelay);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Exponential\ backoff:\ 3s\ -\/>\ 6s\ -\/>\ 12s\ -\/>\ 24s\ -\/>\ max\ 30s}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00049}00049\ \ \ \ \ \ \ \ \ m\_reconnectDelay\ =\ qMin(m\_reconnectDelay\ *\ 2,\ 30000);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00050}00050\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00051}00051\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00053}00053\ \textcolor{keywordtype}{void}\ WebSocketClient::onTextMessage(\textcolor{keyword}{const}\ QString\&\ message)\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00054}00054\ \ \ \ \ QJsonParseError\ err;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00055}00055\ \ \ \ \ QJsonDocument\ doc\ =\ QJsonDocument::fromJson(message.toUtf8(),\ \&err);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{if}\ (err.error\ !=\ QJsonParseError::NoError)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00058}00058\ \ \ \ \ QJsonObject\ obj\ =\ doc.object();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00059}00059\ \ \ \ \ QString\ \textcolor{keyword}{event}\ =\ obj[\textcolor{stringliteral}{"{}event"{}}].toString();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{if}\ (event\ ==\ \textcolor{stringliteral}{"{}new\_block"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00062}00062\ \ \ \ \ \ \ \ \ BlockData\ block;}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00063}00063\ \ \ \ \ \ \ \ \ block.height\ \ \ \ =\ obj[\textcolor{stringliteral}{"{}height"{}}].toInt();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00064}00064\ \ \ \ \ \ \ \ \ block.hash\ \ \ \ \ \ =\ obj[\textcolor{stringliteral}{"{}hash"{}}].toString();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00065}00065\ \ \ \ \ \ \ \ \ block.rewardSAT\ =\ \textcolor{keyword}{static\_cast<}qint64\textcolor{keyword}{>}(obj[\textcolor{stringliteral}{"{}reward\_sat"{}}].toDouble());}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00066}00066\ \ \ \ \ \ \ \ \ block.difficulty\ =\ obj[\textcolor{stringliteral}{"{}difficulty"{}}].toInt();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00067}00067\ \ \ \ \ \ \ \ \ block.timestamp\ =\ \textcolor{keyword}{static\_cast<}qint64\textcolor{keyword}{>}(obj[\textcolor{stringliteral}{"{}timestamp"{}}].toDouble());}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00068}00068\ \ \ \ \ \ \ \ \ emit\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a2a9e4eaf74cc59f61f9364ff48f4a396}{newBlock}}(block);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00069}00069\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (event\ ==\ \textcolor{stringliteral}{"{}new\_tx"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00071}00071\ \ \ \ \ \ \ \ \ QString\ txid\ =\ obj[\textcolor{stringliteral}{"{}txid"{}}].toString();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00072}00072\ \ \ \ \ \ \ \ \ QString\ from\ =\ obj[\textcolor{stringliteral}{"{}from"{}}].toString();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00073}00073\ \ \ \ \ \ \ \ \ qint64\ amountSat\ =\ \textcolor{keyword}{static\_cast<}qint64\textcolor{keyword}{>}(obj[\textcolor{stringliteral}{"{}amount\_sat"{}}].toDouble());}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00074}00074\ \ \ \ \ \ \ \ \ emit\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_af43805710e5bed71b978abdbb9dbfb2f}{newTransaction}}(txid,\ from,\ amountSat);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00075}00075\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (event\ ==\ \textcolor{stringliteral}{"{}status"{}})\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ height\ =\ obj[\textcolor{stringliteral}{"{}height"{}}].toInt();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ difficulty\ =\ obj[\textcolor{stringliteral}{"{}difficulty"{}}].toInt();}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00079}00079\ \ \ \ \ \ \ \ \ emit\ \doxymbox{\hyperlink{classomni_1_1_web_socket_client_a637dcf4e9c935d486c1b138a7e4e1942}{statusUpdate}}(height,\ difficulty);}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00080}00080\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00081}00081\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00083}00083\ \textcolor{keywordtype}{void}\ WebSocketClient::onError(QAbstractSocket::SocketError\ \textcolor{comment}{/*error*/})\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00084}00084\ \ \ \ \ \textcolor{comment}{//\ Will\ trigger\ onDisconnected\ -\/>\ reconnect}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00085}00085\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00087}00087\ \textcolor{keywordtype}{void}\ WebSocketClient::tryReconnect()\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00088}00088\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_intentionalDisconnect\ \&\&\ !m\_connected)\ \{}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00089}00089\ \ \ \ \ \ \ \ \ m\_ws.open(QUrl(m\_url));}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00090}00090\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00091}00091\ \}}
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{_web_socket_client_8cpp_source_l00093}00093\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

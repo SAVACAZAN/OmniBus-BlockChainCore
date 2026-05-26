@@ -1,0 +1,189 @@
+\doxysection{scan\+\_\+opcodes.\+Opcode\+Scanner Class Reference}
+\hypertarget{classscan__opcodes_1_1_opcode_scanner}{}\label{classscan__opcodes_1_1_opcode_scanner}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_aa538df3f40a8e853852d7e9c77e0d4ba}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str root\+\_\+dir)
+\item 
+bool \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_a66659ada0c3ee071c083239d3a6ac4cf}{should\+\_\+scan\+\_\+file}} (self, Path filepath)
+\item 
+None \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_a248e06b149734b219bf8b6bc1b10f3b3}{scan\+\_\+file}} (self, Path filepath)
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scan_result}{Opcode\+Scan\+Result}} \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_a2d5d83bb9829de2243f81e7b62a88b46}{scan}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_a2a1778bd337d7b0cce029257b8b78ab5}{root\+\_\+dir}} = Path(root\+\_\+dir)
+\item 
+\doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_a6954925f3902f9848e36cf587fc8a414}{results}} = \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scan_result}{Opcode\+Scan\+Result}}()
+\item 
+dict \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_a2df77bc0d2e462d58d4dc702ef35ec93}{excluded\+\_\+dirs}} = \{\textquotesingle{}.\doxymbox{\hyperlink{namespacegit}{git}}\textquotesingle{}, \textquotesingle{}.\doxymbox{\hyperlink{namespacezig}{zig}}-\/cache\textquotesingle{}, \textquotesingle{}\doxymbox{\hyperlink{namespacezig}{zig}}-\/out\textquotesingle{}, \textquotesingle{}claude-\/kimi-\/deep-\/gemini-\/opcodes\textquotesingle{}\}
+\item 
+dict \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_ae422f0f9a84e0ff977b41a1d964740af}{excluded\+\_\+files}} = \{\textquotesingle{}scan\+\_\+opcodes.\+py\textquotesingle{}, \textquotesingle{}OPCODES.\+md\textquotesingle{}\}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_abae0dc1504e4522e0ab6d047a52efd0b}{\+\_\+extract\+\_\+message\+\_\+types}} (self)
+\item 
+None \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_af4cffafbfe13648f8b4541e04b101d72}{\+\_\+extract\+\_\+error\+\_\+types}} (self)
+\item 
+None \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scanner_a77e7c7a5e36ed9c86e4ea49cdba91a4a}{\+\_\+extract\+\_\+magic\+\_\+numbers}} (self)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Scanner pentru întregul proiect.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00248}{248}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+
+
+\label{classscan__opcodes_1_1_opcode_scanner_doc-constructors}
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_aa538df3f40a8e853852d7e9c77e0d4ba}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_aa538df3f40a8e853852d7e9c77e0d4ba} 
+scan\+\_\+opcodes.\+Opcode\+Scanner.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{root\+\_\+dir}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00251}{251}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+
+
+\label{classscan__opcodes_1_1_opcode_scanner_doc-func-members}
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_af4cffafbfe13648f8b4541e04b101d72}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!\_extract\_error\_types@{\_extract\_error\_types}}
+\index{\_extract\_error\_types@{\_extract\_error\_types}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{\_extract\_error\_types()}{\_extract\_error\_types()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_af4cffafbfe13648f8b4541e04b101d72} 
+ None scan\+\_\+opcodes.\+Opcode\+Scanner.\+\_\+extract\+\_\+error\+\_\+types (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Extrage tipurile de erori.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00322}{322}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_a77e7c7a5e36ed9c86e4ea49cdba91a4a}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!\_extract\_magic\_numbers@{\_extract\_magic\_numbers}}
+\index{\_extract\_magic\_numbers@{\_extract\_magic\_numbers}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{\_extract\_magic\_numbers()}{\_extract\_magic\_numbers()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_a77e7c7a5e36ed9c86e4ea49cdba91a4a} 
+ None scan\+\_\+opcodes.\+Opcode\+Scanner.\+\_\+extract\+\_\+magic\+\_\+numbers (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Extrage magic numbers (numere cu semnificație specială).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00332}{332}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_abae0dc1504e4522e0ab6d047a52efd0b}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!\_extract\_message\_types@{\_extract\_message\_types}}
+\index{\_extract\_message\_types@{\_extract\_message\_types}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{\_extract\_message\_types()}{\_extract\_message\_types()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_abae0dc1504e4522e0ab6d047a52efd0b} 
+ None scan\+\_\+opcodes.\+Opcode\+Scanner.\+\_\+extract\+\_\+message\+\_\+types (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Extrage MessageType enum.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00310}{310}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_a2d5d83bb9829de2243f81e7b62a88b46}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!scan@{scan}}
+\index{scan@{scan}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{scan()}{scan()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_a2d5d83bb9829de2243f81e7b62a88b46} 
+ \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scan_result}{Opcode\+Scan\+Result}} scan\+\_\+opcodes.\+Opcode\+Scanner.\+scan (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scanează întregul proiect.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00288}{288}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_a248e06b149734b219bf8b6bc1b10f3b3}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!scan\_file@{scan\_file}}
+\index{scan\_file@{scan\_file}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{scan\_file()}{scan\_file()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_a248e06b149734b219bf8b6bc1b10f3b3} 
+ None scan\+\_\+opcodes.\+Opcode\+Scanner.\+scan\+\_\+file (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scanează un singur fișier.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00270}{270}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_a66659ada0c3ee071c083239d3a6ac4cf}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!should\_scan\_file@{should\_scan\_file}}
+\index{should\_scan\_file@{should\_scan\_file}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{should\_scan\_file()}{should\_scan\_file()}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_a66659ada0c3ee071c083239d3a6ac4cf} 
+ bool scan\+\_\+opcodes.\+Opcode\+Scanner.\+should\+\_\+scan\+\_\+file (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifică dacă un fișier trebuie scanat.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00259}{259}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+
+
+\label{classscan__opcodes_1_1_opcode_scanner_doc-variable-members}
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_a2df77bc0d2e462d58d4dc702ef35ec93}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!excluded\_dirs@{excluded\_dirs}}
+\index{excluded\_dirs@{excluded\_dirs}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{excluded\_dirs}{excluded\_dirs}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_a2df77bc0d2e462d58d4dc702ef35ec93} 
+dict scan\+\_\+opcodes.\+Opcode\+Scanner.\+excluded\+\_\+dirs = \{\textquotesingle{}.\doxymbox{\hyperlink{namespacegit}{git}}\textquotesingle{}, \textquotesingle{}.\doxymbox{\hyperlink{namespacezig}{zig}}-\/cache\textquotesingle{}, \textquotesingle{}\doxymbox{\hyperlink{namespacezig}{zig}}-\/out\textquotesingle{}, \textquotesingle{}claude-\/kimi-\/deep-\/gemini-\/opcodes\textquotesingle{}\}}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00256}{256}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_ae422f0f9a84e0ff977b41a1d964740af}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!excluded\_files@{excluded\_files}}
+\index{excluded\_files@{excluded\_files}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{excluded\_files}{excluded\_files}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_ae422f0f9a84e0ff977b41a1d964740af} 
+dict scan\+\_\+opcodes.\+Opcode\+Scanner.\+excluded\+\_\+files = \{\textquotesingle{}scan\+\_\+opcodes.\+py\textquotesingle{}, \textquotesingle{}OPCODES.\+md\textquotesingle{}\}}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00257}{257}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_a6954925f3902f9848e36cf587fc8a414}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!results@{results}}
+\index{results@{results}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_a6954925f3902f9848e36cf587fc8a414} 
+scan\+\_\+opcodes.\+Opcode\+Scanner.\+results = \doxymbox{\hyperlink{classscan__opcodes_1_1_opcode_scan_result}{Opcode\+Scan\+Result}}()}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00253}{253}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+\Hypertarget{classscan__opcodes_1_1_opcode_scanner_a2a1778bd337d7b0cce029257b8b78ab5}\index{scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}!root\_dir@{root\_dir}}
+\index{root\_dir@{root\_dir}!scan\_opcodes.OpcodeScanner@{scan\_opcodes.OpcodeScanner}}
+\doxysubsubsection{\texorpdfstring{root\_dir}{root\_dir}}
+{\footnotesize\ttfamily \label{classscan__opcodes_1_1_opcode_scanner_a2a1778bd337d7b0cce029257b8b78ab5} 
+scan\+\_\+opcodes.\+Opcode\+Scanner.\+root\+\_\+dir = Path(root\+\_\+dir)}
+
+
+
+Definition at line \doxymbox{\hyperlink{scan__opcodes_8py_source_l00252}{252}} of file \doxymbox{\hyperlink{scan__opcodes_8py_source}{scan\+\_\+opcodes.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+ai-\/opcode-\/research/\+\doxymbox{\hyperlink{scan__opcodes_8py}{scan\+\_\+opcodes.\+py}}\end{DoxyCompactItemize}

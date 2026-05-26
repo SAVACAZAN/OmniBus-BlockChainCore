@@ -1,0 +1,406 @@
+\chapter{Module:\+ {\ttfamily kademlia\+\_\+dht} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht}{}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht}\index{Module: $<$tt$>$kademlia\_dht$<$/tt$>$@{Module: $<$tt$>$kademlia\_dht$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1711}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1711}%
+
+
+\begin{quote}
+Kademlia distributed hash table — XOR-\/based distance metric, k-\/bucket routing, iterative node lookup, peer discovery without central servers. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+kademlia\+\_\+dht.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 352 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 12 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 13
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1713}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1713}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1714}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1714}
+
+\begin{DoxyItemize}
+\item \`{}\+Dht\+Peer\`{}{\ttfamily Dht\+Peer}
+\end{DoxyItemize}— DHT Peer entry
+\begin{DoxyItemize}
+\item \`{}\+KBucket\`{}{\ttfamily KBucket}
+\end{DoxyItemize}— K-\/\+Bucket:\+ stores up to K peers at a specific XOR distance range
+\begin{DoxyItemize}
+\item \`{}\+Dht\+Routing\+Table\`{}{\ttfamily Dht\+Routing\+Table}
+\end{DoxyItemize}— Kademlia DHT Routing Table\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1715}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1715}
+
+\begin{DoxyItemize}
+\item 7 constants defined7 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1716}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1716}
+
+\begin{DoxyItemize}
+\item \`{}xor\+Distance()\`{}{\ttfamily xor\+Distance()}
+\end{DoxyItemize}— Compute XOR distance between two node IDs
+\begin{DoxyItemize}
+\item \`{}bucket\+Index()\`{}{\ttfamily bucket\+Index()}
+\end{DoxyItemize}— Find the bucket index for a given distance (leading zero bits count)
+\begin{DoxyItemize}
+\item \`{}generate\+Node\+Id()\`{}{\ttfamily generate\+Node\+Id()}
+\end{DoxyItemize}— Generate a node ID from a public key or random bytes
+\begin{DoxyItemize}
+\item \`{}is\+Stale()\`{}{\ttfamily is\+Stale()}
+\end{DoxyItemize}— Checks whether the stale condition is true.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Peer()\`{}{\ttfamily add\+Peer()}
+\end{DoxyItemize}— Add or update a peer in the bucket
+\begin{DoxyItemize}
+\item \`{}find\+Closest()\`{}{\ttfamily find\+Closest()}
+\end{DoxyItemize}— Find closest N peers to target ID in this bucket
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}add\+Peer()\`{}{\ttfamily add\+Peer()}
+\end{DoxyItemize}— Add a peer to the appropriate bucket
+\begin{DoxyItemize}
+\item \`{}find\+Closest()\`{}{\ttfamily find\+Closest()}
+\end{DoxyItemize}— Find the K closest peers to a target ID (across all buckets)
+\begin{DoxyItemize}
+\item \`{}peer\+Count()\`{}{\ttfamily peer\+Count()}
+\end{DoxyItemize}— Get total peer count
+\begin{DoxyItemize}
+\item \`{}evict\+Stale()\`{}{\ttfamily evict\+Stale()}
+\end{DoxyItemize}— Remove stale peers
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1718}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1718}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1719}{}\doxysubsection{\texorpdfstring{{\ttfamily Dht\+Peer}}{{\ttfamily Dht\+Peer}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1719}
+DHT Peer entry
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily id}  &{\ttfamily Node\+Id}  &Id  \\
+{\ttfamily ip}  &{\ttfamily \+[4]\+u8}  &Ip  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily last\+\_\+seen}  &{\ttfamily i64}  &Last\+\_\+seen  \\
+{\ttfamily rtt\+\_\+ms}  &{\ttfamily u16}  &Rtt\+\_\+ms  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 73}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1721}{}\doxysubsection{\texorpdfstring{{\ttfamily KBucket}}{{\ttfamily KBucket}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1721}
+K-\/\+Bucket:\+ stores up to K peers at a specific XOR distance range
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily peers}  &{\ttfamily \+[K\+\_\+\+BUCKET\+\_\+\+SIZE]\+Dht\+Peer}  &Peers  \\
+{\ttfamily count}  &{\ttfamily u8}  &Count  \\
+{\ttfamily last\+\_\+refresh}  &{\ttfamily i64}  &Last\+\_\+refresh  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1723}{}\doxysubsection{\texorpdfstring{{\ttfamily Dht\+Routing\+Table}}{{\ttfamily Dht\+Routing\+Table}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1723}
+Kademlia DHT Routing Table
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily local\+\_\+id}  &{\ttfamily Node\+Id}  &Local\+\_\+id  \\
+{\ttfamily buckets}  &{\ttfamily \+[NUM\+\_\+\+BUCKETS]\+KBucket}  &Buckets  \\
+{\ttfamily total\+\_\+peers}  &{\ttfamily usize}  &Total\+\_\+peers  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 164}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1725}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1725}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily NODE\+\_\+\+ID\+\_\+\+SIZE}  &{\ttfamily usize = 20}  &N o d e\+\_\+ i d\+\_\+ s i z e  \\
+{\ttfamily K\+\_\+\+BUCKET\+\_\+\+SIZE}  &{\ttfamily usize = 20}  &K\+\_\+ b u c k e t\+\_\+ s i z e  \\
+{\ttfamily NUM\+\_\+\+BUCKETS}  &{\ttfamily usize = 160}  &N u m\+\_\+ b u c k e t s  \\
+{\ttfamily ALPHA}  &{\ttfamily usize = 3}  &A l p h a  \\
+{\ttfamily MAX\+\_\+\+DHT\+\_\+\+NODES}  &{\ttfamily usize = 256}  &M a x\+\_\+ d h t\+\_\+ n o d e s  \\
+{\ttfamily BUCKET\+\_\+\+REFRESH\+\_\+\+INTERVAL}  &{\ttfamily u64 = 3600}  &B u c k e t\+\_\+ r e f r e s h\+\_\+ i n t e r v a l  \\
+{\ttfamily Node\+Id}  &{\ttfamily \+[NODE\+\_\+\+ID\+\_\+\+SIZE]\+u8}  &Node id  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1727}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1727}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1728}{}\doxysubsection{\texorpdfstring{{\ttfamily xor\+Distance()}}{{\ttfamily xor\+Distance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1728}
+Compute XOR distance between two node IDs
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ xorDistance(a:\ NodeId,\ b:\ NodeId)\ NodeId\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily a}  &{\ttfamily Node\+Id}  &A  \\
+{\ttfamily b}  &{\ttfamily Node\+Id}  &B  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Node\+Id}
+
+{\itshape Defined at line 36}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1730}{}\doxysubsection{\texorpdfstring{{\ttfamily bucket\+Index()}}{{\ttfamily bucket\+Index()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1730}
+Find the bucket index for a given distance (leading zero bits count)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ bucketIndex(distance:\ NodeId)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily distance}  &{\ttfamily Node\+Id}  &Distance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 45}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1732}{}\doxysubsection{\texorpdfstring{{\ttfamily generate\+Node\+Id()}}{{\ttfamily generate\+Node\+Id()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1732}
+Generate a node ID from a public key or random bytes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ generateNodeId(seed:\ []const\ u8)\ NodeId\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily seed}  &{\ttfamily \+[]\+const u8}  &Seed  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Node\+Id}
+
+{\itshape Defined at line 62}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1734}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Stale()}}{{\ttfamily is\+Stale()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1734}
+Checks whether the stale condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isStale(self:\ *const\ DhtPeer,\ current\_time:\ i64,\ timeout\_sec:\ i64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dht\+Peer}  &The instance  \\
+{\ttfamily current\+\_\+time}  &{\ttfamily i64}  &Current\+\_\+time  \\
+{\ttfamily timeout\+\_\+sec}  &{\ttfamily i64}  &Timeout\+\_\+sec  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 81}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1736}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1736}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ KBucket\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily KBucket}
+
+{\itshape Defined at line 92}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1738}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Peer()}}{{\ttfamily add\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1738}
+Add or update a peer in the bucket
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addPeer(self:\ *KBucket,\ peer:\ DhtPeer)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+KBucket}  &The instance  \\
+{\ttfamily \doxylink{namespacepeer}{peer}}  &{\ttfamily Dht\+Peer}  &Peer  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 101}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1740}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Closest()}}{{\ttfamily find\+Closest()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1740}
+Find closest N peers to target ID in this bucket
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findClosest(self:\ *const\ KBucket,\ target:\ NodeId,\ max\_results:\ usize)\ [K\_BUCKET\_SIZE]DhtPeer\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const KBucket}  &The instance  \\
+{\ttfamily target}  &{\ttfamily Node\+Id}  &Target  \\
+{\ttfamily max\+\_\+results}  &{\ttfamily usize}  &Max\+\_\+results  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[K\+\_\+\+BUCKET\+\_\+\+SIZE]\+Dht\+Peer}
+
+{\itshape Defined at line 134}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1742}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1742}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(local\_id:\ NodeId)\ DhtRoutingTable\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily local\+\_\+id}  &{\ttfamily Node\+Id}  &Local\+\_\+id  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Dht\+Routing\+Table}
+
+{\itshape Defined at line 172}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1744}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Peer()}}{{\ttfamily add\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1744}
+Add a peer to the appropriate bucket
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addPeer(self:\ *DhtRoutingTable,\ peer:\ DhtPeer)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Dht\+Routing\+Table}  &The instance  \\
+{\ttfamily \doxylink{namespacepeer}{peer}}  &{\ttfamily Dht\+Peer}  &Peer  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 183}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1746}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Closest()}}{{\ttfamily find\+Closest()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1746}
+Find the K closest peers to a target ID (across all buckets)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findClosest(self:\ *const\ DhtRoutingTable,\ target:\ NodeId,\ max\_results:\ usize)\ [K\_BUCKET\_SIZE]DhtPeer\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dht\+Routing\+Table}  &The instance  \\
+{\ttfamily target}  &{\ttfamily Node\+Id}  &Target  \\
+{\ttfamily max\+\_\+results}  &{\ttfamily usize}  &Max\+\_\+results  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[K\+\_\+\+BUCKET\+\_\+\+SIZE]\+Dht\+Peer}
+
+{\itshape Defined at line 193}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1748}{}\doxysubsection{\texorpdfstring{{\ttfamily peer\+Count()}}{{\ttfamily peer\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1748}
+Get total peer count
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ peerCount(self:\ *const\ DhtRoutingTable)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dht\+Routing\+Table}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 217}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1750}{}\doxysubsection{\texorpdfstring{{\ttfamily evict\+Stale()}}{{\ttfamily evict\+Stale()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2kademlia__dht_autotoc_md1750}
+Remove stale peers
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ evictStale(self:\ *DhtRoutingTable,\ current\_time:\ i64,\ timeout\_sec:\ i64)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Dht\+Routing\+Table}  &The instance  \\
+{\ttfamily current\+\_\+time}  &{\ttfamily i64}  &Current\+\_\+time  \\
+{\ttfamily timeout\+\_\+sec}  &{\ttfamily i64}  &Timeout\+\_\+sec  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 226}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

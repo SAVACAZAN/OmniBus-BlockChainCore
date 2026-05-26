@@ -1,0 +1,248 @@
+\doxysection{omni::\+Vault\+Storage Class Reference}
+\hypertarget{classomni_1_1_vault_storage}{}\label{classomni_1_1_vault_storage}\index{omni::VaultStorage@{omni::VaultStorage}}
+
+
+{\ttfamily \+\#include $<$Vault\+Storage.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_vault_storage_a6822b440c14f7c47e6400dcc03e5cc64}{init}} ()
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_vault_storage_aa605bbaabd9d6362a3ba46ebd387accb}{save}} ()
+\item 
+void \doxymbox{\hyperlink{classomni_1_1_vault_storage_a70719a5a7c2ab8139bd84ee892726554}{lock}} ()
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_vault_storage_a4126d6aa500a72c41fbe56336a17dea7}{add\+Key}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, const QString \&name, const QString \&api\+Key, const QString \&api\+Secret, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}} status=\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{KEY\+\_\+\+STATUS\+\_\+\+FREE}})
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_vault_storage_acda8a1d478215566b537b30128f4ee88}{delete\+Key}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, int slot)
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_vault_storage_ac35318eb56709ca8da1633ef5f54a919}{update\+Key}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, int slot, const QString \&name, const QString \&api\+Key, const QString \&api\+Secret, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}} status)
+\item 
+QVector$<$ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{Vault\+Key\+Entry}} $>$ \doxymbox{\hyperlink{classomni_1_1_vault_storage_a649db17159381e5827854779a5476d1e}{list\+Keys}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex) const
+\item 
+\doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{Vault\+Key\+Entry}} \doxymbox{\hyperlink{classomni_1_1_vault_storage_a97d26729e7651d6f76432a6f6224a566}{get\+Key}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, int slot) const
+\item 
+int \doxymbox{\hyperlink{classomni_1_1_vault_storage_ae2c9ce9d3b602460ec9b8f46d24b0c3d}{key\+Count}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex) const
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_vault_storage_a01f98836eb324e3306dc22aa9335e87f}{has\+Keys}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex) const
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_vault_storage_ac0c87d4cf2a1ee773aee497b6cb557a6}{set\+Status}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex, int slot, \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}} status)
+\item 
+bool \doxymbox{\hyperlink{classomni_1_1_vault_storage_a76dac9c8c81bdc422737fb5c136c122d}{is\+Loaded}} () const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static Vault\+Storage \& \doxymbox{\hyperlink{classomni_1_1_vault_storage_a0c7a0560c0ab92d0c6c30f71579c94e7}{instance}} ()
+\item 
+static QString \doxymbox{\hyperlink{classomni_1_1_vault_storage_aa617c99a759ca098aec4f2250d249d88}{exchange\+Name}} (\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}} ex)
+\item 
+static QString \doxymbox{\hyperlink{classomni_1_1_vault_storage_a5c0454dd37edd53061ef508380e394b6}{status\+Name}} (\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}} st)
+\item 
+static QString \doxymbox{\hyperlink{classomni_1_1_vault_storage_afdcd281f98e045f31413ff13275c9d19}{vault\+File\+Path}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8h_source_l00048}{48}} of file \doxymbox{\hyperlink{_vault_storage_8h_source}{Vault\+Storage.\+h}}.
+
+
+
+\label{classomni_1_1_vault_storage_doc-func-members}
+\Hypertarget{classomni_1_1_vault_storage_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classomni_1_1_vault_storage_a4126d6aa500a72c41fbe56336a17dea7}\index{omni::VaultStorage@{omni::VaultStorage}!addKey@{addKey}}
+\index{addKey@{addKey}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{addKey()}{addKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a4126d6aa500a72c41fbe56336a17dea7} 
+bool omni::\+\+Vault\+Storage::\+add\+Key (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{const QString \&}]{name}{, }\item[{const QString \&}]{api\+Key}{, }\item[{const QString \&}]{api\+Secret}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}}}]{status}{ = {\ttfamily \doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796fa0449e2adb1f4063bb34cfd2edecc2a93}{KEY\+\_\+\+STATUS\+\_\+\+FREE}}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00292}{292}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+\Hypertarget{classomni_1_1_vault_storage_acda8a1d478215566b537b30128f4ee88}\index{omni::VaultStorage@{omni::VaultStorage}!deleteKey@{deleteKey}}
+\index{deleteKey@{deleteKey}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{deleteKey()}{deleteKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_acda8a1d478215566b537b30128f4ee88} 
+bool omni::\+\+Vault\+Storage::\+delete\+Key (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{int}]{slot}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00312}{312}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+\Hypertarget{classomni_1_1_vault_storage_aa617c99a759ca098aec4f2250d249d88}\index{omni::VaultStorage@{omni::VaultStorage}!exchangeName@{exchangeName}}
+\index{exchangeName@{exchangeName}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{exchangeName()}{exchangeName()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_aa617c99a759ca098aec4f2250d249d88} 
+QString omni::\+\+Vault\+Storage::\+exchange\+Name (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00050}{50}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+\Hypertarget{classomni_1_1_vault_storage_a97d26729e7651d6f76432a6f6224a566}\index{omni::VaultStorage@{omni::VaultStorage}!getKey@{getKey}}
+\index{getKey@{getKey}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{getKey()}{getKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a97d26729e7651d6f76432a6f6224a566} 
+\doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{Vault\+Key\+Entry}} omni::\+\+Vault\+Storage::\+get\+Key (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{int}]{slot}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00355}{355}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+\Hypertarget{classomni_1_1_vault_storage_a01f98836eb324e3306dc22aa9335e87f}\index{omni::VaultStorage@{omni::VaultStorage}!hasKeys@{hasKeys}}
+\index{hasKeys@{hasKeys}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{hasKeys()}{hasKeys()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a01f98836eb324e3306dc22aa9335e87f} 
+bool omni::\+\+Vault\+Storage::\+has\+Keys (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00369}{369}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+\Hypertarget{classomni_1_1_vault_storage_a6822b440c14f7c47e6400dcc03e5cc64}\index{omni::VaultStorage@{omni::VaultStorage}!init@{init}}
+\index{init@{init}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a6822b440c14f7c47e6400dcc03e5cc64} 
+bool omni::\+\+Vault\+Storage::\+init (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00221}{221}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+\Hypertarget{classomni_1_1_vault_storage_a0c7a0560c0ab92d0c6c30f71579c94e7}\index{omni::VaultStorage@{omni::VaultStorage}!instance@{instance}}
+\index{instance@{instance}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{instance()}{instance()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a0c7a0560c0ab92d0c6c30f71579c94e7} 
+Vault\+Storage \& omni::\+\+Vault\+Storage::\+instance (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00035}{35}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{classomni_1_1_vault_storage_a76dac9c8c81bdc422737fb5c136c122d}\index{omni::VaultStorage@{omni::VaultStorage}!isLoaded@{isLoaded}}
+\index{isLoaded@{isLoaded}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{isLoaded()}{isLoaded()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a76dac9c8c81bdc422737fb5c136c122d} 
+bool omni::\+\+Vault\+Storage::\+is\+Loaded (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8h_source_l00080}{80}} of file \doxymbox{\hyperlink{_vault_storage_8h_source}{Vault\+Storage.\+h}}.
+
+\Hypertarget{classomni_1_1_vault_storage_ae2c9ce9d3b602460ec9b8f46d24b0c3d}\index{omni::VaultStorage@{omni::VaultStorage}!keyCount@{keyCount}}
+\index{keyCount@{keyCount}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{keyCount()}{keyCount()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_ae2c9ce9d3b602460ec9b8f46d24b0c3d} 
+int omni::\+\+Vault\+Storage::\+key\+Count (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00361}{361}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{classomni_1_1_vault_storage_a649db17159381e5827854779a5476d1e}\index{omni::VaultStorage@{omni::VaultStorage}!listKeys@{listKeys}}
+\index{listKeys@{listKeys}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{listKeys()}{listKeys()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a649db17159381e5827854779a5476d1e} 
+QVector$<$ \doxymbox{\hyperlink{structomni_1_1_vault_key_entry}{Vault\+Key\+Entry}} $>$ omni::\+\+Vault\+Storage::\+list\+Keys (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{}\end{DoxyParamCaption}) const}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00345}{345}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+\Hypertarget{classomni_1_1_vault_storage_a70719a5a7c2ab8139bd84ee892726554}\index{omni::VaultStorage@{omni::VaultStorage}!lock@{lock}}
+\index{lock@{lock}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{lock()}{lock()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a70719a5a7c2ab8139bd84ee892726554} 
+void omni::\+\+Vault\+Storage::\+lock (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00276}{276}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{classomni_1_1_vault_storage_aa605bbaabd9d6362a3ba46ebd387accb}\index{omni::VaultStorage@{omni::VaultStorage}!save@{save}}
+\index{save@{save}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{save()}{save()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_aa605bbaabd9d6362a3ba46ebd387accb} 
+bool omni::\+\+Vault\+Storage::\+save (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00253}{253}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{classomni_1_1_vault_storage_ac0c87d4cf2a1ee773aee497b6cb557a6}\index{omni::VaultStorage@{omni::VaultStorage}!setStatus@{setStatus}}
+\index{setStatus@{setStatus}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{setStatus()}{setStatus()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_ac0c87d4cf2a1ee773aee497b6cb557a6} 
+bool omni::\+\+Vault\+Storage::\+set\+Status (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{int}]{slot}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}}}]{status}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00373}{373}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+\Hypertarget{classomni_1_1_vault_storage_a5c0454dd37edd53061ef508380e394b6}\index{omni::VaultStorage@{omni::VaultStorage}!statusName@{statusName}}
+\index{statusName@{statusName}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{statusName()}{statusName()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_a5c0454dd37edd53061ef508380e394b6} 
+QString omni::\+\+Vault\+Storage::\+status\+Name (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}}}]{st}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00059}{59}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{classomni_1_1_vault_storage_ac35318eb56709ca8da1633ef5f54a919}\index{omni::VaultStorage@{omni::VaultStorage}!updateKey@{updateKey}}
+\index{updateKey@{updateKey}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{updateKey()}{updateKey()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_ac35318eb56709ca8da1633ef5f54a919} 
+bool omni::\+\+Vault\+Storage::\+update\+Key (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{namespaceomni_a15195cf2de3c8100823a4a2c2e1ff1e7}{Vault\+Exchange}}}]{ex}{, }\item[{int}]{slot}{, }\item[{const QString \&}]{name}{, }\item[{const QString \&}]{api\+Key}{, }\item[{const QString \&}]{api\+Secret}{, }\item[{\doxymbox{\hyperlink{namespaceomni_a81ca2ff9c895b66bac1443227645796f}{Vault\+Key\+Status}}}]{status}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00326}{326}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the call graph for this function:\+
+% FIG 11
+\Hypertarget{classomni_1_1_vault_storage_afdcd281f98e045f31413ff13275c9d19}\index{omni::VaultStorage@{omni::VaultStorage}!vaultFilePath@{vaultFilePath}}
+\index{vaultFilePath@{vaultFilePath}!omni::VaultStorage@{omni::VaultStorage}}
+\doxysubsubsection{\texorpdfstring{vaultFilePath()}{vaultFilePath()}}
+{\footnotesize\ttfamily \label{classomni_1_1_vault_storage_afdcd281f98e045f31413ff13275c9d19} 
+QString omni::\+\+Vault\+Storage::\+vault\+File\+Path (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_vault_storage_8cpp_source_l00068}{68}} of file \doxymbox{\hyperlink{_vault_storage_8cpp_source}{Vault\+Storage.\+cpp}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+core/\+\doxymbox{\hyperlink{_vault_storage_8h}{Vault\+Storage.\+h}}\item 
+archived-\/4-\/eterniti/\+gui-\/qt/\+src/\+core/\+\doxymbox{\hyperlink{_vault_storage_8cpp}{Vault\+Storage.\+cpp}}\end{DoxyCompactItemize}

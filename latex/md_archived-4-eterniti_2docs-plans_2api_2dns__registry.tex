@@ -1,0 +1,317 @@
+\chapter{Module:\+ {\ttfamily dns\+\_\+registry} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry}{}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry}\index{Module: $<$tt$>$dns\_registry$<$/tt$>$@{Module: $<$tt$>$dns\_registry$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1488}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1488}%
+
+
+\begin{quote}
+Decentralized DNS — register human-\/readable names, renewal periods, on-\/chain resolution. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+dns\+\_\+registry.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 265 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 9 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1490}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1490}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1491}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1491}
+
+\begin{DoxyItemize}
+\item \`{}\+Dns\+Entry\`{}{\ttfamily Dns\+Entry}
+\end{DoxyItemize}— DNS entry
+\begin{DoxyItemize}
+\item \`{}\+Dns\+Registry\`{}{\ttfamily Dns\+Registry}
+\end{DoxyItemize}— DNS Registry Engine\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1492}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1492}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1493}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1493}
+
+\begin{DoxyItemize}
+\item \`{}is\+Valid\+Name()\`{}{\ttfamily is\+Valid\+Name()}
+\end{DoxyItemize}— Validate a name
+\begin{DoxyItemize}
+\item \`{}get\+Name()\`{}{\ttfamily get\+Name()}
+\end{DoxyItemize}— Returns the current name.
+\begin{DoxyItemize}
+\item \`{}get\+Address()\`{}{\ttfamily get\+Address()}
+\end{DoxyItemize}— Returns the current address.
+\begin{DoxyItemize}
+\item \`{}is\+Expired()\`{}{\ttfamily is\+Expired()}
+\end{DoxyItemize}— Checks whether the expired condition is true.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}resolve()\`{}{\ttfamily resolve()}
+\end{DoxyItemize}— Resolve name to address
+\begin{DoxyItemize}
+\item \`{}reverse\+Resolve()\`{}{\ttfamily reverse\+Resolve()}
+\end{DoxyItemize}— Reverse resolve:\+ address to name
+\begin{DoxyItemize}
+\item \`{}renew()\`{}{\ttfamily renew()}
+\end{DoxyItemize}— Renew a name (extend expiry)
+\begin{DoxyItemize}
+\item \`{}active\+Count()\`{}{\ttfamily active\+Count()}
+\end{DoxyItemize}— Count active (non-\/expired) entries
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1495}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1495}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1496}{}\doxysubsection{\texorpdfstring{{\ttfamily Dns\+Entry}}{{\ttfamily Dns\+Entry}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1496}
+DNS entry
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily name}  &{\ttfamily \+[MAX\+\_\+\+NAME\+\_\+\+LEN]\+u8}  &Name  \\
+{\ttfamily name\+\_\+len}  &{\ttfamily u8}  &Name\+\_\+len  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[64]\+u8}  &Address  \\
+{\ttfamily addr\+\_\+len}  &{\ttfamily u8}  &Addr\+\_\+len  \\
+{\ttfamily owner}  &{\ttfamily \+[64]\+u8}  &Owner  \\
+{\ttfamily owner\+\_\+len}  &{\ttfamily u8}  &Owner\+\_\+len  \\
+{\ttfamily registered\+\_\+block}  &{\ttfamily u64}  &Registered\+\_\+block  \\
+{\ttfamily expires\+\_\+block}  &{\ttfamily u64}  &Expires\+\_\+block  \\
+{\ttfamily active}  &{\ttfamily bool}  &Active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 43}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1498}{}\doxysubsection{\texorpdfstring{{\ttfamily Dns\+Registry}}{{\ttfamily Dns\+Registry}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1498}
+DNS Registry Engine
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily entries}  &{\ttfamily \+[MAX\+\_\+\+ENTRIES]\+Dns\+Entry}  &Entries  \\
+{\ttfamily entry\+\_\+count}  &{\ttfamily usize}  &Entry\+\_\+count  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Dns\+Registry}  &Self  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily owner}  &{\ttfamily \+[]\+const u8}  &Owner  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 74}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1500}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1500}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily MAX\+\_\+\+NAME\+\_\+\+LEN}  &{\ttfamily usize = 25}  &M a x\+\_\+ n a m e\+\_\+ l e n  \\
+{\ttfamily MIN\+\_\+\+NAME\+\_\+\+LEN}  &{\ttfamily usize = 3}  &M i n\+\_\+ n a m e\+\_\+ l e n  \\
+{\ttfamily MAX\+\_\+\+ENTRIES}  &{\ttfamily usize = 1024}  &M a x\+\_\+ e n t r i e s  \\
+{\ttfamily REGISTER\+\_\+\+COST\+\_\+\+SAT}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000\+\_\+000}  &R e g i s t e r\+\_\+ c o s t\+\_\+ s a t  \\
+{\ttfamily RENEWAL\+\_\+\+PERIOD\+\_\+\+BLOCKS}  &{\ttfamily u64 = 31\+\_\+557\+\_\+600}  &R e n e w a l\+\_\+ p e r i o d\+\_\+ b l o c k s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1502}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1502}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1503}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Valid\+Name()}}{{\ttfamily is\+Valid\+Name()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1503}
+Validate a name
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isValidName(name:\ []const\ u8)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 32}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1505}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Name()}}{{\ttfamily get\+Name()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1505}
+Returns the current name.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getName(self:\ *const\ DnsEntry)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dns\+Entry}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 60}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1507}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address()}}{{\ttfamily get\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1507}
+Returns the current address.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddress(self:\ *const\ DnsEntry)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dns\+Entry}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 64}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1509}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Expired()}}{{\ttfamily is\+Expired()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1509}
+Checks whether the expired condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isExpired(self:\ *const\ DnsEntry,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dns\+Entry}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 68}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1511}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1511}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ DnsRegistry\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Dns\+Registry}
+
+{\itshape Defined at line 78}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1513}{}\doxysubsection{\texorpdfstring{{\ttfamily resolve()}}{{\ttfamily resolve()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1513}
+Resolve name to address
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ resolve(self:\ *const\ DnsRegistry,\ name:\ []const\ u8,\ current\_block:\ u64)\ ?[]const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dns\+Registry}  &The instance  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+const u8}
+
+{\itshape Defined at line 121}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1515}{}\doxysubsection{\texorpdfstring{{\ttfamily reverse\+Resolve()}}{{\ttfamily reverse\+Resolve()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1515}
+Reverse resolve:\+ address to name
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ reverseResolve(self:\ *const\ DnsRegistry,\ address:\ []const\ u8,\ current\_block:\ u64)\ ?[]const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dns\+Registry}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+const u8}
+
+{\itshape Defined at line 133}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1517}{}\doxysubsection{\texorpdfstring{{\ttfamily renew()}}{{\ttfamily renew()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1517}
+Renew a name (extend expiry)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ renew(self:\ *DnsRegistry,\ name:\ []const\ u8,\ owner:\ []const\ u8,\ current\_block:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Dns\+Registry}  &The instance  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+{\ttfamily owner}  &{\ttfamily \+[]\+const u8}  &Owner  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 145}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1519}{}\doxysubsection{\texorpdfstring{{\ttfamily active\+Count()}}{{\ttfamily active\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2dns__registry_autotoc_md1519}
+Count active (non-\/expired) entries
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ activeCount(self:\ *const\ DnsRegistry,\ current\_block:\ u64)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Dns\+Registry}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 175}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

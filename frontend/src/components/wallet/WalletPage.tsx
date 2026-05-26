@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { useGlobalBalance, formatOmni } from "../../api/use-global-balance";
 import { useAllSlotsBalance } from "../../api/use-all-slots-balance";
@@ -16,9 +16,10 @@ import {
 import { AddressLabel } from "../common/AddressLabel";
 import { TxHashLink } from "../common/TxHashLink";
 import { NameManagePanel } from "../names/NameManagePanel";
-import type { FeeEstimate } from "../../types";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { FeeEstimate, WsNewBlockEvent, WsNewTxEvent } from "../../types";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 
 // Each PQ domain corresponds to a reputation cup (vezi
 // memory/project_omnibus_reputation_economy.md). Emoji + tier label apar in UI
@@ -28,6 +29,12 @@ const rpc = new OmniBusRpcClient();
 //   ob_f5_ = FOOD   🥖       (work util — mining + oracle + agents)
 //   ob_d5_ = RENT   🏠       (capital angajat — stake + LP + hold)
 //   ob_s3_ = VACATION 🏖️    (longevitate — zile pe retea)
+const TX_FILTER_TYPES = [
+  "All", "Sent", "Received", "Mining Reward", "Stake", "Unstake",
+  "Open Order", "Cancel Order", "DEX Deposit", "DEX Withdraw",
+  "NS Claim", "Agent Register", "Notarize",
+] as const;
+
 const PQ_DOMAINS = [
   { prefix: "ob1q", algo: "ML-DSA-87 + KEM", bits: 256, color: "text-mempool-blue",   emoji: "🔑", tier: "OMNI" },
   { prefix: "ob_k1_", algo: "ML-DSA-87",     bits: 256, color: "text-mempool-purple", emoji: "❤️",  tier: "LOVE" },
@@ -35,6 +42,23 @@ const PQ_DOMAINS = [
   { prefix: "ob_d5_", algo: "Dilithium-5",   bits: 256, color: "text-mempool-orange", emoji: "🏠", tier: "RENT" },
   { prefix: "ob_s3_", algo: "SLH-DSA-256s",  bits: 256, color: "text-mempool-text",   emoji: "🏖️", tier: "VACATION" },
 ];
+
+// Maps frontend PQ slot scheme names → canonical wire scheme names used by the backend.
+const PQ_SCHEME_MAP: Record<string, string> = {
+  ml_dsa_87:    "pq_omni_ml_dsa",
+  falcon_512:   "pq_omni_falcon",
+  dilithium_5:  "pq_omni_dilithium",
+  slh_dsa_256s: "pq_omni_slh_dsa",
+};
+
+const SLOT_NAMES = ["primary (ECDSA)", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"] as const;
+
+const ROUTE_KIND_LABEL: Record<string, string> = {
+  ml_dsa:    "PQ-1 (ML-DSA-87)",
+  falcon:    "PQ-2 (Falcon-512)",
+  dilithium: "PQ-3 (Dilithium-5)",
+  slh_dsa:   "PQ-4 (SLH-DSA-256s)",
+};
 
 // Wallet state used to live here as a local useState. Now everything comes
 // from the global wallet-keystore singleton via useWallet() — connecting from
@@ -139,6 +163,18 @@ export function WalletPage() {
   const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
   const [walletNonce, setWalletNonce] = useState<number | null>(null);
   const [txFilter, setTxFilter] = useState<string>("All");
+  const txCountByType = useMemo(() => {
+    const counts: Record<string, number> = { All: transactions.length };
+    for (const tx of transactions) {
+      const label = classifyTx(tx, activeAddress).label;
+      counts[label] = (counts[label] ?? 0) + 1;
+    }
+    return counts;
+  }, [transactions, activeAddress]);
+  const filteredTxs = useMemo(() =>
+    txFilter === "All" ? transactions : transactions.filter((tx) => classifyTx(tx, activeAddress).label === txFilter),
+  [transactions, txFilter, activeAddress]);
+
   const [reputation, setReputation] = useState<{
     cups: { love: string; food: string; rent: string; vacation: string };
     total: number;
@@ -150,6 +186,21 @@ export function WalletPage() {
     first_active_block: number;
   } | null>(null);
   const [utxos, setUtxos] = useState<any[]>([]);
+  // Bumped by WS new_block/new_tx events to trigger an out-of-band refresh.
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  // Subscribe to WS events that signal new chain activity so the balance +
+  // transaction list update in ~1 s instead of waiting up to 5 s for the poll.
+  useEffect(() => {
+    if (!unlocked || !activeAddress) return;
+    const bump = () => setRefreshCounter((n) => n + 1);
+    const unsubBlock = wsSubscribe<WsNewBlockEvent>("new_block", bump);
+    // new_tx: only refresh if this wallet is directly involved.
+    const unsubTx = wsSubscribe<WsNewTxEvent>("new_tx", (ev) => {
+      if (ev.from === activeAddress) bump();
+    });
+    return () => { unsubBlock(); unsubTx(); };
+  }, [unlocked, activeAddress]);
 
   // Auto-refresh balance + fetch fee estimate + nonce when wallet is unlocked.
   useEffect(() => {
@@ -167,9 +218,9 @@ export function WalletPage() {
         // Use getaddressbalance for the SELECTED slot, not getBalance() which
         // hits the unlocked-session primary address. Old code rendered slot
         // 0 balance regardless of Header slot selector.
-        const balRes: any = await rpc.request_raw("getaddressbalance", [activeAddress]);
-        const sat = typeof balRes === "number" ? balRes : (balRes?.balance ?? 0);
-        const omni = (sat / 1e9).toFixed(4);
+        const balRes = await rpc.getAddressBalance(activeAddress);
+        const sat = balRes?.balance ?? 0;
+        const omni = (sat / SAT_PER_OMNI).toFixed(4);
         setBalance({ sat, omni });
       } catch {}
 
@@ -182,7 +233,7 @@ export function WalletPage() {
           setTransactions(fallback?.transactions || []);
         } catch {
           try {
-            const last = await rpc.request_raw("gettransactions");
+            const last = await rpc.getTransactions() as { transactions?: unknown[] } | null;
             setTransactions(last?.transactions || []);
           } catch {}
         }
@@ -195,32 +246,29 @@ export function WalletPage() {
 
       try {
         const nonceResult = await rpc.getNonce(activeAddress);
-        if (nonceResult && typeof nonceResult.nonce === "number") {
-          setWalletNonce(nonceResult.nonce);
-        } else if (typeof nonceResult === "number") {
-          setWalletNonce(nonceResult);
-        }
+        setWalletNonce(nonceResult);
       } catch {}
 
       // Reputation cups for the SELECTED slot.
       try {
-        const rep: any = await rpc.request_raw("getreputation", [activeAddress]);
-        if (rep) setReputation(rep);
+        const rep = await rpc.getReputation(activeAddress);
+        if (rep) setReputation(rep as any);
       } catch {}
 
       // UTXO list — use listunspent on the SELECTED slot. The old getBalance()
       // path returned utxos[] for the unlock-session address only, leaving
       // the UTXO column empty whenever the user switched slots.
       try {
-        const ulist: any = await rpc.request_raw("listunspent", [activeAddress]);
-        if (Array.isArray(ulist?.utxos)) setUtxos(ulist.utxos);
-        else if (Array.isArray(ulist)) setUtxos(ulist);
+        const ulist = await rpc.listUnspent(activeAddress);
+        if (ulist?.utxos) setUtxos(ulist.utxos);
       } catch {}
     };
-    refresh();
-    const id = setInterval(refresh, 5000);
+    void refresh();
+    // Keep a slow fallback poll (30 s). Real-time updates come from the WS
+    // subscription above (new_block/new_tx → refreshCounter bump).
+    const id = setInterval(() => { void refresh(); }, 30_000);
     return () => clearInterval(id);
-  }, [unlocked, activeAddress]);
+  }, [unlocked, activeAddress, refreshCounter]);
 
   const handleLogout = () => {
     // Disconnect the global session — every subscriber (this page, Exchange,
@@ -255,7 +303,7 @@ export function WalletPage() {
     setSending(true);
     setSendResult(null);
     try {
-      const amountSat = Math.floor(parseFloat(sendAmount) * 1e9);
+      const amountSat = Math.floor(parseFloat(sendAmount) * SAT_PER_OMNI);
       if (amountSat <= 0) throw new Error("Amount must be > 0");
 
       // Phase 2 — resolve <name>.<tld> via the chain's send-routing helper.
@@ -269,7 +317,7 @@ export function WalletPage() {
       const fullLabelInput = sendTo.trim().toLowerCase();
       if (looksLikeName) {
         const [n, t] = fullLabelInput.split(".");
-        const r: any = await rpc.request_raw("ns_resolveforsend", [n, t]).catch(() => null);
+        const r = await rpc.nsResolveForSend(n, t).catch(() => null);
         if (!r || !r.found) {
           throw new Error(`Name "${sendTo}" not registered on chain`);
         }
@@ -281,12 +329,7 @@ export function WalletPage() {
         // before broadcasting. `preferred_slot` is now functional, not
         // cosmetic — but the user should still see *what* they are signing.
         if (routeSlot > 0 && resolvedTo !== r.primary_address) {
-          const kindLabel = ({
-            ml_dsa:    "PQ-1 (ML-DSA-87)",
-            falcon:    "PQ-2 (Falcon-512)",
-            dilithium: "PQ-3 (Dilithium-5)",
-            slh_dsa:   "PQ-4 (SLH-DSA-256s)",
-          } as Record<string, string>)[routeKind] ?? `PQ-${routeSlot}`;
+          const kindLabel = ROUTE_KIND_LABEL[routeKind] ?? `PQ-${routeSlot}`;
           const ok = window.confirm(
             `${fullLabelInput} prefers ${kindLabel}.\n\n` +
             `Sending to ${resolvedTo}\ninstead of ${r.primary_address}.\n\n` +
@@ -315,9 +358,7 @@ export function WalletPage() {
         if (!slot) throw new Error("PQ-OMNI slot not derived — re-unlock from mnemonic");
         if (!slot.secretKey?.length) throw new Error("PQ secret key missing — re-unlock from mnemonic");
 
-        const nonceRes: any = await rpc.request_raw("getnonce", [slot.address]);
-        const nonce: number = typeof nonceRes === "number" ? nonceRes
-          : typeof nonceRes?.nonce === "number" ? nonceRes.nonce : 0;
+        const nonce: number = await rpc.getNonce(slot.address).catch(() => 0);
         const txId = Math.floor(Math.random() * 0x7fffffff);
         const timestamp = Math.floor(Date.now() / 1000);
         const fee = sendFee ? parseInt(sendFee, 10) : (feeEstimate?.medianFee ?? 1);
@@ -348,13 +389,7 @@ export function WalletPage() {
 
         // Backend uses canonical scheme names "pq_omni_ml_dsa" / "pq_omni_falcon" / etc.
         // Frontend slot.scheme is short ("ml_dsa_87"). Map before sending.
-        const SCHEME_MAP: Record<string, string> = {
-          ml_dsa_87:    "pq_omni_ml_dsa",
-          falcon_512:   "pq_omni_falcon",
-          dilithium_5:  "pq_omni_dilithium",
-          slh_dsa_256s: "pq_omni_slh_dsa",
-        };
-        const wireScheme = SCHEME_MAP[slot.scheme] ?? slot.scheme;
+        const wireScheme = PQ_SCHEME_MAP[slot.scheme] ?? slot.scheme;
 
         const result: any = await rpc.pqSend({
           from: slot.address, to: resolvedTo, amount: amountSat, fee,
@@ -577,7 +612,7 @@ export function WalletPage() {
                         {isActive ? <span className="text-mempool-blue font-semibold">▶ #{s.index}</span> : `#${s.index}`}
                       </td>
                       <td className="px-3 py-1.5 font-mono text-[10px] text-mempool-text-dim truncate max-w-[200px]" title={s.address}>
-                        {s.address.slice(0, 10)}…{s.address.slice(-6)}
+                        {midTrunc(s.address, 10, 6)}
                       </td>
                       <td className="px-3 py-1.5 text-right font-mono">{formatOmni(s.wallet_sat)}</td>
                       <td className="px-3 py-1.5 text-right font-mono text-mempool-purple/80">{formatOmni(s.staked_sat)}</td>
@@ -612,7 +647,7 @@ export function WalletPage() {
                 className="w-full bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue mt-1"
               >
                 <option value="omni_ecdsa">
-                  🔑 OMNI Slot #{activeSlot} (ECDSA) — {activeAddress.slice(0, 14)}…{activeAddress.slice(-6)}
+                  🔑 OMNI Slot #{activeSlot} (ECDSA) — {midTrunc(activeAddress, 14, 6)}
                 </option>
                 {unlocked.pqOmni && unlocked.pqOmni.map((slot) => (
                   <option key={slot.scheme} value={slot.scheme}>
@@ -620,7 +655,7 @@ export function WalletPage() {
                     {slot.scheme === "falcon_512"  && "🛡 PQ Falcon-512"}
                     {slot.scheme === "dilithium_5" && "🛡 PQ Dilithium-5"}
                     {slot.scheme === "slh_dsa_256s"&& "🛡 PQ SLH-DSA-256s"}
-                    {" — "}{slot.address.slice(0, 14)}…{slot.address.slice(-6)}
+                    {" — "}{midTrunc(slot.address, 14, 6)}
                   </option>
                 ))}
               </select>
@@ -867,16 +902,52 @@ export function WalletPage() {
       {/* Transaction History — 2/3 width */}
       <div className="lg:col-span-2 bg-mempool-bg-elev rounded-xl border border-mempool-border overflow-hidden">
         <div className="px-3 sm:px-5 py-3 border-b border-mempool-border flex flex-col gap-2">
-          <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
-            Transaction History
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+              Transaction History
+            </h3>
+            {transactions.length > 0 && (
+              <button
+                onClick={() => {
+                  const csvEsc = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+                  const rows = [
+                    ["txid", "type", "direction", "amount_omni", "fee_omni", "from", "to", "confirmations", "status", "memo", "timestamp"].join(","),
+                    ...transactions.map((tx: any) => {
+                      const cls = classifyTx(tx, activeAddress);
+                      return [
+                        csvEsc(tx.txid || ""),
+                        csvEsc(cls.label),
+                        cls.isCredit ? "in" : "out",
+                        ((tx.amount ?? 0) / SAT_PER_OMNI).toFixed(8),
+                        ((tx.fee ?? 0) / SAT_PER_OMNI).toFixed(8),
+                        csvEsc(tx.from || ""),
+                        csvEsc(tx.to || ""),
+                        tx.confirmations ?? "",
+                        csvEsc(tx.status || ""),
+                        csvEsc(tx.op_return || ""),
+                        tx.timestamp ? new Date(tx.timestamp * 1000).toISOString() : "",
+                      ].join(",");
+                    }),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `omnibus-${activeAddress.slice(0, 12)}-wallet-txs.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="text-[10px] px-2 py-1 bg-mempool-bg-elev border border-mempool-border rounded text-mempool-text-dim hover:text-mempool-text transition-colors font-mono"
+              >
+                ⬇ CSV
+              </button>
+            )}
+          </div>
           {/* Type filter pills — driven by classifyTx() result. "All" shows
               everything, including types that may not be present yet. */}
           <div className="flex flex-wrap gap-1">
-            {["All", "Sent", "Received", "Mining Reward", "Stake", "Unstake", "Open Order", "Cancel Order", "DEX Deposit", "DEX Withdraw", "NS Claim", "Agent Register", "Notarize"].map((type) => {
-              const count = type === "All"
-                ? transactions.length
-                : transactions.filter((t) => classifyTx(t, activeAddress).label === type).length;
+            {TX_FILTER_TYPES.map((type) => {
+              const count = txCountByType[type] ?? 0;
               if (type !== "All" && count === 0) return null; // hide empty filters
               return (
                 <button
@@ -900,9 +971,7 @@ export function WalletPage() {
               No transactions yet. Mine blocks or receive OMNI to see history.
             </div>
           ) : (
-            transactions
-              .filter((tx) => txFilter === "All" || classifyTx(tx, activeAddress).label === txFilter)
-              .map((tx: any, i: number) => {
+            filteredTxs.map((tx: any, i: number) => {
                 const cls = classifyTx(tx, activeAddress);
                 return (
               <div key={tx.txid || i} className="px-3 sm:px-5 py-3 flex items-center gap-3">
@@ -947,7 +1016,7 @@ export function WalletPage() {
                   <p className={`text-xs font-mono ${
                     cls.isCredit ? "text-mempool-green" : "text-mempool-orange"
                   }`}>
-                    {cls.isCredit ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(8)}
+                    {cls.isCredit ? "+" : "-"}{((tx.amount || 0) / SAT_PER_OMNI).toFixed(8)}
                   </p>
                   {tx.fee != null && tx.fee > 0 && (
                     <p className="text-[9px] text-mempool-text-dim font-mono">
@@ -985,7 +1054,7 @@ function RewardsLegendCard({ cups }: { cups?: { love: string; food: string; rent
         <p className="text-[10px] text-mempool-text-dim mt-0.5">How each soulbound cup fills</p>
       </div>
       <div className="p-3 space-y-2.5">
-        {(["LOVE", "FOOD", "RENT", "VACATION"] as const).map((tier) => {
+        {SOULBOUND_TIERS.map((tier) => {
           const r = REWARD_RULES[tier];
           const cup = cups?.[tier.toLowerCase() as "love"|"food"|"rent"|"vacation"] ?? "0.00";
           return (
@@ -997,8 +1066,8 @@ function RewardsLegendCard({ cups }: { cups?: { love: string; food: string; rent
                 <span className="text-[10px] font-mono text-mempool-text-dim">{cup}/100</span>
               </div>
               <div className="space-y-0.5">
-                {r.earn.map((rule, i) => (
-                  <div key={i} className="flex items-center justify-between text-[9px] gap-2">
+                {r.earn.map((rule) => (
+                  <div key={rule.what} className="flex items-center justify-between text-[9px] gap-2">
                     <span className="text-mempool-text-dim/80 truncate flex-1">{rule.what}</span>
                     <span className="font-mono text-mempool-green font-semibold whitespace-nowrap">{rule.pts}</span>
                   </div>
@@ -1146,7 +1215,7 @@ function SendNamePreview({ rawInput, onResolve }: {
         const [n, t] = txt.split(".");
         // Use the chain's authoritative send-routing helper so the preview
         // matches exactly what `handleSend` will broadcast.
-        const r: any = await rpc.request_raw("ns_resolveforsend", [n, t]);
+        const r = await rpc.nsResolveForSend(n, t);
         if (cancelled) return;
         if (!r?.found) {
           setErr(`${txt} — not registered`);
@@ -1155,7 +1224,7 @@ function SendNamePreview({ rawInput, onResolve }: {
         } else {
           // Also fetch the full entry for category badge — `ns_resolveforsend`
           // intentionally omits category to keep the contract narrow.
-          const full: any = await rpc.request_raw("resolvename", [n, t]).catch(() => null);
+          const full = await rpc.resolveName(n, t).catch(() => null);
           setData({ ...r, category: full?.category });
           onResolve(r.route_address || r.primary_address);
         }
@@ -1178,7 +1247,7 @@ function SendNamePreview({ rawInput, onResolve }: {
   const routeSlot: number = data.route_slot ?? 0;
   const routed: string    = data.route_address || data.primary_address;
   const fellBack: boolean = !!data.fell_back_to_primary;
-  const slotName = ["primary (ECDSA)", "ML-DSA-87", "Falcon-512", "Dilithium-5", "SLH-DSA-256s"][routeSlot];
+  const slotName = SLOT_NAMES[routeSlot];
   const isPq = routeSlot > 0;
 
   return (
@@ -1216,12 +1285,10 @@ function SendNamePreview({ rawInput, onResolve }: {
 // hook so the same panel can be reused outside Wallet (e.g. NamesPage).
 function OwnedNameManageWrapper({ ownerAddress }: { ownerAddress: string }) {
   const names = useNamesOwnedBy(ownerAddress);
-  const owned = names.map((n) => ({
-    fullLabel: n.fullLabel,
-    name: n.name,
-    tld: n.tld,
-    registeredAtBlock: n.registeredAtBlock,
-  }));
+  const owned = useMemo(
+    () => names.map((n) => ({ fullLabel: n.fullLabel, name: n.name, tld: n.tld, registeredAtBlock: n.registeredAtBlock })),
+    [names],
+  );
   return <NameManagePanel ownerAddress={ownerAddress} ownedNames={owned} />;
 }
 
@@ -1296,6 +1363,9 @@ function OnboardingFaucetButton({ address, balanceSat }: { address: string; bala
     </div>
   );
 }
+
+const SOULBOUND_TIERS = ["LOVE", "FOOD", "RENT", "VACATION"] as const;
+type SoulboundTier = typeof SOULBOUND_TIERS[number];
 
 // ── SoulboundHero — top of wallet, big animated showcase ────────────────────
 // 4 cards (LOVE / FOOD / RENT / VACATION) with animated progress bars. The
@@ -1533,7 +1603,7 @@ function RewardsBreakdownPanel({ cups }: { cups?: { love: string; food: string; 
       </button>
       {open && (
         <div className="px-3 pb-3 space-y-3">
-          {(["LOVE", "FOOD", "RENT", "VACATION"] as const).map((tier) => {
+          {SOULBOUND_TIERS.map((tier) => {
             const r = REWARD_RULES[tier];
             const cup = cups?.[tier.toLowerCase() as "love"|"food"|"rent"|"vacation"] ?? "0.00";
             const cupVal = parseFloat(cup);
@@ -1561,8 +1631,8 @@ function RewardsBreakdownPanel({ cups }: { cups?: { love: string; food: string; 
                   />
                 </div>
                 <div className="space-y-1">
-                  {r.earn.map((rule, i) => (
-                    <div key={i} className="flex items-center justify-between text-[9px]">
+                  {r.earn.map((rule) => (
+                    <div key={rule.what} className="flex items-center justify-between text-[9px]">
                       <span className="text-mempool-text-dim">
                         {rule.what} <span className="text-mempool-text-dim/50">({rule.per})</span>
                       </span>
@@ -1616,7 +1686,7 @@ function PqAttestButton({ unlocked }: { unlocked: import("../../api/wallet-keyst
           return;
         }
         // Authoritative check via chain RPC.
-        const res: any = await rpc.request_raw("getpqidentity", [unlocked.address]);
+        const res: any = await rpc.getPqIdentity(unlocked.address);
         if (!cancelled && res && res.omni_address) {
           setStatus("already");
           setTxid(res.attest_tx ?? "");
@@ -1739,13 +1809,14 @@ function SoulboundCard({
     let cancelled = false;
     const poll = async () => {
       try {
-        const r: any = await rpc.request_raw("getaddressbalance", [address]);
+        const r = await rpc.getAddressBalance(address);
         if (!cancelled && r && typeof r.balance === "number") setBalanceSat(r.balance);
       } catch {}
     };
-    poll();
-    const id = setInterval(poll, 10000);
-    return () => { cancelled = true; clearInterval(id); };
+    void poll();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void poll(); });
+    const id = setInterval(() => { void poll(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [address, hasAddr]);
 
   return (
@@ -1760,11 +1831,11 @@ function SoulboundCard({
           <span className={`text-[10px] font-bold uppercase w-16 flex-shrink-0 ${meta.text}`}>{tier}</span>
           <span className="text-[9px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-semibold">SOULBOUND</span>
           <span className={`font-mono text-[10px] flex-1 truncate ${meta.text}`}>
-            {hasAddr ? `${address.slice(0, 12)}…${address.slice(-6)}` : `${prefix}…`}
+            {hasAddr ? `${midTrunc(address, 12, 6)}` : `${prefix}…`}
           </span>
           {balanceSat !== null && balanceSat > 0 && (
             <span className="text-[9px] font-mono text-mempool-green font-semibold">
-              {(balanceSat / 1e9).toFixed(4)} OMNI
+              {(balanceSat / SAT_PER_OMNI).toFixed(4)} OMNI
             </span>
           )}
           <span className="text-[9px] text-mempool-text-dim">{bits}-bit</span>
@@ -1805,7 +1876,7 @@ function SoulboundCard({
               <div className="flex items-center justify-between px-2 py-1 bg-mempool-bg-elev rounded text-[10px]">
                 <span className="text-mempool-text-dim uppercase tracking-wider">Rewards acumulate</span>
                 <span className="font-mono text-mempool-green font-semibold">
-                  {balanceSat !== null ? `${(balanceSat / 1e9).toFixed(8)} OMNI` : "…"}
+                  {balanceSat !== null ? `${(balanceSat / SAT_PER_OMNI).toFixed(8)} OMNI` : "…"}
                 </span>
               </div>
             </div>
@@ -2007,7 +2078,7 @@ function PrimaryAddressCard({
                       )}
                       <span className="text-mempool-text-dim/70"> #{u.vout ?? 0}</span>
                     </div>
-                    <span className="text-mempool-text">{((u.amount ?? u.value ?? 0) / 1e9).toFixed(4)} OMNI</span>
+                    <span className="text-mempool-text">{((u.amount ?? u.value ?? 0) / SAT_PER_OMNI).toFixed(4)} OMNI</span>
                   </div>
                 ))}
                 {utxos.length > 50 && (
@@ -2124,7 +2195,7 @@ function WalletMetadataPanel({
         type: "SegWit-compatible bech32 (Bitcoin parity)",
         transferable: true,
       },
-      ...["LOVE", "FOOD", "RENT", "VACATION"].map((tier) => {
+      ...SOULBOUND_TIERS.map((tier) => {
         const meta = PQ_DOMAINS.find((d) => d.tier === tier)!;
         return {
           addr: null,
@@ -2344,10 +2415,11 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
   const [balances, setBalances] = useState<Record<string, { native: string; symbol: string } | null>>({});
   const [refreshing, setRefreshing] = useState<string | null>(null);
 
-  const groups = addresses.reduce((acc, a) => {
+  const groups = useMemo(() => addresses.reduce((acc, a) => {
     (acc[a.group] ??= []).push(a);
     return acc;
-  }, {} as Record<string, typeof addresses>);
+  }, {} as Record<string, typeof addresses>), [addresses]);
+  const groupEntries = useMemo(() => Object.entries(groups), [groups]);
 
   function copy(addr: string) {
     navigator.clipboard.writeText(addr);
@@ -2396,7 +2468,7 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
 
   return (
     <div className="space-y-1.5">
-      {Object.entries(groups).map(([group, items]) => (
+      {groupEntries.map(([group, items]) => (
         <div key={group} className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">
           <button
             type="button"
@@ -2562,14 +2634,12 @@ function PqSendForm({ slot, balanceSat }: { slot: PqOmniSlot; balanceSat: number
     try {
       const toAddr = to.trim();
       if (!toAddr) throw new Error("Destination address required");
-      const amountSat = Math.round(parseFloat(amountOmni) * 1e9);
+      const amountSat = Math.round(parseFloat(amountOmni) * SAT_PER_OMNI);
       if (!amountSat || amountSat <= 0) throw new Error("Amount must be > 0");
       if (amountSat > balanceSat) throw new Error("Insufficient balance");
 
       // 1. Fetch nonce for this address
-      const nonceRes: any = await rpc.request_raw("getnonce", [slot.address]);
-      const nonce: number = typeof nonceRes === "number" ? nonceRes
-        : typeof nonceRes?.nonce === "number" ? nonceRes.nonce : 0;
+      const nonce: number = await rpc.getNonce(slot.address).catch(() => 0);
 
       const txId = Math.floor(Math.random() * 0x7fffffff);
       const timestamp = Math.floor(Date.now() / 1000);
@@ -2696,18 +2766,19 @@ function PqOmniSlotCard({ slot }: { slot: PqOmniSlot }) {
     let cancelled = false;
     const refresh = async () => {
       try {
-        const r: any = await rpc.request_raw("getaddressbalance", [slot.address]);
+        const r = await rpc.getAddressBalance(slot.address);
         if (!cancelled && r && typeof r.balance === "number") {
           setBalanceSat(r.balance);
         }
       } catch { /* RPC may not exist on every node — silent fallback */ }
     };
-    refresh();
-    const id = setInterval(refresh, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    void refresh();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(() => { void refresh(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [slot.address]);
 
-  const balanceOmni = balanceSat !== null ? (balanceSat / 1e9).toFixed(4) : "—";
+  const balanceOmni = balanceSat !== null ? (balanceSat / SAT_PER_OMNI).toFixed(4) : "—";
 
   return (
     <div className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">

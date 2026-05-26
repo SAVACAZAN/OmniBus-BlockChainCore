@@ -1,0 +1,407 @@
+\doxysection{archived-\/4-\/eterniti/\+gui-\/qt-\/ada-\/hybrid/\+test\+\_\+vault.c File Reference}
+\hypertarget{test__vault_8c}{}\label{test__vault_8c}\index{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/test\_vault.c@{archived-\/4-\/eterniti/gui-\/qt-\/ada-\/hybrid/test\_vault.c}}
+{\ttfamily \+\#include $<$stdio.\+h$>$}\newline
+{\ttfamily \+\#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \+\#include $<$string.\+h$>$}\newline
+{\ttfamily \+\#include $<$windows.\+h$>$}\newline
+Include dependency graph for test\+\_\+vault.\+c:\+
+% FIG 0
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\+\#define \doxymbox{\hyperlink{test__vault_8c_a693dd7c98260ff7cb5409af5ecb6dd97}{LOAD}}(type,  name)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef void(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a8b36c141a286648ae3c6ccc6affd2361}{fn\+\_\+void}}) (void)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_ab5d310f06bd3f125fd0f5f066480d82a}{fn\+\_\+int}}) (void)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a67422087cac76eb9467e93becad0c581}{fn\+\_\+int\+\_\+i}}) (int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a60a42f1cf9b586b261cb09c9539fe8c0}{fn\+\_\+add\+\_\+key}}) (int, const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a68cf82cac46abd512875415591e141ce}{fn\+\_\+del\+\_\+key}}) (int, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a3eec31782cc05daccdf913fc1b097e23}{fn\+\_\+get\+\_\+key}}) (int, int, char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, int, int \texorpdfstring{$\ast$}{*}, int \texorpdfstring{$\ast$}{*})
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a94298bb42180d563de33c093aa82edbe}{fn\+\_\+get\+\_\+sec}}) (int, int, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a0a649305b6be6aa2e8f29caf0881cb17}{fn\+\_\+set\+\_\+stat}}) (int, int, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_af9520560b191c93d8fabccbe482c7425}{fn\+\_\+mnemonic}}) (char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a2256b2028c459665b7b8a5437ed2e555}{fn\+\_\+mnemonic\+\_\+val}}) (const char \texorpdfstring{$\ast$}{*})
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_adb742cab5a740830a548ab3c25363a04}{fn\+\_\+mnemonic\+\_\+seed}}) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_ab84edf0e6672e8e504915157cb3432bd}{fn\+\_\+sha256}}) (const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a1051717144d4b435a49e4c9f1443e20b}{fn\+\_\+hmac}}) (const char \texorpdfstring{$\ast$}{*}, int, const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a3aa7c1bb08820d4920ca6d9a158dfc88}{fn\+\_\+bip32\+\_\+master}}) (const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*})
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a99f8817e7620641efc568172245ef9c4}{fn\+\_\+bip32\+\_\+derive}}) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*})
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a70a82e1d918c5645763b5ed3d2a0c981}{fn\+\_\+secp\+\_\+pubkey}}) (const char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a40b75b01106bad4d45a20082f4818af4}{fn\+\_\+secp\+\_\+sign}}) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_ac6e797d6c165c22705f9925b095e2709}{fn\+\_\+secp\+\_\+verify}}) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*})
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a25580dbb2a1504921af059e8de9c8410}{fn\+\_\+privkey\+\_\+addr}}) (const char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a7f2e62422a2abac856cb4753900490f1}{fn\+\_\+tx\+\_\+afford}}) (int, int, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a27a40f27b9b1488c1b60945ce2db8648}{fn\+\_\+tx\+\_\+build}}) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, int, int, char \texorpdfstring{$\ast$}{*}, int, int \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef int(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_abef12f07b1fe4b6507d1e500356b2347}{fn\+\_\+tx\+\_\+txid}}) (const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef void(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_a09373631e70d569fa5f6ec0d1bc4a6cc}{fn\+\_\+wipe}}) (char \texorpdfstring{$\ast$}{*}, int)
+\item 
+typedef const char \texorpdfstring{$\ast$}{*}(\texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{test__vault_8c_abb5e84f341f2dfa6015c294cab11d524}{fn\+\_\+getpath}}) (void)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{test__vault_8c_a67b8e98ff1ea45ebb6742442da1fd4c2}{check}} (const char \texorpdfstring{$\ast$}{*}name, int condition)
+\item 
+void \doxymbox{\hyperlink{test__vault_8c_a03029b5939c0b08975b672baa4caab53}{hex\+\_\+print}} (const char \texorpdfstring{$\ast$}{*}label, const unsigned char \texorpdfstring{$\ast$}{*}data, int len)
+\item 
+int \doxymbox{\hyperlink{test__vault_8c_a840291bc02cba5474a4cb46a9b9566fe}{main}} (void)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{test__vault_8c_abf0c823d1963d8f0376e85f1b4973fb5}{tests\+\_\+passed}} = 0
+\item 
+int \doxymbox{\hyperlink{test__vault_8c_ac416cbab22199a47838dc6de83be2b25}{tests\+\_\+failed}} = 0
+\end{DoxyCompactItemize}
+
+
+\label{test__vault_8c_doc-define-members}
+\Hypertarget{test__vault_8c_doc-define-members}
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{test__vault_8c_a693dd7c98260ff7cb5409af5ecb6dd97}\index{test\_vault.c@{test\_vault.c}!LOAD@{LOAD}}
+\index{LOAD@{LOAD}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{LOAD}{LOAD}}
+{\footnotesize\ttfamily \label{test__vault_8c_a693dd7c98260ff7cb5409af5ecb6dd97} 
+\+\#define LOAD(\begin{DoxyParamCaption}\item[{}]{type}{, }\item[{}]{name}{}\end{DoxyParamCaption})}
+
+{\bfseries Value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{type\ p\_\#\#name\ =\ (type)GetProcAddress(lib,\ \#name)}
+
+\end{DoxyCode}
+
+
+\label{test__vault_8c_doc-typedef-members}
+\Hypertarget{test__vault_8c_doc-typedef-members}
+\doxysubsection{Typedef Documentation}
+\Hypertarget{test__vault_8c_a60a42f1cf9b586b261cb09c9539fe8c0}\index{test\_vault.c@{test\_vault.c}!fn\_add\_key@{fn\_add\_key}}
+\index{fn\_add\_key@{fn\_add\_key}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_add\_key}{fn\_add\_key}}
+{\footnotesize\ttfamily \label{test__vault_8c_a60a42f1cf9b586b261cb09c9539fe8c0} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+add\+\_\+key) (int, const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00019}{19}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a99f8817e7620641efc568172245ef9c4}\index{test\_vault.c@{test\_vault.c}!fn\_bip32\_derive@{fn\_bip32\_derive}}
+\index{fn\_bip32\_derive@{fn\_bip32\_derive}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_bip32\_derive}{fn\_bip32\_derive}}
+{\footnotesize\ttfamily \label{test__vault_8c_a99f8817e7620641efc568172245ef9c4} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+bip32\+\_\+derive) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00030}{30}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a3aa7c1bb08820d4920ca6d9a158dfc88}\index{test\_vault.c@{test\_vault.c}!fn\_bip32\_master@{fn\_bip32\_master}}
+\index{fn\_bip32\_master@{fn\_bip32\_master}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_bip32\_master}{fn\_bip32\_master}}
+{\footnotesize\ttfamily \label{test__vault_8c_a3aa7c1bb08820d4920ca6d9a158dfc88} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+bip32\+\_\+master) (const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00029}{29}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a68cf82cac46abd512875415591e141ce}\index{test\_vault.c@{test\_vault.c}!fn\_del\_key@{fn\_del\_key}}
+\index{fn\_del\_key@{fn\_del\_key}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_del\_key}{fn\_del\_key}}
+{\footnotesize\ttfamily \label{test__vault_8c_a68cf82cac46abd512875415591e141ce} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+del\+\_\+key) (int, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00020}{20}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a3eec31782cc05daccdf913fc1b097e23}\index{test\_vault.c@{test\_vault.c}!fn\_get\_key@{fn\_get\_key}}
+\index{fn\_get\_key@{fn\_get\_key}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_get\_key}{fn\_get\_key}}
+{\footnotesize\ttfamily \label{test__vault_8c_a3eec31782cc05daccdf913fc1b097e23} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+get\+\_\+key) (int, int, char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, int, int \texorpdfstring{$\ast$}{*}, int \texorpdfstring{$\ast$}{*})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00021}{21}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a94298bb42180d563de33c093aa82edbe}\index{test\_vault.c@{test\_vault.c}!fn\_get\_sec@{fn\_get\_sec}}
+\index{fn\_get\_sec@{fn\_get\_sec}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_get\_sec}{fn\_get\_sec}}
+{\footnotesize\ttfamily \label{test__vault_8c_a94298bb42180d563de33c093aa82edbe} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+get\+\_\+sec) (int, int, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00022}{22}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_abb5e84f341f2dfa6015c294cab11d524}\index{test\_vault.c@{test\_vault.c}!fn\_getpath@{fn\_getpath}}
+\index{fn\_getpath@{fn\_getpath}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_getpath}{fn\_getpath}}
+{\footnotesize\ttfamily \label{test__vault_8c_abb5e84f341f2dfa6015c294cab11d524} 
+typedef const char \texorpdfstring{$\ast$}{*}(\texorpdfstring{$\ast$}{*} fn\+\_\+getpath) (void)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00039}{39}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a1051717144d4b435a49e4c9f1443e20b}\index{test\_vault.c@{test\_vault.c}!fn\_hmac@{fn\_hmac}}
+\index{fn\_hmac@{fn\_hmac}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_hmac}{fn\_hmac}}
+{\footnotesize\ttfamily \label{test__vault_8c_a1051717144d4b435a49e4c9f1443e20b} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+hmac) (const char \texorpdfstring{$\ast$}{*}, int, const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00028}{28}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_ab5d310f06bd3f125fd0f5f066480d82a}\index{test\_vault.c@{test\_vault.c}!fn\_int@{fn\_int}}
+\index{fn\_int@{fn\_int}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_int}{fn\_int}}
+{\footnotesize\ttfamily \label{test__vault_8c_ab5d310f06bd3f125fd0f5f066480d82a} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+int) (void)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00017}{17}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a67422087cac76eb9467e93becad0c581}\index{test\_vault.c@{test\_vault.c}!fn\_int\_i@{fn\_int\_i}}
+\index{fn\_int\_i@{fn\_int\_i}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_int\_i}{fn\_int\_i}}
+{\footnotesize\ttfamily \label{test__vault_8c_a67422087cac76eb9467e93becad0c581} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+int\+\_\+i) (int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00018}{18}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_af9520560b191c93d8fabccbe482c7425}\index{test\_vault.c@{test\_vault.c}!fn\_mnemonic@{fn\_mnemonic}}
+\index{fn\_mnemonic@{fn\_mnemonic}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_mnemonic}{fn\_mnemonic}}
+{\footnotesize\ttfamily \label{test__vault_8c_af9520560b191c93d8fabccbe482c7425} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+mnemonic) (char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00024}{24}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_adb742cab5a740830a548ab3c25363a04}\index{test\_vault.c@{test\_vault.c}!fn\_mnemonic\_seed@{fn\_mnemonic\_seed}}
+\index{fn\_mnemonic\_seed@{fn\_mnemonic\_seed}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_mnemonic\_seed}{fn\_mnemonic\_seed}}
+{\footnotesize\ttfamily \label{test__vault_8c_adb742cab5a740830a548ab3c25363a04} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+mnemonic\+\_\+seed) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00026}{26}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a2256b2028c459665b7b8a5437ed2e555}\index{test\_vault.c@{test\_vault.c}!fn\_mnemonic\_val@{fn\_mnemonic\_val}}
+\index{fn\_mnemonic\_val@{fn\_mnemonic\_val}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_mnemonic\_val}{fn\_mnemonic\_val}}
+{\footnotesize\ttfamily \label{test__vault_8c_a2256b2028c459665b7b8a5437ed2e555} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+mnemonic\+\_\+val) (const char \texorpdfstring{$\ast$}{*})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00025}{25}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a25580dbb2a1504921af059e8de9c8410}\index{test\_vault.c@{test\_vault.c}!fn\_privkey\_addr@{fn\_privkey\_addr}}
+\index{fn\_privkey\_addr@{fn\_privkey\_addr}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_privkey\_addr}{fn\_privkey\_addr}}
+{\footnotesize\ttfamily \label{test__vault_8c_a25580dbb2a1504921af059e8de9c8410} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+privkey\+\_\+addr) (const char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00034}{34}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a70a82e1d918c5645763b5ed3d2a0c981}\index{test\_vault.c@{test\_vault.c}!fn\_secp\_pubkey@{fn\_secp\_pubkey}}
+\index{fn\_secp\_pubkey@{fn\_secp\_pubkey}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_secp\_pubkey}{fn\_secp\_pubkey}}
+{\footnotesize\ttfamily \label{test__vault_8c_a70a82e1d918c5645763b5ed3d2a0c981} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+secp\+\_\+pubkey) (const char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00031}{31}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a40b75b01106bad4d45a20082f4818af4}\index{test\_vault.c@{test\_vault.c}!fn\_secp\_sign@{fn\_secp\_sign}}
+\index{fn\_secp\_sign@{fn\_secp\_sign}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_secp\_sign}{fn\_secp\_sign}}
+{\footnotesize\ttfamily \label{test__vault_8c_a40b75b01106bad4d45a20082f4818af4} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+secp\+\_\+sign) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00032}{32}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_ac6e797d6c165c22705f9925b095e2709}\index{test\_vault.c@{test\_vault.c}!fn\_secp\_verify@{fn\_secp\_verify}}
+\index{fn\_secp\_verify@{fn\_secp\_verify}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_secp\_verify}{fn\_secp\_verify}}
+{\footnotesize\ttfamily \label{test__vault_8c_ac6e797d6c165c22705f9925b095e2709} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+secp\+\_\+verify) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00033}{33}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a0a649305b6be6aa2e8f29caf0881cb17}\index{test\_vault.c@{test\_vault.c}!fn\_set\_stat@{fn\_set\_stat}}
+\index{fn\_set\_stat@{fn\_set\_stat}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_set\_stat}{fn\_set\_stat}}
+{\footnotesize\ttfamily \label{test__vault_8c_a0a649305b6be6aa2e8f29caf0881cb17} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+set\+\_\+stat) (int, int, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00023}{23}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_ab84edf0e6672e8e504915157cb3432bd}\index{test\_vault.c@{test\_vault.c}!fn\_sha256@{fn\_sha256}}
+\index{fn\_sha256@{fn\_sha256}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_sha256}{fn\_sha256}}
+{\footnotesize\ttfamily \label{test__vault_8c_ab84edf0e6672e8e504915157cb3432bd} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+sha256) (const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00027}{27}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a7f2e62422a2abac856cb4753900490f1}\index{test\_vault.c@{test\_vault.c}!fn\_tx\_afford@{fn\_tx\_afford}}
+\index{fn\_tx\_afford@{fn\_tx\_afford}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_tx\_afford}{fn\_tx\_afford}}
+{\footnotesize\ttfamily \label{test__vault_8c_a7f2e62422a2abac856cb4753900490f1} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+tx\+\_\+afford) (int, int, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00035}{35}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a27a40f27b9b1488c1b60945ce2db8648}\index{test\_vault.c@{test\_vault.c}!fn\_tx\_build@{fn\_tx\_build}}
+\index{fn\_tx\_build@{fn\_tx\_build}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_tx\_build}{fn\_tx\_build}}
+{\footnotesize\ttfamily \label{test__vault_8c_a27a40f27b9b1488c1b60945ce2db8648} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+tx\+\_\+build) (const char \texorpdfstring{$\ast$}{*}, const char \texorpdfstring{$\ast$}{*}, int, int, char \texorpdfstring{$\ast$}{*}, int, int \texorpdfstring{$\ast$}{*}, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00036}{36}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_abef12f07b1fe4b6507d1e500356b2347}\index{test\_vault.c@{test\_vault.c}!fn\_tx\_txid@{fn\_tx\_txid}}
+\index{fn\_tx\_txid@{fn\_tx\_txid}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_tx\_txid}{fn\_tx\_txid}}
+{\footnotesize\ttfamily \label{test__vault_8c_abef12f07b1fe4b6507d1e500356b2347} 
+typedef int(\texorpdfstring{$\ast$}{*} fn\+\_\+tx\+\_\+txid) (const char \texorpdfstring{$\ast$}{*}, int, char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00037}{37}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a8b36c141a286648ae3c6ccc6affd2361}\index{test\_vault.c@{test\_vault.c}!fn\_void@{fn\_void}}
+\index{fn\_void@{fn\_void}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_void}{fn\_void}}
+{\footnotesize\ttfamily \label{test__vault_8c_a8b36c141a286648ae3c6ccc6affd2361} 
+typedef void(\texorpdfstring{$\ast$}{*} fn\+\_\+void) (void)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00016}{16}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_a09373631e70d569fa5f6ec0d1bc4a6cc}\index{test\_vault.c@{test\_vault.c}!fn\_wipe@{fn\_wipe}}
+\index{fn\_wipe@{fn\_wipe}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{fn\_wipe}{fn\_wipe}}
+{\footnotesize\ttfamily \label{test__vault_8c_a09373631e70d569fa5f6ec0d1bc4a6cc} 
+typedef void(\texorpdfstring{$\ast$}{*} fn\+\_\+wipe) (char \texorpdfstring{$\ast$}{*}, int)}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00038}{38}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+
+
+\label{test__vault_8c_doc-func-members}
+\Hypertarget{test__vault_8c_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{test__vault_8c_a67b8e98ff1ea45ebb6742442da1fd4c2}\index{test\_vault.c@{test\_vault.c}!check@{check}}
+\index{check@{check}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{check()}{check()}}
+{\footnotesize\ttfamily \label{test__vault_8c_a67b8e98ff1ea45ebb6742442da1fd4c2} 
+void check (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{name}{, }\item[{int}]{condition}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00044}{44}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{test__vault_8c_a03029b5939c0b08975b672baa4caab53}\index{test\_vault.c@{test\_vault.c}!hex\_print@{hex\_print}}
+\index{hex\_print@{hex\_print}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{hex\_print()}{hex\_print()}}
+{\footnotesize\ttfamily \label{test__vault_8c_a03029b5939c0b08975b672baa4caab53} 
+void hex\+\_\+print (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{label}{, }\item[{const unsigned char \texorpdfstring{$\ast$}{*}}]{data}{, }\item[{int}]{len}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00054}{54}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{test__vault_8c_a840291bc02cba5474a4cb46a9b9566fe}\index{test\_vault.c@{test\_vault.c}!main@{main}}
+\index{main@{main}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{test__vault_8c_a840291bc02cba5474a4cb46a9b9566fe} 
+int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00062}{62}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+
+
+\label{test__vault_8c_doc-var-members}
+\Hypertarget{test__vault_8c_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{test__vault_8c_ac416cbab22199a47838dc6de83be2b25}\index{test\_vault.c@{test\_vault.c}!tests\_failed@{tests\_failed}}
+\index{tests\_failed@{tests\_failed}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{tests\_failed}{tests\_failed}}
+{\footnotesize\ttfamily \label{test__vault_8c_ac416cbab22199a47838dc6de83be2b25} 
+int tests\+\_\+failed = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00042}{42}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+
+\Hypertarget{test__vault_8c_abf0c823d1963d8f0376e85f1b4973fb5}\index{test\_vault.c@{test\_vault.c}!tests\_passed@{tests\_passed}}
+\index{tests\_passed@{tests\_passed}!test\_vault.c@{test\_vault.c}}
+\doxysubsubsection{\texorpdfstring{tests\_passed}{tests\_passed}}
+{\footnotesize\ttfamily \label{test__vault_8c_abf0c823d1963d8f0376e85f1b4973fb5} 
+int tests\+\_\+passed = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{test__vault_8c_source_l00041}{41}} of file \doxymbox{\hyperlink{test__vault_8c_source}{test\+\_\+vault.\+c}}.
+

@@ -1,0 +1,361 @@
+\doxysection{blockchain\+\_\+analyzer Namespace Reference}
+\hypertarget{namespaceblockchain__analyzer}{}\label{namespaceblockchain__analyzer}\index{blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status}{Module\+Status}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity}{Severity}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category}{Module\+Category}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{Finding}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Tuple\+[Optional\+[bool]\+, str]\+ \doxymbox{\hyperlink{namespaceblockchain__analyzer_ae57258d08f0578c7554d2c24d95a4e5a}{check\+\_\+syntax}} (Path path)
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a05aa4c086d91584ad9a65820dd472888}{extract\+\_\+imports}} (str code)
+\item 
+int \doxymbox{\hyperlink{namespaceblockchain__analyzer_a3954f10b7e063b485967681f25aff12c}{count\+\_\+tests}} (str code)
+\item 
+\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}} \doxymbox{\hyperlink{namespaceblockchain__analyzer_a4b8455d38c5740c8d201e3253fddaf55}{analyze\+\_\+module}} (Path module\+\_\+path, bool verbose=False)
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a7aad694695a9c4179d428dbe7681773a}{scan\+\_\+all\+\_\+modules}} ()
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_a743ea126c6bdcb4396ba3e4e7dc8246a}{print\+\_\+report}} (List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ results, bool verbose=False)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_afb865586d6c19a3d55f82271821a3519}{generate\+\_\+json}} (List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ results, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_a31141a0bed02d489d5950dc121c3f905}{generate\+\_\+html}} (List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ results, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__analyzer_a8d2fd456c43ed1aa77532c6142499e42}{CORE}} = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__analyzer_ace387e2495cb08d804ae9fc0c79c3ab2}{TEST}} = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}test"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__analyzer_a48c1aff6fbe3966cada2ca6063b68604}{AGENT}} = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}agent"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__analyzer_a1a9f129f9080dd0dc54cd4c7aee71f8c}{CATEGORY\+\_\+\+MAP}}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__analyzer_ab1d919e9753e6576ed117b0c6e620551}{BLOCKCHAIN\+\_\+\+REAL\+\_\+\+INDICATORS}}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__analyzer_a02e7311bb6c029789c31257eac2b8a8b}{STUB\+\_\+\+PATTERNS}}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__analyzer_a0ea76bd16659c9f8428978118e1de895}{SECURITY\+\_\+\+PATTERNS}}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__analyzer_a5240b17bab1ac67fe999eea407e82882}{G}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__analyzer_a0c305067196cff3a40f7c6ae184c4e1e}{STATUS\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}blockchain_analyzer.py - OmniBus Blockchain Core Analyzer v2.0
+
+Analizeaza structura si calitatea codului blockchain:
+  - Verifica toate cele 52 module Zig din core/
+  - Detecteaza probleme de sintaxa Zig (zig ast-check)
+  - Clasificare inteligenta: REAL / PARTIAL / STUB / EMPTY
+  - Pattern-uri specifice blockchain (crypto, consensus, P2P, wallet)
+  - Securitate: private key leaks, allocator misuse, panic paths
+  - Scor calitate 0-100 per modul
+  - Export JSON / HTML
+
+Usage:
+  python tools/blockchain_analyzer.py                    # Full scan
+  python tools/blockchain_analyzer.py --module wallet    # Single module
+  python tools/blockchain_analyzer.py --json report.json # Export JSON
+  python tools/blockchain_analyzer.py --html report.html # Export HTML
+  python tools/blockchain_analyzer.py --verbose          # Show all findings
+\end{DoxyVerb}
+ 
+
+\label{namespaceblockchain__analyzer_doc-func-members}
+\Hypertarget{namespaceblockchain__analyzer_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceblockchain__analyzer_a4b8455d38c5740c8d201e3253fddaf55}\index{blockchain\_analyzer@{blockchain\_analyzer}!analyze\_module@{analyze\_module}}
+\index{analyze\_module@{analyze\_module}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{analyze\_module()}{analyze\_module()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a4b8455d38c5740c8d201e3253fddaf55} 
+ \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}} analyze\+\_\+module (\begin{DoxyParamCaption}\item[{Path}]{module\+\_\+path}{, }\item[{bool }]{verbose}{ = {\ttfamily False}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Analyze a single Zig module with blockchain-specific checks.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00280}{280}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceblockchain__analyzer_ae57258d08f0578c7554d2c24d95a4e5a}\index{blockchain\_analyzer@{blockchain\_analyzer}!check\_syntax@{check\_syntax}}
+\index{check\_syntax@{check\_syntax}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{check\_syntax()}{check\_syntax()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_ae57258d08f0578c7554d2c24d95a4e5a} 
+ Tuple\+[Optional\+[bool]\+, str]\+ check\+\_\+syntax (\begin{DoxyParamCaption}\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check Zig syntax using zig ast-check.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00249}{249}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceblockchain__analyzer_a3954f10b7e063b485967681f25aff12c}\index{blockchain\_analyzer@{blockchain\_analyzer}!count\_tests@{count\_tests}}
+\index{count\_tests@{count\_tests}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{count\_tests()}{count\_tests()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a3954f10b7e063b485967681f25aff12c} 
+ int count\+\_\+tests (\begin{DoxyParamCaption}\item[{str}]{code}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Count test blocks.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00275}{275}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceblockchain__analyzer_a05aa4c086d91584ad9a65820dd472888}\index{blockchain\_analyzer@{blockchain\_analyzer}!extract\_imports@{extract\_imports}}
+\index{extract\_imports@{extract\_imports}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{extract\_imports()}{extract\_imports()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a05aa4c086d91584ad9a65820dd472888} 
+ List\+[str]\+ extract\+\_\+imports (\begin{DoxyParamCaption}\item[{str}]{code}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract @import statements.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00265}{265}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceblockchain__analyzer_a31141a0bed02d489d5950dc121c3f905}\index{blockchain\_analyzer@{blockchain\_analyzer}!generate\_html@{generate\_html}}
+\index{generate\_html@{generate\_html}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{generate\_html()}{generate\_html()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a31141a0bed02d489d5950dc121c3f905} 
+generate\+\_\+html (\begin{DoxyParamCaption}\item[{List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+}]{results}{, }\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00579}{579}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceblockchain__analyzer_afb865586d6c19a3d55f82271821a3519}\index{blockchain\_analyzer@{blockchain\_analyzer}!generate\_json@{generate\_json}}
+\index{generate\_json@{generate\_json}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{generate\_json()}{generate\_json()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_afb865586d6c19a3d55f82271821a3519} 
+generate\+\_\+json (\begin{DoxyParamCaption}\item[{List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+}]{results}{, }\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00536}{536}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceblockchain__analyzer_a51af30a60f9f02777c6396b8247e356f}\index{blockchain\_analyzer@{blockchain\_analyzer}!main@{main}}
+\index{main@{main}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00650}{650}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceblockchain__analyzer_a743ea126c6bdcb4396ba3e4e7dc8246a}\index{blockchain\_analyzer@{blockchain\_analyzer}!print\_report@{print\_report}}
+\index{print\_report@{print\_report}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{print\_report()}{print\_report()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a743ea126c6bdcb4396ba3e4e7dc8246a} 
+print\+\_\+report (\begin{DoxyParamCaption}\item[{List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+}]{results}{, }\item[{bool }]{verbose}{ = {\ttfamily False}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00445}{445}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespaceblockchain__analyzer_a7aad694695a9c4179d428dbe7681773a}\index{blockchain\_analyzer@{blockchain\_analyzer}!scan\_all\_modules@{scan\_all\_modules}}
+\index{scan\_all\_modules@{scan\_all\_modules}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{scan\_all\_modules()}{scan\_all\_modules()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a7aad694695a9c4179d428dbe7681773a} 
+ List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ scan\+\_\+all\+\_\+modules (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scan core/, test/, agent/ directories.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00414}{414}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+
+
+\label{namespaceblockchain__analyzer_doc-var-members}
+\Hypertarget{namespaceblockchain__analyzer_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceblockchain__analyzer_a48c1aff6fbe3966cada2ca6063b68604}\index{blockchain\_analyzer@{blockchain\_analyzer}!AGENT@{AGENT}}
+\index{AGENT@{AGENT}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{AGENT}{AGENT}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a48c1aff6fbe3966cada2ca6063b68604} 
+str blockchain\+\_\+analyzer.\+AGENT = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}agent"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_ab1d919e9753e6576ed117b0c6e620551}\index{blockchain\_analyzer@{blockchain\_analyzer}!BLOCKCHAIN\_REAL\_INDICATORS@{BLOCKCHAIN\_REAL\_INDICATORS}}
+\index{BLOCKCHAIN\_REAL\_INDICATORS@{BLOCKCHAIN\_REAL\_INDICATORS}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{BLOCKCHAIN\_REAL\_INDICATORS}{BLOCKCHAIN\_REAL\_INDICATORS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_ab1d919e9753e6576ed117b0c6e620551} 
+list blockchain\+\_\+analyzer.\+BLOCKCHAIN\+\_\+\+REAL\+\_\+\+INDICATORS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'pub\(\backslash\)s+fn\(\backslash\)s+\(\backslash\)w+'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Public\ functions}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'const\(\backslash\)s+\(\backslash\)w+\(\backslash\)s*=\(\backslash\)s*struct'}),\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Struct\ definitions}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'test\(\backslash\)s+"{}'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Test\ blocks}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'@import\(\backslash\)s*\(\backslash\)('}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Imports}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'pub\(\backslash\)s+const'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Public\ constants}}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Blockchain-\/specific}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'sha256|SHA256|Sha256'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Hash\ functions}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'secp256k1|ecdsa|ECDSA'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Signing}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'bip32|bip39|BIP32|BIP39'}),\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ HD\ wallet}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'merkle|MerkleRoot|merkle\_root'}),\ \ \ \ \ \ \textcolor{comment}{\#\ Merkle\ trees}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'genesis|Genesis'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Genesis\ block}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'mempool|Mempool'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Transaction\ pool}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'consensus|Consensus'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Consensus}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'mining|mineBlock|mine\_block|nonce'}),\ \ \textcolor{comment}{\#\ Mining}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'difficulty|retarget'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Difficulty\ adjustment}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'transaction|Transaction'}),\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ TX\ handling}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'block\(\backslash\).hash|previous\_hash|prev\_hash'}),\textcolor{comment}{\#\ Block\ linking}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'validate|verify|Verify'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Validation}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'sign|signature|Signature'}),\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Signing}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'allocator'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Memory\ management}}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'deinit|defer\(\backslash\)s'}),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Cleanup}}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00174}{174}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_a1a9f129f9080dd0dc54cd4c7aee71f8c}\index{blockchain\_analyzer@{blockchain\_analyzer}!CATEGORY\_MAP@{CATEGORY\_MAP}}
+\index{CATEGORY\_MAP@{CATEGORY\_MAP}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{CATEGORY\_MAP}{CATEGORY\_MAP}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a1a9f129f9080dd0dc54cd4c7aee71f8c} 
+dict blockchain\+\_\+analyzer.\+CATEGORY\+\_\+\+MAP}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00100}{100}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_a8d2fd456c43ed1aa77532c6142499e42}\index{blockchain\_analyzer@{blockchain\_analyzer}!CORE@{CORE}}
+\index{CORE@{CORE}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{CORE}{CORE}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a8d2fd456c43ed1aa77532c6142499e42} 
+str blockchain\+\_\+analyzer.\+CORE = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_a5240b17bab1ac67fe999eea407e82882}\index{blockchain\_analyzer@{blockchain\_analyzer}!G@{G}}
+\index{G@{G}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{G}{G}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a5240b17bab1ac67fe999eea407e82882} 
+str blockchain\+\_\+analyzer.\+G = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00435}{435}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}\index{blockchain\_analyzer@{blockchain\_analyzer}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c} 
+blockchain\+\_\+analyzer.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_a0ea76bd16659c9f8428978118e1de895}\index{blockchain\_analyzer@{blockchain\_analyzer}!SECURITY\_PATTERNS@{SECURITY\_PATTERNS}}
+\index{SECURITY\_PATTERNS@{SECURITY\_PATTERNS}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{SECURITY\_PATTERNS}{SECURITY\_PATTERNS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a0ea76bd16659c9f8428978118e1de895} 
+list blockchain\+\_\+analyzer.\+SECURITY\+\_\+\+PATTERNS}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00211}{211}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_a0c305067196cff3a40f7c6ae184c4e1e}\index{blockchain\_analyzer@{blockchain\_analyzer}!STATUS\_COLORS@{STATUS\_COLORS}}
+\index{STATUS\_COLORS@{STATUS\_COLORS}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{STATUS\_COLORS}{STATUS\_COLORS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a0c305067196cff3a40f7c6ae184c4e1e} 
+dict blockchain\+\_\+analyzer.\+STATUS\+\_\+\+COLORS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ ModuleStatus.REAL:\ G,}
+\DoxyCodeLine{\ \ \ \ ModuleStatus.PARTIAL:\ Y,}
+\DoxyCodeLine{\ \ \ \ ModuleStatus.STUB:\ Y,}
+\DoxyCodeLine{\ \ \ \ ModuleStatus.EMPTY:\ R,}
+\DoxyCodeLine{\ \ \ \ ModuleStatus.ERROR:\ R,}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00437}{437}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_a02e7311bb6c029789c31257eac2b8a8b}\index{blockchain\_analyzer@{blockchain\_analyzer}!STUB\_PATTERNS@{STUB\_PATTERNS}}
+\index{STUB\_PATTERNS@{STUB\_PATTERNS}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{STUB\_PATTERNS}{STUB\_PATTERNS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_a02e7311bb6c029789c31257eac2b8a8b} 
+list blockchain\+\_\+analyzer.\+STUB\+\_\+\+PATTERNS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'\(\backslash\)btodo\(\backslash\)b|\(\backslash\)bTODO\(\backslash\)b'},\ re.I),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'\(\backslash\)bstub\(\backslash\)b|\(\backslash\)bSTUB\(\backslash\)b'},\ re.I),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'not\(\backslash\)s+implemented'},\ re.I),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'placeholder'},\ re.I),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'@panic\(\backslash\)s*\(\backslash\)(\(\backslash\)s*"{}not\ implemented"{}\(\backslash\)s*\(\backslash\))'}),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'@panic\(\backslash\)s*\(\backslash\)(\(\backslash\)s*"{}TODO"{}\(\backslash\)s*\(\backslash\))'}),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'return\(\backslash\)s+error\(\backslash\).NotImplemented'}),}
+\DoxyCodeLine{\ \ \ \ re.compile(\textcolor{stringliteral}{r'unreachable;\(\backslash\)s*//.*todo'},\ re.I),}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00199}{199}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+
+\Hypertarget{namespaceblockchain__analyzer_ace387e2495cb08d804ae9fc0c79c3ab2}\index{blockchain\_analyzer@{blockchain\_analyzer}!TEST@{TEST}}
+\index{TEST@{TEST}!blockchain\_analyzer@{blockchain\_analyzer}}
+\doxysubsubsection{\texorpdfstring{TEST}{TEST}}
+{\footnotesize\ttfamily \label{namespaceblockchain__analyzer_ace387e2495cb08d804ae9fc0c79c3ab2} 
+str blockchain\+\_\+analyzer.\+TEST = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}test"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__analyzer_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{blockchain__analyzer_8py_source}{blockchain\+\_\+analyzer.\+py}}.
+

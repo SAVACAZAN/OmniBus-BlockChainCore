@@ -1,0 +1,321 @@
+\chapter{Module:\+ {\ttfamily os\+\_\+mode} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode}{}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode}\index{Module: $<$tt$>$os\_mode$<$/tt$>$@{Module: $<$tt$>$os\_mode$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2375}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2375}%
+
+
+\begin{quote}
+OS mode detection — detects bare-\/metal vs hosted mode, adjusts behavior for Omni\+Bus OS integration. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+os\+\_\+mode.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 204 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 10 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 7
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2377}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2377}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2378}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2378}
+
+\begin{DoxyItemize}
+\item \`{}\+Os\+Mode\+State\`{}{\ttfamily Os\+Mode\+State}
+\end{DoxyItemize}— Starea unui modul OS
+\begin{DoxyItemize}
+\item \`{}\+Os\+Mode\+Manager\`{}{\ttfamily Os\+Mode\+Manager}
+\end{DoxyItemize}— Data structure for os mode manager. Fields include:\+ modes, active\+\_\+mask, current\+\_\+...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2379}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2379}
+
+\begin{DoxyItemize}
+\item 2 constants defined2 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2380}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2380}
+
+\begin{DoxyItemize}
+\item \`{}name()\`{}{\ttfamily name()}
+\end{DoxyItemize}— Performs the name operation on the os\+\_\+mode module.
+\begin{DoxyItemize}
+\item \`{}priority()\`{}{\ttfamily priority()}
+\end{DoxyItemize}— Prioritatea modului (mai mic = mai prioritar)
+\begin{DoxyItemize}
+\item \`{}is\+Active()\`{}{\ttfamily is\+Active()}
+\end{DoxyItemize}— Checks whether the active condition is true.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}activate()\`{}{\ttfamily activate()}
+\end{DoxyItemize}— Activeaza un modul OS
+\begin{DoxyItemize}
+\item \`{}pause\+Mode()\`{}{\ttfamily pause\+Mode()}
+\end{DoxyItemize}— Suspenda un modul OS
+\begin{DoxyItemize}
+\item \`{}run\+Cycle()\`{}{\ttfamily run\+Cycle()}
+\end{DoxyItemize}— Ruleaza un ciclu pentru toate modurile active (in ordine de prioritate...
+\begin{DoxyItemize}
+\item \`{}is\+Active()\`{}{\ttfamily is\+Active()}
+\end{DoxyItemize}— Checks whether the active condition is true.
+\begin{DoxyItemize}
+\item \`{}active\+Count()\`{}{\ttfamily active\+Count()}
+\end{DoxyItemize}— Performs the active count operation on the os\+\_\+mode module.
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the os\+\_\+mode module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2382}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2382}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2383}{}\doxysubsection{\texorpdfstring{{\ttfamily Os\+Mode\+State}}{{\ttfamily Os\+Mode\+State}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2383}
+Starea unui modul OS
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mode}  &{\ttfamily Os\+Mode}  &Mode  \\
+{\ttfamily status}  &{\ttfamily Mode\+Status}  &Status  \\
+{\ttfamily activated\+\_\+block}  &{\ttfamily u64}  &Activated\+\_\+block  \\
+{\ttfamily cycles\+\_\+run}  &{\ttfamily u64}  &Cycles\+\_\+run  \\
+{\ttfamily last\+\_\+error}  &{\ttfamily ?\+[]\+const u8}  &Last\+\_\+error  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 60}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2385}{}\doxysubsection{\texorpdfstring{{\ttfamily Os\+Mode\+Manager}}{{\ttfamily Os\+Mode\+Manager}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2385}
+Data structure for os mode manager. Fields include:\+ modes, active\+\_\+mask, current\+\_\+block.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily modes}  &{\ttfamily \+[7]\+Os\+Mode\+State}  &Modes  \\
+{\ttfamily active\+\_\+mask}  &{\ttfamily u8}  &Active\+\_\+mask  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 74}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2387}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2387}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Os\+Mode}  &{\ttfamily enum(u8) \{}  &Os mode  \\
+{\ttfamily Mode\+Status}  &{\ttfamily enum(u8) \{}  &Mode status  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2389}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2389}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2390}{}\doxysubsection{\texorpdfstring{{\ttfamily name()}}{{\ttfamily name()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2390}
+Performs the name operation on the os\+\_\+mode module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ name(self:\ OsMode)\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Os\+Mode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const u8}
+
+{\itshape Defined at line 33}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2392}{}\doxysubsection{\texorpdfstring{{\ttfamily priority()}}{{\ttfamily priority()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2392}
+Prioritatea modului (mai mic = mai prioritar)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ priority(self:\ OsMode)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Os\+Mode}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 46}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2394}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Active()}}{{\ttfamily is\+Active()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2394}
+Checks whether the active condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isActive(self:\ *const\ OsModeState)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Os\+Mode\+State}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 67}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2396}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2396}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ OsModeManager\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Os\+Mode\+Manager}
+
+{\itshape Defined at line 79}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2398}{}\doxysubsection{\texorpdfstring{{\ttfamily activate()}}{{\ttfamily activate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2398}
+Activeaza un modul OS
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ activate(self:\ *OsModeManager,\ mode:\ OsMode)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Os\+Mode\+Manager}  &The instance  \\
+{\ttfamily mode}  &{\ttfamily Os\+Mode}  &Mode  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 100}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2400}{}\doxysubsection{\texorpdfstring{{\ttfamily pause\+Mode()}}{{\ttfamily pause\+Mode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2400}
+Suspenda un modul OS
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ pauseMode(self:\ *OsModeManager,\ mode:\ OsMode)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Os\+Mode\+Manager}  &The instance  \\
+{\ttfamily mode}  &{\ttfamily Os\+Mode}  &Mode  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 111}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2402}{}\doxysubsection{\texorpdfstring{{\ttfamily run\+Cycle()}}{{\ttfamily run\+Cycle()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2402}
+Ruleaza un ciclu pentru toate modurile active (in ordine de prioritate)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ runCycle(self:\ *OsModeManager)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Os\+Mode\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 120}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2404}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Active()}}{{\ttfamily is\+Active()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2404}
+Checks whether the active condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isActive(self:\ *const\ OsModeManager,\ mode:\ OsMode)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Os\+Mode\+Manager}  &The instance  \\
+{\ttfamily mode}  &{\ttfamily Os\+Mode}  &Mode  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 130}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2406}{}\doxysubsection{\texorpdfstring{{\ttfamily active\+Count()}}{{\ttfamily active\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2406}
+Performs the active count operation on the os\+\_\+mode module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ activeCount(self:\ *const\ OsModeManager)\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Os\+Mode\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u8}
+
+{\itshape Defined at line 134}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2408}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2os__mode_autotoc_md2408}
+Performs the print status operation on the os\+\_\+mode module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ OsModeManager)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Os\+Mode\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 138}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

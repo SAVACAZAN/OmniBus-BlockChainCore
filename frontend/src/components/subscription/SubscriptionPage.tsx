@@ -15,14 +15,14 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import * as secp from "@noble/secp256k1";
-import { sha256 } from "@noble/hashes/sha2";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
+import { satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -48,29 +48,20 @@ interface GetSubscriptionsResp {
 
 type SubTab = "mine" | "create" | "incoming";
 
+const SUB_TABS: SubTab[] = ["mine", "create", "incoming"];
+const SUB_TAB_LABEL: Record<SubTab, string> = {
+  mine:     "My Subscriptions",
+  create:   "Create",
+  incoming: "Incoming",
+};
+
+const SUB_INTERVAL_PRESETS = [
+  { label: "1h",  blocks: 3600 },
+  { label: "1d",  blocks: 86400 },
+  { label: "30d", blocks: 2592000 },
+] as const;
+
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
-
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
-}
-
-/** Inline secp256k1 + SHA256d sign — same recipe as StakePage / WalletPage. */
-function signMessage(
-  privKeyHex: string,
-  msg: string,
-): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
 
 function signSubCreate(args: {
   privateKeyHex: string;
@@ -95,16 +86,6 @@ function signSubCancel(args: {
 }): { signature: string; publicKey: string } {
   const msg = `SUB_CANCEL_V1\n${args.from}\n${args.subId}\n${args.nonce}`;
   return signMessage(args.privateKeyHex, msg);
-}
-
-async function fetchNonce(address: string): Promise<number> {
-  try {
-    const res: unknown = await rpc.request_raw("getnonce", [address]);
-    const r = res as { nonce?: number } | number | null;
-    if (typeof r === "number") return r;
-    if (r && typeof r === "object" && "nonce" in r) return r.nonce ?? 0;
-  } catch { /* ignore */ }
-  return 0;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -138,7 +119,7 @@ export function SubscriptionPage() {
     if (!wallet?.address) return;
     setLoadingSubs(true);
     try {
-      const res: unknown = await rpc.request_raw("getsubscriptions", [{ address: wallet.address }]);
+      const res: unknown = await rpc.getSubscriptions(wallet.address);
       const r = res as GetSubscriptionsResp | Subscription[] | null;
       if (Array.isArray(r)) {
         setMySubs(r);
@@ -156,7 +137,11 @@ export function SubscriptionPage() {
   }, [wallet?.address]);
 
   useEffect(() => {
-    if (tab === "mine") loadMySubs();
+    if (tab === "mine") void loadMySubs();
+    // Subscriptions fire per-block — refresh "mine" tab on every new block.
+    if (tab !== "mine") return;
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void loadMySubs(); });
+    return unsub;
   }, [tab, loadMySubs]);
 
   // ── Auto-fill incoming address from wallet ────────────────────────────
@@ -172,7 +157,7 @@ export function SubscriptionPage() {
     setCancelling(sub.id);
     setCancelResult(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signSubCancel({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -225,7 +210,7 @@ export function SubscriptionPage() {
     setCreating(true);
     setCreateResult(null);
     try {
-      const nonce = await fetchNonce(wallet.address);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signSubCreate({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -276,7 +261,7 @@ export function SubscriptionPage() {
     if (!addr) return;
     setLoadingIncoming(true);
     try {
-      const res: unknown = await rpc.request_raw("getsubscriptions", [{ address: addr }]);
+      const res: unknown = await rpc.getSubscriptions(addr);
       const r = res as GetSubscriptionsResp | Subscription[] | null;
       let all: Subscription[] = [];
       if (Array.isArray(r)) {
@@ -328,14 +313,16 @@ export function SubscriptionPage() {
           </div>
           <div className="text-right text-xs text-mempool-text-dim">
             <p>Connected as</p>
-            <p className="font-mono text-mempool-blue">{shortAddr(wallet.address)}</p>
+            <p className="font-mono text-mempool-blue">
+              <AddressLabel address={wallet.address} showEmoji truncate={{ left: 8, right: 6 }} />
+            </p>
           </div>
         </div>
       </div>
 
       {/* Sub-tabs */}
       <div className="flex gap-1 bg-mempool-bg-elev rounded-xl border border-mempool-border p-1">
-        {(["mine", "create", "incoming"] as SubTab[]).map((t) => (
+        {SUB_TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -345,7 +332,7 @@ export function SubscriptionPage() {
                 : "text-mempool-text-dim hover:text-mempool-text"
             }`}
           >
-            {t === "mine" ? "My Subscriptions" : t === "create" ? "Create" : "Incoming"}
+            {SUB_TAB_LABEL[t]}
           </button>
         ))}
       </div>
@@ -393,13 +380,44 @@ export function SubscriptionPage() {
             />
           ))}
 
-          <button
-            onClick={loadMySubs}
-            disabled={loadingSubs}
-            className="w-full py-2 text-sm text-mempool-text-dim border border-mempool-border rounded-lg hover:border-mempool-blue hover:text-mempool-blue transition-colors disabled:opacity-50"
-          >
-            Refresh
-          </button>
+          <div className="flex gap-2">
+            {mySubs.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["id","from","to","amount_omni","interval_blocks","max_payments","payments_made","next_block","active","note"].join(","),
+                    ...mySubs.map((s) => [
+                      s.id,
+                      `"${s.from}"`,
+                      `"${s.to}"`,
+                      satToOmni(s.amount, 4),
+                      s.interval,
+                      s.max_payments,
+                      s.payments_made,
+                      s.next_block,
+                      s.active ? "true" : "false",
+                      `"${(s.note ?? "").replace(/"/g, '""')}"`,
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = "omnibus-subscriptions.csv";
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="flex-1 py-2 text-sm text-mempool-text-dim border border-mempool-border rounded-lg hover:border-mempool-blue hover:text-mempool-blue transition-colors"
+              >
+                ⬇ CSV
+              </button>
+            )}
+            <button
+              onClick={loadMySubs}
+              disabled={loadingSubs}
+              className="flex-1 py-2 text-sm text-mempool-text-dim border border-mempool-border rounded-lg hover:border-mempool-blue hover:text-mempool-blue transition-colors disabled:opacity-50"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
       )}
 
@@ -456,11 +474,7 @@ export function SubscriptionPage() {
                 className="bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-sm text-mempool-text flex-1 focus:outline-none focus:border-mempool-blue"
               />
               <div className="flex gap-1">
-                {[
-                  { label: "1h",  blocks: 3600 },
-                  { label: "1d",  blocks: 86400 },
-                  { label: "30d", blocks: 2592000 },
-                ].map((p) => (
+                {SUB_INTERVAL_PRESETS.map((p) => (
                   <button
                     key={p.label}
                     onClick={() => setCreateInterval(String(p.blocks))}
@@ -492,9 +506,10 @@ export function SubscriptionPage() {
             {parseInt(createMax || "0", 10) > 0 && createAmount && (
               <p className="text-xs text-mempool-text-dim">
                 Total max:{" "}
-                {fmtOmni(
+                {satToOmni(
                   Math.floor(parseFloat(createAmount || "0") * SAT_PER_OMNI) *
                     parseInt(createMax, 10),
+                  4
                 )}{" "}
                 OMNI
               </p>
@@ -524,7 +539,9 @@ export function SubscriptionPage() {
                   {parseFloat(createAmount || "0").toFixed(4)} OMNI
                 </span>{" "}
                 to{" "}
-                <span className="font-mono text-mempool-text">{shortAddr(createTo)}</span>
+                <span className="font-mono text-mempool-text">
+                  <AddressLabel address={createTo} showEmoji truncate={{ left: 8, right: 6 }} />
+                </span>
               </p>
               <p className="text-mempool-text">
                 Every{" "}
@@ -664,16 +681,20 @@ function SubscriptionCard({
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-mempool-text-dim mt-2">
             <div>
               <span className="opacity-70">From </span>
-              <span className="font-mono text-mempool-text">{shortAddr(sub.from)}</span>
+              <button onClick={() => { window.location.hash = `#/address/${sub.from}`; }} className="font-mono text-mempool-text hover:text-mempool-blue hover:underline">
+              <AddressLabel address={sub.from} showEmoji truncate={{ left: 8, right: 6 }} />
+            </button>
               {isOwner && <span className="ml-1 text-mempool-blue">(you)</span>}
             </div>
             <div>
               <span className="opacity-70">To </span>
-              <span className="font-mono text-mempool-text">{shortAddr(sub.to)}</span>
+              <button onClick={() => { window.location.hash = `#/address/${sub.to}`; }} className="font-mono text-mempool-text hover:text-mempool-blue hover:underline">
+                <AddressLabel address={sub.to} showEmoji truncate={{ left: 8, right: 6 }} />
+              </button>
             </div>
             <div>
               <span className="opacity-70">Per period </span>
-              <span className="text-mempool-blue font-semibold">{fmtOmni(sub.amount)} OMNI</span>
+              <span className="text-mempool-blue font-semibold">{satToOmni(sub.amount, 4)} OMNI</span>
             </div>
             <div>
               <span className="opacity-70">Interval </span>

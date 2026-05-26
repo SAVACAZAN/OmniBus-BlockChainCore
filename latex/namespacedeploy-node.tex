@@ -1,0 +1,325 @@
+\doxysection{deploy-\/node Namespace Reference}
+\hypertarget{namespacedeploy-node}{}\label{namespacedeploy-node}\index{deploy-\/node@{deploy-\/node}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_a72cc38807bfd658d179228b3b03952e5}{step}} (str msg)
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_a36fb3585a663e65d7d1f16473cf5e6dd}{ok}} (str msg)
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_ad8cb840fd28eaa63f6efd629e549f1be}{fail}} (str msg)
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_a18f510f28672301fc78bbf194b27151f}{warn}} (str msg)
+\item 
+Path \doxymbox{\hyperlink{namespacedeploy-node_ac8e5f0a7730f8396cce2214741332182}{find\+\_\+project\+\_\+root}} ()
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacedeploy-node_a58c595792c00ff7f97f118f558105ebf}{check\+\_\+zig}} ()
+\item 
+bool \doxymbox{\hyperlink{namespacedeploy-node_a158185186497a09680829d07084ea21a}{build\+\_\+node}} (Path project\+\_\+root)
+\item 
+Path\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacedeploy-node_a45b82bfaa7597f587cfc620dc1a0a73c}{find\+\_\+binary}} (Path project\+\_\+root)
+\item 
+Path \doxymbox{\hyperlink{namespacedeploy-node_a74f747cd94db57a2c9b15165db87749b}{generate\+\_\+toml}} (Path target\+\_\+dir, str mode, str node\+\_\+id, int port, int rpc\+\_\+port, str seed\+\_\+host, int seed\+\_\+port)
+\item 
+Path \doxymbox{\hyperlink{namespacedeploy-node_a7f71c90bd9eb2a83bf497452d9fdac71}{generate\+\_\+systemd\+\_\+service}} (Path target\+\_\+dir, str binary\+\_\+name, str mode, str node\+\_\+id)
+\item 
+Path \doxymbox{\hyperlink{namespacedeploy-node_a1ab76fbcf4e716e2d33c6edfb40a1fd6}{generate\+\_\+bat\+\_\+launcher}} (Path target\+\_\+dir, str binary\+\_\+name, str mode, str node\+\_\+id)
+\item 
+\doxymbox{\hyperlink{namespacedeploy-node_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a2f08a9e1081d0b95595bd38775d82b76}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a923a696316ca5f0eb1eeaf7a272a1cf8}{DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a7ce93b21b37c435583bf929917e1be6f}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_adfe5981a888b645cf575c9ae485f97f3}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a3b2fbcf1e8c4031f1f26db16d63b7549}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a09da1adffef004ed0f412e750c895963}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_a7a35342595d4cc5104e819600d26f521}{MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_af4f5bbae7d45e05dc799662aa8b0d828}{CHECKMARK}} = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_adfe5981a888b645cf575c9ae485f97f3}{GREEN}}\}\+[OK]\+\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_ae4ec60f58f5dce2886bfde4d1b8734a5}{CROSS}} = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_a7ce93b21b37c435583bf929917e1be6f}{RED}}\}\+[FAIL]\+\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespacedeploy-node_ac8f1fc5fd7b25b821783d3a2f653feb7}{ARROW}} = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_a09da1adffef004ed0f412e750c895963}{CYAN}}\}$>$$>$$>$\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacedeploy-node_doc-func-members}
+\Hypertarget{namespacedeploy-node_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacedeploy-node_a158185186497a09680829d07084ea21a}\index{deploy-\/node@{deploy-\/node}!build\_node@{build\_node}}
+\index{build\_node@{build\_node}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{build\_node()}{build\_node()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a158185186497a09680829d07084ea21a} 
+ bool build\+\_\+node (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacedeploy-node_a58c595792c00ff7f97f118f558105ebf}\index{deploy-\/node@{deploy-\/node}!check\_zig@{check\_zig}}
+\index{check\_zig@{check\_zig}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{check\_zig()}{check\_zig()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a58c595792c00ff7f97f118f558105ebf} 
+ str \texorpdfstring{$\vert$}{|} None check\+\_\+zig (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return zig version string, or None if not found.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacedeploy-node_ad8cb840fd28eaa63f6efd629e549f1be}\index{deploy-\/node@{deploy-\/node}!fail@{fail}}
+\index{fail@{fail}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{fail()}{fail()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_ad8cb840fd28eaa63f6efd629e549f1be} 
+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_a45b82bfaa7597f587cfc620dc1a0a73c}\index{deploy-\/node@{deploy-\/node}!find\_binary@{find\_binary}}
+\index{find\_binary@{find\_binary}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{find\_binary()}{find\_binary()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a45b82bfaa7597f587cfc620dc1a0a73c} 
+ Path \texorpdfstring{$\vert$}{|} None find\+\_\+binary (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00099}{99}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacedeploy-node_ac8e5f0a7730f8396cce2214741332182}\index{deploy-\/node@{deploy-\/node}!find\_project\_root@{find\_project\_root}}
+\index{find\_project\_root@{find\_project\_root}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{find\_project\_root()}{find\_project\_root()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_ac8e5f0a7730f8396cce2214741332182} 
+ Path find\+\_\+project\+\_\+root (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Walk up from script dir to find build.zig.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00058}{58}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacedeploy-node_a1ab76fbcf4e716e2d33c6edfb40a1fd6}\index{deploy-\/node@{deploy-\/node}!generate\_bat\_launcher@{generate\_bat\_launcher}}
+\index{generate\_bat\_launcher@{generate\_bat\_launcher}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{generate\_bat\_launcher()}{generate\_bat\_launcher()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a1ab76fbcf4e716e2d33c6edfb40a1fd6} 
+ Path generate\+\_\+bat\+\_\+launcher (\begin{DoxyParamCaption}\item[{Path}]{target\+\_\+dir}{, }\item[{str}]{binary\+\_\+name}{, }\item[{str}]{mode}{, }\item[{str}]{node\+\_\+id}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate a Windows .bat launcher.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00171}{171}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacedeploy-node_a7f71c90bd9eb2a83bf497452d9fdac71}\index{deploy-\/node@{deploy-\/node}!generate\_systemd\_service@{generate\_systemd\_service}}
+\index{generate\_systemd\_service@{generate\_systemd\_service}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{generate\_systemd\_service()}{generate\_systemd\_service()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a7f71c90bd9eb2a83bf497452d9fdac71} 
+ Path generate\+\_\+systemd\+\_\+service (\begin{DoxyParamCaption}\item[{Path}]{target\+\_\+dir}{, }\item[{str}]{binary\+\_\+name}{, }\item[{str}]{mode}{, }\item[{str}]{node\+\_\+id}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate a systemd .service file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00145}{145}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacedeploy-node_a74f747cd94db57a2c9b15165db87749b}\index{deploy-\/node@{deploy-\/node}!generate\_toml@{generate\_toml}}
+\index{generate\_toml@{generate\_toml}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{generate\_toml()}{generate\_toml()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a74f747cd94db57a2c9b15165db87749b} 
+ Path generate\+\_\+toml (\begin{DoxyParamCaption}\item[{Path}]{target\+\_\+dir}{, }\item[{str}]{mode}{, }\item[{str}]{node\+\_\+id}{, }\item[{int}]{port}{, }\item[{int}]{rpc\+\_\+port}{, }\item[{str}]{seed\+\_\+host}{, }\item[{int}]{seed\+\_\+port}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate omnibus.toml config.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00110}{110}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacedeploy-node_a51af30a60f9f02777c6396b8247e356f}\index{deploy-\/node@{deploy-\/node}!main@{main}}
+\index{main@{main}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00190}{190}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacedeploy-node_a36fb3585a663e65d7d1f16473cf5e6dd}\index{deploy-\/node@{deploy-\/node}!ok@{ok}}
+\index{ok@{ok}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{ok()}{ok()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a36fb3585a663e65d7d1f16473cf5e6dd} 
+ok (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacedeploy-node_a72cc38807bfd658d179228b3b03952e5}\index{deploy-\/node@{deploy-\/node}!step@{step}}
+\index{step@{step}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{step()}{step()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a72cc38807bfd658d179228b3b03952e5} 
+step (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacedeploy-node_a18f510f28672301fc78bbf194b27151f}\index{deploy-\/node@{deploy-\/node}!warn@{warn}}
+\index{warn@{warn}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{warn()}{warn()}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a18f510f28672301fc78bbf194b27151f} 
+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+
+
+\label{namespacedeploy-node_doc-var-members}
+\Hypertarget{namespacedeploy-node_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacedeploy-node_ac8f1fc5fd7b25b821783d3a2f653feb7}\index{deploy-\/node@{deploy-\/node}!ARROW@{ARROW}}
+\index{ARROW@{ARROW}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{ARROW}{ARROW}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_ac8f1fc5fd7b25b821783d3a2f653feb7} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+ARROW = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_a09da1adffef004ed0f412e750c895963}{CYAN}}\}$>$$>$$>$\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_a2f08a9e1081d0b95595bd38775d82b76}\index{deploy-\/node@{deploy-\/node}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a2f08a9e1081d0b95595bd38775d82b76} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_af4f5bbae7d45e05dc799662aa8b0d828}\index{deploy-\/node@{deploy-\/node}!CHECKMARK@{CHECKMARK}}
+\index{CHECKMARK@{CHECKMARK}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{CHECKMARK}{CHECKMARK}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_af4f5bbae7d45e05dc799662aa8b0d828} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+CHECKMARK = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_adfe5981a888b645cf575c9ae485f97f3}{GREEN}}\}\+[OK]\+\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_ae4ec60f58f5dce2886bfde4d1b8734a5}\index{deploy-\/node@{deploy-\/node}!CROSS@{CROSS}}
+\index{CROSS@{CROSS}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{CROSS}{CROSS}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_ae4ec60f58f5dce2886bfde4d1b8734a5} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+CROSS = f"{}\{\doxymbox{\hyperlink{namespacedeploy-node_a7ce93b21b37c435583bf929917e1be6f}{RED}}\}\+[FAIL]\+\{\doxymbox{\hyperlink{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}{RESET}}\}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_a09da1adffef004ed0f412e750c895963}\index{deploy-\/node@{deploy-\/node}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a09da1adffef004ed0f412e750c895963} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_a923a696316ca5f0eb1eeaf7a272a1cf8}\index{deploy-\/node@{deploy-\/node}!DIM@{DIM}}
+\index{DIM@{DIM}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{DIM}{DIM}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a923a696316ca5f0eb1eeaf7a272a1cf8} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+DIM = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_adfe5981a888b645cf575c9ae485f97f3}\index{deploy-\/node@{deploy-\/node}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_adfe5981a888b645cf575c9ae485f97f3} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_a7a35342595d4cc5104e819600d26f521}\index{deploy-\/node@{deploy-\/node}!MAGENTA@{MAGENTA}}
+\index{MAGENTA@{MAGENTA}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{MAGENTA}{MAGENTA}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a7a35342595d4cc5104e819600d26f521} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+MAGENTA = "{}\textbackslash{}033\+[95m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_a7ce93b21b37c435583bf929917e1be6f}\index{deploy-\/node@{deploy-\/node}!RED@{RED}}
+\index{RED@{RED}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a7ce93b21b37c435583bf929917e1be6f} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1}\index{deploy-\/node@{deploy-\/node}!RESET@{RESET}}
+\index{RESET@{RESET}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_ad557102992368ed395e87cc53bdf2fe1} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+
+\Hypertarget{namespacedeploy-node_a3b2fbcf1e8c4031f1f26db16d63b7549}\index{deploy-\/node@{deploy-\/node}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!deploy-\/node@{deploy-\/node}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacedeploy-node_a3b2fbcf1e8c4031f1f26db16d63b7549} 
+str \doxymbox{\hyperlink{namespacedeploy}{deploy}}-\/node.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{deploy-node_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{deploy-node_8py_source}{deploy-\/node.\+py}}.
+

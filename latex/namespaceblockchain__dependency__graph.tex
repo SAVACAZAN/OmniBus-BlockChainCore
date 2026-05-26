@@ -1,0 +1,339 @@
+\doxysection{blockchain\+\_\+dependency\+\_\+graph Namespace Reference}
+\hypertarget{namespaceblockchain__dependency__graph}{}\label{namespaceblockchain__dependency__graph}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{Cycle\+Info}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3}{get\+\_\+layer}} (str module\+\_\+name)
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acc5a869094c2ac5af1ff0ba033d881ea}{get\+\_\+layer\+\_\+name}} (int layer\+\_\+num)
+\item 
+Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a7f60f3dcdd372bda3568ebeb527fc1ac}{build\+\_\+graph}} ()
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{Cycle\+Info}}]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acbc4cf9b825fb9b2879592b0da4c60b5}{find\+\_\+cycles}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph)
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a01de46534cc2c180c06766a586162181}{find\+\_\+zombies}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph)
+\item 
+List\+[Tuple\+[str, int, int]\+]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a5cca26f89782b4c0c79fbe47192229e6}{find\+\_\+hubs}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph, int threshold=5)
+\item 
+Dict\+[str, float]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ad9f4b464c8993ba19bc2446e39577511}{calc\+\_\+coupling}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph)
+\item 
+List\+[Tuple\+[str, str, int, int]\+]\+ \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a893bee52ec18f36de87d575466780d6d}{find\+\_\+layer\+\_\+violations}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ae18befc196ea62997094c8c99cff9439}{print\+\_\+report}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph, List\+[\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{Cycle\+Info}}]\+ cycles, List\+[str]\+ zombies, List\+[Tuple\+[str, int, int]\+]\+ hubs, List\+[Tuple\+[str, str, int, int]\+]\+ violations, Dict\+[str, float]\+ coupling, str specific\+\_\+module=None)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_abbe46775c3db481e0313603a16f011a8}{generate\+\_\+dot}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_acf6beaf5c3d7150474e87362c40204dd}{export\+\_\+json}} (Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ graph, cycles, zombies, hubs, violations, coupling, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a9947f545ca43dd66ab6a5724fd274a22}{CORE}} = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_af61b6af30eecf96a396683de52b2625c}{TEST}} = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}test"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a4e037d847ed432e386473611d2c563ea}{AGENT}} = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}agent"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a9419e8c90e67ae64045278eedd75ecbe}{LAYER\+\_\+\+MAP}}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a3175b29b638dbf3f9adffab763f308fa}{G}} = "{}\textbackslash{}033\+[94m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ad70fc3a167ee273295a9b24614cf3859}{C}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_ae8c8cc0e97cf2bda1ea16d01be60cd6f}{LAYER\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}blockchain_dependency_graph.py - Module Dependency Analyzer v1.0
+
+Analizeaza graful de dependente intre modulele blockchain:
+  - Cine @import pe cine
+  - Detecteaza dependente circulare
+  - Gaseste module izolate (zombies)
+  - Calculeaza coupling/cohesion per modul
+  - Gaseste single points of failure (hub modules)
+  - Genereaza graf DOT pentru Graphviz
+  - Layer analysis (crypto -> chain -> network -> storage -> node)
+
+Usage:
+  python tools/blockchain_dependency_graph.py                 # Full analysis
+  python tools/blockchain_dependency_graph.py --dot graph.dot # Export Graphviz DOT
+  python tools/blockchain_dependency_graph.py --json deps.json
+  python tools/blockchain_dependency_graph.py --module p2p    # Show deps for p2p
+\end{DoxyVerb}
+ 
+
+\label{namespaceblockchain__dependency__graph_doc-func-members}
+\Hypertarget{namespaceblockchain__dependency__graph_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceblockchain__dependency__graph_a7f60f3dcdd372bda3568ebeb527fc1ac}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!build\_graph@{build\_graph}}
+\index{build\_graph@{build\_graph}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{build\_graph()}{build\_graph()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a7f60f3dcdd372bda3568ebeb527fc1ac} 
+ Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+ build\+\_\+graph (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Build dependency graph from all Zig files.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00113}{113}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceblockchain__dependency__graph_ad9f4b464c8993ba19bc2446e39577511}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!calc\_coupling@{calc\_coupling}}
+\index{calc\_coupling@{calc\_coupling}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{calc\_coupling()}{calc\_coupling()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_ad9f4b464c8993ba19bc2446e39577511} 
+ Dict\+[str, float]\+ calc\+\_\+coupling (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+}]{graph}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Calculate coupling score per module (0=isolated, 1=maximum coupling).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00226}{226}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceblockchain__dependency__graph_acf6beaf5c3d7150474e87362c40204dd}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!export\_json@{export\_json}}
+\index{export\_json@{export\_json}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{export\_json()}{export\_json()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_acf6beaf5c3d7150474e87362c40204dd} 
+export\+\_\+json (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+}]{graph}{, }\item[{}]{cycles}{, }\item[{}]{zombies}{, }\item[{}]{hubs}{, }\item[{}]{violations}{, }\item[{}]{coupling}{, }\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00440}{440}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceblockchain__dependency__graph_acbc4cf9b825fb9b2879592b0da4c60b5}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!find\_cycles@{find\_cycles}}
+\index{find\_cycles@{find\_cycles}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{find\_cycles()}{find\_cycles()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_acbc4cf9b825fb9b2879592b0da4c60b5} 
+ List\+[\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{Cycle\+Info}}]\+ find\+\_\+cycles (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+}]{graph}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find circular dependencies using DFS.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00159}{159}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceblockchain__dependency__graph_a5cca26f89782b4c0c79fbe47192229e6}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!find\_hubs@{find\_hubs}}
+\index{find\_hubs@{find\_hubs}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{find\_hubs()}{find\_hubs()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a5cca26f89782b4c0c79fbe47192229e6} 
+ List\+[Tuple\+[str, int, int]\+]\+ find\+\_\+hubs (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+}]{graph}{, }\item[{int }]{threshold}{ = {\ttfamily 5}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find hub modules (high in-degree or out-degree).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00215}{215}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceblockchain__dependency__graph_a893bee52ec18f36de87d575466780d6d}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!find\_layer\_violations@{find\_layer\_violations}}
+\index{find\_layer\_violations@{find\_layer\_violations}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{find\_layer\_violations()}{find\_layer\_violations()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a893bee52ec18f36de87d575466780d6d} 
+ List\+[Tuple\+[str, str, int, int]\+]\+ find\+\_\+layer\+\_\+violations (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+}]{graph}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find imports that go UP in layers (violations).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00238}{238}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespaceblockchain__dependency__graph_a01de46534cc2c180c06766a586162181}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!find\_zombies@{find\_zombies}}
+\index{find\_zombies@{find\_zombies}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{find\_zombies()}{find\_zombies()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a01de46534cc2c180c06766a586162181} 
+ List\+[str]\+ find\+\_\+zombies (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+}]{graph}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find isolated modules (no imports, not imported by anyone).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00204}{204}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceblockchain__dependency__graph_abbe46775c3db481e0313603a16f011a8}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!generate\_dot@{generate\_dot}}
+\index{generate\_dot@{generate\_dot}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{generate\_dot()}{generate\_dot()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_abbe46775c3db481e0313603a16f011a8} 
+generate\+\_\+dot (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+}]{graph}{, }\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate Graphviz DOT file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00385}{385}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!get\_layer@{get\_layer}}
+\index{get\_layer@{get\_layer}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{get\_layer()}{get\_layer()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_aaf5e0d145e5291a6d876ff2ad75483c3} 
+ int get\+\_\+layer (\begin{DoxyParamCaption}\item[{str}]{module\+\_\+name}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00098}{98}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespaceblockchain__dependency__graph_acc5a869094c2ac5af1ff0ba033d881ea}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!get\_layer\_name@{get\_layer\_name}}
+\index{get\_layer\_name@{get\_layer\_name}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{get\_layer\_name()}{get\_layer\_name()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_acc5a869094c2ac5af1ff0ba033d881ea} 
+ str get\+\_\+layer\+\_\+name (\begin{DoxyParamCaption}\item[{int}]{layer\+\_\+num}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00104}{104}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespaceblockchain__dependency__graph_a51af30a60f9f02777c6396b8247e356f}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!main@{main}}
+\index{main@{main}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00478}{478}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+Here is the caller graph for this function:\+
+% FIG 13
+\Hypertarget{namespaceblockchain__dependency__graph_ae18befc196ea62997094c8c99cff9439}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!print\_report@{print\_report}}
+\index{print\_report@{print\_report}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{print\_report()}{print\_report()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_ae18befc196ea62997094c8c99cff9439} 
+print\+\_\+report (\begin{DoxyParamCaption}\item[{Dict\+[str, \doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_module_node}{Module\+Node}}]\+}]{graph}{, }\item[{List\+[\doxymbox{\hyperlink{classblockchain__dependency__graph_1_1_cycle_info}{Cycle\+Info}}]\+}]{cycles}{, }\item[{List\+[str]\+}]{zombies}{, }\item[{List\+[Tuple\+[str, int, int]\+]\+}]{hubs}{, }\item[{List\+[Tuple\+[str, str, int, int]\+]\+}]{violations}{, }\item[{Dict\+[str, float]\+}]{coupling}{, }\item[{str }]{specific\+\_\+module}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00272}{272}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 14
+Here is the caller graph for this function:\+
+% FIG 15
+
+
+\label{namespaceblockchain__dependency__graph_doc-var-members}
+\Hypertarget{namespaceblockchain__dependency__graph_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceblockchain__dependency__graph_a4e037d847ed432e386473611d2c563ea}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!AGENT@{AGENT}}
+\index{AGENT@{AGENT}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{AGENT}{AGENT}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a4e037d847ed432e386473611d2c563ea} 
+str blockchain\+\_\+dependency\+\_\+graph.\+AGENT = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}agent"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+\Hypertarget{namespaceblockchain__dependency__graph_ad70fc3a167ee273295a9b24614cf3859}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!C@{C}}
+\index{C@{C}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{C}{C}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_ad70fc3a167ee273295a9b24614cf3859} 
+str blockchain\+\_\+dependency\+\_\+graph.\+C = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00257}{257}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+\Hypertarget{namespaceblockchain__dependency__graph_a9947f545ca43dd66ab6a5724fd274a22}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!CORE@{CORE}}
+\index{CORE@{CORE}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{CORE}{CORE}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a9947f545ca43dd66ab6a5724fd274a22} 
+str blockchain\+\_\+dependency\+\_\+graph.\+CORE = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+\Hypertarget{namespaceblockchain__dependency__graph_a3175b29b638dbf3f9adffab763f308fa}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!G@{G}}
+\index{G@{G}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{G}{G}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a3175b29b638dbf3f9adffab763f308fa} 
+str blockchain\+\_\+dependency\+\_\+graph.\+G = "{}\textbackslash{}033\+[94m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00256}{256}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+\Hypertarget{namespaceblockchain__dependency__graph_ae8c8cc0e97cf2bda1ea16d01be60cd6f}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!LAYER\_COLORS@{LAYER\_COLORS}}
+\index{LAYER\_COLORS@{LAYER\_COLORS}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{LAYER\_COLORS}{LAYER\_COLORS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_ae8c8cc0e97cf2bda1ea16d01be60cd6f} 
+dict blockchain\+\_\+dependency\+\_\+graph.\+LAYER\+\_\+\+COLORS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ 0:\ \textcolor{stringliteral}{"{}\(\backslash\)033[95m"{}},\ \ \textcolor{comment}{\#\ Purple\ -\/\ Crypto}}
+\DoxyCodeLine{\ \ \ \ 1:\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}},\ \ \textcolor{comment}{\#\ Cyan\ -\/\ Types}}
+\DoxyCodeLine{\ \ \ \ 2:\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}},\ \ \textcolor{comment}{\#\ Green\ -\/\ Core}}
+\DoxyCodeLine{\ \ \ \ 3:\ \textcolor{stringliteral}{"{}\(\backslash\)033[94m"{}},\ \ \textcolor{comment}{\#\ Blue\ -\/\ Network}}
+\DoxyCodeLine{\ \ \ \ 4:\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}},\ \ \textcolor{comment}{\#\ Yellow\ -\/\ Storage}}
+\DoxyCodeLine{\ \ \ \ 5:\ \textcolor{stringliteral}{"{}\(\backslash\)033[97m"{}},\ \ \textcolor{comment}{\#\ White\ -\/\ Node}}
+\DoxyCodeLine{\ \ \ \ 6:\ \textcolor{stringliteral}{"{}\(\backslash\)033[33m"{}},\ \ \textcolor{comment}{\#\ Dark\ yellow\ -\/\ Features}}
+\DoxyCodeLine{\ \ \ \ 7:\ \textcolor{stringliteral}{"{}\(\backslash\)033[36m"{}},\ \ \textcolor{comment}{\#\ Dark\ cyan\ -\/\ Economic}}
+\DoxyCodeLine{\ \ \ \ 8:\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}},\ \ \textcolor{comment}{\#\ Red\ -\/\ Entry}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00259}{259}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+\Hypertarget{namespaceblockchain__dependency__graph_a9419e8c90e67ae64045278eedd75ecbe}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!LAYER\_MAP@{LAYER\_MAP}}
+\index{LAYER\_MAP@{LAYER\_MAP}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{LAYER\_MAP}{LAYER\_MAP}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a9419e8c90e67ae64045278eedd75ecbe} 
+dict blockchain\+\_\+dependency\+\_\+graph.\+LAYER\+\_\+\+MAP}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00059}{59}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+\Hypertarget{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3} 
+blockchain\+\_\+dependency\+\_\+graph.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+
+\Hypertarget{namespaceblockchain__dependency__graph_af61b6af30eecf96a396683de52b2625c}\index{blockchain\_dependency\_graph@{blockchain\_dependency\_graph}!TEST@{TEST}}
+\index{TEST@{TEST}!blockchain\_dependency\_graph@{blockchain\_dependency\_graph}}
+\doxysubsubsection{\texorpdfstring{TEST}{TEST}}
+{\footnotesize\ttfamily \label{namespaceblockchain__dependency__graph_af61b6af30eecf96a396683de52b2625c} 
+str blockchain\+\_\+dependency\+\_\+graph.\+TEST = \doxymbox{\hyperlink{namespaceblockchain__dependency__graph_a1fc04e63a2af5ab51d2804e949efebd3}{ROOT}} /\+ "{}test"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{blockchain__dependency__graph_8py_source}{blockchain\+\_\+dependency\+\_\+graph.\+py}}.
+

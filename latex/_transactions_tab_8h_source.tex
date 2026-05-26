@@ -1,0 +1,38 @@
+\doxysection{Transactions\+Tab.\+h}
+\hypertarget{_transactions_tab_8h_source}{}\label{_transactions_tab_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/TransactionsTab.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/TransactionsTab.h}}
+\doxymbox{\hyperlink{_transactions_tab_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QTableView>}}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QLineEdit>}}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QComboBox>}}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <QSortFilterProxyModel>}}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00009}00009\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00011}00011\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_transaction_table_model}{TransactionTableModel}};}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00013}\doxymbox{\hyperlink{classomni_1_1_transactions_tab}{00013}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_transactions_tab_af9cfd8f5432c4779701ee490286f03c4}{TransactionsTab}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00014}00014\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00015}00015\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00016}00016\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_transactions_tab_af9cfd8f5432c4779701ee490286f03c4}{TransactionsTab}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00018}00018\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00019}00019\ \ \ \ \ \textcolor{keywordtype}{void}\ onFilterChanged();}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00020}00020\ \ \ \ \ \textcolor{keywordtype}{void}\ refreshTransactions();}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00022}00022\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00023}00023\ \ \ \ \ \textcolor{keywordtype}{void}\ setupUi();}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00025}00025\ \ \ \ \ QTableView*\ \ \ \ \ \ \ \ \ \ \ \ \ m\_tableView;}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00026}00026\ \ \ \ \ QLineEdit*\ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_searchEdit;}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00027}00027\ \ \ \ \ QComboBox*\ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_filterCombo;}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00028}00028\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_transaction_table_model}{TransactionTableModel}}*\ \ m\_model;}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00029}00029\ \ \ \ \ QSortFilterProxyModel*\ \ m\_proxyModel;}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00030}00030\ \};}
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{_transactions_tab_8h_source_l00032}00032\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

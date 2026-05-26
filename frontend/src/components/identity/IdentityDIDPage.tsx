@@ -11,10 +11,10 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
+import { CopyButton } from "../common/CopyButton";
 
-const rpc = new OmniBusRpcClient();
 
 // ── RPC response types ────────────────────────────────────────────────────────
 
@@ -155,32 +155,9 @@ function isMicaDiscloseResult(v: unknown): v is MicaDiscloseResult {
 
 // ── small helpers ─────────────────────────────────────────────────────────────
 
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).catch(() => undefined);
-}
-
 function ts(unix: number): string {
   if (unix === 0) return "—";
   return new Date(unix * 1000).toLocaleString();
-}
-
-// ── sub-components ────────────────────────────────────────────────────────────
-
-function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-  const handle = () => {
-    copyToClipboard(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-  return (
-    <button
-      onClick={handle}
-      className="bg-mempool-blue text-white px-3 py-1 rounded-lg text-xs font-semibold hover:opacity-90 active:scale-95 transition-transform"
-    >
-      {copied ? "Copied!" : label}
-    </button>
-  );
 }
 
 function Badge({ active, label }: { active: boolean; label: string }) {
@@ -228,14 +205,14 @@ function ProofDisplay({
           <span className="text-xs text-mempool-text-dim font-semibold uppercase tracking-wide">
             Merkle Proof
           </span>
-          <CopyButton text={jsonPayload} label="Copy JSON" />
+          <CopyButton text={jsonPayload} label="Copy JSON" variant="button" />
         </div>
         {proof.length === 0 ? (
           <span className="text-xs text-mempool-text-dim italic">No siblings (single-leaf tree)</span>
         ) : (
           <ul className="space-y-1">
             {proof.map((sibling, i) => (
-              <li key={i} className="font-mono text-xs text-mempool-text break-all">
+              <li key={`${i}:${sibling}`} className="font-mono text-xs text-mempool-text break-all">
                 <span className="text-mempool-text-dim mr-2">[{i}]</span>
                 {sibling}
               </li>
@@ -263,6 +240,12 @@ function LoadingSpinner() {
   );
 }
 
+const RISK_COLOR: Record<string, string> = {
+  low:    "text-green-400",
+  medium: "text-yellow-400",
+  high:   "text-red-400",
+};
+
 // ── Tab 1: DID & OBM ─────────────────────────────────────────────────────────
 
 const OBM_BITS: { key: keyof ObmResult; label: string; desc: string }[] = [
@@ -289,9 +272,9 @@ function TabDIDOBM({ address }: { address: string }) {
     setError(null);
 
     Promise.all([
-      rpc.request_raw("getdid", [address]),
-      rpc.request_raw("getobm", [address]),
-      rpc.request_raw("getfacets", [address]),
+      rpc.getDid(address),
+      rpc.getObm(address),
+      rpc.getFacets(address),
     ])
       .then(([d, o, f]) => {
         if (isDidResult(d)) setDid(d);
@@ -319,7 +302,7 @@ function TabDIDOBM({ address }: { address: string }) {
       <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-mempool-text">Decentralized Identifier (DID)</span>
-          {did && <CopyButton text={did.did} label="Copy DID" />}
+          {did && <CopyButton text={did.did} label="Copy DID" variant="button" />}
         </div>
         {did ? (
           <p
@@ -429,7 +412,7 @@ function TabFacets({ address }: { address: string }) {
     setLoading(true);
     setError(null);
     rpc
-      .request_raw("getfacets", [address])
+      .getFacets(address)
       .then((f) => {
         if (isFacetsResult(f)) setFacets(f);
       })
@@ -689,7 +672,7 @@ function TabMiCA({ address }: { address: string }) {
     setLoading(true);
     setError(null);
     rpc
-      .request_raw("mica_disclose", [address])
+      .micaDisclose(address)
       .then((r) => {
         if (isMicaDiscloseResult(r)) setData(r);
       })
@@ -701,13 +684,6 @@ function TabMiCA({ address }: { address: string }) {
 
   if (loading) return <LoadingSpinner />;
   if (error) return <p className="text-red-400 text-sm">{error}</p>;
-
-  const riskColor = (cat: string) => {
-    if (cat === "low") return "text-green-400";
-    if (cat === "medium") return "text-yellow-400";
-    if (cat === "high") return "text-red-400";
-    return "text-mempool-text-dim";
-  };
 
   return (
     <div className="space-y-4">
@@ -722,7 +698,7 @@ function TabMiCA({ address }: { address: string }) {
         </div>
         <div>
           <span className="text-xs text-mempool-text-dim block mb-1">Risk Category</span>
-          <span className={`text-sm font-semibold ${riskColor(data?.risk_category ?? "unknown")}`}>
+          <span className={`text-sm font-semibold ${RISK_COLOR[data?.risk_category ?? ""] ?? "text-mempool-text-dim"}`}>
             {data?.risk_category ?? "unknown"}
           </span>
         </div>
@@ -737,9 +713,9 @@ function TabMiCA({ address }: { address: string }) {
       {/* Attestations */}
       {data && data.attestations.length > 0 ? (
         <div className="space-y-3">
-          {data.attestations.map((att, i) => (
+          {data.attestations.map((att) => (
             <div
-              key={i}
+              key={att.signature_hex}
               className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4"
             >
               <div className="flex items-center justify-between mb-2">
@@ -760,6 +736,7 @@ function TabMiCA({ address }: { address: string }) {
                 <CopyButton
                   text={JSON.stringify(att, null, 2)}
                   label="Copy Attestation"
+                  variant="button"
                 />
               </div>
             </div>
@@ -782,15 +759,87 @@ function TabMiCA({ address }: { address: string }) {
   );
 }
 
+// ── Tab: Identity Lookup (getidentity) ────────────────────────────────────────
+
+function TabIdentityLookup() {
+  const [addr, setAddr] = useState("");
+  const [result, setResult] = useState<unknown>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  const lookup = useCallback(async () => {
+    const a = addr.trim();
+    if (!a) { setErr("Enter an address"); return; }
+    setLoading(true); setErr(""); setResult(null);
+    try {
+      const r = await rpc.getIdentity(a);
+      setResult(r);
+    } catch (e) { setErr(String(e)); }
+    finally { setLoading(false); }
+  }, [addr]);
+
+  const renderField = (key: string, val: unknown) => {
+    if (val === null || val === undefined) return null;
+    if (typeof val === "object") return null;
+    return (
+      <div key={key} className="flex justify-between gap-2 text-xs flex-wrap">
+        <span className="text-mempool-text-dim">{key}</span>
+        <span className="font-mono text-mempool-text break-all text-right max-w-[60%]">{String(val)}</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-mempool-text-dim">
+        Full identity snapshot for any address — PQ attestations, EVM links, balance, roles, and name registry.
+        Uses <code className="font-mono text-purple-400">getidentity</code>.
+      </p>
+      <div className="flex gap-2">
+        <input
+          value={addr}
+          onChange={(e) => setAddr(e.target.value)}
+          placeholder="ob1q… / 0x… / obk1_…"
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-xs font-mono text-mempool-text"
+        />
+        <button
+          onClick={lookup}
+          disabled={loading || !addr}
+          className="px-4 py-2 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded-lg disabled:opacity-50"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result !== null && (
+        <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-2">
+          <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider mb-2">Identity Result</h3>
+          {typeof result === "object" && result !== null
+            ? Object.entries(result as Record<string, unknown>).map(([k, v]) => renderField(k, v))
+            : <p className="font-mono text-xs text-mempool-text">{String(result)}</p>
+          }
+          <details className="mt-2">
+            <summary className="text-[10px] text-mempool-text-dim cursor-pointer">Raw JSON</summary>
+            <pre className="text-[9px] font-mono text-mempool-text-dim mt-1 overflow-x-auto whitespace-pre-wrap">
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-type TabKey = "did" | "facets" | "disclosure" | "mica";
+type TabKey = "did" | "facets" | "disclosure" | "mica" | "lookup";
 
 const TABS: { id: TabKey; label: string }[] = [
   { id: "did",        label: "DID & OBM" },
   { id: "facets",     label: "Facets Overview" },
   { id: "disclosure", label: "Selective Disclosure" },
   { id: "mica",       label: "MiCA Compliance" },
+  { id: "lookup",     label: "Identity Lookup" },
 ];
 
 export function IdentityDIDPage() {
@@ -834,7 +883,7 @@ export function IdentityDIDPage() {
             <h2 className="text-lg font-bold text-mempool-text mb-1">OmniBus Identity</h2>
             <p className="text-xs text-mempool-text-dim font-mono break-all">{address}</p>
           </div>
-          <CopyButton text={address} label="Copy Address" />
+          <CopyButton text={address} label="Copy Address" variant="button" />
         </div>
       </div>
 
@@ -861,6 +910,7 @@ export function IdentityDIDPage() {
         {activeTab === "facets"     && <TabFacets address={address} />}
         {activeTab === "disclosure" && <TabSelectiveDisclosure address={address} />}
         {activeTab === "mica"       && <TabMiCA address={address} />}
+        {activeTab === "lookup"     && <TabIdentityLookup />}
       </div>
     </div>
   );

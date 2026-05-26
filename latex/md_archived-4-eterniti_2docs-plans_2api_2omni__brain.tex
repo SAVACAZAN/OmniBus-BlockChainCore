@@ -1,0 +1,255 @@
+\chapter{Module:\+ {\ttfamily omni\+\_\+brain} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain}{}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain}\index{Module: $<$tt$>$omni\_brain$<$/tt$>$@{Module: $<$tt$>$omni\_brain$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2303}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2303}%
+
+
+\begin{quote}
+AI/\+\+ML node intelligence — auto-\/detect optimal Node\+Type (full/\+trading/\+validator/\+light) based on hardware and network. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+omni\+\_\+brain.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 243 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 6 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2305}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2305}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2306}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2306}
+
+\begin{DoxyItemize}
+\item \`{}\+Brain\+Config\`{}{\ttfamily Brain\+Config}
+\end{DoxyItemize}— Data structure for brain config. Fields include:\+ num\+\_\+shards, node\+\_\+type, trading\+\_\+...
+\begin{DoxyItemize}
+\item \`{}\+Brain\+Stats\`{}{\ttfamily Brain\+Stats}
+\end{DoxyItemize}— Data structure for brain stats. Fields include:\+ uptime\+\_\+blocks, total\+\_\+cycles, blo...
+\begin{DoxyItemize}
+\item \`{}\+Omni\+Brain\`{}{\ttfamily Omni\+Brain}
+\end{DoxyItemize}— Data structure for omni brain. Fields include:\+ allocator, config, os\+\_\+mgr, schedu...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2307}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2307}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2308}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2308}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}start()\`{}{\ttfamily start()}
+\end{DoxyItemize}— Porneste Omni\+Brain:\+ activeaza OS-\/urile corespunzatoare node\+\_\+type
+\begin{DoxyItemize}
+\item \`{}run\+Cycles()\`{}{\ttfamily run\+Cycles()}
+\end{DoxyItemize}— Ruleaza N cicluri ale brain-\/ului
+\begin{DoxyItemize}
+\item \`{}record\+Trade()\`{}{\ttfamily record\+Trade()}
+\end{DoxyItemize}— Inregistreaza un trade executat (din Execution\+OS)
+\begin{DoxyItemize}
+\item \`{}assert\+Invariants()\`{}{\ttfamily assert\+Invariants()}
+\end{DoxyItemize}— Verifica invariantii Ada/\+\+SPARK
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the omni\+\_\+brain module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2310}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2310}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2311}{}\doxysubsection{\texorpdfstring{{\ttfamily Brain\+Config}}{{\ttfamily Brain\+Config}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2311}
+Data structure for brain config. Fields include:\+ num\+\_\+shards, node\+\_\+type, trading\+\_\+enabled, chain\+\_\+enabled, ubi\+\_\+enabled.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily num\+\_\+shards}  &{\ttfamily u8}  &Num\+\_\+shards  \\
+{\ttfamily node\+\_\+type}  &{\ttfamily Node\+Type}  &Node\+\_\+type  \\
+{\ttfamily trading\+\_\+enabled}  &{\ttfamily bool}  &Trading\+\_\+enabled  \\
+{\ttfamily chain\+\_\+enabled}  &{\ttfamily bool}  &Chain\+\_\+enabled  \\
+{\ttfamily ubi\+\_\+enabled}  &{\ttfamily bool}  &Ubi\+\_\+enabled  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 27}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2313}{}\doxysubsection{\texorpdfstring{{\ttfamily Brain\+Stats}}{{\ttfamily Brain\+Stats}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2313}
+Data structure for brain stats. Fields include:\+ uptime\+\_\+blocks, total\+\_\+cycles, blocks\+\_\+mined, trades\+\_\+executed, ubi\+\_\+epochs.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily uptime\+\_\+blocks}  &{\ttfamily u64}  &Uptime\+\_\+blocks  \\
+{\ttfamily total\+\_\+cycles}  &{\ttfamily u64}  &Total\+\_\+cycles  \\
+{\ttfamily blocks\+\_\+mined}  &{\ttfamily u64}  &Blocks\+\_\+mined  \\
+{\ttfamily trades\+\_\+executed}  &{\ttfamily u64}  &Trades\+\_\+executed  \\
+{\ttfamily ubi\+\_\+epochs}  &{\ttfamily u64}  &Ubi\+\_\+epochs  \\
+{\ttfamily active\+\_\+channels}  &{\ttfamily u64}  &Active\+\_\+channels  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 47}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2315}{}\doxysubsection{\texorpdfstring{{\ttfamily Omni\+Brain}}{{\ttfamily Omni\+Brain}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2315}
+Data structure for omni brain. Fields include:\+ allocator, config, os\+\_\+mgr, scheduler, supply.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily config}  &{\ttfamily Brain\+Config}  &Config  \\
+{\ttfamily os\+\_\+mgr}  &{\ttfamily Os\+Mode\+Manager}  &Os\+\_\+mgr  \\
+{\ttfamily scheduler}  &{\ttfamily Synapse\+Scheduler}  &Scheduler  \\
+{\ttfamily supply}  &{\ttfamily Supply\+Guard}  &Supply  \\
+{\ttfamily stats}  &{\ttfamily Brain\+Stats}  &Stats  \\
+{\ttfamily started}  &{\ttfamily bool}  &Started  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 58}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2317}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2317}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Os\+Mode}  &{\ttfamily os\+\_\+mode\+\_\+mod.\+Os\+Mode}  &Os mode  \\
+{\ttfamily Os\+Mode\+Manager}  &{\ttfamily os\+\_\+mode\+\_\+mod.\+Os\+Mode\+Manager}  &Os mode manager  \\
+{\ttfamily Synapse\+Scheduler}  &{\ttfamily synapse\+\_\+mod.\+Synapse\+Scheduler}  &Synapse scheduler  \\
+{\ttfamily Supply\+Guard}  &{\ttfamily spark\+\_\+mod.\+Supply\+Guard}  &Supply guard  \\
+{\ttfamily Node\+Type}  &{\ttfamily enum(u8) \{}  &Node type  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2319}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2319}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2320}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2320}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator,\ config:\ BrainConfig)\ OmniBrain\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily config}  &{\ttfamily Brain\+Config}  &Config  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Omni\+Brain}
+
+{\itshape Defined at line 67}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2322}{}\doxysubsection{\texorpdfstring{{\ttfamily start()}}{{\ttfamily start()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2322}
+Porneste Omni\+Brain:\+ activeaza OS-\/urile corespunzatoare node\+\_\+type
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ start(self:\ *OmniBrain)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Omni\+Brain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 80}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2324}{}\doxysubsection{\texorpdfstring{{\ttfamily run\+Cycles()}}{{\ttfamily run\+Cycles()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2324}
+Ruleaza N cicluri ale brain-\/ului
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ runCycles(self:\ *OmniBrain,\ n:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Omni\+Brain}  &The instance  \\
+{\ttfamily n}  &{\ttfamily u64}  &N  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 120}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2326}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+Trade()}}{{\ttfamily record\+Trade()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2326}
+Inregistreaza un trade executat (din Execution\+OS)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordTrade(self:\ *OmniBrain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Omni\+Brain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 138}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2328}{}\doxysubsection{\texorpdfstring{{\ttfamily assert\+Invariants()}}{{\ttfamily assert\+Invariants()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2328}
+Verifica invariantii Ada/\+\+SPARK
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ assertInvariants(self:\ *const\ OmniBrain)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Omni\+Brain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 143}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2330}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2omni__brain_autotoc_md2330}
+Performs the print status operation on the omni\+\_\+brain module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ OmniBrain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Omni\+Brain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 151}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

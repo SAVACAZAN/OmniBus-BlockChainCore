@@ -1,0 +1,37 @@
+\chapter{lightning.\+zig — API Reference }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2lightning}{}\label{md_archived-4-eterniti_2docs-plans_2api_2lightning}\index{lightning.zig — API Reference@{lightning.zig — API Reference}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2lightning_autotoc_md1929}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2lightning_autotoc_md1929}%
+
+
+\begin{quote}
+Auto-\/generated from core/\+lightning.\+zig \end{quote}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2lightning_autotoc_md1930}{}\doxysection{\texorpdfstring{Public Functions}{Public Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2lightning_autotoc_md1930}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ const\ ChannelState\ =\ enum\ \{}
+\DoxyCodeLine{pub\ const\ Channel\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ canSend(self:\ *const\ Channel,\ amount:\ u64)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ canReceive(self:\ *const\ Channel,\ amount:\ u64)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ updateBalance(self:\ *Channel,\ amount:\ u64,\ direction:\ enum\ \{\ send,\ receive\ \})\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ initiateClose(self:\ *Channel)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ forceClose(self:\ *Channel)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ completeClose(self:\ *Channel)\ void\ \{}
+\DoxyCodeLine{pub\ const\ Invoice\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ isExpired(self:\ *const\ Invoice)\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ create(payment\_hash:\ [32]u8,\ amount:\ u64,\ recipient:\ []const\ u8,\ description:\ []const\ u8,\ expiry\_secs:\ i64)\ Invoice\ \{}
+\DoxyCodeLine{pub\ const\ LightningNode\ =\ struct\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ init(address:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ LightningNode\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ deinit(self:\ *LightningNode)\ void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ openChannel(}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ sendPayment(self:\ *LightningNode,\ channel\_id:\ u64,\ amount:\ u64)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ receivePayment(self:\ *LightningNode,\ channel\_id:\ u64,\ amount:\ u64)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ createInvoice(self:\ *LightningNode,\ amount:\ u64,\ description:\ []const\ u8,\ expiry\_secs:\ i64)\ ![32]u8\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ closeChannel(self:\ *LightningNode,\ channel\_id:\ u64)\ !void\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ totalCapacity(self:\ *const\ LightningNode)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ outboundLiquidity(self:\ *const\ LightningNode)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ inboundLiquidity(self:\ *const\ LightningNode)\ u64\ \{}
+\DoxyCodeLine{\ \ \ \ pub\ fn\ activeChannels(self:\ *const\ LightningNode)\ u32\ \{}
+
+\end{DoxyCode}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2lightning_autotoc_md1931}{}\doxysection{\texorpdfstring{Tests:\+ 6}{Tests:\+ 6}}\label{md_archived-4-eterniti_2docs-plans_2api_2lightning_autotoc_md1931}

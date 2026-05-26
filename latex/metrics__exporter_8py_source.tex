@@ -1,0 +1,185 @@
+\doxysection{metrics\+\_\+exporter.\+py}
+\hypertarget{metrics__exporter_8py_source}{}\label{metrics__exporter_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/MONITORING/metrics\_exporter.py@{archived-\/4-\/eterniti/tools-\/python/MONITORING/metrics\_exporter.py}}
+\doxymbox{\hyperlink{metrics__exporter_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00001}\doxymbox{\hyperlink{namespacemetrics__exporter}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00003}00003\ \textcolor{stringliteral}{metrics\_exporter.py\ -\/\ Prometheus\ Metrics\ Exporter\ v1.0}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00005}00005\ \textcolor{stringliteral}{Exportă\ metrici\ blockchain\ pentru\ Prometheus/Grafana:}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Block\ height,\ timestamp,\ difficulty}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Mempool\ size,\ transaction\ count}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Peer\ connections}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Mining\ statistics}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ Memory\ and\ CPU\ usage}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00011}00011\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00012}00012\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ python\ tools/MONITORING/metrics\_exporter.py\ \ \ \ \ \ \ \ \ \ \ \#\ Print\ metrics}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ python\ tools/MONITORING/metrics\_exporter.py\ -\/-\/http\ \ \ \ \#\ Start\ HTTP\ server}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ python\ tools/MONITORING/metrics\_exporter.py\ -\/-\/port\ 9090}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00016}00016\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00018}00018\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00019}00019\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00020}00020\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00021}00021\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00022}00022\ \textcolor{keyword}{import}\ \doxymbox{\hyperlink{namespacehttp_1_1server}{http.server}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00023}00023\ \textcolor{keyword}{import}\ socketserver}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00024}00024\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00025}00025\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00026}00026\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Dict,\ Optional}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00027}00027\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00028}00028\ \textcolor{keyword}{import}\ urllib.request}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00030}\doxymbox{\hyperlink{namespacemetrics__exporter_a1a3cf56b30f67096506257240ab93a29}{00030}}\ RPC\_HOST\ =\ \textcolor{stringliteral}{"{}127.0.0.1"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00031}\doxymbox{\hyperlink{namespacemetrics__exporter_ad2826f479fc5ac2cb06f3d3e6fe42605}{00031}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00033}00033\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00034}\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics}{00034}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics}{BlockchainMetrics}}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00035}\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics_a776bbc0992706d81aae024f969433e49}{00035}}\ \ \ \ \ block\_height:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00036}\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics_a752f6aed5016841c9ab75546e6234dcf}{00036}}\ \ \ \ \ mempool\_size:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00037}\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics_a9a5422e393bfbb2e856e3a9937de44ce}{00037}}\ \ \ \ \ total\_transactions:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00038}\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics_a5cf24b3c3c07d5825eed5a027b646b18}{00038}}\ \ \ \ \ active\_miners:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00039}\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics_a5045b461f7f9f3c49fa64910c0839001}{00039}}\ \ \ \ \ registered\_miners:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00040}\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics_ac07325c668737524e21dc4cfcf5d4843}{00040}}\ \ \ \ \ total\_supply:\ float\ =\ 0.0}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00041}\doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics_a5ebc7fa9f508eb7eda4206a0e6940284}{00041}}\ \ \ \ \ timestamp:\ float\ =\ 0.0}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00043}\doxymbox{\hyperlink{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308}{rpc\_call}}(method:\ str,\ params:\ list\ =\ \textcolor{keywordtype}{None})\ -\/>\ Optional[dict]:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00044}00044\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Make\ RPC\ call\ to\ blockchain\ node."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00045}00045\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ req\ =\ urllib.request.Request(}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}http://\{RPC\_HOST\}:\{RPC\_PORT\}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \ \ \ \ data=json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ 1}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \}).encode(),}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ headers=\{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ method=\textcolor{stringliteral}{"{}POST"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ urllib.request.urlopen(req,\ timeout=5)\ \textcolor{keyword}{as}\ resp:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00063}\doxymbox{\hyperlink{namespacemetrics__exporter_a73d6c6c4d055f286ea97667571bee65d}{00063}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemetrics__exporter_a73d6c6c4d055f286ea97667571bee65d}{collect\_metrics}}()\ -\/>\ BlockchainMetrics:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00064}00064\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Collect\ metrics\ from\ blockchain\ node."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00065}00065\ \ \ \ \ metrics\ =\ \doxymbox{\hyperlink{classmetrics__exporter_1_1_blockchain_metrics}{BlockchainMetrics}}()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00066}00066\ \ \ \ \ metrics.timestamp\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00067}00067\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00068}00068\ \ \ \ \ \textcolor{comment}{\#\ Get\ pool\ stats}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00069}00069\ \ \ \ \ pool\_stats\ =\ \doxymbox{\hyperlink{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308}{rpc\_call}}(\textcolor{stringliteral}{"{}getpoolstats"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{if}\ pool\_stats:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ metrics.block\_height\ =\ pool\_stats.get(\textcolor{stringliteral}{"{}blockHeight"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ metrics.registered\_miners\ =\ pool\_stats.get(\textcolor{stringliteral}{"{}registeredMiners"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ metrics.total\_supply\ =\ pool\_stats.get(\textcolor{stringliteral}{"{}totalRewards"{}},\ 0.0)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00074}00074\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00075}00075\ \ \ \ \ \textcolor{comment}{\#\ Get\ mempool}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00076}00076\ \ \ \ \ mempool\ =\ \doxymbox{\hyperlink{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308}{rpc\_call}}(\textcolor{stringliteral}{"{}getmempoolsize"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{if}\ mempool\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ metrics.mempool\_size\ =\ mempool}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00079}00079\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00080}00080\ \ \ \ \ \textcolor{comment}{\#\ Get\ miner\ connections}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00081}00081\ \ \ \ \ connections\ =\ \doxymbox{\hyperlink{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308}{rpc\_call}}(\textcolor{stringliteral}{"{}getminerconnections"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00082}00082\ \ \ \ \ \textcolor{keywordflow}{if}\ connections:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ metrics.active\_miners\ =\ connections.get(\textcolor{stringliteral}{"{}active"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00084}00084\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00085}00085\ \ \ \ \ \textcolor{comment}{\#\ Get\ transaction\ count}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00086}00086\ \ \ \ \ tx\_count\ =\ \doxymbox{\hyperlink{namespacemetrics__exporter_a844b2e80faa63c828709ec60925b8308}{rpc\_call}}(\textcolor{stringliteral}{"{}gettransactioncount"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{if}\ tx\_count\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ metrics.total\_transactions\ =\ tx\_count}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00089}00089\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00090}00090\ \ \ \ \ \textcolor{keywordflow}{return}\ metrics}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00092}\doxymbox{\hyperlink{namespacemetrics__exporter_a5f048f1bf6736e95ef1b3dcdfbd9bc01}{00092}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemetrics__exporter_a5f048f1bf6736e95ef1b3dcdfbd9bc01}{format\_prometheus}}(metrics:\ BlockchainMetrics)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00093}00093\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Format\ metrics\ in\ Prometheus\ exposition\ format."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00094}00094\ \ \ \ \ lines\ =\ [}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ HELP\ omnibus\_block\_height\ Current\ block\ height"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ TYPE\ omnibus\_block\_height\ gauge"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}omnibus\_block\_height\ \{metrics.block\_height\}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ HELP\ omnibus\_mempool\_size\ Number\ of\ transactions\ in\ mempool"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ TYPE\ omnibus\_mempool\_size\ gauge"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}omnibus\_mempool\_size\ \{metrics.mempool\_size\}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ HELP\ omnibus\_active\_miners\ Number\ of\ active\ miners"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ TYPE\ omnibus\_active\_miners\ gauge"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}omnibus\_active\_miners\ \{metrics.active\_miners\}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ HELP\ omnibus\_registered\_miners\ Total\ registered\ miners"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ TYPE\ omnibus\_registered\_miners\ gauge"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}omnibus\_registered\_miners\ \{metrics.registered\_miners\}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ HELP\ omnibus\_total\_transactions\ Total\ transactions"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ TYPE\ omnibus\_total\_transactions\ counter"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}omnibus\_total\_transactions\ \{metrics.total\_transactions\}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ HELP\ omnibus\_total\_supply\ Total\ OMNI\ supply"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\#\ TYPE\ omnibus\_total\_supply\ gauge"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}omnibus\_total\_supply\ \{metrics.total\_supply\}"{}},}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00118}00118\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00121}\doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler}{00121}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler}{MetricsHandler}}(http.server.BaseHTTPRequestHandler):}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00122}00122\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}HTTP\ handler\ for\ Prometheus\ metrics."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00123}00123\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00124}\doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler_ad030e0d1f90badb098dbe85400f1feed}{00124}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler_ad030e0d1f90badb098dbe85400f1feed}{do\_GET}}(self):}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00125}\doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler_ac0265c559d854b1541841c3baaffe356}{00125}}\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler_ac0265c559d854b1541841c3baaffe356}{path}}\ ==\ \textcolor{stringliteral}{"{}/metrics"{}}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ metrics\ =\ \doxymbox{\hyperlink{namespacemetrics__exporter_a73d6c6c4d055f286ea97667571bee65d}{collect\_metrics}}()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ \doxymbox{\hyperlink{namespacemetrics__exporter_a5f048f1bf6736e95ef1b3dcdfbd9bc01}{format\_prometheus}}(metrics).encode()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ self.send\_response(200)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ self.send\_header(\textcolor{stringliteral}{"{}Content-\/Type"{}},\ \textcolor{stringliteral}{"{}text/plain"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ self.send\_header(\textcolor{stringliteral}{"{}Content-\/Length"{}},\ str(len(data)))}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ self.end\_headers()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ self.wfile.write(data)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ self.send\_response(404)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ self.end\_headers()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00137}00137\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00138}\doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler_ab5d5932f65c3a652f7d1647a4c868197}{00138}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classmetrics__exporter_1_1_metrics_handler_ab5d5932f65c3a652f7d1647a4c868197}{log\_message}}(self,\ format,\ *args):}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}\ \ \textcolor{comment}{\#\ Suppress\ logs}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00141}\doxymbox{\hyperlink{namespacemetrics__exporter_a4882732273e8139fb27f04f521c18d23}{00141}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemetrics__exporter_a4882732273e8139fb27f04f521c18d23}{start\_server}}(port:\ int):}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00142}00142\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Start\ HTTP\ server\ for\ metrics."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00143}00143\ \ \ \ \ \textcolor{keyword}{with}\ socketserver.TCPServer((\textcolor{stringliteral}{"{}"{}},\ port),\ MetricsHandler)\ \textcolor{keyword}{as}\ httpd:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)nMetrics\ server\ started\ on\ http://localhost:\{port\}/metrics"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}Press\ Ctrl+C\ to\ stop\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ httpd.serve\_forever()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ KeyboardInterrupt:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)nStopping\ server..."{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00151}\doxymbox{\hyperlink{namespacemetrics__exporter_a51af30a60f9f02777c6396b8247e356f}{00151}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacemetrics__exporter_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00152}00152\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Metrics\ Exporter"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00153}00153\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/http"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Start\ HTTP\ server"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00154}00154\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=9090,\ help=\textcolor{stringliteral}{"{}HTTP\ port"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00155}00155\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/once"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Print\ once\ and\ exit"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00156}00156\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00157}00157\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00158}00158\ \ \ \ \ \textcolor{keywordflow}{if}\ args.http:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacemetrics__exporter_a4882732273e8139fb27f04f521c18d23}{start\_server}}(args.port)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00160}00160\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ metrics\ =\ \doxymbox{\hyperlink{namespacemetrics__exporter_a73d6c6c4d055f286ea97667571bee65d}{collect\_metrics}}()}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ \textcolor{stringliteral}{"{}="{}}\ *\ 60)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ OmniBus\ Blockchain\ Metrics"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}="{}}\ *\ 60)}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Block\ Height:\ \ \ \ \ \ \ \{metrics.block\_height\}"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Mempool\ Size:\ \ \ \ \ \ \ \{metrics.mempool\_size\}"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Active\ Miners:\ \ \ \ \ \ \{metrics.active\_miners\}"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Registered\ Miners:\ \ \{metrics.registered\_miners\}"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ Transactions:\ \{metrics.total\_transactions\}"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ Supply:\ \ \ \ \ \ \ \{metrics.total\_supply:.4f\}\ OMNI"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Timestamp:\ \ \ \ \ \ \ \ \ \ \{datetime.fromtimestamp(metrics.timestamp)\}"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}="{}}\ *\ 60\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.once:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)nPrometheus\ format:\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ print(\doxymbox{\hyperlink{namespacemetrics__exporter_a5f048f1bf6736e95ef1b3dcdfbd9bc01}{format\_prometheus}}(metrics))}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00177}00177\ }
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00178}00178\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{metrics__exporter_8py_source_l00179}00179\ \ \ \ \ \doxymbox{\hyperlink{namespacemetrics__exporter_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

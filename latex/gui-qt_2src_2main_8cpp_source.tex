@@ -1,0 +1,135 @@
+\doxysection{main.\+cpp}
+\hypertarget{gui-qt_2src_2main_8cpp_source}{}\label{gui-qt_2src_2main_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/main.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/main.cpp}}
+\doxymbox{\hyperlink{gui-qt_2src_2main_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ <QApplication>}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <QFile>}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QLockFile>}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QStandardPaths>}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QDir>}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <QMessageBox>}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00007}00007\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_main_window_8h}{windows/MainWindow.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00008}00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_node_service_8h}{core/NodeService.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00009}00009\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_settings_8h}{core/Settings.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00010}00010\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_wallet_manager_8h}{core/WalletManager.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00011}00011\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_welcome_dialog_8h}{dialogs/WelcomeDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00012}00012\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_create_wallet_dialog_8h}{dialogs/CreateWalletDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00013}00013\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_import_wallet_dialog_8h}{dialogs/ImportWalletDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00014}00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_unlock_dialog_8h}{dialogs/UnlockDialog.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00016}\doxymbox{\hyperlink{gui-qt_2src_2main_8cpp_a0ddf1224851353fc92bfbff6f499fa97}{00016}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{gui-qt-ada-hybrid_2build_2_c_make_files_2_show_includes_2main_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}{main}}(\textcolor{keywordtype}{int}\ argc,\ \textcolor{keywordtype}{char}\ *argv[])}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00017}00017\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00018}00018\ \ \ \ \ QApplication\ app(argc,\ argv);}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00019}00019\ \ \ \ \ app.setApplicationName(\textcolor{stringliteral}{"{}OmniBus-\/Qt"{}});}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00020}00020\ \ \ \ \ app.setApplicationVersion(\textcolor{stringliteral}{"{}1.0.0"{}});}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00021}00021\ \ \ \ \ app.setOrganizationName(\textcolor{stringliteral}{"{}OmniBus"{}});}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00022}00022\ \ \ \ \ app.setOrganizationDomain(\textcolor{stringliteral}{"{}omnibus.ai"{}});}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00024}00024\ \ \ \ \ \textcolor{comment}{//\ Single-\/instance\ guard}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00025}00025\ \ \ \ \ QString\ lockPath\ =\ QStandardPaths::writableLocation(QStandardPaths::TempLocation)}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00026}00026\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ \textcolor{stringliteral}{"{}/omnibus-\/qt.lock"{}};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00027}00027\ \ \ \ \ QLockFile\ lockFile(lockPath);}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00028}00028\ \ \ \ \ \textcolor{keywordflow}{if}\ (!lockFile.tryLock(100))\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00029}00029\ \ \ \ \ \ \ \ \ QMessageBox::warning(\textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}OmniBus-\/Qt"{}},}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00030}00030\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Another\ instance\ of\ OmniBus-\/Qt\ is\ already\ running."{}});}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00031}00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00032}00032\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00034}00034\ \ \ \ \ \textcolor{comment}{//\ Load\ dark\ theme\ stylesheet}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00035}00035\ \ \ \ \ QFile\ styleFile(\textcolor{stringliteral}{"{}:/stylesheets/dark-\/theme.qss"{}});}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{if}\ (styleFile.open(QFile::ReadOnly\ |\ QFile::Text))\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00037}00037\ \ \ \ \ \ \ \ \ app.setStyleSheet(QString::fromUtf8(styleFile.readAll()));}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00038}00038\ \ \ \ \ \ \ \ \ styleFile.close();}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00039}00039\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00041}00041\ \ \ \ \ \textcolor{comment}{//\ Initialize\ singletons}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00042}00042\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_settings_a2067640ae1b069a3a46355c8b72b971c}{omni::Settings::instance}}();}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00043}00043\ \ \ \ \ \textcolor{keyword}{auto}\&\ walletMgr\ =\ \doxymbox{\hyperlink{classomni_1_1_wallet_manager_a3f4ae45aa1377e13c884556f136fd94f}{omni::WalletManager::instance}}();}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00045}00045\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330c}{omni::MainWindow::AppMode}}\ appMode\ =\ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330cabe16bd6cfa43495e109b1b0805a427fb}{omni::MainWindow::NodeMode}};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00047}00047\ \ \ \ \ \textcolor{comment}{//\ ───\ Startup\ flow\ ───}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00048}00048\ \ \ \ \ \textcolor{keywordflow}{if}\ (!walletMgr.hasWallets())\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ First\ launch:\ show\ Welcome\ dialog}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00050}00050\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_welcome_dialog}{omni::WelcomeDialog}}\ welcome;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (welcome.exec()\ !=\ QDialog::Accepted)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00053}00053\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (welcome.\doxymbox{\hyperlink{classomni_1_1_welcome_dialog_a2878cd23975faf25857163c95ffa269c}{userChoice}}())\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_welcome_dialog_a6157a644252fb2e3d810d4cd4d5ee765a64f1694cc00dee55b83afc5ba69b2b41}{omni::WelcomeDialog::CreateWallet}}:\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_create_wallet_dialog}{omni::CreateWalletDialog}}\ createDlg;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (createDlg.exec()\ !=\ QDialog::Accepted)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Dialog\ already\ generated\ the\ mnemonic\ internally}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Now\ create\ the\ wallet\ with\ it}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ result\ =\ walletMgr.importWallet(}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ createDlg.\doxymbox{\hyperlink{classomni_1_1_create_wallet_dialog_a337af5266576cffc1e66cd02332f1734}{walletName}}(),}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ createDlg.\doxymbox{\hyperlink{classomni_1_1_create_wallet_dialog_a0b4b5b28b2719ee72857a68e747ed33a}{password}}(),}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ createDlg.\doxymbox{\hyperlink{classomni_1_1_create_wallet_dialog_a8ea01c97fb684e8f416a415363fcda4a}{mnemonic}}(),}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ createDlg.\doxymbox{\hyperlink{classomni_1_1_create_wallet_dialog_acbc004bcb23b3b5751683c2ed9f47e2f}{passphrase}}());}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!result.success)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QMessageBox::critical(\textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Error"{}},\ result.error);}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ appMode\ =\ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330ca9c1cdf8d244b59ea73ddbfee8a94c133}{omni::MainWindow::WalletMode}};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00075}00075\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_welcome_dialog_a6157a644252fb2e3d810d4cd4d5ee765a31fcd71059f48f7f8ec80ba1b14ccb77}{omni::WelcomeDialog::ImportWallet}}:\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog}{omni::ImportWalletDialog}}\ importDlg;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (importDlg.exec()\ !=\ QDialog::Accepted)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ result\ =\ walletMgr.importWallet(}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ importDlg.\doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_a3ecc9c89f9ea0755db4585e3a3b06403}{walletName}}(),}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ importDlg.\doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_ac445bdd0ca09873d238950b60e7dbbf8}{password}}(),}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ importDlg.\doxymbox{\hyperlink{classomni_1_1_import_wallet_dialog_a1a0a7471d92f7d0ca58a778cc89b7d57}{mnemonic}}());}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!result.success)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QMessageBox::critical(\textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Error"{}},\ result.error);}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ appMode\ =\ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330ca9c1cdf8d244b59ea73ddbfee8a94c133}{omni::MainWindow::WalletMode}};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00092}00092\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_welcome_dialog_a6157a644252fb2e3d810d4cd4d5ee765aaa9bcb66fc7947a6651fa0eadb92c659}{omni::WelcomeDialog::ConnectNode}}:}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ appMode\ =\ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330cabe16bd6cfa43495e109b1b0805a427fb}{omni::MainWindow::NodeMode}};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00098}00098\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00099}00099\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Wallets\ exist:\ show\ Unlock\ dialog}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00101}00101\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_unlock_dialog}{omni::UnlockDialog}}\ unlockDlg;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00102}00102\ \ \ \ \ \ \ \ \ QList<QPair<QString,\ QString>>\ walletList;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ w\ :\ walletMgr.listWallets())}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ walletList.append(\{w.id,\ w.name\});}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00105}00105\ \ \ \ \ \ \ \ \ unlockDlg.\doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ac96e159bd0017de0c1748189453f1ec8}{setWallets}}(walletList);}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlockDlg.exec()\ !=\ QDialog::Accepted)\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00109}00109\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!walletMgr.unlock(unlockDlg.\doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ad3e6d2a6c4e2f571a8f93d14c776f611}{selectedWalletId}}(),\ unlockDlg.\doxymbox{\hyperlink{classomni_1_1_unlock_dialog_ac60e50798f91b75f0e279bacdfda0049}{password}}()))\ \{}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ QMessageBox::critical(\textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Error"{}},}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Wrong\ password\ or\ corrupt\ wallet\ file.\(\backslash\)nPlease\ restart\ and\ try\ again."{}});}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00115}00115\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00116}00116\ \ \ \ \ \ \ \ \ appMode\ =\ \doxymbox{\hyperlink{classomni_1_1_main_window_a3b01c3ccdf62ebfe1fb7184392ac330ca9c1cdf8d244b59ea73ddbfee8a94c133}{omni::MainWindow::WalletMode}};}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00117}00117\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00119}00119\ \ \ \ \ \textcolor{comment}{//\ Start\ node\ service\ (for\ RPC/WS\ data,\ even\ in\ wallet\ mode)}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00120}00120\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_node_service_a1c90711658b40d4fe21ac86ba1d159fd}{omni::NodeService::instance}}().\doxymbox{\hyperlink{classomni_1_1_node_service_a684ff2d7f81a583edd66629f91c67e5f}{start}}();}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00122}00122\ \ \ \ \ \textcolor{comment}{//\ Show\ main\ window}}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00123}00123\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_main_window}{omni::MainWindow}}\ mainWindow(appMode);}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00124}00124\ \ \ \ \ mainWindow.show();}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00126}00126\ \ \ \ \ \textcolor{keywordtype}{int}\ ret\ =\ app.exec();}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00127}00127\ \ \ \ \ lockFile.unlock();}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00128}00128\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{\Hypertarget{gui-qt_2src_2main_8cpp_source_l00129}00129\ \}}
+
+\end{DoxyCode}

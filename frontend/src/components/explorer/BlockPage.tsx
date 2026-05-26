@@ -1,37 +1,16 @@
-import { useEffect, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { useEffect, useState, useMemo } from "react";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
+import { CopyButton } from "../common/CopyButton";
+import { KindBadge, SchemeTag } from "../common/TxBadges";
+import { fmtSat, midTrunc, SAT_PER_OMNI, fmtAge, fmtUsd } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
-const SAT = 1e9;
 
-function fmtSat(sat: number) {
-  return (sat / SAT).toFixed(8) + " OMNI";
-}
 function fmtTs(ts: number) {
-  return new Date(ts < 1e10 ? ts * 1000 : ts).toLocaleString();
-}
-function midTrunc(s: string | undefined | null, h = 12, t = 10): string {
-  if (!s) return "—";
-  if (s.length <= h + t + 3) return s;
-  return s.slice(0, h) + "…" + s.slice(-t);
+  const ms = ts < 1e10 ? ts * 1000 : ts;
+  return `${fmtAge(ms)} · ${new Date(ms).toLocaleString()}`;
 }
 
-function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      className="flex-shrink-0 text-mempool-text-dim hover:text-mempool-blue text-xs transition-colors"
-      title="Copy"
-      onClick={() => {
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? "✓" : "⧉"}
-    </button>
-  );
-}
 
 function Field({
   label,
@@ -62,7 +41,7 @@ function Field({
         ) : (
           <span className="truncate max-w-full break-all">{value}</span>
         )}
-        {copy && <CopyBtn text={value} />}
+        {copy && <CopyButton text={value} />}
         {badge && <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-medium ${badgeCls}`}>{badge.text}</span>}
       </div>
     </div>
@@ -90,8 +69,7 @@ export function BlockPage({ height, onNavigate }: Props) {
       .then(async ([b, count]) => {
         if (!b) { setErr("Block not found"); return; }
         setBlock(b);
-        const liveCount = typeof count === "object" && count ? (count as any).blockCount : count;
-        setTip(typeof liveCount === "number" ? liveCount : 0);
+        setTip(count);
         const txids: string[] = b.transactions || b.tx_ids || b.txids || [];
         if (txids.length > 0) {
           const settled = await Promise.allSettled(
@@ -125,10 +103,19 @@ export function BlockPage({ height, onNavigate }: Props) {
     );
   }
 
-  const totalFeesSat = txs.reduce((s: number, tx: any) => s + (tx.fee || 0), 0);
-  const burned = Math.floor(totalFeesSat / 2);
-  const minerFees = totalFeesSat - burned;
+  const { totalFeesSat, burned, minerFees } = useMemo(() => {
+    const total = txs.reduce((s: number, tx: any) => s + (tx.fee || 0), 0);
+    return { totalFeesSat: total, burned: Math.floor(total / 2), minerFees: total - Math.floor(total / 2) };
+  }, [txs]);
   const confirmations = tip > height ? tip - height : 0;
+
+  const schemeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const tx of txs) {
+      if (tx.scheme) counts[tx.scheme] = (counts[tx.scheme] ?? 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [txs]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
@@ -170,10 +157,22 @@ export function BlockPage({ height, onNavigate }: Props) {
           <Field label="Nonce" value={(block.nonce ?? 0).toLocaleString()} />
           <Field label="Transactions" value={String(block.txCount ?? txs.length)} />
           {block.miner && (
-            <Field label="Miner" value={block.miner} mono copy
-              onClick={() => onNavigate(`#/address/${block.miner}`)} />
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Miner</div>
+              <div className="flex items-center gap-1.5 min-w-0 text-sm text-mempool-text">
+                <button onClick={() => onNavigate(`#/address/${block.miner}`)}
+                  className="text-mempool-blue hover:underline text-xs font-mono">
+                  <AddressLabel address={block.miner} showRawAddress showEmoji
+                    truncate={{ left: 12, right: 10 }} />
+                </button>
+                <CopyButton text={block.miner} />
+              </div>
+            </div>
           )}
           <Field label="Block Reward" value={fmtSat(block.rewardSAT || 0)} highlight />
+          {(block.totalFees ?? 0) > 0 && (
+            <Field label="Total Fees" value={fmtSat(block.totalFees)} />
+          )}
           <Field label="Confirmations" value={String(confirmations)} />
           {block.difficulty !== undefined && (
             <Field label="Difficulty" value={Number(block.difficulty).toLocaleString()} />
@@ -223,12 +222,12 @@ export function BlockPage({ height, onNavigate }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {block.prices.map((p: any, i: number) => (
-                  <tr key={i} className="border-b border-mempool-border/30 last:border-0 hover:bg-mempool-bg-light/30 transition-colors">
+                {block.prices.map((p: any) => (
+                  <tr key={`${p.exchange}${p.pair}`} className="border-b border-mempool-border/30 last:border-0 hover:bg-mempool-bg-light/30 transition-colors">
                     <td className="py-2 pr-4 text-mempool-text">{p.exchange}</td>
                     <td className="py-2 pr-4 text-mempool-text-dim">{p.pair}</td>
-                    <td className="py-2 pr-4 text-right text-green-400">${(p.bidMicroUsd / 1e6).toFixed(2)}</td>
-                    <td className="py-2 text-right text-red-400">${(p.askMicroUsd / 1e6).toFixed(2)}</td>
+                    <td className="py-2 pr-4 text-right text-green-400">{fmtUsd(p.bidMicroUsd)}</td>
+                    <td className="py-2 text-right text-red-400">{fmtUsd(p.askMicroUsd)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -239,9 +238,49 @@ export function BlockPage({ height, onNavigate }: Props) {
 
       {/* Transactions */}
       <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
-        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
-          Transactions ({block.txCount ?? txs.length})
-        </h2>
+        <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim">
+              Transactions ({block.txCount ?? txs.length})
+            </h2>
+            {txs.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["txid", "from", "to", "amount_omni", "fee_omni", "kind", "scheme", "status"].join(","),
+                    ...txs.map((tx: any) => [
+                      `"${tx.txid ?? ""}"`,
+                      `"${tx.from ?? ""}"`,
+                      `"${tx.to ?? ""}"`,
+                      ((tx.amount || 0) / SAT_PER_OMNI).toFixed(8),
+                      ((tx.fee || 0) / SAT_PER_OMNI).toFixed(8),
+                      tx.kind ?? "transfer",
+                      tx.scheme ?? "",
+                      tx.status ?? "",
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = `omnibus-block-${block.height}-txs.csv`;
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="px-2 py-0.5 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue font-mono"
+              >
+                ⬇ CSV
+              </button>
+            )}
+          </div>
+          {schemeCounts.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {schemeCounts.map(([scheme, n]) => (
+                <span key={scheme} className="text-[10px] text-mempool-text-dim">
+                  <SchemeTag scheme={scheme} /> ×{n}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="space-y-2">
           {/* Coinbase */}
           <div className="bg-mempool-bg-light border border-yellow-400/20 rounded-lg p-3 text-xs">
@@ -254,7 +293,7 @@ export function BlockPage({ height, onNavigate }: Props) {
                 →{" "}
                 <button onClick={() => onNavigate(`#/address/${block.miner}`)}
                   className="text-mempool-blue hover:underline font-mono">
-                  {midTrunc(block.miner, 14, 12)}
+                  <AddressLabel address={block.miner} showEmoji truncate={{ left: 14, right: 12 }} />
                 </button>
               </div>
             )}
@@ -284,23 +323,28 @@ export function BlockPage({ height, onNavigate }: Props) {
                   From:{" "}
                   <button onClick={() => onNavigate(`#/address/${tx.from}`)}
                     className="text-mempool-blue hover:underline font-mono">
-                    {midTrunc(tx.from, 10, 8)}
+                    <AddressLabel address={tx.from ?? ""} showEmoji truncate={{ left: 10, right: 8 }} />
                   </button>
                 </span>
                 <span>
                   →{" "}
                   <button onClick={() => onNavigate(`#/address/${tx.to}`)}
                     className="text-mempool-blue hover:underline font-mono">
-                    {midTrunc(tx.to, 10, 8)}
+                    <AddressLabel address={tx.to ?? ""} showEmoji truncate={{ left: 10, right: 8 }} />
                   </button>
                 </span>
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 items-center">
                 <span className="text-mempool-text font-mono">{fmtSat(tx.amount)}</span>
                 <span className="text-mempool-text-dim">Fee: {fmtSat(tx.fee)}</span>
+                {tx.nonce !== undefined && (
+                  <span className="text-mempool-text-dim">nonce: <span className="font-mono text-mempool-text">{tx.nonce}</span></span>
+                )}
                 {tx.confirmations !== undefined && (
                   <span className="text-mempool-text-dim">{tx.confirmations} conf</span>
                 )}
+                {tx.kind && <KindBadge kind={tx.kind} />}
+                {tx.scheme && <SchemeTag scheme={tx.scheme} />}
               </div>
               {tx.op_return && (
                 <div className="text-mempool-text-dim font-mono break-all border-t border-mempool-border/30 pt-1.5 mt-1">

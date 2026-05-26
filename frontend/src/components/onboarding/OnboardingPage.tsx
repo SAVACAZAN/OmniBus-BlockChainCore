@@ -111,7 +111,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                 const u = await unlockFromMnemonic(mnemonic, 0);
                 // Fire-and-forget: create OmniBus ID on chain. Failure does
                 // not block onboarding — user can retry on profile tab.
-                initProfileForAddress(u.address);
+                void initProfileForAddress(u.address);
                 setStep("backup");
               } catch (e: any) {
                 setError(e?.message || "Unlock failed");
@@ -120,7 +120,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
             onSet={async (pw) => {
               try {
                 const u = await unlockFromMnemonic(mnemonic, 0, pw);
-                initProfileForAddress(u.address);
+                void initProfileForAddress(u.address);
                 setPassword(pw);
                 setStep("backup");
               } catch (e: any) {
@@ -159,10 +159,11 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
 
 // ── Progress indicator ──────────────────────────────────────────────────
 
+const PROGRESS_ORDER: StepId[] = ["welcome", "create-display", "password", "backup", "done"];
+
 function ProgressBar({ step }: { step: StepId }) {
-  // Linear ordering of visible steps — both create and import paths collapse
-  // to the same visual progress (5 dots) so the user always sees their place.
-  const order: StepId[] = ["welcome", "create-display", "password", "backup", "done"];
+  // For the import path, treat "import"/"create-confirm" as create-display.
+  const order = PROGRESS_ORDER;
   // For the import path, treat "import" as create-display.
   const flat: StepId = step === "import" || step === "create-confirm" ? "create-display" : step;
   const idx = order.indexOf(flat);

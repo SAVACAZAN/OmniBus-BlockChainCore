@@ -1,0 +1,64 @@
+\doxysection{archived-\/4-\/eterniti/\+tools-\/python/\+\+ANALYSIS/\+blockchain\+\_\+analyzer.py File Reference}
+\hypertarget{blockchain__analyzer_8py}{}\label{blockchain__analyzer_8py}\index{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_analyzer.py@{archived-\/4-\/eterniti/tools-\/python/ANALYSIS/blockchain\_analyzer.py}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_status}{blockchain\+\_\+analyzer.\+Module\+Status}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_severity}{blockchain\+\_\+analyzer.\+Severity}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_category}{blockchain\+\_\+analyzer.\+Module\+Category}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_finding}{blockchain\+\_\+analyzer.\+Finding}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{blockchain\+\_\+analyzer.\+Module\+Result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceblockchain__analyzer}{blockchain\+\_\+analyzer}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Tuple\+[Optional\+[bool]\+, str]\+ \doxymbox{\hyperlink{namespaceblockchain__analyzer_ae57258d08f0578c7554d2c24d95a4e5a}{blockchain\+\_\+analyzer.\+check\+\_\+syntax}} (Path path)
+\item 
+List\+[str]\+ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a05aa4c086d91584ad9a65820dd472888}{blockchain\+\_\+analyzer.\+extract\+\_\+imports}} (str code)
+\item 
+int \doxymbox{\hyperlink{namespaceblockchain__analyzer_a3954f10b7e063b485967681f25aff12c}{blockchain\+\_\+analyzer.\+count\+\_\+tests}} (str code)
+\item 
+\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}} \doxymbox{\hyperlink{namespaceblockchain__analyzer_a4b8455d38c5740c8d201e3253fddaf55}{blockchain\+\_\+analyzer.\+analyze\+\_\+module}} (Path module\+\_\+path, bool verbose=False)
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ \doxymbox{\hyperlink{namespaceblockchain__analyzer_a7aad694695a9c4179d428dbe7681773a}{blockchain\+\_\+analyzer.\+scan\+\_\+all\+\_\+modules}} ()
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_a743ea126c6bdcb4396ba3e4e7dc8246a}{blockchain\+\_\+analyzer.\+print\+\_\+report}} (List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ results, bool verbose=False)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_afb865586d6c19a3d55f82271821a3519}{blockchain\+\_\+analyzer.\+generate\+\_\+json}} (List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ results, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_a31141a0bed02d489d5950dc121c3f905}{blockchain\+\_\+analyzer.\+generate\+\_\+html}} (List\+[\doxymbox{\hyperlink{classblockchain__analyzer_1_1_module_result}{Module\+Result}}]\+ results, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_a51af30a60f9f02777c6396b8247e356f}{blockchain\+\_\+analyzer.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{blockchain\+\_\+analyzer.\+ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__analyzer_a8d2fd456c43ed1aa77532c6142499e42}{blockchain\+\_\+analyzer.\+CORE}} = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__analyzer_ace387e2495cb08d804ae9fc0c79c3ab2}{blockchain\+\_\+analyzer.\+TEST}} = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}test"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__analyzer_a48c1aff6fbe3966cada2ca6063b68604}{blockchain\+\_\+analyzer.\+AGENT}} = \doxymbox{\hyperlink{namespaceblockchain__analyzer_ac2a41590af8bed6c0c89a06a611a310c}{ROOT}} /\+ "{}agent"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__analyzer_a1a9f129f9080dd0dc54cd4c7aee71f8c}{blockchain\+\_\+analyzer.\+CATEGORY\+\_\+\+MAP}}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__analyzer_ab1d919e9753e6576ed117b0c6e620551}{blockchain\+\_\+analyzer.\+BLOCKCHAIN\+\_\+\+REAL\+\_\+\+INDICATORS}}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__analyzer_a02e7311bb6c029789c31257eac2b8a8b}{blockchain\+\_\+analyzer.\+STUB\+\_\+\+PATTERNS}}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__analyzer_a0ea76bd16659c9f8428978118e1de895}{blockchain\+\_\+analyzer.\+SECURITY\+\_\+\+PATTERNS}}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__analyzer_a5240b17bab1ac67fe999eea407e82882}{blockchain\+\_\+analyzer.\+G}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__analyzer_a0c305067196cff3a40f7c6ae184c4e1e}{blockchain\+\_\+analyzer.\+STATUS\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}

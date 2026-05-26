@@ -1,29 +1,11 @@
 import { useEffect, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
+import { CopyButton } from "../common/CopyButton";
+import { KindBadge, SchemeTag } from "../common/TxBadges";
+import { fmtSat, midTrunc, fmtAge } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
-const SAT = 1e9;
 
-function fmtSat(sat: number) {
-  return (sat / SAT).toFixed(8) + " OMNI";
-}
-function midTrunc(s: string | undefined | null, h = 14, t = 12): string {
-  if (!s) return "—";
-  if (s.length <= h + t + 3) return s;
-  return s.slice(0, h) + "…" + s.slice(-t);
-}
-
-function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      className="flex-shrink-0 text-mempool-text-dim hover:text-mempool-blue text-xs transition-colors"
-      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-    >
-      {copied ? "✓" : "⧉"}
-    </button>
-  );
-}
 
 interface Props {
   hash: string;
@@ -67,6 +49,10 @@ export function TxPage({ hash, onNavigate }: Props) {
     );
   }
 
+  const txMs = tx.timestamp !== undefined && tx.timestamp > 0
+    ? (tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp)
+    : null;
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
       {/* Breadcrumb */}
@@ -100,7 +86,7 @@ export function TxPage({ hash, onNavigate }: Props) {
             <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">TX Hash</div>
             <div className="flex items-center gap-2 font-mono text-xs text-mempool-text break-all">
               <span>{tx.txid}</span>
-              <CopyBtn text={tx.txid} />
+              <CopyButton text={tx.txid} />
             </div>
           </div>
 
@@ -124,6 +110,36 @@ export function TxPage({ hash, onNavigate }: Props) {
             <div className="text-mempool-text font-mono">{fmtSat(tx.fee)}</div>
           </div>
 
+          {tx.nonce !== undefined && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Nonce</div>
+              <div className="text-mempool-text font-mono">{tx.nonce}</div>
+            </div>
+          )}
+
+          {txMs !== null && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Timestamp</div>
+                <div className="text-mempool-text font-mono text-xs" title={new Date(txMs).toLocaleString()}>
+                  {fmtAge(txMs)} · {new Date(txMs).toLocaleTimeString()}
+                </div>
+              </div>
+          )}
+
+          {tx.kind && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Type</div>
+              <KindBadge kind={tx.kind} />
+            </div>
+          )}
+
+          {tx.scheme && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Signing Scheme</div>
+              <SchemeTag scheme={tx.scheme} />
+            </div>
+          )}
+
           {tx.locktime !== undefined && tx.locktime > 0 && (
             <div>
               <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Locktime</div>
@@ -143,7 +159,8 @@ export function TxPage({ hash, onNavigate }: Props) {
               </div>
               <button onClick={() => onNavigate(`#/address/${tx.from}`)}
                 className="font-mono text-xs text-mempool-blue hover:underline break-all text-left w-full">
-                {tx.from}
+                <AddressLabel address={tx.from} showRawAddress showEmoji
+                  truncate={{ left: 10, right: 8 }} />
               </button>
             </div>
 
@@ -156,7 +173,8 @@ export function TxPage({ hash, onNavigate }: Props) {
               </div>
               <button onClick={() => onNavigate(`#/address/${tx.to}`)}
                 className="font-mono text-xs text-mempool-blue hover:underline break-all text-left w-full">
-                {tx.to}
+                <AddressLabel address={tx.to} showRawAddress showEmoji
+                  truncate={{ left: 10, right: 8 }} />
               </button>
             </div>
           </div>
@@ -171,7 +189,47 @@ export function TxPage({ hash, onNavigate }: Props) {
             </div>
           </div>
         )}
+
+        {/* Raw JSON */}
+        <RawJsonSection tx={tx} />
       </div>
+    </div>
+  );
+}
+
+function RawJsonSection({ tx }: { tx: any }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const raw = JSON.stringify(tx, null, 2);
+  const copyRaw = () => {
+    navigator.clipboard.writeText(raw);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <div className="border-t border-mempool-border pt-4">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="text-[10px] uppercase tracking-wider text-mempool-text-dim hover:text-mempool-blue transition-colors flex items-center gap-1"
+        >
+          <span>{open ? "▾" : "▸"}</span>
+          Raw JSON
+        </button>
+        {open && (
+          <button
+            onClick={copyRaw}
+            className="text-[10px] text-mempool-text-dim hover:text-mempool-blue transition-colors"
+          >
+            {copied ? "✓ Copied" : "⧉ Copy"}
+          </button>
+        )}
+      </div>
+      {open && (
+        <pre className="mt-2 text-[10px] font-mono text-mempool-text-dim bg-mempool-bg rounded p-3 overflow-x-auto max-h-80 leading-relaxed">
+          {raw}
+        </pre>
+      )}
     </div>
   );
 }

@@ -1,0 +1,939 @@
+\chapter{Module:\+ {\ttfamily blockchain} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain}{}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain}\index{Module: $<$tt$>$blockchain$<$/tt$>$@{Module: $<$tt$>$blockchain$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md907}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md907}%
+
+
+\begin{quote}
+Core blockchain engine — manages the chain, validates blocks, handles reorgs, tracks balances per address, and implements difficulty retargeting (Bitcoin-\/style, every 2016 blocks). \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+blockchain.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 2128 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 33 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 72
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md909}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md909}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md910}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md910}
+
+\begin{DoxyItemize}
+\item \`{}\+Multisig\+Config\+Entry\`{}{\ttfamily Multisig\+Config\+Entry}
+\end{DoxyItemize}— Entry for storing a multisig config alongside its address string.
+\begin{DoxyItemize}
+\item \`{}\+Blockchain\`{}{\ttfamily Blockchain}
+\end{DoxyItemize}— The main blockchain state — manages the chain of blocks, validates additions, tr...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md911}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md911}
+
+\begin{DoxyItemize}
+\item 16 constants defined16 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md912}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md912}
+
+\begin{DoxyItemize}
+\item \`{}retarget\+Difficulty()\`{}{\ttfamily retarget\+Difficulty()}
+\end{DoxyItemize}— Calculeaza noua dificultate dupa un interval de retarget. Formula:\+ new...
+\begin{DoxyItemize}
+\item \`{}block\+Reward\+At()\`{}{\ttfamily block\+Reward\+At()}
+\end{DoxyItemize}— Performs the block reward at operation on the blockchain module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}get\+Address\+Balance()\`{}{\ttfamily get\+Address\+Balance()}
+\end{DoxyItemize}— Returneaza balanta unei adrese (0 daca nu exista)
+\begin{DoxyItemize}
+\item \`{}get\+Confirmations()\`{}{\ttfamily get\+Confirmations()}
+\end{DoxyItemize}— Returns the number of confirmations for a TX (null if TX not found in ...
+\begin{DoxyItemize}
+\item \`{}get\+Tx\+Block\+Height()\`{}{\ttfamily get\+Tx\+Block\+Height()}
+\end{DoxyItemize}— Returns the block height that contains a given TX (null if not found)
+\begin{DoxyItemize}
+\item \`{}index\+Address\+Tx()\`{}{\ttfamily index\+Address\+Tx()}
+\end{DoxyItemize}— Index a TX hash for a given address in address\+\_\+tx\+\_\+index. Creates the l...
+\begin{DoxyItemize}
+\item \`{}get\+Address\+History()\`{}{\ttfamily get\+Address\+History()}
+\end{DoxyItemize}— Returns the list of TX hashes associated with an address (both sent an...
+\begin{DoxyItemize}
+\item \`{}credit\+Balance()\`{}{\ttfamily credit\+Balance()}
+\end{DoxyItemize}— Adauga reward la balanta minerului
+\begin{DoxyItemize}
+\item \`{}debit\+Balance()\`{}{\ttfamily debit\+Balance()}
+\end{DoxyItemize}— Scade din balanta (pentru tranzactii)
+\begin{DoxyItemize}
+\item \`{}register\+Pubkey()\`{}{\ttfamily register\+Pubkey()}
+\end{DoxyItemize}— Inregistreaza public key-\/ul unei adrese (pentru verificare semnatura T...
+\begin{DoxyItemize}
+\item \`{}register\+Multisig()\`{}{\ttfamily register\+Multisig()}
+\end{DoxyItemize}— Register a multisig wallet configuration (address → M-\/of-\/N config). Ca...
+\begin{DoxyItemize}
+\item \`{}get\+Multisig\+Config()\`{}{\ttfamily get\+Multisig\+Config()}
+\end{DoxyItemize}— Look up a multisig config by address.
+\begin{DoxyItemize}
+\item \`{}add\+Transaction()\`{}{\ttfamily add\+Transaction()}
+\end{DoxyItemize}— Adds a new transaction to the collection.
+\begin{DoxyItemize}
+\item \`{}get\+Pending\+Outgoing()\`{}{\ttfamily get\+Pending\+Outgoing()}
+\end{DoxyItemize}— Returneaza totalul outgoing pending din mempool pentru o adresa (amoun...
+\begin{DoxyItemize}
+\item \`{}get\+Next\+Nonce()\`{}{\ttfamily get\+Next\+Nonce()}
+\end{DoxyItemize}— Returneaza urmatorul nonce confirmat pentru o adresa (0 daca nu exista...
+\begin{DoxyItemize}
+\item \`{}get\+Next\+Available\+Nonce()\`{}{\ttfamily get\+Next\+Available\+Nonce()}
+\end{DoxyItemize}— Returneaza urmatorul nonce disponibil pentru o adresa, incluzand TX-\/ur...
+\begin{DoxyItemize}
+\item \`{}validate\+Transaction()\`{}{\ttfamily validate\+Transaction()}
+\end{DoxyItemize}— Validates the transaction. Returns true if valid, false otherwise.
+\begin{DoxyItemize}
+\item \`{}mine\+Block()\`{}{\ttfamily mine\+Block()}
+\end{DoxyItemize}— Executes mining operation — finds valid nonce for the next block.
+\begin{DoxyItemize}
+\item \`{}mine\+Block\+For\+Miner()\`{}{\ttfamily mine\+Block\+For\+Miner()}
+\end{DoxyItemize}— Mine block + acorda reward minerului + proceseaza TX-\/urile din mempool
+\begin{DoxyItemize}
+\item \`{}calculate\+Block\+Hash()\`{}{\ttfamily calculate\+Block\+Hash()}
+\end{DoxyItemize}— Calculate block hash as 64-\/char hex string (shared implementation in h...
+\begin{DoxyItemize}
+\item \`{}is\+Valid\+Hash()\`{}{\ttfamily is\+Valid\+Hash()}
+\end{DoxyItemize}— Check if hash meets difficulty (delegates to shared hex\+\_\+utils)
+\begin{DoxyItemize}
+\item \`{}validate\+Block()\`{}{\ttfamily validate\+Block()}
+\end{DoxyItemize}— Validate a block against all consensus rules (Bitcoin-\/level validation...
+\begin{DoxyItemize}
+\item \`{}add\+External\+Block()\`{}{\ttfamily add\+External\+Block()}
+\end{DoxyItemize}— Accept a block from a P2P peer. Fully validates before appending. Hand...
+\begin{DoxyItemize}
+\item \`{}reorg()\`{}{\ttfamily reorg()}
+\end{DoxyItemize}— Accept a full chain from a peer and reorg if it\textquotesingle{}s longer. Validates al...
+\begin{DoxyItemize}
+\item \`{}check\+Auto\+Save()\`{}{\ttfamily check\+Auto\+Save()}
+\end{DoxyItemize}— Check if auto-\/save should trigger based on block count or time elapsed...
+\begin{DoxyItemize}
+\item \`{}save\+To\+Disc()\`{}{\ttfamily save\+To\+Disc()}
+\end{DoxyItemize}— Convenience method:\+ save full blockchain state to disc via PersistentB...
+\begin{DoxyItemize}
+\item \`{}find\+Fork\+Point()\`{}{\ttfamily find\+Fork\+Point()}
+\end{DoxyItemize}— Find the highest block index where both chains have the same hash. Ret...
+\begin{DoxyItemize}
+\item \`{}process\+Orphans()\`{}{\ttfamily process\+Orphans()}
+\end{DoxyItemize}— Process orphan blocks:\+ check if any now connect to our chain tip. Keep...
+\begin{DoxyItemize}
+\item \`{}get\+Block()\`{}{\ttfamily get\+Block()}
+\end{DoxyItemize}— Returns the block for the given index.
+\begin{DoxyItemize}
+\item \`{}get\+Latest\+Block()\`{}{\ttfamily get\+Latest\+Block()}
+\end{DoxyItemize}— Returns the current latest block.
+\begin{DoxyItemize}
+\item \`{}get\+Block\+Count()\`{}{\ttfamily get\+Block\+Count()}
+\end{DoxyItemize}— Returns the current block count.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md914}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md914}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md915}{}\doxysubsection{\texorpdfstring{{\ttfamily Multisig\+Config\+Entry}}{{\ttfamily Multisig\+Config\+Entry}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md915}
+Entry for storing a multisig config alongside its address string.
+
+{\itshape Defined at line 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md917}{}\doxysubsection{\texorpdfstring{{\ttfamily Blockchain}}{{\ttfamily Blockchain}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md917}
+The main blockchain state — manages the chain of blocks, validates additions, tracks balances, and handles reorganizations.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacechain}{chain}}  &{\ttfamily array\+\_\+list.\+Managed(\+Block)}  &Chain  \\
+{\ttfamily mempool}  &{\ttfamily array\+\_\+list.\+Managed(\+Transaction)}  &Mempool  \\
+{\ttfamily \doxylink{namespacedifficulty}{difficulty}}  &{\ttfamily u32}  &Difficulty  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily balances}  &{\ttfamily std.\+String\+Hash\+Map(u64)}  &Balances  \\
+{\ttfamily nonces}  &{\ttfamily std.\+String\+Hash\+Map(u64)}  &Nonces  \\
+{\ttfamily tx\+\_\+block\+\_\+height}  &{\ttfamily std.\+String\+Hash\+Map(u64)}  &Tx\+\_\+block\+\_\+height  \\
+{\ttfamily orphan\+\_\+blocks}  &{\ttfamily array\+\_\+list.\+Managed(\+Block)}  &Orphan\+\_\+blocks  \\
+{\ttfamily address\+\_\+tx\+\_\+index}  &{\ttfamily std.\+String\+Hash\+Map(std.\+Array\+List(\+[$\,$]\+const u8))}  &Address\+\_\+tx\+\_\+index  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 98}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md919}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md919}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &Block  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &Transaction  \\
+{\ttfamily BLOCK\+\_\+\+REWARD\+\_\+\+SAT}  &{\ttfamily u64 = 8\+\_\+333\+\_\+333}  &B l o c k\+\_\+ r e w a r d\+\_\+ s a t  \\
+{\ttfamily HALVING\+\_\+\+INTERVAL}  &{\ttfamily u64 = 126\+\_\+144\+\_\+000}  &H a l v i n g\+\_\+ i n t e r v a l  \\
+{\ttfamily MAX\+\_\+\+SUPPLY\+\_\+\+SAT}  &{\ttfamily u64 = 21\+\_\+000\+\_\+000\+\_\+000\+\_\+000\+\_\+000}  &M a x\+\_\+ s u p p l y\+\_\+ s a t  \\
+{\ttfamily COINBASE\+\_\+\+MATURITY}  &{\ttfamily u32 = 100}  &C o i n b a s e\+\_\+ m a t u r i t y  \\
+{\ttfamily DUST\+\_\+\+THRESHOLD\+\_\+\+SAT}  &{\ttfamily u64 = 100}  &D u s t\+\_\+ t h r e s h o l d\+\_\+ s a t  \\
+{\ttfamily MAX\+\_\+\+REORG\+\_\+\+DEPTH}  &{\ttfamily usize = 100}  &M a x\+\_\+ r e o r g\+\_\+ d e p t h  \\
+{\ttfamily MAX\+\_\+\+ORPHAN\+\_\+\+POOL}  &{\ttfamily usize = 64}  &M a x\+\_\+ o r p h a n\+\_\+ p o o l  \\
+{\ttfamily RETARGET\+\_\+\+INTERVAL}  &{\ttfamily u64 = 2016}  &R e t a r g e t\+\_\+ i n t e r v a l  \\
+{\ttfamily TARGET\+\_\+\+BLOCK\+\_\+\+TIME\+\_\+S}  &{\ttfamily i64 = 1}  &T a r g e t\+\_\+ b l o c k\+\_\+ t i m e\+\_\+ s  \\
+{\ttfamily TARGET\+\_\+\+INTERVAL\+\_\+S}  &{\ttfamily i64 = @int\+Cast(\+RETARGET\+\_\+\+INTERVAL)}  &T a r g e t\+\_\+ i n t e r v a l\+\_\+ s  \\
+{\ttfamily MIN\+\_\+\+DIFFICULTY}  &{\ttfamily u32 = 1}  &M i n\+\_\+ d i f f i c u l t y  \\
+{\ttfamily MAX\+\_\+\+DIFFICULTY}  &{\ttfamily u32 = 256}  &M a x\+\_\+ d i f f i c u l t y  \\
+{\ttfamily FEE\+\_\+\+BURN\+\_\+\+PCT}  &{\ttfamily u64 = 50}  &F e e\+\_\+ b u r n\+\_\+ p c t  \\
+{\ttfamily TX\+\_\+\+MIN\+\_\+\+FEE}  &{\ttfamily u64 = 1}  &T x\+\_\+ m i n\+\_\+ f e e  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md921}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md921}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md922}{}\doxysubsection{\texorpdfstring{{\ttfamily retarget\+Difficulty()}}{{\ttfamily retarget\+Difficulty()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md922}
+Calculeaza noua dificultate dupa un interval de retarget. Formula:\+ new\+\_\+difficulty = old\+\_\+difficulty \texorpdfstring{$\ast$}{*} TARGET\+\_\+\+INTERVAL /\+ actual\+\_\+time Clamped la ±4x fata de dificultatea anterioara (ca Bitcoin) si \+[MIN, MAX]\+.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ retargetDifficulty(old\_difficulty:\ u32,\ actual\_time\_s:\ i64)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily old\+\_\+difficulty}  &{\ttfamily u32}  &Old\+\_\+difficulty  \\
+{\ttfamily actual\+\_\+time\+\_\+s}  &{\ttfamily i64}  &Actual\+\_\+time\+\_\+s  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 64}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md924}{}\doxysubsection{\texorpdfstring{{\ttfamily block\+Reward\+At()}}{{\ttfamily block\+Reward\+At()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md924}
+Performs the block reward at operation on the blockchain module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ blockRewardAt(height:\ u64)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 80}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md926}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md926}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ !Blockchain\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Blockchain}
+
+{\itshape Defined at line 138}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md928}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md928}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *Blockchain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 168}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md930}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address\+Balance()}}{{\ttfamily get\+Address\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md930}
+Returneaza balanta unei adrese (0 daca nu exista)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddressBalance(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 209}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md932}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Confirmations()}}{{\ttfamily get\+Confirmations()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md932}
+Returns the number of confirmations for a TX (null if TX not found in any block). confirmations = current\+\_\+chain\+\_\+height -\/ block\+\_\+height\+\_\+containing\+\_\+tx
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getConfirmations(self:\ *const\ Blockchain,\ tx\_hash:\ []const\ u8)\ ?u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?u64}
+
+{\itshape Defined at line 215}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md934}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Tx\+Block\+Height()}}{{\ttfamily get\+Tx\+Block\+Height()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md934}
+Returns the block height that contains a given TX (null if not found)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getTxBlockHeight(self:\ *const\ Blockchain,\ tx\_hash:\ []const\ u8)\ ?u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?u64}
+
+{\itshape Defined at line 223}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md936}{}\doxysubsection{\texorpdfstring{{\ttfamily index\+Address\+Tx()}}{{\ttfamily index\+Address\+Tx()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md936}
+Index a TX hash for a given address in address\+\_\+tx\+\_\+index. Creates the list if address not yet tracked.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ indexAddressTx(self:\ *Blockchain,\ address:\ []const\ u8,\ tx\_hash:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily tx\+\_\+hash}  &{\ttfamily \+[]\+const u8}  &Tx\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 229}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md938}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Address\+History()}}{{\ttfamily get\+Address\+History()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md938}
+Returns the list of TX hashes associated with an address (both sent and received). Returns null if address has no history.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAddressHistory(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ ?[]const\ []const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[]\+const \+[]\+const u8}
+
+{\itshape Defined at line 243}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md940}{}\doxysubsection{\texorpdfstring{{\ttfamily credit\+Balance()}}{{\ttfamily credit\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md940}
+Adauga reward la balanta minerului
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ creditBalance(self:\ *Blockchain,\ address:\ []const\ u8,\ amount:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 250}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md942}{}\doxysubsection{\texorpdfstring{{\ttfamily debit\+Balance()}}{{\ttfamily debit\+Balance()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md942}
+Scade din balanta (pentru tranzactii)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ debitBalance(self:\ *Blockchain,\ address:\ []const\ u8,\ amount:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 256}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md944}{}\doxysubsection{\texorpdfstring{{\ttfamily register\+Pubkey()}}{{\ttfamily register\+Pubkey()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md944}
+Inregistreaza public key-\/ul unei adrese (pentru verificare semnatura TX) pubkey\+\_\+hex = compressed secp256k1 public key, 66 hex chars
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ registerPubkey(self:\ *Blockchain,\ address:\ []const\ u8,\ pubkey\_hex:\ []const\ u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily pubkey\+\_\+hex}  &{\ttfamily \+[]\+const u8}  &Pubkey\+\_\+hex  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 264}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md946}{}\doxysubsection{\texorpdfstring{{\ttfamily register\+Multisig()}}{{\ttfamily register\+Multisig()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md946}
+Register a multisig wallet configuration (address → M-\/of-\/N config). Called by the "{}createmultisig"{} RPC handler.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ registerMultisig(self:\ *Blockchain,\ address:\ []const\ u8,\ config:\ multisig\_mod.MultisigConfig)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+{\ttfamily config}  &{\ttfamily multisig\+\_\+mod.\+Multisig\+Config}  &Config  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 276}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md948}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Multisig\+Config()}}{{\ttfamily get\+Multisig\+Config()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md948}
+Look up a multisig config by address.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getMultisigConfig(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ ?*const\ multisig\_mod.MultisigConfig\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\texorpdfstring{$\ast$}{*}const multisig\+\_\+mod.\+Multisig\+Config}
+
+{\itshape Defined at line 294}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md950}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Transaction()}}{{\ttfamily add\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md950}
+Adds a new transaction to the collection.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addTransaction(self:\ *Blockchain,\ tx:\ Transaction)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 303}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md952}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Pending\+Outgoing()}}{{\ttfamily get\+Pending\+Outgoing()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md952}
+Returneaza totalul outgoing pending din mempool pentru o adresa (amount + fee per TX) Folosit in validate\+Transaction() pentru a preveni double-\/spend cu TX-\/uri rapide
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getPendingOutgoing(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 314}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md954}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Next\+Nonce()}}{{\ttfamily get\+Next\+Nonce()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md954}
+Returneaza urmatorul nonce confirmat pentru o adresa (0 daca nu exista) Acesta este nonce-\/ul pe chain — NU include TX-\/urile pending din mempool
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getNextNonce(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 326}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md956}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Next\+Available\+Nonce()}}{{\ttfamily get\+Next\+Available\+Nonce()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md956}
+Returneaza urmatorul nonce disponibil pentru o adresa, incluzand TX-\/urile pending din mempool (chain\+\_\+nonce + pending\+\_\+count). Aceasta metoda este utila pentru RPC "{}getnonce"{} — clientul stie ce nonce sa puna pe urmatoarea TX.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getNextAvailableNonce(self:\ *const\ Blockchain,\ address:\ []const\ u8)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceaddress}{address}}  &{\ttfamily \+[]\+const u8}  &Address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 333}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md958}{}\doxysubsection{\texorpdfstring{{\ttfamily validate\+Transaction()}}{{\ttfamily validate\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md958}
+Validates the transaction. Returns true if valid, false otherwise.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validateTransaction(self:\ *Blockchain,\ tx:\ *const\ Transaction)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 345}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md960}{}\doxysubsection{\texorpdfstring{{\ttfamily mine\+Block()}}{{\ttfamily mine\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md960}
+Executes mining operation — finds valid nonce for the next block.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ mineBlock(self:\ *Blockchain)\ !Block\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Block}
+
+{\itshape Defined at line 445}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md962}{}\doxysubsection{\texorpdfstring{{\ttfamily mine\+Block\+For\+Miner()}}{{\ttfamily mine\+Block\+For\+Miner()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md962}
+Mine block + acorda reward minerului + proceseaza TX-\/urile din mempool
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ mineBlockForMiner(self:\ *Blockchain,\ miner\_address:\ []const\ u8)\ !Block\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily miner\+\_\+address}  &{\ttfamily \+[]\+const u8}  &Miner\+\_\+address  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Block}
+
+{\itshape Defined at line 450}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md964}{}\doxysubsection{\texorpdfstring{{\ttfamily calculate\+Block\+Hash()}}{{\ttfamily calculate\+Block\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md964}
+Calculate block hash as 64-\/char hex string (shared implementation in hex\+\_\+utils)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ calculateBlockHash(self:\ *Blockchain,\ block:\ *const\ Block)\ ![]const\ u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &Block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+const u8}
+
+{\itshape Defined at line 553}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md966}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Valid\+Hash()}}{{\ttfamily is\+Valid\+Hash()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md966}
+Check if hash meets difficulty (delegates to shared hex\+\_\+utils)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isValidHash(self:\ *Blockchain,\ hash:\ []const\ u8)\ !bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily hash}  &{\ttfamily \+[]\+const u8}  &Hash  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !bool}
+
+{\itshape Defined at line 558}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md968}{}\doxysubsection{\texorpdfstring{{\ttfamily validate\+Block()}}{{\ttfamily validate\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md968}
+Validate a block against all consensus rules (Bitcoin-\/level validation). Returns true if the block passes all checks, false otherwise. Checks:\+ merkle root, timestamp, previous hash, difficulty, fees/\+reward, TX validity.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ validateBlock(self:\ *Blockchain,\ block:\ *const\ Block)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &Block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 568}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md970}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+External\+Block()}}{{\ttfamily add\+External\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md970}
+Accept a block from a P2P peer. Fully validates before appending. Handles three cases:\+
+\begin{DoxyEnumerate}
+\item Block extends our chain tip -\/\texorpdfstring{$>$}{>} append normally
+\item Block forks from our chain and creates a longer chain -\/\texorpdfstring{$>$}{>} reorg
+\item Block\textquotesingle{}s parent is unknown -\/\texorpdfstring{$>$}{>} store in orphan pool After appending, checks if any orphan blocks now connect.
+\end{DoxyEnumerate}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addExternalBlock(self:\ *Blockchain,\ block:\ Block)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily \doxylink{namespaceblock}{block}}  &{\ttfamily Block}  &Block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 643}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md972}{}\doxysubsection{\texorpdfstring{{\ttfamily reorg()}}{{\ttfamily reorg()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md972}
+Accept a full chain from a peer and reorg if it\textquotesingle{}s longer. Validates all blocks in the new chain from the fork point. Returns orphaned TXs to mempool for re-\/mining.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ reorg(self:\ *Blockchain,\ new\_chain:\ []const\ Block)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily new\+\_\+chain}  &{\ttfamily \+[]\+const Block}  &New\+\_\+chain  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 717}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md974}{}\doxysubsection{\texorpdfstring{{\ttfamily check\+Auto\+Save()}}{{\ttfamily check\+Auto\+Save()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md974}
+Check if auto-\/save should trigger based on block count or time elapsed. Called after each mined block. Saves at 100 blocks, 60s, or 1000 TXs.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkAutoSave(self:\ *Blockchain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 800}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md976}{}\doxysubsection{\texorpdfstring{{\ttfamily save\+To\+Disc()}}{{\ttfamily save\+To\+Disc()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md976}
+Convenience method:\+ save full blockchain state to disc via Persistent\+Blockchain. No-\/op if persistent\+\_\+db has not been attached (e.\+g. in unit tests).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ saveToDisc(self:\ *Blockchain)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 818}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md978}{}\doxysubsection{\texorpdfstring{{\ttfamily find\+Fork\+Point()}}{{\ttfamily find\+Fork\+Point()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md978}
+Find the highest block index where both chains have the same hash. Returns null if no common ancestor found (completely divergent chains).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ findForkPoint(self:\ *const\ Blockchain,\ other\_chain:\ []const\ Block)\ ?usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Blockchain}  &The instance  \\
+{\ttfamily other\+\_\+chain}  &{\ttfamily \+[]\+const Block}  &Other\+\_\+chain  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?usize}
+
+{\itshape Defined at line 826}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md980}{}\doxysubsection{\texorpdfstring{{\ttfamily process\+Orphans()}}{{\ttfamily process\+Orphans()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md980}
+Process orphan blocks:\+ check if any now connect to our chain tip. Keeps trying until no more orphans connect (cascading resolution).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ processOrphans(self:\ *Blockchain)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 972}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md982}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block()}}{{\ttfamily get\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md982}
+Returns the block for the given index.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlock(self:\ *Blockchain,\ index:\ u32)\ ?Block\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Block}
+
+{\itshape Defined at line 1003}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md984}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Latest\+Block()}}{{\ttfamily get\+Latest\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md984}
+Returns the current latest block.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getLatestBlock(self:\ *Blockchain)\ Block\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Block}
+
+{\itshape Defined at line 1010}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md986}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block\+Count()}}{{\ttfamily get\+Block\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2blockchain_autotoc_md986}
+Returns the current block count.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlockCount(self:\ *Blockchain)\ u32\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Blockchain}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u32}
+
+{\itshape Defined at line 1014}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

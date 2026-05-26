@@ -1,0 +1,305 @@
+\doxysection{buffer-\/overflow-\/tester.py}
+\hypertarget{buffer-overflow-tester_8py_source}{}\label{buffer-overflow-tester_8py_source}\index{tools/EXPLOITS/buffer-\/overflow-\/tester.py@{tools/EXPLOITS/buffer-\/overflow-\/tester.py}}
+\doxymbox{\hyperlink{buffer-overflow-tester_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00001}\doxymbox{\hyperlink{namespacebuffer-overflow-tester}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00002}\doxymbox{\hyperlink{namespacebuffer}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00003}00003\ \textcolor{stringliteral}{buffer-\/overflow-\/tester.py\ —\ OmniBus\ BlockChainCore\ Buffer\ Overflow\ Tester}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00005}00005\ \textcolor{stringliteral}{Send\ crafted/malformed\ inputs\ to\ the\ JSON-\/RPC\ port\ (8332)\ to\ test\ for:}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Oversized\ method\ names\ (10,000\ chars)}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ 1MB\ parameter\ strings}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Deeply\ nested\ JSON\ (500\ levels)}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Binary/non-\/UTF8\ data\ in\ string\ fields}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ Integer\ overflow\ values\ (2\string^64,\ 2\string^128,\ 2\string^256)}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ Negative\ block\ numbers\ and\ amounts}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00013}00013\ \textcolor{stringliteral}{After\ each\ test,\ pings\ the\ node\ with\ getblockcount\ to\ verify\ it\ survived.}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00014}00014\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00016}00016\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00017}00017\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00018}00018\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00020}00020\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00021}00021\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00022}00022\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00024}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a4495330dae4636ebdd704a8c6f29f5bb}{00024}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00025}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_ae33450326529402a358a5872b5c1fee2}{00025}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00026}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_aa114f2433000659fbc548c8f559f0a02}{00026}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00027}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_ae355b4cd2ef207e214ee238bc7f69dc1}{00027}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00028}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a88e3f96e35fe718a594459ef9677cb43}{00028}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00029}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_aef81c8af86d921348825124e46b54477}{00029}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00032}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00032}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00033}00033\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00036}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00036}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00037}00037\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00040}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}{00040}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00041}00041\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00044}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_adf0e2aa4d06b5ca38e44721821eca783}{00044}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuffer-overflow-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00045}00045\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00048}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client}{00048}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client}{RPCClient}}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00049}00049\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Minimal\ JSON-\/RPC\ 2.0\ client\ using\ stdlib\ http.client."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00051}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a607e384ac17057dffbed793d5740e4ba}{00051}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a607e384ac17057dffbed793d5740e4ba}{\_\_init\_\_}}(self,\ host:\ str,\ port:\ int,\ timeout:\ int\ =\ 10):}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00052}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a96ff29411bd802b720b4934a7a8444bc}{00052}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a96ff29411bd802b720b4934a7a8444bc}{host}}\ =\ host}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00053}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a3576e48803821ad0394701863b31d345}{00053}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a3576e48803821ad0394701863b31d345}{port}}\ =\ port}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00054}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a6688d01d17d4edceaf211112775b887a}{00054}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a6688d01d17d4edceaf211112775b887a}{timeout}}\ =\ timeout}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00055}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a915aee0817369df57866ede27c55ab03}{00055}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a915aee0817369df57866ede27c55ab03}{\_id}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00057}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a311111c7c173513abcc00dd6174776af}{00057}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a311111c7c173513abcc00dd6174776af}{send\_raw}}(self,\ body:\ bytes\ |\ str,\ timeout:\ int\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ tuple[int,\ str]:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ raw\ bytes\ to\ RPC\ endpoint,\ return\ (status\_code,\ body)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ t\ =\ timeout\ \textcolor{keywordflow}{or}\ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a6688d01d17d4edceaf211112775b887a}{timeout}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a96ff29411bd802b720b4934a7a8444bc}{host}},\ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a3576e48803821ad0394701863b31d345}{port}},\ timeout=t)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(body,\ str):}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ body\ =\ body.encode(\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ body,\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ resp.read().decode(\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.status,\ data}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ (ConnectionRefusedError,\ OSError)\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1,\ str(e)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/2,\ str(e)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00074}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a1ab240660d594a1a87ef26da7df6f1d5}{00074}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a1ab240660d594a1a87ef26da7df6f1d5}{call}}(self,\ method:\ str,\ params:\ list\ |\ dict\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None},\ timeout:\ int\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ tuple[int,\ str]:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ a\ JSON-\/RPC\ 2.0\ request."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a915aee0817369df57866ede27c55ab03}{\_id}}\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ payload\ =\ \{}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ method,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ [],}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a915aee0817369df57866ede27c55ab03}{\_id}},}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ body\ =\ json.dumps(payload)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a311111c7c173513abcc00dd6174776af}{send\_raw}}(body,\ timeout)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00086}\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a286de21090677d4966ecb8b7ebf90f06}{00086}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a286de21090677d4966ecb8b7ebf90f06}{is\_alive}}(self)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ if\ node\ is\ responding."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ status,\ body\ =\ self.\doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client_a1ab240660d594a1a87ef26da7df6f1d5}{call}}(\textcolor{stringliteral}{"{}getblockcount"{}},\ [],\ timeout=5)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ status\ ==\ 200}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00095}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a307f3a177d58d929da49d3e3637b1e26}{00095}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a307f3a177d58d929da49d3e3637b1e26}{classify\_result}}(status:\ int,\ body:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00096}00096\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Classify\ response\ as:\ error\ (good),\ crash\ (bad),\ or\ accepted\ (investigate)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00097}00097\ \ \ \ \ \textcolor{keywordflow}{if}\ status\ ==\ -\/1:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}CRASH"{}}\ \ \textcolor{comment}{\#\ Connection\ refused\ —\ node\ may\ have\ died}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00099}00099\ \ \ \ \ \textcolor{keywordflow}{if}\ status\ ==\ -\/2:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}CRASH"{}}\ \ \textcolor{comment}{\#\ Timeout\ or\ other\ error}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00101}00101\ \ \ \ \ \textcolor{keywordflow}{if}\ status\ >=\ 400:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}ERROR"{}}\ \ \textcolor{comment}{\#\ Server\ rejected\ —\ good}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00103}00103\ \ \ \ \ \textcolor{keywordflow}{if}\ status\ ==\ 200:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ resp\ =\ json.loads(body)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp\ \textcolor{keywordflow}{and}\ resp[\textcolor{stringliteral}{"{}error"{}}]:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}ERROR"{}}\ \ \textcolor{comment}{\#\ JSON-\/RPC\ error\ —\ good}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}ACCEPTED"{}}\ \ \textcolor{comment}{\#\ Silently\ accepted\ —\ investigate}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ json.JSONDecodeError:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}ERROR"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00111}00111\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}ERROR"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00114}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_ac3ceb922c2fd2290f8aa237a68dbb0e1}{00114}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuffer-overflow-tester_ac3ceb922c2fd2290f8aa237a68dbb0e1}{build\_nested\_json}}(depth:\ int)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00115}00115\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Build\ a\ JSON\ object\ nested\ depth\ levels\ deep."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00116}00116\ \ \ \ \ obj:\ dict\ =\ \{\textcolor{stringliteral}{"{}leaf"{}}:\ \textcolor{keyword}{True}\}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00117}00117\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(depth):}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ obj\ =\ \{\textcolor{stringliteral}{"{}level"{}}:\ i,\ \textcolor{stringliteral}{"{}child"{}}:\ obj\}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{return}\ obj}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00122}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_af781ded611702f585085d929bcb1f135}{00122}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuffer-overflow-tester_af781ded611702f585085d929bcb1f135}{run\_tests}}(client:\ RPCClient)\ -\/>\ list[dict]:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00123}00123\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ all\ buffer\ overflow\ /\ malformed\ input\ tests."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00124}00124\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00126}00126\ \ \ \ \ \textcolor{comment}{\#\ Pre-\/check:\ is\ node\ alive?}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00127}00127\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ client.is\_alive():}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Node\ not\ reachable\ at\ \{client.host\}:\{client.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Start\ the\ node\ first:\ zig-\/out/bin/omnibus-\/node.exe\ -\/-\/mode\ seed\ -\/-\/node-\/id\ test-\/1\ -\/-\/port\ 9000"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00132}00132\ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Node\ is\ alive\ at\ \{client.host\}:\{client.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00134}00134\ \ \ \ \ tests\ =\ [}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ (name,\ method,\ params\_or\_raw,\ is\_raw,\ timeout)}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Oversized\ method\ name\ (10,000\ chars)"{}},\ \textcolor{stringliteral}{"{}A"{}}\ *\ 10000,\ [],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}1MB\ string\ parameter"{}},\ \textcolor{stringliteral}{"{}echo"{}},\ [\textcolor{stringliteral}{"{}X"{}}\ *\ (1024\ *\ 1024)],\ \textcolor{keyword}{False},\ 15),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}500-\/level\ nested\ JSON\ params"{}},\ \textcolor{stringliteral}{"{}processblock"{}},\ [\doxymbox{\hyperlink{namespacebuffer-overflow-tester_ac3ceb922c2fd2290f8aa237a68dbb0e1}{build\_nested\_json}}(500)],\ \textcolor{keyword}{False},\ 15),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Integer\ overflow:\ 2\string^64"{}},\ \textcolor{stringliteral}{"{}getblock"{}},\ [2**64],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Integer\ overflow:\ 2\string^128"{}},\ \textcolor{stringliteral}{"{}getblock"{}},\ [2**128],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Integer\ overflow:\ 2\string^256"{}},\ \textcolor{stringliteral}{"{}getblock"{}},\ [2**256],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Negative\ block\ number"{}},\ \textcolor{stringliteral}{"{}getblock"{}},\ [-\/1],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Negative\ amount"{}},\ \textcolor{stringliteral}{"{}sendrawtransaction"{}},\ [\{\textcolor{stringliteral}{"{}amount"{}}:\ -\/999999\}],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Very\ negative\ block\ number"{}},\ \textcolor{stringliteral}{"{}getblock"{}},\ [-\/2**63],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Empty\ method\ name"{}},\ \textcolor{stringliteral}{"{}"{}},\ [],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Null\ method"{}},\ \textcolor{keywordtype}{None},\ [],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Method\ with\ special\ chars"{}},\ \textcolor{stringliteral}{"{}get\(\backslash\)x00block\(\backslash\)ncount\(\backslash\)r\(\backslash\)n"{}},\ [],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Params\ as\ string\ instead\ of\ array"{}},\ \textcolor{stringliteral}{"{}getblockcount"{}},\ \textcolor{stringliteral}{"{}not\_an\_array"{}},\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Float\ block\ number"{}},\ \textcolor{stringliteral}{"{}getblock"{}},\ [1.5],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Boolean\ as\ block\ number"{}},\ \textcolor{stringliteral}{"{}getblock"{}},\ [\textcolor{keyword}{True}],\ \textcolor{keyword}{False},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00151}00151\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00153}00153\ \ \ \ \ \textcolor{comment}{\#\ Binary\ /\ non-\/UTF8\ tests\ (raw)}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00154}00154\ \ \ \ \ raw\_tests\ =\ [}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Binary\ data\ in\ JSON\ string"{}},\ b\textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}echo"{},"{}params"{}:["{}\(\backslash\)x80\(\backslash\)x81\(\backslash\)xff\(\backslash\)xfe\(\backslash\)x00\(\backslash\)x01"{}],"{}id"{}:99\}'},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Pure\ binary\ payload"{}},\ bytes(range(256))\ *\ 10,\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Truncated\ JSON"{}},\ b\textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getbl'},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}XML\ instead\ of\ JSON"{}},\ b\textcolor{stringliteral}{'<?xml\ version="{}1.0"{}?><request><method>getblockcount</method></request>'},\ 10),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00159}00159\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00161}00161\ \ \ \ \ test\_num\ =\ 0}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00162}00162\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ method,\ params,\ is\_raw,\ timeout\ \textcolor{keywordflow}{in}\ tests:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ test\_num\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Test\ \{test\_num\}:\ \{name\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ method\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Send\ malformed\ JSON\ with\ null\ method}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ body\ =\ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:null,"{}params"{}:[],"{}id"{}:1\}'}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ status,\ resp\_body\ =\ client.send\_raw(body,\ timeout)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ status,\ resp\_body\ =\ client.call(method,\ params,\ timeout)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ verdict\ =\ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a307f3a177d58d929da49d3e3637b1e26}{classify\_result}}(status,\ resp\_body)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ status\ =\ -\/2}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ resp\_body\ =\ str(e)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ verdict\ =\ \textcolor{stringliteral}{"{}CRASH"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00177}00177\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ result\ =\ \{}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ name,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}http\_status"{}}:\ status,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}verdict"{}}:\ verdict,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}response\_preview"{}}:\ resp\_body[:200]\ \textcolor{keywordflow}{if}\ resp\_body\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ results.append(result)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ verdict\ ==\ \textcolor{stringliteral}{"{}ERROR"{}}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Rejected\ properly\ (HTTP\ \{status\})"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ verdict\ ==\ \textcolor{stringliteral}{"{}CRASH"{}}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Node\ may\ have\ CRASHED!\ (\{resp\_body[:80]\})"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ verdict\ ==\ \textcolor{stringliteral}{"{}ACCEPTED"{}}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Silently\ accepted\ —\ investigate!"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Verify\ node\ still\ alive}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ time.sleep(0.2)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ client.is\_alive():}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Node\ is\ NO\ LONGER\ RESPONDING\ after\ this\ test!"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}node\_alive\_after"{}}]\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Try\ to\ continue\ anyway}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(2)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}node\_alive\_after"{}}]\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00203}00203\ \ \ \ \ \textcolor{comment}{\#\ Raw\ binary\ tests}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00204}00204\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ raw\_body,\ timeout\ \textcolor{keywordflow}{in}\ raw\_tests:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ test\_num\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Test\ \{test\_num\}:\ \{name\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ status,\ resp\_body\ =\ client.send\_raw(raw\_body,\ timeout)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ verdict\ =\ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a307f3a177d58d929da49d3e3637b1e26}{classify\_result}}(status,\ resp\_body)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ status\ =\ -\/2}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ resp\_body\ =\ str(e)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ verdict\ =\ \textcolor{stringliteral}{"{}CRASH"{}}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ result\ =\ \{}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ name,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}http\_status"{}}:\ status,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}verdict"{}}:\ verdict,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}response\_preview"{}}:\ resp\_body[:200]\ \textcolor{keywordflow}{if}\ resp\_body\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ results.append(result)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ verdict\ ==\ \textcolor{stringliteral}{"{}ERROR"{}}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Rejected\ properly\ (HTTP\ \{status\})"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ verdict\ ==\ \textcolor{stringliteral}{"{}CRASH"{}}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Node\ may\ have\ CRASHED!\ (\{resp\_body[:80]\})"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ verdict\ ==\ \textcolor{stringliteral}{"{}ACCEPTED"{}}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(f\textcolor{stringliteral}{"{}Silently\ accepted\ —\ investigate!"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ time.sleep(0.2)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ alive\ =\ client.is\_alive()}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ result[\textcolor{stringliteral}{"{}node\_alive\_after"{}}]\ =\ alive}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ alive:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Node\ is\ NO\ LONGER\ RESPONDING!"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(2)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00237}00237\ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00240}\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a7431cb90017e54fe695b23d4190db046}{00240}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00241}00241\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ Buffer\ Overflow\ Tester\ —\ send\ crafted\ inputs\ to\ RPC\ port"{}},}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00243}00243\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00244}00244\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}RPC\ host\ (default:\ 127.0.0.1)"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00245}00245\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=8332,\ help=\textcolor{stringliteral}{"{}RPC\ port\ (default:\ 8332)"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00246}00246\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/timeout"{}},\ type=int,\ default=10,\ help=\textcolor{stringliteral}{"{}Per-\/request\ timeout\ in\ seconds"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00247}00247\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ \textcolor{stringliteral}{"{}-\/o"{}},\ default=\textcolor{keywordtype}{None},\ help=\textcolor{stringliteral}{"{}Save\ results\ to\ JSON\ file"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00248}00248\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00250}00250\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00251}00251\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ OmniBus\ Buffer\ Overflow\ /\ Malformed\ Input\ Tester\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00252}00252\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00253}00253\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Target:\ \{args.host\}:\{args.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00254}00254\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Timeout:\ \{args.timeout\}s\ per\ request\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00256}00256\ \ \ \ \ client\ =\ \doxymbox{\hyperlink{classbuffer-overflow-tester_1_1_r_p_c_client}{RPCClient}}(args.host,\ args.port,\ args.timeout)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00257}00257\ \ \ \ \ results\ =\ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_af781ded611702f585085d929bcb1f135}{run\_tests}}(client)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00258}00258\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00259}00259\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ results:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00262}00262\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00263}00263\ \ \ \ \ errors\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}ERROR"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00264}00264\ \ \ \ \ crashes\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}CRASH"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00265}00265\ \ \ \ \ accepted\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}ACCEPTED"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00266}00266\ \ \ \ \ dead\_after\ =\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ r.get(\textcolor{stringliteral}{"{}node\_alive\_after"{}},\ \textcolor{keyword}{True}))}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00267}00267\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00268}00268\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00269}00269\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ SUMMARY\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00270}00270\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Total\ tests:\ \ \ \ \ \{len(results)\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00271}00271\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}Properly\ rejected:\{RESET\}\ \{errors\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00272}00272\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}Possible\ crashes:\{RESET\}\ \ \{crashes\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00273}00273\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Silently\ accepted:\{RESET\}\ \{accepted\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00274}00274\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}Node\ died\ after:\{RESET\}\ \ \ \{dead\_after\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00275}00275\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00277}00277\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.now(tz=timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target"{}}:\ f\textcolor{stringliteral}{"{}\{args.host\}:\{args.port\}"{}},}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}summary"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total"{}}:\ len(results),}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rejected"{}}:\ errors,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crashes"{}}:\ crashes,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}accepted"{}}:\ accepted,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node\_deaths"{}}:\ dead\_after,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00288}00288\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00290}00290\ \ \ \ \ \textcolor{keywordflow}{if}\ args.output:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuffer-overflow-tester_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Report\ saved\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00295}00295\ \ \ \ \ \textcolor{keywordflow}{return}\ 1\ \textcolor{keywordflow}{if}\ (crashes\ >\ 0\ \textcolor{keywordflow}{or}\ dead\_after\ >\ 0)\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00297}00297\ }
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00298}00298\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{buffer-overflow-tester_8py_source_l00299}00299\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacebuffer-overflow-tester_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

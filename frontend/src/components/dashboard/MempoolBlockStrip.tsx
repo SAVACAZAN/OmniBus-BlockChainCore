@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { MempoolBlock } from "./MempoolBlock";
 
@@ -5,7 +6,10 @@ const MAX_VISIBLE_BLOCKS = 8;
 
 export function MempoolBlockStrip() {
   const { state } = useBlockchain();
-  const blocks = state.recentBlocks.slice(0, MAX_VISIBLE_BLOCKS);
+  const blocks = useMemo(
+    () => [...new Map(state.recentBlocks.slice(0, MAX_VISIBLE_BLOCKS).map((b) => [b.height, b])).values()].reverse(),
+    [state.recentBlocks],
+  );
 
   return (
     <section className="w-full">
@@ -20,9 +24,7 @@ export function MempoolBlockStrip() {
       </div>
 
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-        {[...new Map(blocks.map((b) => [b.height, b])).values()]
-          .reverse()
-          .map((block, i, arr) => (
+        {blocks.map((block, i, arr) => (
             <MempoolBlock
               key={`block-${block.height}`}
               block={block}

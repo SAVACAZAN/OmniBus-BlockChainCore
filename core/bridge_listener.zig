@@ -34,16 +34,37 @@ pub const DEFAULT_POLL_INTERVAL_MS: u64 = 2000;
 /// Maxim blocuri scanate per poll (limita de siguranta)
 pub const MAX_BLOCKS_PER_POLL: u64 = 100;
 
-/// EVM event topic hashes (keccak256 of event signatures)
+/// EVM event topic hashes — keccak256(event_signature), 64-char lowercase hex
+/// (no "0x" prefix; the form eth_getLogs expects in topics[]).
+///
+/// Computed at comptime from the canonical Solidity signature, so the constants
+/// cannot drift from the underlying string. Cross-checked against Python
+/// eth_utils.keccak: identical output.
+fn eventTopicHex(comptime sig: []const u8) [64]u8 {
+    @setEvalBranchQuota(100_000); // Keccak permutation needs many comptime branches
+    const Keccak256 = std.crypto.hash.sha3.Keccak256;
+    var raw: [32]u8 = undefined;
+    var h = Keccak256.init(.{});
+    h.update(sig);
+    h.final(&raw);
+    var hex: [64]u8 = undefined;
+    const alphabet = "0123456789abcdef";
+    for (raw, 0..) |b, i| {
+        hex[i * 2] = alphabet[b >> 4];
+        hex[i * 2 + 1] = alphabet[b & 0x0f];
+    }
+    return hex;
+}
+
 /// keccak256("OrderPlaced(uint256,address,address,uint256,uint256)")
-/// NOTE: Aceste valori trebuie recalculate cu keccak256 real la deploy.
-///       Placeholder-uri derivate din signatura evenimentului.
+/// = 842740ca241c8cea19809d2824591efdd38a7e8e546b25122b975df6598e52c1
 pub const ORDER_PLACED_TOPIC: [64]u8 =
-    "e1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c".*;
+    eventTopicHex("OrderPlaced(uint256,address,address,uint256,uint256)");
 
 /// keccak256("OrderCancelled(uint256,address)")
+/// = c0362da6f2ff36b382b34aec0814f6b3cdf89f5ef282a1d1f114d0c0b036d596
 pub const ORDER_CANCELLED_TOPIC: [64]u8 =
-    "a]0cc6c2c4f6d8e8b7c6c2c4f6d8e8b7c6c2c4f6d8e8b7c6c2c4f6d8e0a1b2".*;
+    eventTopicHex("OrderCancelled(uint256,address)");
 
 /// Default Liberty Chain RPC endpoint
 pub const DEFAULT_LIBERTY_RPC: []const u8 = "https://testnet-rpc.lcx.com";
@@ -878,4 +899,18 @@ test "formatHexU64 helper" {
     try testing.expectEqualStrings("0xff", formatHexU64(&buf, 255));
     try testing.expectEqualStrings("0x64", formatHexU64(&buf, 100));
     try testing.expectEqualStrings("0xa455", formatHexU64(&buf, 42069));
+}
+
+test "event topic hashes match canonical keccak256(signature)" {
+    // Lock the values: any accidental change to the signatures or the
+    // comptime helper will break this test, surfacing the regression
+    // before it reaches Liberty Chain.
+    try testing.expectEqualStrings(
+        "842740ca241c8cea19809d2824591efdd38a7e8e546b25122b975df6598e52c1",
+        &ORDER_PLACED_TOPIC,
+    );
+    try testing.expectEqualStrings(
+        "c0362da6f2ff36b382b34aec0814f6b3cdf89f5ef282a1d1f114d0c0b036d596",
+        &ORDER_CANCELLED_TOPIC,
+    );
 }

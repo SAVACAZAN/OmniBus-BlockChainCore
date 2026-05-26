@@ -1,0 +1,698 @@
+\chapter{Omni\+Bus Block\+Chain Core -\/ Ghid Complet }
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e}{}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e}\index{OmniBus BlockChain Core -\/ Ghid Complet@{OmniBus BlockChain Core -\/ Ghid Complet}}
+\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10843}%
+\Hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10843}%
+
+
+{\bfseries{Document:\+}} \doxylink{00-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_8md}{00-\/\+OMNIBUS-\/\+COMPLETE-\/\+GUIDE.\+md} ~\newline
+ {\bfseries{Data:\+}} 2026-\/03-\/30 ~\newline
+ {\bfseries{Versiune:\+}} 1.\+0.\+0-\/dev ~\newline
+ {\bfseries{Status:\+}} 🔴 Documentație Completă ~\newline
+ {\bfseries{Autor:\+}} Kimi AI (Analiză Proiect) ~\newline
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10845}{}\doxysection{\texorpdfstring{📋 Cuprins}{📋 Cuprins}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10845}
+
+\begin{DoxyEnumerate}
+\item Overview ProiectOverview Proiect
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Arhitectura SistemuluiArhitectura Sistemului
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Modulele Core (66 module)Modulele Core (66 module)
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item RPC API CompletRPC API Complet
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Criptografie Post-\/\+QuantumCriptografie Post-\/\+Quantum
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Teste și CoverageTeste și Coverage
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Tools și UtilitareTools și Utilitare
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Frontend și UIFrontend și UI
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Deployment și LaunchDeployment și Launch
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item Ecosistem și IntegrăriEcosistem și Integrări
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10847}{}\doxysection{\texorpdfstring{1. Overview Proiect}{1. Overview Proiect}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10847}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10848}{}\doxysubsection{\texorpdfstring{Ce este Omni\+Bus Block\+Chain Core?}{Ce este Omni\+Bus Block\+Chain Core?}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10848}
+Omni\+Bus este un {\bfseries{blockchain Layer 1}} implementat în {\bfseries{Zig 0.\+15.\+2}}, cu focus pe:\+
+
+
+\begin{DoxyItemize}
+\item ✅ {\bfseries{Post-\/\+Quantum Security}} -\/ Algoritmi NIST PQ (ML-\/\+DSA-\/87, Falcon-\/512, SLH-\/\+DSA)
+\item ✅ {\bfseries{Sharding Nativ}} -\/ 7 shards + metachain EGLD-\/style
+\item ✅ {\bfseries{Sub-\/blocuri 0.\+1s}} -\/ 10 sub-\/blocuri = 1 Key\+Block (1s finality)
+\item ✅ {\bfseries{Windows Native}} -\/ Compilare nativă Min\+GW, fără WSL
+\item ✅ {\bfseries{Mining Pool Dinamic}} -\/ Înregistrare runtime, zero hardcoding
+\item ✅ {\bfseries{Cross-\/\+Platform}} -\/ Windows + Linux + mac\+OS
+\end{DoxyItemize}\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10849}{}\doxysubsection{\texorpdfstring{Statistici Cheie}{Statistici Cheie}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10849}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metric  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  \\
+{\bfseries{Module Zig}}  &66 în {\ttfamily core/\+}  \\
+{\bfseries{Linii Cod Zig}}  &\texorpdfstring{$\sim$}{\string~}12,000+  \\
+{\bfseries{Teste}}  &500+ (toate trec ✅)  \\
+{\bfseries{RPC Methods}}  &18+  \\
+{\bfseries{Address Domains PQ}}  &5  \\
+{\bfseries{Shards}}  &7  \\
+{\bfseries{Sub-\/block Time}}  &100ms  \\
+{\bfseries{Block Time}}  &1s (10 sub-\/blocks)  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10850}{}\doxysubsection{\texorpdfstring{Stack Tehnologic}{Stack Tehnologic}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10850}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FRONTEND\ (React\ +\ TS)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Port\ 3000\ /\ WebSocket\ 8334\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ RPC\ SERVER\ (Node.js)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JSON-\/RPC\ 2.0\ /\ Port\ 8332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BLOCKCHAIN\ CORE\ (Zig)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ PoW\ +\ Sharding\ +\ PQ\ Crypto\ +\ P2P\ +\ State\ Trie\ +\ Mempool\ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ STORAGE\ (Binary\ custom)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ omnibus-\/chain.dat\ (append-\/only)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10852}{}\doxysection{\texorpdfstring{2. Arhitectura Sistemului}{2. Arhitectura Sistemului}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10852}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10853}{}\doxysubsection{\texorpdfstring{2.\+1 Structura Directoarelor}{2.\+1 Structura Directoarelor}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10853}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmniBus-\/BlockChainCore/}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ core/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ 66\ module\ Zig\ blockchain}
+\DoxyCodeLine{│\ \ \ ├──\ main.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Entry\ point}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Chain\ management}
+\DoxyCodeLine{│\ \ \ ├──\ block.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Block\ structure}
+\DoxyCodeLine{│\ \ \ ├──\ transaction.zig\ \ \ \ \ \ \ \ \ \ \ \ \#\ TX\ +\ semnături}
+\DoxyCodeLine{│\ \ \ ├──\ mempool.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ TX\ pool\ FIFO}
+\DoxyCodeLine{│\ \ \ ├──\ consensus.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ PoS\ consensus}
+\DoxyCodeLine{│\ \ \ ├──\ staking.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Validator\ staking}
+\DoxyCodeLine{│\ \ \ ├──\ finality.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Casper\ FFG}
+\DoxyCodeLine{│\ \ \ ├──\ sub\_block.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Sub-\/blocks\ 0.1s}
+\DoxyCodeLine{│\ \ \ ├──\ shard\_config.zig\ \ \ \ \ \ \ \ \ \ \ \#\ 7\ shards\ config}
+\DoxyCodeLine{│\ \ \ ├──\ shard\_coordinator.zig\ \ \ \ \ \ \#\ Cross-\/shard\ routing}
+\DoxyCodeLine{│\ \ \ ├──\ metachain.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ EGLD\ metachain}
+\DoxyCodeLine{│\ \ \ ├──\ pq\_crypto.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ liboqs\ FFI}
+\DoxyCodeLine{│\ \ \ ├──\ secp256k1.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ ECDSA\ real\ Zig}
+\DoxyCodeLine{│\ \ \ ├──\ schnorr.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ BIP-\/340\ Schnorr}
+\DoxyCodeLine{│\ \ \ ├──\ bls\_signatures.zig\ \ \ \ \ \ \ \ \ \#\ BLS12-\/381}
+\DoxyCodeLine{│\ \ \ ├──\ wallet.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ 5\ PQ\ addresses}
+\DoxyCodeLine{│\ \ \ ├──\ bip32\_wallet.zig\ \ \ \ \ \ \ \ \ \ \ \#\ HD\ wallet\ BIP-\/32}
+\DoxyCodeLine{│\ \ \ ├──\ rpc\_server.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ JSON-\/RPC\ HTTP}
+\DoxyCodeLine{│\ \ \ ├──\ ws\_server.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ WebSocket\ push}
+\DoxyCodeLine{│\ \ \ ├──\ p2p.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ P2P\ TCP\ networking}
+\DoxyCodeLine{│\ \ \ ├──\ sync.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Block\ sync}
+\DoxyCodeLine{│\ \ \ ├──\ storage.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ In-\/memory\ KV}
+\DoxyCodeLine{│\ \ \ ├──\ database.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Persistență\ binară}
+\DoxyCodeLine{│\ \ \ ├──\ state\_trie.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Merkle\ Patricia\ Trie}
+\DoxyCodeLine{│\ \ \ └──\ ...\ (66\ total)}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ test/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Teste\ Zig}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain\_test.zig\ \ \ \ \ \ \ \ \#\ Teste\ de\ bază}
+\DoxyCodeLine{│\ \ \ ├──\ phase2\_crypto\_test.zig\ \ \ \ \ \#\ Teste\ crypto\ Phase\ 2}
+\DoxyCodeLine{│\ \ \ ├──\ crypto\_advanced\_test.zig\ \ \ \#\ BLS,\ Schnorr,\ PQ}
+\DoxyCodeLine{│\ \ \ ├──\ mempool\_test.zig\ \ \ \ \ \ \ \ \ \ \ \#\ Teste\ mempool}
+\DoxyCodeLine{│\ \ \ ├──\ sharding\_test.zig\ \ \ \ \ \ \ \ \ \ \#\ Teste\ sharding}
+\DoxyCodeLine{│\ \ \ ├──\ consensus\_test.zig\ \ \ \ \ \ \ \ \ \#\ Teste\ consensus}
+\DoxyCodeLine{│\ \ \ └──\ storage\_test.zig\ \ \ \ \ \ \ \ \ \ \ \#\ Teste\ storage}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ tools/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ 15+\ utilitare\ Python}
+\DoxyCodeLine{│\ \ \ ├──\ ANALYSIS/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Analiză\ cod}
+\DoxyCodeLine{│\ \ \ ├──\ SECURITY/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Scanare\ securitate}
+\DoxyCodeLine{│\ \ \ ├──\ TESTING/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Test\ runner}
+\DoxyCodeLine{│\ \ \ ├──\ COMPARISON/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Comparare\ blockchain-\/uri}
+\DoxyCodeLine{│\ \ \ ├──\ DOCUMENTATION/\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Genereare\ docs}
+\DoxyCodeLine{│\ \ \ ├──\ BRIDGE/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Bridge\ validators}
+\DoxyCodeLine{│\ \ \ └──\ MONITORING/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Monitorizare}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ frontend/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ React\ +\ TypeScript}
+\DoxyCodeLine{│\ \ \ ├──\ src/}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ App.tsx\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ SPA\ 5\ pagini}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ api/rpc-\/client.ts\ \ \ \ \ \ \#\ Wrapper\ RPC}
+\DoxyCodeLine{│\ \ \ │\ \ \ ├──\ components/\ \ \ \ \ \ \ \ \ \ \ \ \#\ Stats,\ Wallet,\ BlockExplorer}
+\DoxyCodeLine{│\ \ \ │\ \ \ └──\ pages/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Dashboard,\ GenesisCountdown}
+\DoxyCodeLine{│\ \ \ └──\ package.json}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ wallets/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Wallets\ JSON}
+\DoxyCodeLine{├──\ genesis/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Config\ genesis}
+\DoxyCodeLine{├──\ logs/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Loguri\ runtime}
+\DoxyCodeLine{├──\ wiki-\/omnibus/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Documentație\ (16\ fișiere)}
+\DoxyCodeLine{└──\ build.zig\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Build\ config\ Zig}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10854}{}\doxysubsection{\texorpdfstring{2.\+2 Arhitectura Blockchain}{2.\+2 Arhitectura Blockchain}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10854}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{┌─────────────────────────────────────────────────────────────┐}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ METACHAIN\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ (Notarizare\ shard\ headers)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Block\ time:\ 1s\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ Shard\ 0\ \ │\ \ Shard\ 1\ \ │\ \ Shard\ 2\ \ │\ \ ...\ \ │\ \ Shard\ 6\ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ (OMNI)\ \ \ │\ \ (LOVE)\ \ \ │\ \ (FOOD)\ \ \ │\ \ \ \ \ \ \ │\ \ (VACATION)\ \ \ \ │}
+\DoxyCodeLine{│\ \ 10\ sub\ \ \ │\ \ 10\ sub\ \ \ │\ \ 10\ sub\ \ \ │\ \ \ \ \ \ \ │\ \ 10\ sub\ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ 0.1s\ \ \ \ \ │\ \ 0.1s\ \ \ \ \ │\ \ 0.1s\ \ \ \ \ │\ \ \ \ \ \ \ │\ \ 0.1s\ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{├─────────────────────────────────────────────────────────────┤}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SUB-\/BLOCK\ LAYER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ \ \ 10\ sub-\/blocks\ ×\ 100ms\ =\ 1s\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{│\ \ \ \ \ \ \ \ \ \ \ \ Soft\ finality\ la\ fiecare\ 100ms\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ │}
+\DoxyCodeLine{└─────────────────────────────────────────────────────────────┘}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10855}{}\doxysubsection{\texorpdfstring{2.\+3 Flow-\/ul unei Tranzacții}{2.\+3 Flow-\/ul unei Tranzacții}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10855}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1.\ USER\ →\ trimite\ TX\ via\ RPC/sendtransaction}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{2.\ RPC\ SERVER\ →\ validează\ și\ adaugă\ în\ MEMPOOL}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{3.\ MINER\ →\ preia\ TX\ din\ mempool\ (FIFO,\ anti-\/MEV)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{4.\ SUB-\/BLOCK\ →\ include\ TX\ în\ sub-\/block\ (0.1s)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{5.\ KEY-\/BLOCK\ →\ agregă\ 10\ sub-\/blocks\ (1s)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{6.\ FINALITY\ →\ Casper\ FFG\ justification\ (2-\/3\ blocks)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{7.\ CONFIRMED\ →\ TX\ finalizată,\ irreversibilă}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10857}{}\doxysection{\texorpdfstring{3. Modulele Core (66 module)}{3. Modulele Core (66 module)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10857}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10858}{}\doxysubsection{\texorpdfstring{3.\+1 Blockchain \& Consens (13 module)}{3.\+1 Blockchain \& Consens (13 module)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10858}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+{\ttfamily blockchain.\+zig}  &\texorpdfstring{$\sim$}{\string~}400  &Chain management, PoW mining, difficulty retarget  &✅  \\
+{\ttfamily block.\+zig}  &\texorpdfstring{$\sim$}{\string~}150  &Block struct, hash, validation  &✅  \\
+{\ttfamily blockchain\+\_\+v2.\+zig}  &\texorpdfstring{$\sim$}{\string~}450  &Sharded blockchain, binary codec  &✅  \\
+{\ttfamily sub\+\_\+block.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &Sub-\/blocks 0.\+1s, Key\+Block aggregation  &✅  \\
+{\ttfamily consensus.\+zig}  &\texorpdfstring{$\sim$}{\string~}250  &PoS consensus, voting, quorum  &✅  \\
+{\ttfamily finality.\+zig}  &\texorpdfstring{$\sim$}{\string~}300  &Casper FFG finality gadget  &✅  \\
+{\ttfamily staking.\+zig}  &\texorpdfstring{$\sim$}{\string~}280  &Validator staking, rewards, slashing  &✅  \\
+{\ttfamily governance.\+zig}  &\texorpdfstring{$\sim$}{\string~}220  &On-\/chain governance, proposals  &✅  \\
+{\ttfamily genesis.\+zig}  &\texorpdfstring{$\sim$}{\string~}180  &Genesis block, 21M supply allocation  &✅  \\
+{\ttfamily miner\+\_\+genesis.\+zig}  &\texorpdfstring{$\sim$}{\string~}250  &Genesis mining, 10 miners bootstrap  &✅  \\
+{\ttfamily e2e\+\_\+mining.\+zig}  &\texorpdfstring{$\sim$}{\string~}150  &End-\/to-\/end mining tests  &✅  \\
+{\ttfamily metachain.\+zig}  &\texorpdfstring{$\sim$}{\string~}320  &EGLD-\/style metachain, notarizare  &✅  \\
+{\ttfamily spark\+\_\+invariants.\+zig}  &\texorpdfstring{$\sim$}{\string~}180  &Ada/\+\+SPARK-\/style comptime verification  &✅  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10859}{}\doxysubsection{\texorpdfstring{3.\+2 Sharding (6 module)}{3.\+2 Sharding (6 module)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10859}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+{\ttfamily shard\+\_\+config.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &7 shards config, validator assignment  &✅  \\
+{\ttfamily shard\+\_\+coordinator.\+zig}  &\texorpdfstring{$\sim$}{\string~}280  &Cross-\/shard TX routing  &✅  \\
+{\ttfamily sub\+\_\+block.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &Sub-\/block pool, 10 sloturi  &✅  \\
+{\ttfamily compact\+\_\+blocks.\+zig}  &\texorpdfstring{$\sim$}{\string~}180  &Block compression  &✅  \\
+{\ttfamily compact\+\_\+transaction.\+zig}  &\texorpdfstring{$\sim$}{\string~}220  &161 bytes/\+\+TX (vs 432B standard)  &✅  \\
+{\ttfamily witness\+\_\+data.\+zig}  &\texorpdfstring{$\sim$}{\string~}420  &Seg\+Wit-\/style witness separation  &✅  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10860}{}\doxysubsection{\texorpdfstring{3.\+3 Cryptografie (12 module)}{3.\+3 Cryptografie (12 module)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10860}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+{\ttfamily secp256k1.\+zig}  &\texorpdfstring{$\sim$}{\string~}150  &ECDSA real Zig (zero deps)  &✅  \\
+{\ttfamily schnorr.\+zig}  &\texorpdfstring{$\sim$}{\string~}180  &BIP-\/340 Schnorr signatures  &✅  \\
+{\ttfamily bls\+\_\+signatures.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &BLS12-\/381, aggregation, threshold  &✅  \\
+{\ttfamily pq\+\_\+crypto.\+zig}  &\texorpdfstring{$\sim$}{\string~}350  &ML-\/\+DSA-\/87, Falcon, SLH-\/\+DSA, ML-\/\+KEM  &✅  \\
+{\ttfamily crypto.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &SHA256, HMAC, AES-\/256-\/\+GCM  &✅  \\
+{\ttfamily ripemd160.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &RIPEMD-\/160 pur Zig  &✅  \\
+{\ttfamily bip32\+\_\+wallet.\+zig}  &\texorpdfstring{$\sim$}{\string~}350  &HD wallet BIP-\/32/\+39 real  &✅  \\
+{\ttfamily wallet.\+zig}  &\texorpdfstring{$\sim$}{\string~}400  &5 PQ addresses, TX creation  &✅  \\
+{\ttfamily key\+\_\+encryption.\+zig}  &\texorpdfstring{$\sim$}{\string~}250  &Password-\/based key encryption  &✅  \\
+{\ttfamily multisig.\+zig}  &\texorpdfstring{$\sim$}{\string~}220  &Multi-\/signature schemes  &✅  \\
+{\ttfamily hex\+\_\+utils.\+zig}  &\texorpdfstring{$\sim$}{\string~}100  &Hex encoding/\+decoding  &✅  \\
+{\ttfamily domain\+\_\+minter.\+zig}  &\texorpdfstring{$\sim$}{\string~}180  &PQ domain minting  &✅  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10861}{}\doxysubsection{\texorpdfstring{3.\+4 Networking \& P2P (10 module)}{3.\+4 Networking \& P2P (10 module)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10861}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+{\ttfamily p2p.\+zig}  &\texorpdfstring{$\sim$}{\string~}400  &TCP P2P, broadcast, peer management  &✅  \\
+{\ttfamily network.\+zig}  &\texorpdfstring{$\sim$}{\string~}350  &Network layer, connections  &✅  \\
+{\ttfamily sync.\+zig}  &\texorpdfstring{$\sim$}{\string~}300  &Block sync, stall detection  &✅  \\
+{\ttfamily bootstrap.\+zig}  &\texorpdfstring{$\sim$}{\string~}300  &PEX, peer discovery  &✅  \\
+{\ttfamily rpc\+\_\+server.\+zig}  &\texorpdfstring{$\sim$}{\string~}450  &JSON-\/\+RPC 2.\+0 HTTP server  &✅  \\
+{\ttfamily ws\+\_\+server.\+zig}  &\texorpdfstring{$\sim$}{\string~}280  &Web\+Socket real-\/time push  &✅  \\
+{\ttfamily kademlia\+\_\+dht.\+zig}  &\texorpdfstring{$\sim$}{\string~}250  &Kademlia DHT for peer discovery  &✅  \\
+{\ttfamily node\+\_\+launcher.\+zig}  &\texorpdfstring{$\sim$}{\string~}280  &Seed/\+\+Miner mode launcher  &✅  \\
+{\ttfamily light\+\_\+client.\+zig}  &\texorpdfstring{$\sim$}{\string~}480  &SPV light client, fast sync  &✅  \\
+{\ttfamily light\+\_\+miner.\+zig}  &\texorpdfstring{$\sim$}{\string~}350  &Light miner support  &✅  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10862}{}\doxysubsection{\texorpdfstring{3.\+5 Storage \& State (8 module)}{3.\+5 Storage \& State (8 module)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10862}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+{\ttfamily storage.\+zig}  &\texorpdfstring{$\sim$}{\string~}350  &In-\/memory KV store  &✅  \\
+{\ttfamily database.\+zig}  &\texorpdfstring{$\sim$}{\string~}300  &Binary persistence omnibus-\/chain.\+dat  &✅  \\
+{\ttfamily state\+\_\+trie.\+zig}  &\texorpdfstring{$\sim$}{\string~}280  &Merkle Patricia Trie  &✅  \\
+{\ttfamily archive\+\_\+manager.\+zig}  &\texorpdfstring{$\sim$}{\string~}250  &Block archiving, 75\% compression  &✅  \\
+{\ttfamily prune\+\_\+config.\+zig}  &\texorpdfstring{$\sim$}{\string~}230  &State pruning config  &✅  \\
+{\ttfamily binary\+\_\+codec.\+zig}  &\texorpdfstring{$\sim$}{\string~}280  &Binary encoding/\+decoding  &✅  \\
+{\ttfamily tx\+\_\+receipt.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &TX receipts, logs  &✅  \\
+{\ttfamily witness\+\_\+data.\+zig}  &\texorpdfstring{$\sim$}{\string~}420  &Witness data management  &✅  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10863}{}\doxysubsection{\texorpdfstring{3.\+6 Transaction \& Mempool (5 module)}{3.\+6 Transaction \& Mempool (5 module)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10863}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+{\ttfamily transaction.\+zig}  &\texorpdfstring{$\sim$}{\string~}250  &TX struct, sign/\+verify  &✅  \\
+{\ttfamily mempool.\+zig}  &\texorpdfstring{$\sim$}{\string~}350  &FIFO mempool, anti-\/\+MEV  &✅  \\
+{\ttfamily compact\+\_\+transaction.\+zig}  &\texorpdfstring{$\sim$}{\string~}220  &Compact TX format  &✅  \\
+{\ttfamily payment\+\_\+channel.\+zig}  &\texorpdfstring{$\sim$}{\string~}300  &Hydra L2, HTLC  &✅  \\
+{\ttfamily tx\+\_\+receipt.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &TX receipts  &✅  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10864}{}\doxysubsection{\texorpdfstring{3.\+7 Ecosystem \& Features (12 module)}{3.\+7 Ecosystem \& Features (12 module)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10864}
+
+\begin{DoxyTable}{4}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Linii  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+{\ttfamily mining\+\_\+pool.\+zig}  &\texorpdfstring{$\sim$}{\string~}250  &Dynamic mining pool  &✅  \\
+{\ttfamily oracle.\+zig}  &\texorpdfstring{$\sim$}{\string~}220  &Price oracle BID/\+\+ASK  &✅  \\
+{\ttfamily bridge\+\_\+relay.\+zig}  &\texorpdfstring{$\sim$}{\string~}280  &Ethereum bridge relay  &✅  \\
+{\ttfamily ubi\+\_\+distributor.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &UBI/\+\+Bread distribution  &✅  \\
+{\ttfamily bread\+\_\+ledger.\+zig}  &\texorpdfstring{$\sim$}{\string~}180  &Bread voucher QR ledger  &✅  \\
+{\ttfamily vault\+\_\+engine.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &BIP39 vault engine  &✅  \\
+{\ttfamily vault\+\_\+reader.\+zig}  &\texorpdfstring{$\sim$}{\string~}100  &Named pipe vault reader  &✅  \\
+{\ttfamily omni\+\_\+brain.\+zig}  &\texorpdfstring{$\sim$}{\string~}180  &Node type auto-\/detect  &✅  \\
+{\ttfamily guardian.\+zig}  &\texorpdfstring{$\sim$}{\string~}200  &Security monitoring  &✅  \\
+{\ttfamily peer\+\_\+scoring.\+zig}  &\texorpdfstring{$\sim$}{\string~}180  &Peer reputation system  &✅  \\
+{\ttfamily dns\+\_\+registry.\+zig}  &\texorpdfstring{$\sim$}{\string~}150  &DNS for peer addresses  &✅  \\
+{\ttfamily synapse\+\_\+priority.\+zig}  &\texorpdfstring{$\sim$}{\string~}120  &Synapse scheduler  &✅  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10866}{}\doxysection{\texorpdfstring{4. RPC API Complet}{4. RPC API Complet}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10866}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10867}{}\doxysubsection{\texorpdfstring{4.\+1 Endpoints}{4.\+1 Endpoints}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10867}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Protocol  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}URL  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Port  \\
+HTTP JSON-\/\+RPC  &\href{http://127.0.0.1}{\texttt{http:\+/\+/\+127.\+0.\+0.\+1}}  &8332  \\
+Web\+Socket  &ws:\+/\+/\+127.0.\+0.\+1  &8334  \\
+P2P TCP  &tcp:\+/\+/\+0.0.\+0.\+0  &9000  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10868}{}\doxysubsection{\texorpdfstring{4.\+2 Metode Blockchain}{4.\+2 Metode Blockchain}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10868}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Get\ block\ count}
+\DoxyCodeLine{curl\ -\/X\ POST\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getblockcount"{},"{}params"{}:[],"{}id"{}:1\}'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Response:\ \{"{}result"{}:\ 150,\ "{}id"{}:\ 1\}}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metodă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametri  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Return  \\
+{\ttfamily getblockcount}  &-\/  &Număr blocuri  \\
+{\ttfamily getblock}  &{\ttfamily index:\+ u32}  &Block complet  \\
+{\ttfamily getlatestblock}  &-\/  &Ultimul bloc  \\
+{\ttfamily getblockhash}  &{\ttfamily index:\+ u32}  &Block hash  \\
+{\ttfamily getbestblockhash}  &-\/  &Best chain tip  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10869}{}\doxysubsection{\texorpdfstring{4.\+3 Metode Wallet \& TX}{4.\+3 Metode Wallet \& TX}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10869}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metodă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametri  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Return  \\
+{\ttfamily getbalance}  &-\/  &Balance SAT + OMNI  \\
+{\ttfamily gettransactions}  &{\ttfamily \+[\doxylink{namespaceaddress}{address}?]\+}  &Array TX  \\
+{\ttfamily sendtransaction}  &{\ttfamily \+[to, amount\+\_\+sat]\+}  &TX hash  \\
+{\ttfamily getmempoolsize}  &-\/  &Pending TX count  \\
+{\ttfamily createrawtransaction}  &{\ttfamily \+[inputs, outputs]\+}  &Raw TX hex  \\
+{\ttfamily signrawtransaction}  &{\ttfamily \+[hex]\+}  &Signed TX  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10870}{}\doxysubsection{\texorpdfstring{4.\+4 Metode Mining Pool}{4.\+4 Metode Mining Pool}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10870}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metodă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametri  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Return  \\
+{\ttfamily registerminer}  &{\ttfamily \{id,name,\doxylink{namespaceaddress}{address},hashrate\}}  &Success + miner\+Count  \\
+{\ttfamily minerkeepalive}  &{\ttfamily \doxylink{namespaceaddress}{address}}  &Success  \\
+{\ttfamily getminers}  &-\/  &Array miners activi  \\
+{\ttfamily getminerstatus}  &-\/  &Pool status detaliat  \\
+{\ttfamily getminerbalances}  &-\/  &Balances toți minerii  \\
+{\ttfamily getpoolstats}  &-\/  &Stats complete pool  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10871}{}\doxysubsection{\texorpdfstring{4.\+5 Metode Network \& Sync}{4.\+5 Metode Network \& Sync}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10871}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Metodă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametri  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Return  \\
+{\ttfamily getstatus}  &-\/  &Status complet nod  \\
+{\ttfamily getpeerinfo}  &-\/  &List peers conectați  \\
+{\ttfamily getconnectioncount}  &-\/  &Număr conexiuni  \\
+{\ttfamily getshardinginfo}  &-\/  &Shard config + status  \\
+{\ttfamily getmetachainheaders}  &{\ttfamily \+[count?]\+}  &Meta headers  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10873}{}\doxysection{\texorpdfstring{5. Criptografie Post-\/\+Quantum}{5. Criptografie Post-\/\+Quantum}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10873}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10874}{}\doxysubsection{\texorpdfstring{5.\+1 Cele 5 Domenii PQ}{5.\+1 Cele 5 Domenii PQ}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10874}
+
+\begin{DoxyTable}{5}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Prefix  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Coin Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Algoritm  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Securitate  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Use Case  \\
+{\ttfamily ob\+\_\+omni\+\_\+}  &777  &ML-\/\+DSA-\/87 + ML-\/\+KEM-\/768  &256 bit  &Default, general purpose  \\
+{\ttfamily ob\+\_\+k1\+\_\+}  &778  &ML-\/\+DSA-\/87  &256 bit  &High-\/security contracts  \\
+{\ttfamily ob\+\_\+f5\+\_\+}  &779  &Falcon-\/512  &128 bit  &Fast signing, small sigs  \\
+{\ttfamily ob\+\_\+d5\+\_\+}  &780  &ML-\/\+DSA-\/87  &256 bit  &Dilithium standard  \\
+{\ttfamily ob\+\_\+s3\+\_\+}  &781  &SLH-\/\+DSA-\/256s  &256 bit  &Stateless, hash-\/based  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10875}{}\doxysubsection{\texorpdfstring{5.\+2 Algoritmi Implementați}{5.\+2 Algoritmi Implementați}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10875}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{ML-\/DSA-\/87\ (Dilithium-\/5)}
+\DoxyCodeLine{├──\ Parametri:\ NIST\ FIPS\ 204}
+\DoxyCodeLine{├──\ Public\ Key:\ 2592\ bytes}
+\DoxyCodeLine{├──\ Secret\ Key:\ 4896\ bytes}
+\DoxyCodeLine{└──\ Signature:\ 4595\ bytes\ max}
+\DoxyCodeLine{}
+\DoxyCodeLine{Falcon-\/512}
+\DoxyCodeLine{├──\ Parametri:\ NIST\ FIPS\ 206}
+\DoxyCodeLine{├──\ Public\ Key:\ 897\ bytes}
+\DoxyCodeLine{├──\ Secret\ Key:\ 1281\ bytes}
+\DoxyCodeLine{└──\ Signature:\ 666\ bytes\ max}
+\DoxyCodeLine{}
+\DoxyCodeLine{SLH-\/DSA-\/256s\ (SPHINCS+)}
+\DoxyCodeLine{├──\ Parametri:\ NIST\ FIPS\ 205}
+\DoxyCodeLine{├──\ Public\ Key:\ 32\ bytes}
+\DoxyCodeLine{├──\ Secret\ Key:\ 64\ bytes}
+\DoxyCodeLine{└──\ Signature:\ 7856\ bytes}
+\DoxyCodeLine{}
+\DoxyCodeLine{ML-\/KEM-\/768\ (Kyber)}
+\DoxyCodeLine{├──\ Parametri:\ NIST\ FIPS\ 203}
+\DoxyCodeLine{├──\ Public\ Key:\ 1184\ bytes}
+\DoxyCodeLine{├──\ Secret\ Key:\ 2400\ bytes}
+\DoxyCodeLine{├──\ Ciphertext:\ 1088\ bytes}
+\DoxyCodeLine{└──\ Shared\ Secret:\ 32\ bytes}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10876}{}\doxysubsection{\texorpdfstring{5.\+3 Derivație BIP-\/32}{5.\+3 Derivație BIP-\/32}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10876}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Path:\ m/44'/coin\_type'/0'/0/index}
+\DoxyCodeLine{}
+\DoxyCodeLine{Coin\ Types:}
+\DoxyCodeLine{-\/\ 777\ =\ OMNI\ (ML-\/DSA-\/87\ +\ KEM)}
+\DoxyCodeLine{-\/\ 778\ =\ OMNI\_LOVE\ (ML-\/DSA-\/87)}
+\DoxyCodeLine{-\/\ 779\ =\ OMNI\_FOOD\ (Falcon-\/512)}
+\DoxyCodeLine{-\/\ 780\ =\ OMNI\_RENT\ (ML-\/DSA-\/87)}
+\DoxyCodeLine{-\/\ 781\ =\ OMNI\_VACATION\ (SLH-\/DSA)}
+\DoxyCodeLine{}
+\DoxyCodeLine{Derivare\ reală\ cu\ HMAC-\/SHA512\ (nu\ stub!)}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10878}{}\doxysection{\texorpdfstring{6. Teste și Coverage}{6. Teste și Coverage}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10878}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10879}{}\doxysubsection{\texorpdfstring{6.\+1 Teste în Module (Unit Tests)}{6.\+1 Teste în Module (Unit Tests)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10879}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Modul  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Teste  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Status  \\
+mempool.\+zig  &42  &✅ All pass  \\
+sub\+\_\+block.\+zig  &40  &✅ All pass  \\
+genesis.\+zig  &78  &✅ All pass  \\
+blockchain.\+zig  &72  &✅ All pass  \\
+schnorr.\+zig  &16  &✅ All pass  \\
+bls\+\_\+signatures.\+zig  &16  &✅ All pass  \\
+pq\+\_\+crypto.\+zig  &13  &✅ All pass  \\
+consensus.\+zig  &7  &✅ All pass  \\
+staking.\+zig  &11  &✅ All pass  \\
+finality.\+zig  &8  &✅ All pass  \\
+storage.\+zig  &6  &✅ All pass  \\
+{\bfseries{TOTAL}}  &{\bfseries{500+}}  &{\bfseries{✅ All pass}}  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10880}{}\doxysubsection{\texorpdfstring{6.\+2 Fișiere de Test în {\ttfamily test/\+}}{6.\+2 Fișiere de Test în {\ttfamily test/\+}}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10880}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Fișier  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Scop  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Teste  \\
+{\ttfamily blockchain\+\_\+test.\+zig}  &Integrare blockchain  &6+  \\
+{\ttfamily phase2\+\_\+crypto\+\_\+test.\+zig}  &Crypto Phase 2  &8  \\
+{\ttfamily crypto\+\_\+advanced\+\_\+test.\+zig}  &BLS, Schnorr, PQ extins  &15+  \\
+{\ttfamily mempool\+\_\+test.\+zig}  &Mempool + TX  &12+  \\
+{\ttfamily sharding\+\_\+test.\+zig}  &Sharding complet  &18+  \\
+{\ttfamily consensus\+\_\+test.\+zig}  &Consensus + Staking  &20+  \\
+{\ttfamily storage\+\_\+test.\+zig}  &Storage + DB  &15+  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10881}{}\doxysubsection{\texorpdfstring{6.\+3 Cum rulezi testele}{6.\+3 Cum rulezi testele}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10881}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Teste\ individuale}
+\DoxyCodeLine{zig\ test\ core/mempool.zig}
+\DoxyCodeLine{zig\ test\ core/sub\_block.zig}
+\DoxyCodeLine{zig\ test\ core/pq\_crypto.zig}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Grupuri\ de\ teste}
+\DoxyCodeLine{zig\ build\ test-\/crypto\ \ \ \ \#\ Crypto\ tests}
+\DoxyCodeLine{zig\ build\ test-\/chain\ \ \ \ \ \#\ Blockchain\ tests}
+\DoxyCodeLine{zig\ build\ test-\/shard\ \ \ \ \ \#\ Sharding\ tests}
+\DoxyCodeLine{zig\ build\ test-\/storage\ \ \ \#\ Storage\ tests}
+\DoxyCodeLine{zig\ build\ test-\/pq\ \ \ \ \ \ \ \ \#\ Post-\/quantum\ tests}
+\DoxyCodeLine{zig\ build\ test\ \ \ \ \ \ \ \ \ \ \ \#\ Toate\ testele}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10883}{}\doxysection{\texorpdfstring{7. Tools și Utilitare}{7. Tools și Utilitare}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10883}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10884}{}\doxysubsection{\texorpdfstring{7.\+1 Structura {\ttfamily tools/\+} (organizat pe categorii)}{7.\+1 Structura {\ttfamily tools/\+} (organizat pe categorii)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10884}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{tools/}
+\DoxyCodeLine{├──\ ANALYSIS/}
+\DoxyCodeLine{│\ \ \ ├──\ blockchain\_analyzer.py\ \ \ \ \ \ \#\ Analiză\ dependințe\ și\ metrici}
+\DoxyCodeLine{│\ \ \ └──\ code\_metrics.py\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Complexitate\ cicomatică}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ SECURITY/}
+\DoxyCodeLine{│\ \ \ └──\ vulnerability\_scanner.py\ \ \ \ \#\ Scanare\ CWE,\ securitate}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ TESTING/}
+\DoxyCodeLine{│\ \ \ ├──\ test\_runner.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Orchestrare\ teste}
+\DoxyCodeLine{│\ \ \ └──\ test\_validator.py\ \ \ \ \ \ \ \ \ \ \ \#\ Validare\ rezultate}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ COMPARISON/}
+\DoxyCodeLine{│\ \ \ └──\ blockchain\_vs\_comparison.py\ \#\ Comparare\ cu\ BTC/ETH/SOL}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ DOCUMENTATION/}
+\DoxyCodeLine{│\ \ \ ├──\ doc\_generator.py\ \ \ \ \ \ \ \ \ \ \ \ \#\ Genereare\ documentație}
+\DoxyCodeLine{│\ \ \ └──\ changelog\_manager.py\ \ \ \ \ \ \ \ \#\ Management\ changelog}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ BRIDGE/}
+\DoxyCodeLine{│\ \ \ ├──\ bridge\_validator.py\ \ \ \ \ \ \ \ \ \#\ Validare\ bridge}
+\DoxyCodeLine{│\ \ \ └──\ oracle\_verifier.py\ \ \ \ \ \ \ \ \ \ \#\ Verificare\ oracle}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ MONITORING/}
+\DoxyCodeLine{│\ \ \ └──\ (monitoring\ tools)}
+\DoxyCodeLine{│}
+\DoxyCodeLine{└──\ PERFORMANCE/}
+\DoxyCodeLine{\ \ \ \ └──\ (benchmark\ tools)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10885}{}\doxysubsection{\texorpdfstring{7.\+2 Script-\/uri de Launch}{7.\+2 Script-\/uri de Launch}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10885}
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Script  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  \\
+{\ttfamily start-\/genesis.\+sh}  &Pornește genesis cu 10 miners  \\
+{\ttfamily launch-\/extra-\/miners.\+sh N}  &Adaugă N miner extra  \\
+{\ttfamily start-\/omnibus-\/full.\+sh}  &Full stack:\+ seed + RPC + frontend  \\
+{\ttfamily start-\/all.\+sh}  &Toate serviciile  \\
+{\ttfamily stop-\/all.\+sh}  &Oprește tot  \\
+{\ttfamily monitor-\/miners.\+sh}  &Monitorizare miner activi  \\
+{\ttfamily add-\/miners-\/staggered.\+sh}  &Adaugă mineri cu delay  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10887}{}\doxysection{\texorpdfstring{8. Frontend și UI}{8. Frontend și UI}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10887}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10888}{}\doxysubsection{\texorpdfstring{8.\+1 Stack Frontend}{8.\+1 Stack Frontend}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10888}
+
+\begin{DoxyItemize}
+\item {\bfseries{Framework:\+}} React 18 + Type\+Script
+\item {\bfseries{Build:\+}} Vite
+\item {\bfseries{Styling:\+}} Tailwind\+CSS
+\item {\bfseries{State:\+}} React hooks
+\item {\bfseries{RPC Client:\+}} Custom wrapper peste JSON-\/\+RPC 2.\+0
+\item {\bfseries{Real-\/time:\+}} Web\+Socket (port 8334)
+\end{DoxyItemize}\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10889}{}\doxysubsection{\texorpdfstring{8.\+2 Pagini}{8.\+2 Pagini}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10889}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Pagină  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}URL  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Funcție  \\
+Dashboard  &{\ttfamily /\+}  &Stats live, block count, mempool  \\
+Genesis Countdown  &{\ttfamily /\+genesis-\/countdown}  &UI genesis launch  \\
+Block Explorer  &{\ttfamily /\+explorer}  &Listă blocuri + detalii  \\
+Wallet  &{\ttfamily /\+wallet}  &Balance + 5 adrese PQ  \\
+Miners  &{\ttfamily /\+miners}  &Status miner pool  \\
+Distribution  &{\ttfamily /\+distribution}  &Reward distribution viz  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10890}{}\doxysubsection{\texorpdfstring{8.\+3 Componente Principale}{8.\+3 Componente Principale}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10890}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ API\ Client}
+\DoxyCodeLine{OmniBusRpcClient}
+\DoxyCodeLine{├──\ getStatus()}
+\DoxyCodeLine{├──\ getBalance()}
+\DoxyCodeLine{├──\ sendTransaction(to,\ amount)}
+\DoxyCodeLine{├──\ getBlockCount()}
+\DoxyCodeLine{├──\ getLatestBlock()}
+\DoxyCodeLine{├──\ getTransactions(address?)}
+\DoxyCodeLine{└──\ getPoolStats()}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Components}
+\DoxyCodeLine{├──\ Stats.tsx\ \ \ \ \ \ \ \ \ \ \ \#\ Stats\ cards,\ live\ polling}
+\DoxyCodeLine{├──\ BlockExplorer.tsx\ \ \ \#\ Block\ list\ +\ modal\ detalii}
+\DoxyCodeLine{├──\ Wallet.tsx\ \ \ \ \ \ \ \ \ \ \#\ Balance\ +\ addresses}
+\DoxyCodeLine{└──\ GenesisCountdown.tsx\ \#\ Genesis\ launch\ UI}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10892}{}\doxysection{\texorpdfstring{9. Deployment și Launch}{9. Deployment și Launch}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10892}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10893}{}\doxysubsection{\texorpdfstring{9.\+1 Quick Start (3 comenzi)}{9.\+1 Quick Start (3 comenzi)}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10893}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Build}
+\DoxyCodeLine{zig\ build}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Start\ genesis\ (10\ miners)}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Adaugă\ 100\ mineri\ extra}
+\DoxyCodeLine{bash\ launch-\/extra-\/miners.sh\ 100}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10894}{}\doxysubsection{\texorpdfstring{9.\+2 Configurare Genesis}{9.\+2 Configurare Genesis}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10894}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}genesis"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}block\_time\_ms"{}:\ 1000,}
+\DoxyCodeLine{\ \ \ \ "{}sub\_block\_time\_ms"{}:\ 100,}
+\DoxyCodeLine{\ \ \ \ "{}sub\_blocks\_per\_block"{}:\ 10,}
+\DoxyCodeLine{\ \ \ \ "{}shard\_count"{}:\ 7,}
+\DoxyCodeLine{\ \ \ \ "{}difficulty"{}:\ 4,}
+\DoxyCodeLine{\ \ \ \ "{}reward\_omni"{}:\ 0.08333333,}
+\DoxyCodeLine{\ \ \ \ "{}halving\_blocks"{}:\ 126144000,}
+\DoxyCodeLine{\ \ \ \ "{}total\_supply"{}:\ 21000000,}
+\DoxyCodeLine{\ \ \ \ "{}miners"{}:\ 10}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10895}{}\doxysubsection{\texorpdfstring{9.\+3 Dependințe Build}{9.\+3 Dependințe Build}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10895}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Componentă  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Versiune  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notă  \\
+Zig  &0.\+15.\+2  &Minim  \\
+Node.\+js  &18+  &Pentru pool + frontend  \\
+Min\+GW  &13+  &Pentru liboqs  \\
+liboqs  &Latest  &PQ crypto (opțional)  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10897}{}\doxysection{\texorpdfstring{10. Ecosistem și Integrări}{10. Ecosistem și Integrări}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10897}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10898}{}\doxysubsection{\texorpdfstring{10.\+1 Repo-\/uri în Ecosistem}{10.\+1 Repo-\/uri în Ecosistem}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10898}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmniBus\ Ecosystem\ (8\ repo-\/uri)}
+\DoxyCodeLine{│}
+\DoxyCodeLine{├──\ OmniBus-\/BlockChainCore\ \ \ \ \ \#\ Blockchain\ Layer\ 1\ (Zig)}
+\DoxyCodeLine{├──\ OmniBusSidebar\ \ \ \ \ \ \ \ \ \ \ \ \#\ Desktop\ C++\ app\ (ImGui)}
+\DoxyCodeLine{├──\ OmnibusWallet\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Python\ wallet\ (BIP39\ +\ PQ)}
+\DoxyCodeLine{├──\ OmniBus-\/HFT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Trading\ HFT\ (Zig)}
+\DoxyCodeLine{├──\ OmniBus-\/ExoCharts\ \ \ \ \ \ \ \ \ \#\ Charts\ (Zig)}
+\DoxyCodeLine{├──\ OmniBus-\/Connect\ \ \ \ \ \ \ \ \ \ \ \#\ Exchange\ connectors\ (C++)}
+\DoxyCodeLine{├──\ OmniBus-\/v5-\/CppMono\ \ \ \ \ \ \ \ \#\ Mono\ runtime\ wrapper}
+\DoxyCodeLine{└──\ OmniBus-\/Zig-\/toolz\ \ \ \ \ \ \ \ \ \#\ Zig\ utilities}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10899}{}\doxysubsection{\texorpdfstring{10.\+2 Integrare Super\+Vault}{10.\+2 Integrare Super\+Vault}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10899}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmnibusSidebar.exe}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ↓\ WinHTTP}
+\DoxyCodeLine{\ \ \ \ 127.0.0.1:8332}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ↓\ JSON-\/RPC}
+\DoxyCodeLine{\ \ omnibus-\/node.exe}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ↓\ Named\ Pipe}
+\DoxyCodeLine{\ \ vault\_service.exe}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ↓\ DPAPI}
+\DoxyCodeLine{\ \ \ vault.dat\ (criptat)}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10900}{}\doxysubsection{\texorpdfstring{10.\+3 Bridge Ethereum}{10.\+3 Bridge Ethereum}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10900}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OmniBus\ Chain\ ←→\ Bridge\ Relay\ ←→\ Sepolia\ Testnet}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ↓}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ USDC\ on-\/ramp/off-\/ramp}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10902}{}\doxysection{\texorpdfstring{Anexe}{Anexe}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10902}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10903}{}\doxysubsection{\texorpdfstring{A. Parametri Blockchain}{A. Parametri Blockchain}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10903}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parametru  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Valoare  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Notă  \\
+Block Time  &1s  &10 sub-\/blocks × 100ms  \\
+Sub-\/block Time  &100ms  &Soft finality  \\
+Difficulty Start  &4 hex zeros  &Ajustabil  \\
+Block Reward  &0.\+08333333 OMNI  &\texorpdfstring{$\sim$}{\string~}50 OMNI/\+10min  \\
+Halving Interval  &126,144,000 blocuri  &\texorpdfstring{$\sim$}{\string~}4 ani  \\
+Max Supply  &21,000,000 OMNI  &Ca Bitcoin  \\
+SAT per OMNI  &1,000,000,000  &Precizie nanomni  \\
+Shards  &7  &0-\/6  \\
+Sub-\/blocks/\+\+Block  &10  &0-\/9  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10904}{}\doxysubsection{\texorpdfstring{B. Porturi Utilizate}{B. Porturi Utilizate}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10904}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Port  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Serviciu  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Protocol  \\
+8332  &RPC Server  &HTTP JSON-\/\+RPC  \\
+8334  &Web\+Socket  &WS Push  \\
+9000  &P2P Seed  &TCP  \\
+3000  &Frontend  &HTTP  \\
+6626  &P2P Node  &TCP (Omni\+Bus OS)  \\
+\end{DoxyTable}
+\hypertarget{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10905}{}\doxysubsection{\texorpdfstring{C. Resurse}{C. Resurse}}\label{md_wiki-kimi-omnibus_200-_o_m_n_i_b_u_s-_c_o_m_p_l_e_t_e-_g_u_i_d_e_autotoc_md10905}
+
+\begin{DoxyItemize}
+\item {\bfseries{Git\+Hub:\+}} \href{https://github.com/SAVACAZAN/OmniBus-BlockChainCore}{\texttt{https:\+/\+/\+github.\+com/\+\+SAVACAZAN/\+\+Omni\+Bus-\/\+Block\+Chain\+Core}}
+\item {\bfseries{Zig Docs:\+}} \href{https://ziglang.org/documentation/master/}{\texttt{https:\+/\+/\+ziglang.\+org/\+documentation/\+master/\+}}
+\item {\bfseries{BIP-\/32:\+}} \href{https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki}{\texttt{https:\+/\+/\+github.\+com/\+bitcoin/\+bips/\+blob/\+master/\+bip-\/0032.\+mediawiki}}
+\item {\bfseries{NIST PQ:\+}} \href{https://csrc.nist.gov/projects/post-quantum-cryptography}{\texttt{https:\+/\+/\+csrc.\+nist.\+gov/\+projects/\+post-\/quantum-\/cryptography}}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Document generat automat prin analiză completă a proiectului Omni\+Bus-\/\+Block\+Chain\+Core.}}
+
+{\itshape Pentru actualizări, verificați wiki-\/omnibus/\+ și fișierele PHASE\+\_\+}.md\texorpdfstring{$\ast$}{*} 

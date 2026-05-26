@@ -1,0 +1,49 @@
+\chapter{Constants }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2constants}{}\label{md_frontend_2node__modules_2date-fns_2docs_2constants}\index{Constants@{Constants}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6323}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6323}%
+
+
+date-\/fns provides with a number of useful constants.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6324}{}\doxysection{\texorpdfstring{Usage}{Usage}}\label{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6324}
+The constants could be imported from {\ttfamily date-\/fns/\+constants} or directly from {\ttfamily date-\/fns}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ maxTime\ \}\ from\ 'date-\/fns/constants'}
+\DoxyCodeLine{import\ \{\ minTime\ \}\ from\ 'date-\/fns'}
+\DoxyCodeLine{}
+\DoxyCodeLine{function\ isAllowedTime(time)\ \{}
+\DoxyCodeLine{\ \ return\ time\ <=\ maxTime\ \&\&\ time\ >=\ minTime}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6325}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6325}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6326}{}\doxysubsection{\texorpdfstring{{\ttfamily max\+Time}}{{\ttfamily max\+Time}}}\label{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6326}
+Maximum allowed time:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ maxTime\ \}\ from\ 'date-\/fns'}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ isValid\ =\ 8640000000000001\ <=\ maxTime}
+\DoxyCodeLine{//=>\ false}
+\DoxyCodeLine{}
+\DoxyCodeLine{new\ Date(8640000000000001)}
+\DoxyCodeLine{//=>\ Invalid\ Date}
+
+\end{DoxyCode}
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6327}{}\doxysubsection{\texorpdfstring{{\ttfamily min\+Time}}{{\ttfamily min\+Time}}}\label{md_frontend_2node__modules_2date-fns_2docs_2constants_autotoc_md6327}
+Minimum allowed time:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ minTime\ \}\ from\ 'date-\/fns'}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ isValid\ =\ -\/8640000000000001\ >=\ minTime}
+\DoxyCodeLine{//=>\ false}
+\DoxyCodeLine{}
+\DoxyCodeLine{new\ Date(-\/8640000000000001)}
+\DoxyCodeLine{//=>\ Invalid\ Date}
+
+\end{DoxyCode}
+ 

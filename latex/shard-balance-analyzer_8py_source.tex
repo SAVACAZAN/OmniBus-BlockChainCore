@@ -1,0 +1,87 @@
+\doxysection{shard-\/balance-\/analyzer.py}
+\hypertarget{shard-balance-analyzer_8py_source}{}\label{shard-balance-analyzer_8py_source}\index{tools/CONSENSUS/shard-\/balance-\/analyzer.py@{tools/CONSENSUS/shard-\/balance-\/analyzer.py}}
+\doxymbox{\hyperlink{shard-balance-analyzer_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00001}\doxymbox{\hyperlink{namespaceshard-balance-analyzer}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00002}\doxymbox{\hyperlink{namespaceshard}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Shard\ Balance\ Analyzer}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00005}00005\ \textcolor{stringliteral}{Analyzes\ load\ distribution\ across\ 4\ shards.}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00006}00006\ \textcolor{stringliteral}{Outputs:\ shard-\/balance.json}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00011}00011\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00012}00012\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00013}00013\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00015}\doxymbox{\hyperlink{namespaceshard-balance-analyzer_afd99b47c3a9ce6798198ffe18dfdec50}{00015}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00016}\doxymbox{\hyperlink{namespaceshard-balance-analyzer_ac603c94f166ce3a988fc416cc74a0971}{00016}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00017}\doxymbox{\hyperlink{namespaceshard-balance-analyzer_ad8fe648151f3a7912d5760d9f06e4edc}{00017}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00018}\doxymbox{\hyperlink{namespaceshard-balance-analyzer_a6b108af6a05e4c91f97351dc77037417}{00018}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00021}\doxymbox{\hyperlink{namespaceshard-balance-analyzer_acd59877dca2a9957888013a6f06aab6d}{00021}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceshard-balance-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00022}00022\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00025}\doxymbox{\hyperlink{namespaceshard-balance-analyzer_a3c5a98b693bef053ae70e83c965ad86e}{00025}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceshard-balance-analyzer_a3c5a98b693bef053ae70e83c965ad86e}{analyze\_shards}}(txs\_per\_shard:\ List[int])\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00026}00026\ \ \ \ \ n\ =\ len(txs\_per\_shard)}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00027}00027\ \ \ \ \ total\ =\ sum(txs\_per\_shard)}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00028}00028\ \ \ \ \ avg\ =\ total\ /\ n\ \textcolor{keywordflow}{if}\ n\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00029}00029\ \ \ \ \ variance\ =\ sum((x\ -\/\ avg)\ **\ 2\ \textcolor{keywordflow}{for}\ x\ \textcolor{keywordflow}{in}\ txs\_per\_shard)\ /\ n\ \textcolor{keywordflow}{if}\ n\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00030}00030\ \ \ \ \ stddev\ =\ math.sqrt(variance)}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00031}00031\ \ \ \ \ cv\ =\ (stddev\ /\ avg\ *\ 100)\ \textcolor{keywordflow}{if}\ avg\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00033}00033\ \ \ \ \ max\_shard\ =\ max(txs\_per\_shard)\ \textcolor{keywordflow}{if}\ txs\_per\_shard\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00034}00034\ \ \ \ \ min\_shard\ =\ min(txs\_per\_shard)\ \textcolor{keywordflow}{if}\ txs\_per\_shard\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00035}00035\ \ \ \ \ imbalance\ =\ ((max\_shard\ -\/\ min\_shard)\ /\ avg\ *\ 100)\ \textcolor{keywordflow}{if}\ avg\ >\ 0\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00037}00037\ \ \ \ \ shards\ =\ []}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00038}00038\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ count\ \textcolor{keywordflow}{in}\ enumerate(txs\_per\_shard):}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ shards.append(\{\textcolor{stringliteral}{"{}shard\_id"{}}:\ i,\ \textcolor{stringliteral}{"{}tx\_count"{}}:\ count,\ \textcolor{stringliteral}{"{}share\_pct"{}}:\ round(count\ /\ total\ *\ 100,\ 2)\ \textcolor{keywordflow}{if}\ total\ \textcolor{keywordflow}{else}\ 0\})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00041}00041\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}shards"{}}:\ shards,}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_transactions"{}}:\ total,}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}average\_per\_shard"{}}:\ round(avg,\ 2),}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stddev"{}}:\ round(stddev,\ 2),}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}coefficient\_of\_variation\_pct"{}}:\ round(cv,\ 2),}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}imbalance\_pct"{}}:\ round(imbalance,\ 2),}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}balanced"{}}:\ cv\ <\ 20.0,}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00049}00049\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00052}\doxymbox{\hyperlink{namespaceshard-balance-analyzer_a7431cb90017e54fe695b23d4190db046}{00052}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceshard-balance-analyzer_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00053}00053\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Analyze\ shard\ load\ balance"{}})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00054}00054\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/input"{}},\ help=\textcolor{stringliteral}{"{}JSON\ file\ with\ \{'shards':\ [tx\_count,\ ...]\}"{}})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00055}00055\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}shard-\/balance.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00056}00056\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{if}\ args.input:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.input,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ txs\ =\ data.get(\textcolor{stringliteral}{"{}shards"{}},\ [])}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Default\ synthetic\ distribution}}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ txs\ =\ [2450,\ 2380,\ 2600,\ 2570]}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00066}00066\ \ \ \ \ report\ =\ \doxymbox{\hyperlink{namespaceshard-balance-analyzer_a3c5a98b693bef053ae70e83c965ad86e}{analyze\_shards}}(txs)}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00068}00068\ \ \ \ \ \doxymbox{\hyperlink{namespaceshard-balance-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Shard\ Balance\ Analyzer\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{for}\ sh\ \textcolor{keywordflow}{in}\ report[\textcolor{stringliteral}{"{}shards"{}}]:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceshard-balance-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}\ \ Shard\ \{sh['shard\_id']\}:\ \{sh['tx\_count']\}\ txs\ (\{sh['share\_pct']\}\%)"{}})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00071}00071\ \ \ \ \ status\_color\ =\ GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}balanced"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00072}00072\ \ \ \ \ \doxymbox{\hyperlink{namespaceshard-balance-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(status\_color,\ f\textcolor{stringliteral}{"{}CV=\{report['coefficient\_of\_variation\_pct']\}\%\ Imbalance=\{report['imbalance\_pct']\}\%\ -\/>\ \{'BALANCED'\ if\ report['balanced']\ else\ 'UNBALANCED'\}"{}})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00074}00074\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00076}00076\ \ \ \ \ \doxymbox{\hyperlink{namespaceshard-balance-analyzer_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nReport\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00080}00080\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{shard-balance-analyzer_8py_source_l00081}00081\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespaceshard-balance-analyzer_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

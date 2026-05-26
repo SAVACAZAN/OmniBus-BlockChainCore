@@ -1,0 +1,247 @@
+\chapter{Omni\+Bus Mining Pool -\/ Troubleshooting Guide }
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g}{}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g}\index{OmniBus Mining Pool -\/ Troubleshooting Guide@{OmniBus Mining Pool -\/ Troubleshooting Guide}}
+\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11823}%
+\Hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11823}%
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11824}{}\doxysection{\texorpdfstring{Issue:\+ Showing 110 Miners Even After Fresh Start}{Issue:\+ Showing 110 Miners Even After Fresh Start}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11824}
+{\bfseries{Problem:\+}} You started {\ttfamily bash start-\/genesis.\+sh} expecting 10 miners, but see 110.
+
+{\bfseries{Cause:\+}} Old miner processes still running from previous tests.
+
+{\bfseries{Solution:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Stop\ everything}
+\DoxyCodeLine{bash\ stop-\/all.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Verify\ port\ is\ free}
+\DoxyCodeLine{lsof\ -\/i\ :8332}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Start\ fresh}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11826}{}\doxysection{\texorpdfstring{Issue:\+ Port 8332 Already in Use}{Issue:\+ Port 8332 Already in Use}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11826}
+{\bfseries{Error:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Error:\ listen\ EADDRINUSE:\ address\ already\ in\ use\ 127.0.0.1:8332}
+
+\end{DoxyCode}
+
+
+{\bfseries{Solution:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Kill\ process\ on\ port\ 8332}
+\DoxyCodeLine{lsof\ -\/ti\ :8332\ |\ xargs\ -\/r\ kill\ -\/9}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Wait\ 2\ seconds}
+\DoxyCodeLine{sleep\ 2}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Start\ pool}
+\DoxyCodeLine{node\ ./rpc-\/server.js}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11828}{}\doxysection{\texorpdfstring{Issue:\+ Miners Won\textquotesingle{}t Register}{Issue:\+ Miners Won\textquotesingle{}t Register}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11828}
+{\bfseries{Error:\+}} 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[MINER]\ ✗\ Registration\ failed:\ Pool\ not\ running}
+
+\end{DoxyCode}
+
+
+{\bfseries{Solution:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Check\ if\ pool\ is\ running}
+\DoxyCodeLine{ps\ aux\ |\ grep\ rpc-\/server.js}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ If\ not,\ start\ it}
+\DoxyCodeLine{node\ ./rpc-\/server.js\ >\ logs/pool.log\ 2>\&1\ \&}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Verify\ it's\ listening}
+\DoxyCodeLine{curl\ http://127.0.0.1:8332\ -\/d\ '...'}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11830}{}\doxysection{\texorpdfstring{Issue:\+ Rewards Not Increasing}{Issue:\+ Rewards Not Increasing}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11830}
+{\bfseries{Problem:\+}} Balances stay at 0 or don\textquotesingle{}t change.
+
+{\bfseries{Cause:\+}}
+\begin{DoxyEnumerate}
+\item Pool not mining (no active miners)
+\item Miners not registered
+\item Network issue
+\end{DoxyEnumerate}
+
+{\bfseries{Debug Steps:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Check\ if\ pool\ has\ active\ miners}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getpoolstats"{},"{}params"{}:[],"{}id"{}:1\}'\ |\ grep\ -\/o\ "{}activeMiningMiners"{}:[0-\/9]*}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Check\ miner\ logs}
+\DoxyCodeLine{tail\ logs/miner-\/0.log}
+\DoxyCodeLine{tail\ logs/extra-\/miner-\/10.log}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Check\ if\ miner\ client\ registered\ successfully}
+\DoxyCodeLine{grep\ "{}Successfully\ registered"{}\ logs/miner-\/*.log}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11832}{}\doxysection{\texorpdfstring{Issue:\+ Frontend Not Updating in Real-\/\+Time}{Issue:\+ Frontend Not Updating in Real-\/\+Time}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11832}
+{\bfseries{Problem:\+}} Web explorer shows stale data.
+
+{\bfseries{Cause:\+}}
+\begin{DoxyEnumerate}
+\item Frontend caches data
+\item RPC endpoint not responding fast enough
+\item Browser cache
+\end{DoxyEnumerate}
+
+{\bfseries{Solution:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ 1.\ Hard\ refresh\ browser}
+\DoxyCodeLine{Ctrl+Shift+R\ (or\ Cmd+Shift+R\ on\ Mac)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 2.\ Check\ RPC\ is\ responsive}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getblockcount"{},"{}params"{}:[],"{}id"{}:1\}'}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ 3.\ Restart\ pool}
+\DoxyCodeLine{bash\ stop-\/all.sh}
+\DoxyCodeLine{sleep\ 2}
+\DoxyCodeLine{node\ ./rpc-\/server.js\ >\ logs/pool.log\ 2>\&1\ \&}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11834}{}\doxysection{\texorpdfstring{Complete Cleanup \& Reset}{Complete Cleanup \& Reset}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11834}
+{\bfseries{To start completely fresh:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Step\ 1:\ Stop\ everything}
+\DoxyCodeLine{bash\ stop-\/all.sh}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Step\ 2:\ Kill\ any\ lingering\ processes}
+\DoxyCodeLine{pkill\ -\/9\ -\/f\ node\ 2>/dev/null\ ||\ true}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Step\ 3:\ Wait\ for\ port\ to\ free}
+\DoxyCodeLine{sleep\ 3}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Step\ 4:\ Verify\ port\ is\ free}
+\DoxyCodeLine{lsof\ -\/i\ :8332\ ||\ echo\ "{}✓\ Port\ 8332\ is\ free"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Step\ 5:\ Remove\ old\ logs\ and\ PIDs}
+\DoxyCodeLine{rm\ -\/f\ logs/*.log\ .miners\_pids\ .extra\_miners\_pids}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Step\ 6:\ Start\ fresh}
+\DoxyCodeLine{bash\ start-\/genesis.sh}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11836}{}\doxysection{\texorpdfstring{Quick Status Check}{Quick Status Check}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11836}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Is\ pool\ running?}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getpoolstats"{},"{}params"{}:[],"{}id"{}:1\}'\ 2>/dev/null\ \&\&\ echo\ "{}✓\ Pool\ running"{}\ ||\ echo\ "{}✗\ Pool\ not\ responding"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ How\ many\ miners?}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getminers"{},"{}params"{}:[],"{}id"{}:1\}'\ 2>/dev/null\ |\ grep\ -\/o\ '"{}id"{}'\ |\ wc\ -\/l}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ What\ block\ height?}
+\DoxyCodeLine{curl\ -\/s\ http://127.0.0.1:8332\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}getblockcount"{},"{}params"{}:[],"{}id"{}:1\}'\ 2>/dev/null}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11838}{}\doxysection{\texorpdfstring{Log Files Location}{Log Files Location}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11838}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{logs/}
+\DoxyCodeLine{\ \ ├──\ pool.log\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Pool\ mining\ activity}
+\DoxyCodeLine{\ \ ├──\ genesis\_launch.log\ \ \ \ \#\ Genesis\ miner\ startup}
+\DoxyCodeLine{\ \ ├──\ extra\_launch.log\ \ \ \ \ \ \#\ Extra\ miner\ startup}
+\DoxyCodeLine{\ \ ├──\ miner-\/0.log\ \ \ \ \ \ \ \ \ \ \ \#\ Individual\ miner\ logs}
+\DoxyCodeLine{\ \ ├──\ miner-\/1.log}
+\DoxyCodeLine{\ \ ├──\ extra-\/miner-\/10.log}
+\DoxyCodeLine{\ \ └──\ ...}
+
+\end{DoxyCode}
+
+
+{\bfseries{View logs in real-\/time:\+}}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{tail\ -\/f\ logs/pool.log\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Pool\ mining}
+\DoxyCodeLine{tail\ -\/f\ logs/miner-\/0.log\ \ \ \ \ \ \ \ \ \ \ \#\ Specific\ miner}
+\DoxyCodeLine{tail\ -\/f\ logs/extra-\/miner-\/10.log\ \ \ \ \#\ Extra\ miner}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11840}{}\doxysection{\texorpdfstring{Performance Checklist}{Performance Checklist}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11840}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Pool starts without errors
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Miners register within 5 seconds
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Blocks mining every 2 seconds (block\+Height increasing)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Miner balances increasing
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Adding 100 extra miners works
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] All miners have nearly equal balances (adjusted for join time)
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] No lingering processes after {\ttfamily stop-\/all.\+sh}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11842}{}\doxysection{\texorpdfstring{Still Having Issues?}{Still Having Issues?}}\label{md_wiki-omnibus_2_t_r_o_u_b_l_e_s_h_o_o_t_i_n_g_autotoc_md11842}
+
+\begin{DoxyEnumerate}
+\item Check the logs first:\+ {\ttfamily tail logs/\+pool.\+log}
+\item Verify processes:\+ {\ttfamily pgrep -\/f "{}rpc-\/server\textbackslash{}\texorpdfstring{$\vert$}{|}miner-\/client"{} -\/l}
+\item Check port:\+ {\ttfamily lsof -\/i :\+8332}
+\item Full reset:\+ See "{}\+Complete Cleanup \& Reset"{} section
+\item Check \doxylink{_p_o_o_l_8md}{POOL.\+md} for API reference 
+\end{DoxyEnumerate}

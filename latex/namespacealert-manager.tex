@@ -1,0 +1,387 @@
+\doxysection{alert-\/manager Namespace Reference}
+\hypertarget{namespacealert-manager}{}\label{namespacealert-manager}\index{alert-\/manager@{alert-\/manager}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacealert-manager_ae45ada562a188df1687bea37637fa094}{rpc\+\_\+call}} (str host, int port, str method, params=None, int timeout=5)
+\item 
+\doxymbox{\hyperlink{namespacealert-manager_a40755eadcb8bfc93d84b7f2b44d18d50}{emit\+\_\+alert}} (str severity, str check, str message)
+\item 
+list \doxymbox{\hyperlink{namespacealert-manager_a09add7af00670d7d14b237f4881f17d6}{check\+\_\+rpc\+\_\+reachable}} (str host, int port, int timeout)
+\item 
+list \doxymbox{\hyperlink{namespacealert-manager_abd0292bc0a30bcda274dd62ccf39c535}{check\+\_\+peers}} (str host, int port, int min\+\_\+peers, int timeout)
+\item 
+list \doxymbox{\hyperlink{namespacealert-manager_a0eabef8ad50115256c71939c7b5ee794}{check\+\_\+disk\+\_\+space}} (str chain\+\_\+file, float min\+\_\+free\+\_\+gb)
+\item 
+tuple \doxymbox{\hyperlink{namespacealert-manager_a8f093ad96d7e01f4c5b0cc301a682a43}{check\+\_\+chain\+\_\+growing}} (host, port, timeout, prev\+\_\+height)
+\item 
+dict \doxymbox{\hyperlink{namespacealert-manager_ae0b381064efc939bd1158ca57a32008b}{load\+\_\+config}} (str\texorpdfstring{$\vert$}{|}None config\+\_\+path)
+\item 
+\doxymbox{\hyperlink{namespacealert-manager_ab1e7510dee788e570cd6b27f72cc4e4f}{run\+\_\+checks}} (host, port, cfg, prev\+\_\+height)
+\item 
+\doxymbox{\hyperlink{namespacealert-manager_a445389ddfffe227dbc6d8add234ced18}{print\+\_\+header}} ()
+\item 
+\doxymbox{\hyperlink{namespacealert-manager_a88d1b60263fc7187d788c39a208ee9d8}{print\+\_\+summary}} (alerts)
+\item 
+\doxymbox{\hyperlink{namespacealert-manager_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_adff4d2c7848f6e8cc743356b319b681f}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_a8b8a28e8aa1f45ea79f77e18c3903ce4}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_aa3f8caf25af72e9b2f0527ecaadfa55c}{DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_a4b8577cfd8806255a71f2c46d8a69380}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_ac8f13d4fbb27dd29a9e341b76bdea443}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_a0b13dc7b0131bf0dd796ef62db62c3e7}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_a693a2d6603ae65080f93d0cef37c9b12}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_a37a3b2f28ec27eb1f90ff3da6537bc23}{MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_aec52119636e645d4fa2ce46c4913060f}{WHITE}} = "{}\textbackslash{}033\+[97m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_adcfccc6aeb85b234e97c428875360c58}{BG\+\_\+\+RED}} = "{}\textbackslash{}033\+[41m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_a8faa6a1ada36541c1dc40c16d2ef3e67}{BG\+\_\+\+YELLOW}} = "{}\textbackslash{}033\+[43m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_a3864079fb9f828141e861ad86431189e}{BG\+\_\+\+GREEN}} = "{}\textbackslash{}033\+[42m"{}
+\item 
+str \doxymbox{\hyperlink{namespacealert-manager_ab5e51c85f57895c2c5c963bd1f7f4f35}{BG\+\_\+\+CYAN}} = "{}\textbackslash{}033\+[46m"{}
+\item 
+dict \doxymbox{\hyperlink{namespacealert-manager_ab85b25056fe6ed6a8505847f7f4a76a8}{SEVERITY\+\_\+\+COLOURS}}
+\item 
+dict \doxymbox{\hyperlink{namespacealert-manager_af7bae3dc1b8b71a4cab5876bf90878d7}{DEFAULT\+\_\+\+THRESHOLDS}}
+\end{DoxyCompactItemize}
+
+
+\label{namespacealert-manager_doc-func-members}
+\Hypertarget{namespacealert-manager_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacealert-manager_a8f093ad96d7e01f4c5b0cc301a682a43}\index{alert-\/manager@{alert-\/manager}!check\_chain\_growing@{check\_chain\_growing}}
+\index{check\_chain\_growing@{check\_chain\_growing}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{check\_chain\_growing()}{check\_chain\_growing()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a8f093ad96d7e01f4c5b0cc301a682a43} 
+ tuple check\+\_\+chain\+\_\+growing (\begin{DoxyParamCaption}\item[{}]{host}{, }\item[{}]{port}{, }\item[{}]{timeout}{, }\item[{}]{prev\+\_\+height}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Returns (alerts, current_height).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00131}{131}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacealert-manager_a0eabef8ad50115256c71939c7b5ee794}\index{alert-\/manager@{alert-\/manager}!check\_disk\_space@{check\_disk\_space}}
+\index{check\_disk\_space@{check\_disk\_space}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{check\_disk\_space()}{check\_disk\_space()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a0eabef8ad50115256c71939c7b5ee794} 
+ list check\+\_\+disk\+\_\+space (\begin{DoxyParamCaption}\item[{str}]{chain\+\_\+file}{, }\item[{float}]{min\+\_\+free\+\_\+gb}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00115}{115}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacealert-manager_abd0292bc0a30bcda274dd62ccf39c535}\index{alert-\/manager@{alert-\/manager}!check\_peers@{check\_peers}}
+\index{check\_peers@{check\_peers}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{check\_peers()}{check\_peers()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_abd0292bc0a30bcda274dd62ccf39c535} 
+ list check\+\_\+peers (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{int}]{min\+\_\+peers}{, }\item[{int}]{timeout}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00101}{101}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacealert-manager_a09add7af00670d7d14b237f4881f17d6}\index{alert-\/manager@{alert-\/manager}!check\_rpc\_reachable@{check\_rpc\_reachable}}
+\index{check\_rpc\_reachable@{check\_rpc\_reachable}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{check\_rpc\_reachable()}{check\_rpc\_reachable()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a09add7af00670d7d14b237f4881f17d6} 
+ list check\+\_\+rpc\+\_\+reachable (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{int}]{timeout}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00091}{91}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacealert-manager_a40755eadcb8bfc93d84b7f2b44d18d50}\index{alert-\/manager@{alert-\/manager}!emit\_alert@{emit\_alert}}
+\index{emit\_alert@{emit\_alert}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{emit\_alert()}{emit\_alert()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a40755eadcb8bfc93d84b7f2b44d18d50} 
+emit\+\_\+alert (\begin{DoxyParamCaption}\item[{str}]{severity}{, }\item[{str}]{check}{, }\item[{str}]{message}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print a coloured alert line to stdout.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00084}{84}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacealert-manager_ae0b381064efc939bd1158ca57a32008b}\index{alert-\/manager@{alert-\/manager}!load\_config@{load\_config}}
+\index{load\_config@{load\_config}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{load\_config()}{load\_config()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_ae0b381064efc939bd1158ca57a32008b} 
+ dict load\+\_\+config (\begin{DoxyParamCaption}\item[{str \texorpdfstring{$\vert$}{|} None}]{config\+\_\+path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00148}{148}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacealert-manager_a51af30a60f9f02777c6396b8247e356f}\index{alert-\/manager@{alert-\/manager}!main@{main}}
+\index{main@{main}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00200}{200}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 9
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacealert-manager_a445389ddfffe227dbc6d8add234ced18}\index{alert-\/manager@{alert-\/manager}!print\_header@{print\_header}}
+\index{print\_header@{print\_header}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{print\_header()}{print\_header()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a445389ddfffe227dbc6d8add234ced18} 
+print\+\_\+header (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00180}{180}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacealert-manager_a88d1b60263fc7187d788c39a208ee9d8}\index{alert-\/manager@{alert-\/manager}!print\_summary@{print\_summary}}
+\index{print\_summary@{print\_summary}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{print\_summary()}{print\_summary()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a88d1b60263fc7187d788c39a208ee9d8} 
+print\+\_\+summary (\begin{DoxyParamCaption}\item[{}]{alerts}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00185}{185}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacealert-manager_ae45ada562a188df1687bea37637fa094}\index{alert-\/manager@{alert-\/manager}!rpc\_call@{rpc\_call}}
+\index{rpc\_call@{rpc\_call}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{rpc\_call()}{rpc\_call()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_ae45ada562a188df1687bea37637fa094} 
+rpc\+\_\+call (\begin{DoxyParamCaption}\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{str}]{method}{, }\item[{}]{params}{ = {\ttfamily None}, }\item[{int }]{timeout}{ = {\ttfamily 5}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}JSON-RPC 2.0 call.  Returns (result, error_string).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00064}{64}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 13
+\Hypertarget{namespacealert-manager_ab1e7510dee788e570cd6b27f72cc4e4f}\index{alert-\/manager@{alert-\/manager}!run\_checks@{run\_checks}}
+\index{run\_checks@{run\_checks}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{run\_checks()}{run\_checks()}}
+{\footnotesize\ttfamily \label{namespacealert-manager_ab1e7510dee788e570cd6b27f72cc4e4f} 
+run\+\_\+checks (\begin{DoxyParamCaption}\item[{}]{host}{, }\item[{}]{port}{, }\item[{}]{cfg}{, }\item[{}]{prev\+\_\+height}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run all checks, return (all_alerts, new_height).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00157}{157}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 14
+Here is the caller graph for this function:\+
+% FIG 15
+
+
+\label{namespacealert-manager_doc-var-members}
+\Hypertarget{namespacealert-manager_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacealert-manager_ab5e51c85f57895c2c5c963bd1f7f4f35}\index{alert-\/manager@{alert-\/manager}!BG\_CYAN@{BG\_CYAN}}
+\index{BG\_CYAN@{BG\_CYAN}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{BG\_CYAN}{BG\_CYAN}}
+{\footnotesize\ttfamily \label{namespacealert-manager_ab5e51c85f57895c2c5c963bd1f7f4f35} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+BG\+\_\+\+CYAN = "{}\textbackslash{}033\+[46m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_a3864079fb9f828141e861ad86431189e}\index{alert-\/manager@{alert-\/manager}!BG\_GREEN@{BG\_GREEN}}
+\index{BG\_GREEN@{BG\_GREEN}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{BG\_GREEN}{BG\_GREEN}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a3864079fb9f828141e861ad86431189e} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+BG\+\_\+\+GREEN = "{}\textbackslash{}033\+[42m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_adcfccc6aeb85b234e97c428875360c58}\index{alert-\/manager@{alert-\/manager}!BG\_RED@{BG\_RED}}
+\index{BG\_RED@{BG\_RED}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{BG\_RED}{BG\_RED}}
+{\footnotesize\ttfamily \label{namespacealert-manager_adcfccc6aeb85b234e97c428875360c58} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+BG\+\_\+\+RED = "{}\textbackslash{}033\+[41m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_a8faa6a1ada36541c1dc40c16d2ef3e67}\index{alert-\/manager@{alert-\/manager}!BG\_YELLOW@{BG\_YELLOW}}
+\index{BG\_YELLOW@{BG\_YELLOW}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{BG\_YELLOW}{BG\_YELLOW}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a8faa6a1ada36541c1dc40c16d2ef3e67} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+BG\+\_\+\+YELLOW = "{}\textbackslash{}033\+[43m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_a8b8a28e8aa1f45ea79f77e18c3903ce4}\index{alert-\/manager@{alert-\/manager}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a8b8a28e8aa1f45ea79f77e18c3903ce4} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_a693a2d6603ae65080f93d0cef37c9b12}\index{alert-\/manager@{alert-\/manager}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a693a2d6603ae65080f93d0cef37c9b12} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_af7bae3dc1b8b71a4cab5876bf90878d7}\index{alert-\/manager@{alert-\/manager}!DEFAULT\_THRESHOLDS@{DEFAULT\_THRESHOLDS}}
+\index{DEFAULT\_THRESHOLDS@{DEFAULT\_THRESHOLDS}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{DEFAULT\_THRESHOLDS}{DEFAULT\_THRESHOLDS}}
+{\footnotesize\ttfamily \label{namespacealert-manager_af7bae3dc1b8b71a4cab5876bf90878d7} 
+dict \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+DEFAULT\+\_\+\+THRESHOLDS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}rpc\_timeout\_seconds"{}}:\ 5,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}min\_peers"{}}:\ 1,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}min\_disk\_free\_gb"{}}:\ 1.0,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}max\_stale\_blocks\_checks"{}}:\ 3,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}chain\_file"{}}:\ \textcolor{stringliteral}{"{}omnibus-\/chain.dat"{}},}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_aa3f8caf25af72e9b2f0527ecaadfa55c}\index{alert-\/manager@{alert-\/manager}!DIM@{DIM}}
+\index{DIM@{DIM}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{DIM}{DIM}}
+{\footnotesize\ttfamily \label{namespacealert-manager_aa3f8caf25af72e9b2f0527ecaadfa55c} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+DIM = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_ac8f13d4fbb27dd29a9e341b76bdea443}\index{alert-\/manager@{alert-\/manager}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacealert-manager_ac8f13d4fbb27dd29a9e341b76bdea443} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_a37a3b2f28ec27eb1f90ff3da6537bc23}\index{alert-\/manager@{alert-\/manager}!MAGENTA@{MAGENTA}}
+\index{MAGENTA@{MAGENTA}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{MAGENTA}{MAGENTA}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a37a3b2f28ec27eb1f90ff3da6537bc23} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+MAGENTA = "{}\textbackslash{}033\+[95m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_a4b8577cfd8806255a71f2c46d8a69380}\index{alert-\/manager@{alert-\/manager}!RED@{RED}}
+\index{RED@{RED}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a4b8577cfd8806255a71f2c46d8a69380} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_adff4d2c7848f6e8cc743356b319b681f}\index{alert-\/manager@{alert-\/manager}!RESET@{RESET}}
+\index{RESET@{RESET}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacealert-manager_adff4d2c7848f6e8cc743356b319b681f} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_ab85b25056fe6ed6a8505847f7f4a76a8}\index{alert-\/manager@{alert-\/manager}!SEVERITY\_COLOURS@{SEVERITY\_COLOURS}}
+\index{SEVERITY\_COLOURS@{SEVERITY\_COLOURS}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{SEVERITY\_COLOURS}{SEVERITY\_COLOURS}}
+{\footnotesize\ttfamily \label{namespacealert-manager_ab85b25056fe6ed6a8505847f7f4a76a8} 
+dict \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+SEVERITY\+\_\+\+COLOURS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}CRITICAL"{}}:\ f\textcolor{stringliteral}{"{}\{BG\_RED\}\{WHITE\}\{BOLD\}"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}WARNING"{}}:\ \ f\textcolor{stringliteral}{"{}\{BG\_YELLOW\}\{WHITE\}\{BOLD\}"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}INFO"{}}:\ \ \ \ \ f\textcolor{stringliteral}{"{}\{BG\_CYAN\}\{WHITE\}"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}OK"{}}:\ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{BG\_GREEN\}\{WHITE\}"{}},}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_aec52119636e645d4fa2ce46c4913060f}\index{alert-\/manager@{alert-\/manager}!WHITE@{WHITE}}
+\index{WHITE@{WHITE}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{WHITE}{WHITE}}
+{\footnotesize\ttfamily \label{namespacealert-manager_aec52119636e645d4fa2ce46c4913060f} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+WHITE = "{}\textbackslash{}033\+[97m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+
+\Hypertarget{namespacealert-manager_a0b13dc7b0131bf0dd796ef62db62c3e7}\index{alert-\/manager@{alert-\/manager}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!alert-\/manager@{alert-\/manager}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacealert-manager_a0b13dc7b0131bf0dd796ef62db62c3e7} 
+str \doxymbox{\hyperlink{namespacealert}{alert}}-\/manager.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{alert-manager_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{alert-manager_8py_source}{alert-\/manager.\+py}}.
+

@@ -1,0 +1,103 @@
+\doxysection{Block\+Table\+Model.\+cpp}
+\hypertarget{_block_table_model_8cpp_source}{}\label{_block_table_model_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/models/BlockTableModel.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/models/BlockTableModel.cpp}}
+\doxymbox{\hyperlink{_block_table_model_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_block_table_model_8h}{models/BlockTableModel.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <QDateTime>}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QColor>}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QFont>}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00006}00006\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00008}\doxymbox{\hyperlink{classomni_1_1_block_table_model_afafcdb1448e2c8fc7f76fb1cd41d66c4}{00008}}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_afafcdb1448e2c8fc7f76fb1cd41d66c4}{BlockTableModel::BlockTableModel}}(QObject*\ parent)}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00009}00009\ \ \ \ \ :\ QAbstractTableModel(parent)}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00010}00010\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00011}00011\ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00013}\doxymbox{\hyperlink{classomni_1_1_block_table_model_aaa4af847e280ddcdeaf5cae7eb4f65a1}{00013}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaa4af847e280ddcdeaf5cae7eb4f65a1}{BlockTableModel::rowCount}}(\textcolor{keyword}{const}\ QModelIndex\&)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00014}00014\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_blocks.size();}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00015}00015\ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00017}\doxymbox{\hyperlink{classomni_1_1_block_table_model_a89489ef9acdc047a0346780694510d86}{00017}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_a89489ef9acdc047a0346780694510d86}{BlockTableModel::columnCount}}(\textcolor{keyword}{const}\ QModelIndex\&)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00018}00018\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a536aa671ecce8afc2530b9d20af1e179}{ColCount}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00019}00019\ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00021}\doxymbox{\hyperlink{classomni_1_1_block_table_model_aedeafe8a4d857985af55669690bbbe5d}{00021}}\ QVariant\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aedeafe8a4d857985af55669690bbbe5d}{BlockTableModel::data}}(\textcolor{keyword}{const}\ QModelIndex\&\ index,\ \textcolor{keywordtype}{int}\ role)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00022}00022\ \ \ \ \ \textcolor{keywordflow}{if}\ (!index.isValid()\ ||\ index.row()\ >=\ m\_blocks.size())}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00023}00023\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00025}00025\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ b\ =\ m\_blocks[index.row()];}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00027}00027\ \ \ \ \ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::DisplayRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00028}00028\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (index.column())\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00029}00029\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190af01ac7005a3f2b975edee0134fd28a62}{ColHeight}}:\ \ \ \ \textcolor{keywordflow}{return}\ b.height;}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00030}00030\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a5d3203e308dbaec507c921e2eae6cb35}{ColHash}}:\ \ \ \ \ \ \textcolor{keywordflow}{return}\ b.hash.left(16)\ +\ \textcolor{stringliteral}{"{}..."{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00031}00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac82eb40a576bcaeaa5d642c38a6a00ed}{ColMiner}}:\ \ \ \ \ \textcolor{keywordflow}{return}\ b.miner.isEmpty()\ ?\ \textcolor{stringliteral}{"{}Genesis"{}}\ :\ b.miner.left(20)\ +\ \textcolor{stringliteral}{"{}..."{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00032}00032\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac95b9bcbe2305feb4767005cadd4fda3}{ColTxCount}}:\ \ \ \textcolor{keywordflow}{return}\ b.txCount;}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4a304aff3d36344592b23762378641fe}{ColReward}}:\ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(b.rewardSAT)\ +\ \textcolor{stringliteral}{"{}\ OMNI"{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4f71d3f94c8ab7a80ca98a58ed28ac90}{ColTimestamp}}:\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00035}00035\ \ \ \ \ \ \ \ \ \ \ \ \ QDateTime\ dt\ =\ QDateTime::fromMSecsSinceEpoch(b.timestamp);}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00036}00036\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ dt.toString(\textcolor{stringliteral}{"{}yyyy-\/MM-\/dd\ hh:mm:ss"{}});}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00037}00037\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00038}00038\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00039}00039\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00040}00040\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::ForegroundRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190af01ac7005a3f2b975edee0134fd28a62}{ColHeight}})\ \textcolor{keywordflow}{return}\ QColor(\textcolor{stringliteral}{"{}\#4a90d9"{}});}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4a304aff3d36344592b23762378641fe}{ColReward}})\ \textcolor{keywordflow}{return}\ QColor(\textcolor{stringliteral}{"{}\#00b3a4"{}});}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00043}00043\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00044}00044\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::FontRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a5d3203e308dbaec507c921e2eae6cb35}{ColHash}}\ ||\ index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac82eb40a576bcaeaa5d642c38a6a00ed}{ColMiner}})\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ QFont\ f;}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ f.setFamily(\textcolor{stringliteral}{"{}Consolas"{}});}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00048}00048\ \ \ \ \ \ \ \ \ \ \ \ \ f.setPointSize(10);}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f;}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00050}00050\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00051}00051\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00052}00052\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::TextAlignmentRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190af01ac7005a3f2b975edee0134fd28a62}{ColHeight}}\ ||\ index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac95b9bcbe2305feb4767005cadd4fda3}{ColTxCount}}\ ||\ index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4a304aff3d36344592b23762378641fe}{ColReward}})}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ int(Qt::AlignRight\ |\ Qt::AlignVCenter);}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00055}00055\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::ToolTipRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a5d3203e308dbaec507c921e2eae6cb35}{ColHash}})\ \textcolor{keywordflow}{return}\ b.hash;}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac82eb40a576bcaeaa5d642c38a6a00ed}{ColMiner}})\ \textcolor{keywordflow}{return}\ b.miner;}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00059}00059\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00062}00062\ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00064}\doxymbox{\hyperlink{classomni_1_1_block_table_model_a1ce9fcd64a1977499e769902d965a6b4}{00064}}\ QVariant\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_a1ce9fcd64a1977499e769902d965a6b4}{BlockTableModel::headerData}}(\textcolor{keywordtype}{int}\ section,\ Qt::Orientation\ orientation,\ \textcolor{keywordtype}{int}\ role)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{if}\ (orientation\ !=\ Qt::Horizontal\ ||\ role\ !=\ Qt::DisplayRole)}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{switch}\ (section)\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190af01ac7005a3f2b975edee0134fd28a62}{ColHeight}}:\ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Height"{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a5d3203e308dbaec507c921e2eae6cb35}{ColHash}}:\ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Hash"{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00071}00071\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac82eb40a576bcaeaa5d642c38a6a00ed}{ColMiner}}:\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Miner"{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190ac95b9bcbe2305feb4767005cadd4fda3}{ColTxCount}}:\ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}TXs"{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4a304aff3d36344592b23762378641fe}{ColReward}}:\ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Reward"{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00074}00074\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_aaea318a568ffbf91fc88ecd51d156190a4f71d3f94c8ab7a80ca98a58ed28ac90}{ColTimestamp}}:\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Time"{}};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00075}00075\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00077}00077\ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00079}\doxymbox{\hyperlink{classomni_1_1_block_table_model_a65d085a6cef973413aa950bb97d79786}{00079}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_a65d085a6cef973413aa950bb97d79786}{BlockTableModel::setBlocks}}(\textcolor{keyword}{const}\ QList<BlockData>\&\ blocks)\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00080}00080\ \ \ \ \ beginResetModel();}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00081}00081\ \ \ \ \ m\_blocks\ =\ blocks;}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00082}00082\ \ \ \ \ endResetModel();}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00083}00083\ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00085}\doxymbox{\hyperlink{classomni_1_1_block_table_model_a76173a7023cc5a998c8399b012a1e2cf}{00085}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_a76173a7023cc5a998c8399b012a1e2cf}{BlockTableModel::prependBlock}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_block_data}{BlockData}}\&\ \doxymbox{\hyperlink{namespaceblock}{block}})\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00086}00086\ \ \ \ \ beginInsertRows(\{\},\ 0,\ 0);}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00087}00087\ \ \ \ \ m\_blocks.prepend(\doxymbox{\hyperlink{namespaceblock}{block}});}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00088}00088\ \ \ \ \ endInsertRows();}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00089}00089\ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00091}\doxymbox{\hyperlink{classomni_1_1_block_table_model_a04a447207489b64c9aeb5563f4f9672c}{00091}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_block_table_model_a04a447207489b64c9aeb5563f4f9672c}{BlockTableModel::clear}}()\ \{}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00092}00092\ \ \ \ \ beginResetModel();}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00093}00093\ \ \ \ \ m\_blocks.clear();}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00094}00094\ \ \ \ \ endResetModel();}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00095}00095\ \}}
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{_block_table_model_8cpp_source_l00097}00097\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

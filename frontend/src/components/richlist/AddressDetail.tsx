@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { useEffect, useMemo, useState } from "react";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
+import { KIND_STYLE } from "../common/TxBadges";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewTxEvent, WsNewBlockEvent } from "../../types";
+import { satToOmni, midTrunc } from "../../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
 type TxKind =
   | "coinbase"
@@ -25,6 +28,7 @@ type AddressTx = {
   direction: "sent" | "received";
   kind: TxKind;
   status: "pending" | "confirmed";
+  memo?: string;
 };
 
 type AddressHistory = {
@@ -35,17 +39,6 @@ type AddressHistory = {
   totalSent: number;
 };
 
-const KIND_STYLE: Record<string, string> = {
-  coinbase: "bg-yellow-500/20 text-yellow-300",
-  faucet: "bg-cyan-500/20 text-cyan-300",
-  registrar: "bg-purple-500/20 text-purple-300",
-  exchange: "bg-blue-500/20 text-blue-300",
-  stake: "bg-green-500/20 text-green-300",
-  demo_grant: "bg-pink-500/20 text-pink-300",
-  transfer: "bg-gray-700/40 text-gray-300",
-};
-
-const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
 
 export function AddressDetail({
   address,
@@ -63,9 +56,7 @@ export function AddressDetail({
     let cancelled = false;
     const refresh = async () => {
       try {
-        const r = (await rpc.request_raw("getaddresshistory", [
-          address,
-        ])) as AddressHistory;
+        const r = (await rpc.getAddressHistory(address)) as AddressHistory;
         if (!cancelled) {
           setData(r);
           setError(null);
@@ -76,17 +67,31 @@ export function AddressDetail({
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
-    const id = setInterval(refresh, 8000);
+    void refresh();
+    // Refresh immediately on any new block or TX involving this address.
+    const unsubBlock = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const unsubTx = wsSubscribe<WsNewTxEvent>("new_tx", (ev) => {
+      if (ev.from === address) void refresh();
+    });
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsubBlock();
+      unsubTx();
     };
   }, [address]);
 
   const txs = data?.transactions ?? [];
-  const kinds = Array.from(new Set(txs.map((t) => t.kind)));
-  const filteredTxs = filter === "all" ? txs : txs.filter((t) => t.kind === filter);
+  const { kinds, filteredTxs, kindCounts } = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const t of txs) counts[t.kind] = (counts[t.kind] ?? 0) + 1;
+    return {
+      kinds: Object.keys(counts),
+      filteredTxs: filter === "all" ? txs : txs.filter((t) => t.kind === filter),
+      kindCounts: counts,
+    };
+  }, [txs, filter]);
   const net = data ? data.totalReceived - data.totalSent : 0;
 
   return (
@@ -113,12 +118,47 @@ export function AddressDetail({
       {data && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <Metric label="TX count" value={data.count.toLocaleString()} />
-          <Metric label="Received" value={`${omniFmt(data.totalReceived)} OMNI`} />
-          <Metric label="Sent" value={`${omniFmt(data.totalSent)} OMNI`} />
+          <Metric label="Received" value={`${satToOmni(data.totalReceived)} OMNI`} />
+          <Metric label="Sent" value={`${satToOmni(data.totalSent)} OMNI`} />
           <Metric
             label="Net"
-            value={`${net >= 0 ? "+" : ""}${omniFmt(net)} OMNI`}
+            value={`${net >= 0 ? "+" : ""}${satToOmni(net)} OMNI`}
           />
+        </div>
+      )}
+
+      {filteredTxs.length > 0 && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => {
+              const rows = [
+                ["txid","kind","direction","amount_omni","fee_omni","counterparty","block_height","confirmations","status","memo"].join(","),
+                ...filteredTxs.map((tx) => {
+                  const counterparty = tx.direction === "sent" ? tx.to : tx.from;
+                  return [
+                    `"${tx.txid}"`,
+                    tx.kind,
+                    tx.direction,
+                    satToOmni(tx.amount),
+                    satToOmni(tx.fee),
+                    `"${counterparty}"`,
+                    tx.blockHeight ?? "",
+                    tx.confirmations,
+                    tx.status,
+                    `"${(tx.memo ?? "").replace(/"/g, '""')}"`,
+                  ].join(",");
+                }),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = `omnibus-${address.slice(0, 12)}-txs.csv`;
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
         </div>
       )}
 
@@ -135,22 +175,19 @@ export function AddressDetail({
           >
             all ({txs.length})
           </button>
-          {kinds.map((k) => {
-            const count = txs.filter((t) => t.kind === k).length;
-            return (
-              <button
-                key={k}
-                onClick={() => setFilter(k)}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  filter === k
-                    ? "bg-mempool-blue text-white"
-                    : "bg-mempool-bg-elev text-mempool-text-dim hover:text-mempool-text"
-                }`}
-              >
-                {k} ({count})
-              </button>
-            );
-          })}
+          {kinds.map((k) => (
+            <button
+              key={k}
+              onClick={() => setFilter(k)}
+              className={`px-2 py-1 text-xs rounded transition-colors ${
+                filter === k
+                  ? "bg-mempool-blue text-white"
+                  : "bg-mempool-bg-elev text-mempool-text-dim hover:text-mempool-text"
+              }`}
+            >
+              {k} ({kindCounts[k] ?? 0})
+            </button>
+          ))}
         </div>
       )}
 
@@ -209,22 +246,28 @@ export function AddressDetail({
                     className="border-b border-mempool-border/40 hover:bg-mempool-bg/30"
                   >
                     <td className="px-3 py-2 font-mono text-xs text-mempool-text-dim">
-                      {tx.blockHeight !== null
-                        ? tx.blockHeight.toLocaleString()
-                        : "—"}
+                      {tx.blockHeight !== null ? (
+                        <button
+                          onClick={() => { window.location.hash = `#/block/${tx.blockHeight}`; }}
+                          className="text-mempool-blue hover:underline"
+                        >
+                          #{tx.blockHeight.toLocaleString()}
+                        </button>
+                      ) : "—"}
                     </td>
                     <td className="px-3 py-2 font-mono text-xs">
                       <button
-                        onClick={() => navigator.clipboard.writeText(tx.txid)}
+                        onClick={() => { window.location.hash = `#/tx/${tx.txid}`; }}
                         className="text-mempool-blue hover:underline"
-                        title="Click to copy TXID"
+                        title={tx.txid}
                       >
-                        {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}
+                        {midTrunc(tx.txid, 10, 6)}
                       </button>
                     </td>
                     <td className="px-3 py-2 text-center">
                       <span
                         className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider rounded ${kindClass}`}
+                        title={tx.memo || tx.kind}
                       >
                         {tx.kind}
                       </span>
@@ -239,13 +282,11 @@ export function AddressDetail({
                         </span>
                       ) : (
                         <button
-                          onClick={() =>
-                            navigator.clipboard.writeText(counterparty)
-                          }
-                          className="text-mempool-text-dim hover:text-mempool-text"
-                          title="Click to copy"
+                          onClick={() => { window.location.hash = `#/address/${counterparty}`; }}
+                          className="text-mempool-blue hover:underline transition-colors"
+                          title={counterparty}
                         >
-                          {counterparty.slice(0, 10)}…{counterparty.slice(-6)}
+                          <AddressLabel address={counterparty} showEmoji truncate={{ left: 8, right: 6 }} />
                         </button>
                       )}
                     </td>
@@ -253,7 +294,7 @@ export function AddressDetail({
                       className={`px-3 py-2 text-right font-mono ${signColor}`}
                     >
                       {sign}
-                      {omniFmt(tx.amount)} OMNI
+                      {satToOmni(tx.amount)} OMNI
                     </td>
                     <td className="px-3 py-2 text-right text-xs text-mempool-text-dim">
                       {tx.status === "pending" ? (

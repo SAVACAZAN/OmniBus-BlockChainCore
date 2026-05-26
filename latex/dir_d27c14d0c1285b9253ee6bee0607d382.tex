@@ -1,0 +1,605 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@noble/\+ciphers Directory Reference}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382}{}\label{dir_d27c14d0c1285b9253ee6bee0607d382}\index{frontend/node\_modules/"@noble/ciphers Directory Reference@{frontend/node\_modules/"@noble/ciphers Directory Reference}}
+Directory dependency graph for ciphers:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4537}{}\doxysubsection{\texorpdfstring{noble-\/ciphers}{noble-\/ciphers}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4537}
+Audited \& minimal JS implementation of Salsa20, Cha\+Cha and AES.
+
+
+\begin{DoxyItemize}
+\item 🔒 \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+Audited\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}{\bfseries{Audited}}
+\end{DoxyItemize}by an independent security firm
+\begin{DoxyItemize}
+\item 🔻 Tree-\/shakeable:\+ unused code is excluded from your builds
+\item 🏎 Fast:\+ hand-\/optimized for caveats of JS engines
+\item 🔍 Reliable:\+ property-\/based /\+ cross-\/library /\+ wycheproof tests ensure correctness
+\item 💼 AES:\+ ECB, CBC, CTR, CFB, GCM, SIV (nonce misuse-\/resistant), AESKW, AESKWP
+\item 💃 Salsa20, Cha\+Cha, XSalsa20, XCha\+Cha, Cha\+Cha8, Cha\+Cha12, Poly1305
+\item 🥈 Two AES implementations:\+ pure JS or friendly Web\+Crypto wrapper
+\item 🪶 11KB (gzipped) for everything, 3KB for Cha\+Cha-\/only build
+\end{DoxyItemize}
+
+Use \href{https://github.com/paulmillr/awasm-noble}{\texttt{awasm-\/noble}} if you need an even faster (WASM) alternative. Check out UpgradingUpgrading for information about upgrading from previous versions. Take a glance at \href{https://github.com/paulmillr/noble-ciphers/discussions}{\texttt{Git\+Hub Discussions}} for questions and support.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4538}{}\doxysubsubsection{\texorpdfstring{This library belongs to {\itshape noble} cryptography}{This library belongs to {\itshape noble} cryptography}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4538}
+\begin{quote}
+{\bfseries{noble cryptography}} — high-\/security, easily auditable set of contained cryptographic libraries and tools. \end{quote}
+
+
+
+\begin{DoxyItemize}
+\item Zero or minimal dependencies
+\item Highly readable Type\+Script /\+ JS code
+\item PGP-\/signed releases and transparent NPM builds
+\item All libraries:\+ \href{https://github.com/paulmillr/noble-ciphers}{\texttt{ciphers}}, \href{https://github.com/paulmillr/noble-curves}{\texttt{curves}}, \href{https://github.com/paulmillr/noble-hashes}{\texttt{hashes}}, \href{https://github.com/paulmillr/noble-post-quantum}{\texttt{post-\/quantum}}, 5kb \href{https://github.com/paulmillr/noble-secp256k1}{\texttt{secp256k1}} /\+ \href{https://github.com/paulmillr/noble-ed25519}{\texttt{ed25519}}
+\item \href{https://paulmillr.com/noble/}{\texttt{Check out the homepage}} for reading resources, documentation, and apps built with noble
+\end{DoxyItemize}\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4539}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4539}
+\begin{quote}
+{\ttfamily npm install @noble/\+ciphers} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno add jsr:\+@noble/\+ciphers} \end{quote}
+
+
+\doxylink{namespace_we}{We} support all major platforms and runtimes. For React Native, you may need a \href{https://github.com/LinusU/react-native-get-random-values}{\texttt{polyfill for get\+Random\+Values}}. A standalone file \href{https://github.com/paulmillr/noble-ciphers/releases}{\texttt{noble-\/ciphers.\+js}} is also available.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ import\ *\ from\ '@noble/ciphers';\ //\ Error:\ use\ sub-\/imports,\ to\ ensure\ small\ app\ size}
+\DoxyCodeLine{import\ \{\ gcm,\ gcmsiv\ \}\ from\ '@noble/ciphers/aes.js';}
+\DoxyCodeLine{import\ \{\ chacha20poly1305,\ xchacha20poly1305\ \}\ from\ '@noble/ciphers/chacha.js';}
+\DoxyCodeLine{import\ \{\ xsalsa20poly1305\ \}\ from\ '@noble/ciphers/salsa.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Unauthenticated\ encryption:\ make\ sure\ to\ use\ HMAC\ or\ similar}
+\DoxyCodeLine{import\ \{\ ctr,\ cfb,\ cbc,\ ecb\ \}\ from\ '@noble/ciphers/aes.js';}
+\DoxyCodeLine{import\ \{\ salsa20,\ xsalsa20\ \}\ from\ '@noble/ciphers/salsa.js';}
+\DoxyCodeLine{import\ \{\ chacha20,\ xchacha20,\ chacha8,\ chacha12\ \}\ from\ '@noble/ciphers/chacha.js';}
+\DoxyCodeLine{import\ \{\ aeskw,\ aeskwp\ \}\ from\ '@noble/ciphers/aes.js';\ //\ KW}
+\DoxyCodeLine{import\ \{\ bytesToHex,\ hexToBytes,\ managedNonce,\ randomBytes\ \}\ from\ '@noble/ciphers/utils.js';}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyItemize}
+\item \doxylink{dir_d28a4824dc47e487b107a5db32ef43c4}{Examples}Examples
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item XCha\+Cha20-\/\+Poly1305 encryptionXCha\+Cha20-\/\+Poly1305 encryption
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item AES-\/256-\/\+GCM encryptionAES-\/256-\/\+GCM encryption
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item managed\+Nonce:\+ automatic nonce handlingmanaged\+Nonce:\+ automatic nonce handling
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item AES:\+ gcm, siv, ctr, cfb, cbc, ecb, aeskwAES:\+ gcm, siv, ctr, cfb, cbc, ecb, aeskw
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item AES:\+ friendly Web\+Crypto wrapperAES:\+ friendly Web\+Crypto wrapper
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Reuse array for input and outputReuse array for input and output
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Use password for encryptionUse password for encryption
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item InternalsInternals
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Picking a cipherPicking a cipher
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item How to encrypt properlyHow to encrypt properly
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item NoncesNonces
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Encryption limitsEncryption limits
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item AES block modesAES block modes
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Implemented primitivesImplemented primitives
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SecuritySecurity
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SpeedSpeed
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item UpgradingUpgrading
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Contributing \& testingContributing \& testing
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item LicenseLicense
+\end{DoxyItemize}\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4540}{}\doxysubsection{\texorpdfstring{Examples}{Examples}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4540}
+\begin{DoxyNote}{Note}
+Use different nonce every time {\ttfamily encrypt()} is done.
+\end{DoxyNote}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4541}{}\doxysubsubsubsection{\texorpdfstring{XCha\+Cha20-\/\+Poly1305 encryption}{XCha\+Cha20-\/\+Poly1305 encryption}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4541}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ xchacha20poly1305\ \}\ from\ '@noble/ciphers/chacha.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{const\ key\ =\ randomBytes(32);\ //\ random\ key}
+\DoxyCodeLine{//\ const\ key\ =\ new\ Uint8Array([\ //\ existing\ key}
+\DoxyCodeLine{//\ \ \ 169,\ 88,\ 160,\ 139,\ 168,\ 29,\ 147,\ 196,\ 14,\ 88,\ 237,\ 76,\ 243,\ 177,\ 109,\ 140,}
+\DoxyCodeLine{//\ \ \ 195,\ 140,\ 80,\ 10,\ 216,\ 134,\ 215,\ 71,\ 191,\ 48,\ 20,\ 104,\ 189,\ 37,\ 38,\ 55,}
+\DoxyCodeLine{//\ ]);}
+\DoxyCodeLine{//\ import\ \{\ hexToBytes\ \}\ from\ '@noble/ciphers/utils.js';\ //\ hex\ key}
+\DoxyCodeLine{//\ const\ key\ =\ hexToBytes('4b7f89bac90a1086fef73f5da2cbe93b2fae9dfbf7678ae1f3e75fd118ddf999');}
+\DoxyCodeLine{const\ nonce\ =\ randomBytes(24);}
+\DoxyCodeLine{const\ chacha\ =\ xchacha20poly1305(key,\ nonce);}
+\DoxyCodeLine{const\ data\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ ciphertext\ =\ chacha.encrypt(data);}
+\DoxyCodeLine{const\ data\_\ =\ chacha.decrypt(ciphertext);\ //\ new\ TextDecoder().decode(data\_)\ ===\ data}
+
+\end{DoxyCode}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4542}{}\doxysubsubsubsection{\texorpdfstring{AES-\/256-\/\+GCM encryption}{AES-\/256-\/\+GCM encryption}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4542}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ gcm\ \}\ from\ '@noble/ciphers/aes.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{const\ key\ =\ randomBytes(32);}
+\DoxyCodeLine{const\ nonce\ =\ randomBytes(24);}
+\DoxyCodeLine{const\ data\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ aes\ =\ gcm(key,\ nonce);}
+\DoxyCodeLine{const\ ciphertext\ =\ aes.encrypt(data);}
+\DoxyCodeLine{const\ data\_\ =\ aes.decrypt(ciphertext);\ //\ new\ TextDecoder().decode(data\_)\ ===\ data}
+
+\end{DoxyCode}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4543}{}\doxysubsubsubsection{\texorpdfstring{managed\+Nonce:\+ automatic nonce handling}{managed\+Nonce:\+ automatic nonce handling}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4543}
+\doxylink{namespace_we}{We} provide API that manages nonce internally instead of exposing them to library\textquotesingle{}s user.
+
+For {\ttfamily encrypt}:\+ a {\ttfamily nonce\+Bytes}-\/length buffer is fetched from CSPRNG and prenended to encrypted ciphertext.
+
+For {\ttfamily decrypt}:\+ first {\ttfamily nonce\+Bytes} of ciphertext are treated as nonce.
+
+\begin{DoxyNote}{Note}
+AES-\/\+GCM \& Cha\+Cha (NOT XCha\+Cha) limit amount of messageslimit amount of messages encryptable under the same key.
+\end{DoxyNote}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ xchacha20poly1305\ \}\ from\ '@noble/ciphers/chacha.js';}
+\DoxyCodeLine{import\ \{\ hexToBytes,\ managedNonce\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{const\ key\ =\ hexToBytes('fa686bfdffd3758f6377abbc23bf3d9bdc1a0dda4a6e7f8dbdd579fa1ff6d7e1');}
+\DoxyCodeLine{const\ chacha\ =\ managedNonce(xchacha20poly1305)(key);\ //\ manages\ nonces\ for\ you}
+\DoxyCodeLine{const\ data\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ ciphertext\ =\ chacha.encrypt(data);}
+\DoxyCodeLine{const\ data\_\ =\ chacha.decrypt(ciphertext);}
+
+\end{DoxyCode}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4544}{}\doxysubsubsubsection{\texorpdfstring{AES:\+ gcm, siv, ctr, cfb, cbc, ecb, aeskw}{AES:\+ gcm, siv, ctr, cfb, cbc, ecb, aeskw}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4544}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ gcm,\ gcmsiv,\ aessiv,\ ctr,\ cfb,\ cbc,\ ecb\ \}\ from\ '@noble/ciphers/aes.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{const\ plaintext\ =\ new\ Uint8Array(32).fill(16);}
+\DoxyCodeLine{for\ (let\ cipher\ of\ [gcm,\ gcmsiv,\ aessiv])\ \{}
+\DoxyCodeLine{\ \ const\ key\ =\ randomBytes(32);\ //\ 24\ for\ AES-\/192,\ 16\ for\ AES-\/128}
+\DoxyCodeLine{\ \ const\ nonce\ =\ randomBytes(12);}
+\DoxyCodeLine{\ \ const\ ciphertext\_\ =\ cipher(key,\ nonce).encrypt(plaintext);}
+\DoxyCodeLine{\ \ const\ plaintext\_\ =\ cipher(key,\ nonce).decrypt(ciphertext\_);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{for\ (const\ cipher\ of\ [ctr,\ cbc,\ cfb])\ \{}
+\DoxyCodeLine{\ \ const\ key\ =\ randomBytes(32);\ //\ 24\ for\ AES-\/192,\ 16\ for\ AES-\/128}
+\DoxyCodeLine{\ \ const\ nonce\ =\ randomBytes(16);}
+\DoxyCodeLine{\ \ const\ ciphertext\_\ =\ cipher(key,\ nonce).encrypt(plaintext);}
+\DoxyCodeLine{\ \ const\ plaintext\_\ =\ cipher(key,\ nonce).decrypt(ciphertext\_);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{for\ (const\ cipher\ of\ [ecb])\ \{}
+\DoxyCodeLine{\ \ const\ key\ =\ randomBytes(32);\ //\ 24\ for\ AES-\/192,\ 16\ for\ AES-\/128}
+\DoxyCodeLine{\ \ const\ ciphertext\_\ =\ cipher(key).encrypt(plaintext);}
+\DoxyCodeLine{\ \ const\ plaintext\_\ =\ cipher(key).decrypt(ciphertext\_);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ AESKW,\ AESKWP}
+\DoxyCodeLine{import\ \{\ aeskw,\ aeskwp\ \}\ from\ '@noble/ciphers/aes.js';}
+\DoxyCodeLine{import\ \{\ hexToBytes\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ kek\ =\ hexToBytes('000102030405060708090A0B0C0D0E0F');}
+\DoxyCodeLine{const\ keyData\ =\ hexToBytes('00112233445566778899AABBCCDDEEFF');}
+\DoxyCodeLine{const\ ciphertext\ =\ aeskw(kek).encrypt(keyData);}
+
+\end{DoxyCode}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4545}{}\doxysubsubsubsection{\texorpdfstring{AES:\+ friendly Web\+Crypto wrapper}{AES:\+ friendly Web\+Crypto wrapper}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4545}
+Noble implements AES. Sometimes people want to use built-\/in {\ttfamily crypto.\+subtle} instead. However, it has terrible API. \doxylink{namespace_we}{We} simplify access to built-\/ins.
+
+\begin{DoxyNote}{Note}
+Webcrypto methods are always async.
+\end{DoxyNote}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ gcm,\ ctr,\ cbc\ \}\ from\ '@noble/ciphers/webcrypto.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{const\ plaintext\ =\ new\ Uint8Array(32).fill(16);}
+\DoxyCodeLine{const\ key\ =\ randomBytes(32);}
+\DoxyCodeLine{for\ (const\ cipher\ of\ [gcm])\ \{}
+\DoxyCodeLine{\ \ const\ nonce\ =\ randomBytes(12);}
+\DoxyCodeLine{\ \ const\ ciphertext\_\ =\ await\ cipher(key,\ nonce).encrypt(plaintext);}
+\DoxyCodeLine{\ \ const\ plaintext\_\ =\ await\ cipher(key,\ nonce).decrypt(ciphertext\_);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{for\ (const\ cipher\ of\ [ctr,\ cbc])\ \{}
+\DoxyCodeLine{\ \ const\ nonce\ =\ randomBytes(16);}
+\DoxyCodeLine{\ \ const\ ciphertext\_\ =\ await\ cipher(key,\ nonce).encrypt(plaintext);}
+\DoxyCodeLine{\ \ const\ plaintext\_\ =\ await\ cipher(key,\ nonce).decrypt(ciphertext\_);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4546}{}\doxysubsubsubsection{\texorpdfstring{Reuse array for input and output}{Reuse array for input and output}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4546}
+To avoid additional allocations, Uint8\+Array can be reused between encryption and decryption calls.
+
+\begin{DoxyNote}{Note}
+Some ciphers don\textquotesingle{}t support unaligned ({\ttfamily byte\+Offset \% 4 !== 0}) Uint8\+Array as destination. It can decrease performance, making the optimization pointless.
+\end{DoxyNote}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ chacha20poly1305\ \}\ from\ '@noble/ciphers/chacha.js';}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ key\ =\ randomBytes(32);}
+\DoxyCodeLine{const\ nonce\ =\ randomBytes(12);}
+\DoxyCodeLine{const\ chacha\ =\ chacha20poly1305(key,\ nonce);}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ input\ =\ new\ TextEncoder().encode('hello\ noble');\ //\ length\ ==\ 12}
+\DoxyCodeLine{const\ inputLength\ =\ input.length;}
+\DoxyCodeLine{const\ tagLength\ =\ 16;}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ buf\ =\ new\ Uint8Array(inputLength\ +\ tagLength);}
+\DoxyCodeLine{const\ start\ =\ buf.subarray(0,\ inputLength);}
+\DoxyCodeLine{start.set(input);\ //\ copy\ input\ to\ buf}
+\DoxyCodeLine{}
+\DoxyCodeLine{chacha.encrypt(start,\ buf);\ //\ encrypt\ into\ \`{}buf`}
+\DoxyCodeLine{chacha.decrypt(buf,\ start);\ //\ decrypt\ into\ \`{}start`}
+
+\end{DoxyCode}
+
+
+xsalsa20poly1305 also supports this, but requires 32 additional bytes for encryption /\+ decryption, due to its inner workings.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4547}{}\doxysubsubsubsection{\texorpdfstring{Randomness generation}{Randomness generation}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4547}
+\doxylink{namespace_we}{We} provide userspace CSPRNG (cryptographically secure pseudorandom number generator). It\textquotesingle{}s best to limit their usage to non-\/production, non-\/critical cases:\+ for example, test-\/only usage. Cha\+Cha-\/based CSPRNG does not have a specification as per 2025, which makes it less secure.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ randomBytes\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{import\ \{\ rngAesCtrDrbg256\ \}\ from\ '@noble/ciphers/aes.js';}
+\DoxyCodeLine{import\ \{\ rngChacha8,\ rngChacha20\ \}\ from\ '@noble/ciphers/chacha.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ 1.\ Best:\ WebCrypto}
+\DoxyCodeLine{const\ rnd1\ =\ randomBytes(32);}
+\DoxyCodeLine{//\ 2.\ AES-\/CTR\ DRBG}
+\DoxyCodeLine{const\ seed2\ =\ randomBytes(48);}
+\DoxyCodeLine{const\ rnd2\ =\ rngAesCtrDrbg256(seed2).randomBytes(1024);}
+\DoxyCodeLine{//\ 3.\ ChaCha8\ CSPRNG}
+\DoxyCodeLine{const\ seed3\ =\ randomBytes(32);}
+\DoxyCodeLine{const\ rnd3\ =\ rngChacha8(seed3).randomBytes(1024);}
+
+\end{DoxyCode}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4548}{}\doxysubsubsubsection{\texorpdfstring{Use password for encryption}{Use password for encryption}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4548}
+It is not safe to convert password into Uint8\+Array. Instead, KDF stretching function like PBKDF2 /\+ Scrypt /\+ Argon2id should be applied to convert password to AES key. Make sure to use salt (app-\/specific secret) in addition to password.
+
+\begin{quote}
+{\ttfamily npm install @noble/\+hashes} \end{quote}
+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ xchacha20poly1305\ \}\ from\ '@noble/ciphers/chacha.js';}
+\DoxyCodeLine{import\ \{\ managedNonce\ \}\ from\ '@noble/ciphers/utils.js';}
+\DoxyCodeLine{import\ \{\ scrypt\ \}\ from\ '@noble/hashes/scrypt.js';}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Convert\ password\ into\ 32-\/byte\ key\ using\ scrypt}
+\DoxyCodeLine{const\ PASSWORD\ =\ 'correct-\/horse-\/battery-\/staple';}
+\DoxyCodeLine{const\ APP\_SPECIFIC\_SECRET\ =\ 'salt-\/12345678-\/secret';}
+\DoxyCodeLine{const\ SECURITY\_LEVEL\ =\ 2\ **\ 20;\ //\ requires\ 1GB\ of\ RAM\ to\ calculate}
+\DoxyCodeLine{//\ sync,\ but\ scryptAsync\ is\ also\ available}
+\DoxyCodeLine{const\ key\ =\ scrypt(PASSWORD,\ APP\_SPECIFIC\_SECRET,\ \{\ N:\ SECURITY\_LEVEL,\ r:\ 8,\ p:\ 1,\ dkLen:\ 32\ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Use\ random,\ managed\ nonce}
+\DoxyCodeLine{const\ chacha\ =\ managedNonce(xchacha20poly1305)(key);}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ data\ =\ new\ TextEncoder().encode('hello\ noble');}
+\DoxyCodeLine{const\ ciphertext\ =\ chacha.encrypt(data);}
+\DoxyCodeLine{const\ data\_\ =\ chacha.decrypt(ciphertext);}
+
+\end{DoxyCode}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4549}{}\doxysubsection{\texorpdfstring{Internals}{Internals}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4549}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4550}{}\doxysubsubsection{\texorpdfstring{Picking a cipher}{Picking a cipher}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4550}
+\doxylink{namespace_we}{We} suggest to use {\bfseries{XCha\+Cha20-\/\+Poly1305}} because it\textquotesingle{}s very fast and allows random keys. {\bfseries{AES-\/\+GCM-\/\+SIV}} is also a good idea, because it provides resistance against nonce reuse. {\bfseries{AES-\/\+GCM}} is a good option when those two are not available.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4551}{}\doxysubsubsection{\texorpdfstring{How to encrypt properly}{How to encrypt properly}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4551}
+
+\begin{DoxyItemize}
+\item Use unpredictable key with enough entropy
+\begin{DoxyItemize}
+\item Random key must be using cryptographically secure random number generator (CSPRNG), not {\ttfamily Math.\+random} etc.
+\item Non-\/random key generated from KDF is fine
+\item Re-\/using key is fine, but be aware of rules for cryptographic key wear-\/out and encryption limitsencryption limits
+\end{DoxyItemize}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Use new nonce every time and don\textquotesingle{}t repeat itdon\textquotesingle{}t repeat it
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item chacha and salsa20 are fine for sequential counters that {\itshape never} repeat:\+ {\ttfamily 01, 02...}
+\item xchacha and xsalsa20 can use random nonces instead
+\item AES-\/\+GCM should use 12-\/byte nonces:\+ smaller nonces are security risk
+\end{DoxyItemize}
+
+Prefer authenticated encryption (AEAD)
+\begin{DoxyItemize}
+\item Good:\+ chacha20poly1305, GCM, GCM-\/\+SIV, Cha\+Cha+\+HMAC, CTR+\+HMAC, CBC+\+HMAC
+\item Bad:\+ chacha20, raw CTR, raw CBC
+\item Flipping bits or ciphertext substitution won\textquotesingle{}t be detected in unauthenticated ciphers
+\item Polynomial MACs are not perfect for every situation:\+ they lack Random Key Robustness:\+ the MAC can be forged, and can\textquotesingle{}t be used in PAKE schemes. See \href{https://keymaterial.net/2020/09/07/invisible-salamanders-in-aes-gcm-siv/}{\texttt{invisible salamanders attack}}. To combat salamanders, {\ttfamily hash(key)} can be included in ciphertext, however, this would violate ciphertext indistinguishability:\+ an attacker would know which key was used -\/ so {\ttfamily HKDF(key, i)} could be used instead.
+\end{DoxyItemize}
+
+Don\textquotesingle{}t re-\/use keys between different protocols
+\begin{DoxyItemize}
+\item For example, using ECDH key in AES can be bad
+\item Use hkdf or, at least, a hash function to create sub-\/key instead
+\end{DoxyItemize}\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4552}{}\doxysubsubsection{\texorpdfstring{Nonces}{Nonces}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4552}
+Most ciphers need a key and a nonce (aka initialization vector /\+ IV) to encrypt a data. Repeating (key, nonce) pair with different plaintexts would allow an attacker to decrypt it. \begin{DoxyVerb}ciphertext_a = encrypt(plaintext_a, key, nonce)
+ciphertext_b = encrypt(plaintext_b, key, nonce)
+stream_diff = xor(ciphertext_a, ciphertext_b)    # Break encryption
+\end{DoxyVerb}
+
+
+One way of not repeating nonces is using counters:\+ \begin{DoxyVerb}for i in 0..:
+    ciphertext[i] = encrypt(plaintexts[i], key, i)
+\end{DoxyVerb}
+
+
+Another is generating random nonce every time:\+ \begin{DoxyVerb}for i in 0..:
+    rand_nonces[i] = random()
+    ciphertext[i] = encrypt(plaintexts[i], key, rand_nonces[i])
+\end{DoxyVerb}
+
+
+
+\begin{DoxyItemize}
+\item Counters are OK, but it\textquotesingle{}s not always possible to store current counter value:\+ e.\+g. in decentralized, unsyncable systems.
+\item Randomness is OK, but there\textquotesingle{}s a catch:\+ Cha\+Cha20 and AES-\/\+GCM use 96-\/bit /\+ 12-\/byte nonces, which implies higher chance of collision. In the example above, {\ttfamily random()} can collide and produce repeating nonce. Chance is even higher for 64-\/bit nonces, which GCM allows -\/ don\textquotesingle{}t use them.
+\item To safely use random nonces, utilize XSalsa20 or XCha\+Cha:\+ they increased nonce length to 192-\/bit, minimizing a chance of collision. AES-\/\+SIV is also fine. In situations where you can\textquotesingle{}t use e\+Xtended-\/nonce algorithms, key rotation is advised. hkdf would work great for this case.
+\end{DoxyItemize}\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4553}{}\doxysubsubsection{\texorpdfstring{Encryption limits}{Encryption limits}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4553}
+A "{}protected message"{} would mean a probability of {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}-\/50} that a passive attacker successfully distinguishes the ciphertext outputs of the AEAD scheme from the outputs of a random function.
+
+
+\begin{DoxyItemize}
+\item Max message size:\+
+\begin{DoxyItemize}
+\item AES-\/\+GCM:\+ \texorpdfstring{$\sim$}{\string~}68\+GB, {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}36-\/256}
+\item Salsa, Cha\+Cha, XSalsa, XCha\+Cha:\+ \texorpdfstring{$\sim$}{\string~}256\+GB, {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}38-\/64}
+\end{DoxyItemize}
+\item Max amount of protected messages, under same key:\+
+\begin{DoxyItemize}
+\item AES-\/\+GCM:\+ {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}32.5}
+\item Salsa, Cha\+Cha:\+ {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}46}, but only integrity (MAC) is affected, not confidentiality (encryption)
+\item XSalsa, XCha\+Cha:\+ {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}72}
+\end{DoxyItemize}
+\item Max amount of protected messages, across all keys:\+
+\begin{DoxyItemize}
+\item AES-\/\+GCM:\+ {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}69/\+B} where B is max blocks encrypted by a key. Meaning {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}59} for 1KB, {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}49} for 1MB, {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}39} for 1GB
+\item Salsa, Cha\+Cha, XSalsa, XCha\+Cha:\+ {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}100}
+\end{DoxyItemize}
+\item Max amount of protected messages, under same key, using {\bfseries{random nonce}}:\+
+\begin{DoxyItemize}
+\item Relevant for 12-\/byte nonces with {\ttfamily managed\+Nonce}:\+ AES-\/\+GCM, Cha\+Cha
+\item {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}23} (8M) messages for {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}-\/50} chance, {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}32.5} (4B) for {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}-\/32.5} chance
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Check out \href{https://datatracker.ietf.org/doc/draft-irtf-cfrg-aead-limits/}{\texttt{draft-\/irtf-\/cfrg-\/aead-\/limits}} for details.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4554}{}\doxysubsubsection{\texorpdfstring{Implemented primitives}{Implemented primitives}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4554}
+
+\begin{DoxyItemize}
+\item Salsa20 stream cipher, released in 2005. Salsa\textquotesingle{}s goal was to implement AES replacement that does not rely on S-\/\+Boxes, which are hard to implement in a constant-\/time manner. Salsa20 is usually faster than AES, a big deal on slow, budget mobile phones.
+\begin{DoxyItemize}
+\item \href{https://cr.yp.to/snuffle/xsalsa-20110204.pdf}{\texttt{XSalsa20}}, extended-\/nonce variant was released in 2008. It switched nonces from 96-\/bit to 192-\/bit, and became safe to be picked at random.
+\item Nacl /\+ Libsodium popularized term "{}secretbox"{}, -\/ which is just xsalsa20poly1305. \doxylink{namespace_we}{We} provide the alias and corresponding seal /\+ open methods. "{}crypto\+\_\+box"{} and "{}sealedbox"{} are available in package \href{https://github.com/serenity-kit/noble-sodium}{\texttt{noble-\/sodium}}.
+\item Check out \href{https://cr.yp.to/snuffle/salsafamily-20071225.pdf}{\texttt{PDF}} and \href{https://cr.yp.to/snuffle.html}{\texttt{website}}.
+\end{DoxyItemize}
+\item Cha\+Cha20 stream cipher, released in 2008. Developed after Salsa20, Cha\+Cha aims to increase diffusion per round.
+\begin{DoxyItemize}
+\item \href{https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha}{\texttt{XCha\+Cha20}} extended-\/nonce variant is also provided. Similar to XSalsa, it\textquotesingle{}s safe to use with randomly-\/generated nonces.
+\item Check out \href{https://www.rfc-editor.org/rfc/rfc8439}{\texttt{RFC 8439}}, \href{http://cr.yp.to/chacha/chacha-20080128.pdf}{\texttt{PDF}} and \href{https://cr.yp.to/chacha.html}{\texttt{website}}.
+\end{DoxyItemize}
+\item AES is a variant of Rijndael block cipher, standardized by NIST in 2001. \doxylink{namespace_we}{We} provide the fastest available pure JS implementation.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} support AES-\/128, AES-\/192 and AES-\/256:\+ the mode is selected dynamically, based on key length (16, 24, 32).
+\item AES-\/\+GCM-\/\+SIV nonce-\/misuse-\/resistant mode is also provided. Our implementation of SIV has the same speed as GCM:\+ there is no performance hit. The mode is described in \href{https://www.rfc-editor.org/rfc/rfc8452}{\texttt{RFC 8452}}.
+\item There is a separate AES-\/\+SIV mode, described in \href{https://www.rfc-editor.org/rfc/rfc5297}{\texttt{RFC 5297}}
+\item \doxylink{namespace_we}{We} also have AESKW and AESKWP from \href{https://www.rfc-editor.org/rfc/rfc3394}{\texttt{RFC 3394}} \& \href{https://www.rfc-editor.org/rfc/rfc5649}{\texttt{RFC 5649}}
+\item Format-\/preserving encryption algorithm (FPE-\/\+FF1) specified in \href{https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38G.pdf}{\texttt{NIST SP 800-\/38G}}.
+\item Check out AES block modesAES block modes
+\end{DoxyItemize}
+\end{DoxyItemize}, \href{https://csrc.nist.gov/files/pubs/fips/197/final/docs/fips-197.pdf}{\texttt{FIPS 197}} and \href{https://csrc.nist.gov/csrc/media/projects/cryptographic-standards-and-guidelines/documents/aes-development/rijndael-ammended.pdf}{\texttt{original proposal}}.
+\begin{DoxyItemize}
+\item Polynomial-\/evaluation MACs are available:\+ Poly1305, AES-\/\+GCM\textquotesingle{}s GHash and AES-\/\+SIV\textquotesingle{}s Polyval.
+\begin{DoxyItemize}
+\item Poly1305 (\href{https://cr.yp.to/mac/poly1305-20050329.pdf}{\texttt{PDF}}, \href{https://cr.yp.to/mac.html}{\texttt{website}}) is a fast and parallel secret-\/key message-\/authentication code suitable for a wide variety of applications. It was standardized in \href{https://www.rfc-editor.org/rfc/rfc8439}{\texttt{RFC 8439}} and is now used in TLS 1.\+3.
+\item Ghash is used in AES-\/\+GCM:\+ see NIST SP 800-\/38G
+\item Polyval is used in AES-\/\+GCM-\/\+SIV:\+ see \href{https://www.rfc-editor.org/rfc/rfc8452}{\texttt{RFC 8452}}
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4555}{}\doxysubsubsubsubsection{\texorpdfstring{AES block modes}{AES block modes}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4555}
+For non-\/deterministic (not ECB) schemes, initialization vector (IV) is mixed to block/\+key; and each new round either depends on previous block\textquotesingle{}s key, or on some counter.
+
+
+\begin{DoxyItemize}
+\item {\bfseries{ECB}} (Electronic Codebook):\+ Deterministic encryption; identical plaintext blocks yield identical ciphertexts. Not secure due to pattern leakage. due to pattern leakage. See \href{https://words.filippo.io/the-ecb-penguin/}{\texttt{AES Penguin}}
+\item {\bfseries{CBC}} (Cipher Block Chaining):\+ Each plaintext block is XORed with the previous block of ciphertext before encryption. Hard to use:\+ requires proper padding and an IV. Unauthenticated:\+ needs MAC.
+\item {\bfseries{CTR}} (Counter Mode):\+ Turns a block cipher into a stream cipher using a counter and IV (nonce). Efficient and parallelizable. Requires a unique nonce per encryption. Unauthenticated:\+ needs MAC.
+\item {\bfseries{GCM}} (Galois/\+\+Counter Mode):\+ Combines CTR mode with polynomial MAC. Efficient and widely used. Not perfect:\+ a) conservative key wear-\/out is {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}32} (4B) msgs. b) key wear-\/out under random nonces is even smaller:\+ {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}23} (8M) messages for {\ttfamily 2\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}-\/50} chance. c) MAC can be forged:\+ see Poly1305 documentation.
+\item {\bfseries{SIV}} (Synthetic IV):\+ GCM with nonce-\/misuse resistance; repeating nonces reveal only the fact plaintexts are identical. Also suffers from GCM issues:\+ key wear-\/out limits \& MAC forging.
+\item {\bfseries{XTS}}:\+ Designed for disk encryption. Similar to ECB (deterministic), but has {\ttfamily \+[i]\+\+[j]\+} tweak arguments corresponding to sector i and 16-\/byte block (part of sector) j. Lacks MAC.
+\end{DoxyItemize}\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4556}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4556}
+The library has been audited:\+
+
+
+\begin{DoxyItemize}
+\item at version 2.\+2.\+0, in Apr 2026, by ourselves (self-\/audited)
+\begin{DoxyItemize}
+\item Scope:\+ everything
+\item \href{https://github.com/paulmillr/noble-ciphers/compare/2.2.0..main}{\texttt{Changes since audit}}
+\end{DoxyItemize}
+\item at version 1.\+0.\+0, in Sep 2024, independently, by \href{https://cure53.de}{\texttt{cure53}}
+\begin{DoxyItemize}
+\item PDFs:\+ \href{https://cure53.de/audit-report_noble-crypto-libs.pdf}{\texttt{website}}, \href{./audit/2024-09-cure53-audit-nbl4.pdf}{\texttt{in-\/repo}}
+\item \href{https://github.com/paulmillr/noble-ciphers/compare/1.0.0..main}{\texttt{Changes since audit}}
+\item Scope:\+ everything
+\item The audit has been funded by \href{https://opensats.org}{\texttt{Open\+Sats}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+It is tested against property-\/based, cross-\/library and Wycheproof vectors, and is being fuzzed in \href{https://github.com/paulmillr/fuzzing}{\texttt{the separate repo}}.
+
+If you see anything unusual:\+ investigate and report.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4557}{}\doxysubsubsection{\texorpdfstring{Constant-\/timeness}{Constant-\/timeness}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4557}
+\doxylink{namespace_we}{We}\textquotesingle{}re targetting algorithmic constant time. {\itshape JIT-\/compiler} and {\itshape Garbage Collector} make "{}constant time"{} extremely hard to achieve \href{https://en.wikipedia.org/wiki/Timing_attack}{\texttt{timing attack}} resistance in a scripting language. Which means {\itshape any other JS library can\textquotesingle{}t have constant-\/timeness}. Even statically typed Rust, a language without GC, \href{https://www.chosenplaintext.ca/open-source/rust-timing-shield/security}{\texttt{makes it harder to achieve constant-\/time}} for some cases. If your goal is absolute security, don\textquotesingle{}t use any JS lib — including bindings to native ones. Use low-\/level libraries \& languages.
+
+The library uses T-\/tables for AES, which \href{https://cr.yp.to/antiforgery/cachetiming-20050414.pdf}{\texttt{leak access timings}}. This is also done in \href{https://github.com/openssl/openssl/blob/2f33265039cdbd0e4589c80970e02e208f3f94d2/crypto/aes/aes_core.c\#L706}{\texttt{Open\+SSL}} and \href{https://cs.opensource.google/go/go/+/refs/tags/go1.22.6:src/crypto/aes/const.go;l=90}{\texttt{Go stdlib}} for performance reasons. The analysis was mentioned in \href{https://hal.science/hal-04652991/document}{\texttt{hal-\/04652991}}.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4558}{}\doxysubsubsection{\texorpdfstring{Supply chain security}{Supply chain security}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4558}
+
+\begin{DoxyItemize}
+\item {\bfseries{Commits}} are signed with PGP keys to prevent forgery. Be sure to verify the commit signatures
+\item {\bfseries{Releases}} are made transparently through token-\/less Git\+Hub CI and Trusted Publishing. Be sure to verify the \href{https://docs.npmjs.com/generating-provenance-statements}{\texttt{provenance logs}} for authenticity.
+\item {\bfseries{Rare releasing}} is practiced to minimize the need for re-\/audits by end-\/users.
+\item {\bfseries{Dependencies}} are minimized and strictly pinned to reduce supply-\/chain risk.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} use as few dependencies as possible.
+\item Version ranges are locked, and changes are checked with npm-\/diff.
+\end{DoxyItemize}
+\item {\bfseries{Dev dependencies}} are excluded from end-\/user installs; they’re only used for development and build steps.
+\end{DoxyItemize}
+
+For this package, there are 0 dependencies; and a few dev dependencies:\+
+
+
+\begin{DoxyItemize}
+\item jsbt is used for benchmarking /\+ testing /\+ build tooling and developed by the same author
+\item prettier, fast-\/check and typescript are used for code quality /\+ test generation /\+ ts compilation
+\end{DoxyItemize}\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4559}{}\doxysubsubsection{\texorpdfstring{Randomness}{Randomness}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4559}
+\doxylink{namespace_we}{We} rely on the built-\/in \href{https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues}{\texttt{{\ttfamily crypto.\+get\+Random\+Values}}}, which is considered a cryptographically secure PRNG.
+
+Browsers have had weaknesses in the past -\/ and could again -\/ but implementing a userspace CSPRNG is even worse, as there’s no reliable userspace source of high-\/quality entropy.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4560}{}\doxysubsubsection{\texorpdfstring{Quantum computers}{Quantum computers}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4560}
+Cryptographically relevant quantum computer, if built, will allow to utilize Grover\textquotesingle{}s algorithm to break ciphers in 2\texorpdfstring{$^\wedge$}{\string^}n/\+2 operations, instead of 2\texorpdfstring{$^\wedge$}{\string^}n.
+
+This means AES128 should be replaced with AES256. Salsa and Cha\+Cha are already safe.
+
+Australian ASD prohibits AES128 \href{https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism/cyber-security-guidelines/guidelines-cryptography}{\texttt{after 2030}}.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4561}{}\doxysubsection{\texorpdfstring{Speed}{Speed}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4561}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{npm\ run\ bench}
+
+\end{DoxyCode}
+
+
+Benchmarks measured on Apple M4. If you need truly exemplar performance, switch to \href{https://github.com/paulmillr/awasm-noble}{\texttt{awasm-\/noble}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{64B}
+\DoxyCodeLine{xsalsa20poly1305\ x\ 735,835\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{chacha20poly1305\ x\ 581,395\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{xchacha20poly1305\ x\ 468,384\ ops/sec\ @\ 2μs/op}
+\DoxyCodeLine{aes-\/256-\/gcm\ x\ 201,126\ ops/sec\ @\ 4μs/op}
+\DoxyCodeLine{aes-\/256-\/gcm-\/siv\ x\ 162,284\ ops/sec\ @\ 6μs/op}
+\DoxyCodeLine{\#\ Unauthenticated\ encryption}
+\DoxyCodeLine{salsa20\ x\ 1,655,629\ ops/sec\ @\ 604ns/op}
+\DoxyCodeLine{xsalsa20\ x\ 1,400,560\ ops/sec\ @\ 714ns/op}
+\DoxyCodeLine{chacha20\ x\ 1,996,007\ ops/sec\ @\ 501ns/op}
+\DoxyCodeLine{xchacha20\ x\ 1,404,494\ ops/sec\ @\ 712ns/op}
+\DoxyCodeLine{chacha8\ x\ 2,145,922\ ops/sec\ @\ 466ns/op}
+\DoxyCodeLine{chacha12\ x\ 2,036,659\ ops/sec\ @\ 491ns/op}
+\DoxyCodeLine{aes-\/ecb-\/256\ x\ 1,019,367\ ops/sec\ @\ 981ns/op}
+\DoxyCodeLine{aes-\/cbc-\/256\ x\ 931,966\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{aes-\/ctr-\/256\ x\ 954,198\ ops/sec\ @\ 1μs/op}
+\DoxyCodeLine{}
+\DoxyCodeLine{1MB}
+\DoxyCodeLine{xsalsa20poly1305\ x\ 334\ ops/sec\ @\ 2ms/op}
+\DoxyCodeLine{chacha20poly1305\ x\ 333\ ops/sec\ @\ 2ms/op}
+\DoxyCodeLine{xchacha20poly1305\ x\ 334\ ops/sec\ @\ 2ms/op}
+\DoxyCodeLine{aes-\/256-\/gcm\ x\ 94\ ops/sec\ @\ 10ms/op}
+\DoxyCodeLine{aes-\/256-\/gcm-\/siv\ x\ 90\ ops/sec\ @\ 11ms/op}
+\DoxyCodeLine{\#\ Unauthenticated\ encryption}
+\DoxyCodeLine{salsa20\ x\ 831\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{xsalsa20\ x\ 830\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{chacha20\ x\ 804\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{xchacha20\ x\ 797\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{chacha8\ x\ 1,495\ ops/sec\ @\ 668μs/op}
+\DoxyCodeLine{chacha12\ x\ 1,148\ ops/sec\ @\ 871μs/op}
+\DoxyCodeLine{aes-\/ecb-\/256\ x\ 289\ ops/sec\ @\ 3ms/op}
+\DoxyCodeLine{aes-\/cbc-\/256\ x\ 114\ ops/sec\ @\ 8ms/op}
+\DoxyCodeLine{aes-\/ctr-\/256\ x\ 127\ ops/sec\ @\ 7ms/op}
+\DoxyCodeLine{\#\ Wrapper\ over\ built-\/in\ webcrypto}
+\DoxyCodeLine{webcrypto\ ctr-\/256\ x\ 6,508\ ops/sec\ @\ 153μs/op}
+\DoxyCodeLine{webcrypto\ cbc-\/256\ x\ 1,820\ ops/sec\ @\ 549μs/op}
+\DoxyCodeLine{webcrypto\ gcm-\/256\ x\ 5,106\ ops/sec\ @\ 195μs/op}
+
+\end{DoxyCode}
+
+
+Compare to other implementations:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{xsalsa20poly1305\ (encrypt,\ 1MB)}
+\DoxyCodeLine{├─tweetnacl\ x\ 196\ mb/sec}
+\DoxyCodeLine{├─awasm-\/noble\_threads\ x\ 2,318\ mb/sec}
+\DoxyCodeLine{├─awasm-\/noble\_no\_threads\ x\ 1,196\ mb/sec}
+\DoxyCodeLine{└─noble\ x\ 305\ mb/sec}
+\DoxyCodeLine{}
+\DoxyCodeLine{aes-\/ctr-\/256\ (encrypt,\ 1MB)}
+\DoxyCodeLine{├─stablelib\ x\ 123\ mb/sec}
+\DoxyCodeLine{├─aesjs\ x\ 42\ mb/sec}
+\DoxyCodeLine{├─awasm-\/noble\_thread\ x\ 2,105\ mb/sec}
+\DoxyCodeLine{├─awasm-\/noble\_no\_threads\ x\ 272\ mb/sec}
+\DoxyCodeLine{├─noble\_webcrypto\ x\ 5,965\ mb/sec}
+\DoxyCodeLine{└─noble\ x\ 124\ mb/sec}
+
+\end{DoxyCode}
+\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4562}{}\doxysubsection{\texorpdfstring{Upgrading}{Upgrading}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4562}
+Supported node.\+js versions:\+
+
+
+\begin{DoxyItemize}
+\item v2:\+ v20.\+19+ (ESM-\/only)
+\item v1:\+ v14.\+21+ (ESM \& CJS)
+\end{DoxyItemize}
+
+Changelog of v2, when upgrading from ciphers v1:\+
+
+
+\begin{DoxyItemize}
+\item The package is now ESM-\/only. ESM can finally be loaded from common.\+js on node v20.\+19+
+\item {\ttfamily .js} extension must be used for all modules
+\begin{DoxyItemize}
+\item Old:\+ {\ttfamily @noble/\+ciphers/\+aes}
+\item New:\+ {\ttfamily @noble/\+ciphers/\+aes.\+js}
+\item This simplifies working in browsers natively without transpilers
+\end{DoxyItemize}
+\item webcrypto:\+ move {\ttfamily random\+Bytes} and {\ttfamily managed\+Nonce} to {\ttfamily utils.\+js}
+\item ghash, poly1305, polyval:\+ only allow Uint8\+Array as hash inputs, prohibit {\ttfamily string}
+\item utils:\+ new abytes; remove ahash, to\+Bytes
+\item Remove modules {\ttfamily \+\_\+assert} (use {\ttfamily utils}), {\ttfamily \+\_\+micro} and {\ttfamily \doxylink{namespacecrypto}{crypto}} (use {\ttfamily webcrypto})
+\item Bump TS compilation target from es2020 to es2022
+\item Massively improve error messages, make them more descriptive
+\end{DoxyItemize}\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4563}{}\doxysubsection{\texorpdfstring{Contributing \& testing}{Contributing \& testing}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4563}
+
+\begin{DoxyItemize}
+\item {\ttfamily npm install \&\& npm run \doxylink{namespacebuild}{build} \&\& npm \doxylink{namespacetest}{test}} will build the code and run tests.
+\item {\ttfamily npm run lint} /\+ {\ttfamily npm run format} will run linter /\+ fix linter issues.
+\item {\ttfamily npm run bench} will run benchmarks
+\item {\ttfamily npm run \doxylink{namespacebuild}{build}:\+release} will build single file
+\end{DoxyItemize}
+
+See \href{https://paulmillr.com/noble/}{\texttt{paulmillr.\+com/\+noble}} for useful resources, articles, documentation and demos related to the library.\hypertarget{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4564}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_d27c14d0c1285b9253ee6bee0607d382_autotoc_md4564}
+The MIT License (MIT)
+
+Copyright (c) 2023 Paul Miller \href{https://paulmillr.com}{\texttt{(https:\+/\+/\+paulmillr.\+com)}} Copyright (c) 2016 Thomas Pornin \href{mailto:pornin@bolet.org}{\texttt{pornin@bolet.\+org}}
+
+See LICENSE file. 

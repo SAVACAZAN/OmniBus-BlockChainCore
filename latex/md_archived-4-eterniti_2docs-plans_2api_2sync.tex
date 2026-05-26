@@ -1,0 +1,728 @@
+\chapter{Module:\+ {\ttfamily sync} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync}{}\label{md_archived-4-eterniti_2docs-plans_2api_2sync}\index{Module: $<$tt$>$sync$<$/tt$>$@{Module: $<$tt$>$sync$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3317}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3317}%
+
+
+\begin{quote}
+Block synchronization — header-\/first sync, block download, stall detection, fork resolution, and chain reorganization. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+sync.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 638 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 22 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 7 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 12
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3319}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3319}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3320}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3320}
+
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Get\+Headers\`{}{\ttfamily Msg\+Get\+Headers}
+\end{DoxyItemize}— Cerere:\+ "{}am blocuri pana la height X, trimite-\/mi de la X+1"{}
+\begin{DoxyItemize}
+\item \`{}\+Block\+Header\`{}{\ttfamily Block\+Header}
+\end{DoxyItemize}— Un header compact de bloc pentru sync rapid (fara TX-\/uri) 88 bytes per header
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Headers\`{}{\ttfamily Msg\+Headers}
+\end{DoxyItemize}— Raspuns la Get\+Headers:\+ lista de headere compacte
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Blocks\`{}{\ttfamily Msg\+Blocks}
+\end{DoxyItemize}— Raspuns cu blocuri complete:\+ \+[count:\+2]\+\+[header0:\+88]\+\+[header1:\+88]\+... Acelasi format...
+\begin{DoxyItemize}
+\item \`{}\+Msg\+Get\+Blocks\`{}{\ttfamily Msg\+Get\+Blocks}
+\end{DoxyItemize}— Cerere blocuri complete dupa height
+\begin{DoxyItemize}
+\item \`{}\+Sync\+State\`{}{\ttfamily Sync\+State}
+\end{DoxyItemize}— Data structure for sync state. Fields include:\+ status, local\+\_\+height, peer\+\_\+height...
+\begin{DoxyItemize}
+\item \`{}\+Sync\+Manager\`{}{\ttfamily Sync\+Manager}
+\end{DoxyItemize}— Data structure for sync manager. Fields include:\+ state, allocator.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3321}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3321}
+
+\begin{DoxyItemize}
+\item 5 constants defined5 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3322}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3322}
+
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Attempts to find decode. Returns null if not found.
+\begin{DoxyItemize}
+\item \`{}from\+Block()\`{}{\ttfamily from\+Block()}
+\end{DoxyItemize}— Performs the from block operation on the sync module.
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Attempts to find decode. Returns null if not found.
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Encode:\+ \+[count:\+2]\+\+[header0:\+88]\+\+[header1:\+88]\+...
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Performs the decode operation on the sync module.
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Encode:\+ \+[count:\+2]\+\+[header0:\+88]\+\+[header1:\+88]\+...
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Performs the decode operation on the sync module.
+\begin{DoxyItemize}
+\item \`{}encode()\`{}{\ttfamily encode()}
+\end{DoxyItemize}— Decodes the encoded data back to its original format.
+\begin{DoxyItemize}
+\item \`{}decode()\`{}{\ttfamily decode()}
+\end{DoxyItemize}— Attempts to find decode. Returns null if not found.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}is\+Behind()\`{}{\ttfamily is\+Behind()}
+\end{DoxyItemize}— Checks whether the behind condition is true.
+\begin{DoxyItemize}
+\item \`{}progress\+Pct()\`{}{\ttfamily progress\+Pct()}
+\end{DoxyItemize}— Performs the progress pct operation on the sync module.
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the sync module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}on\+Peer\+Height()\`{}{\ttfamily on\+Peer\+Height()}
+\end{DoxyItemize}— Notifica ca un peer are height mai mare Returneaza Get\+Headers encodat ...
+\begin{DoxyItemize}
+\item \`{}on\+Block\+Applied()\`{}{\ttfamily on\+Block\+Applied()}
+\end{DoxyItemize}— Notifica ca un bloc nou a fost primit si validat
+\begin{DoxyItemize}
+\item \`{}on\+Blocks\+Received()\`{}{\ttfamily on\+Blocks\+Received()}
+\end{DoxyItemize}— Proceseaza un batch de blocuri primite:\+
+\begin{DoxyItemize}
+\item actualizeaza local\+\_\+height cu...
+\item \`{}retry\+If\+Stalled()\`{}{\ttfamily retry\+If\+Stalled()}
+\end{DoxyItemize}— Daca sync-\/ul e blocat (is\+Stalled), reseteaza la .requesting pentru ret...
+\begin{DoxyItemize}
+\item \`{}is\+Stalled()\`{}{\ttfamily is\+Stalled()}
+\end{DoxyItemize}— Verifica daca sync-\/ul a blocat (\texorpdfstring{$>$}{>}60s fara progres)
+\begin{DoxyItemize}
+\item \`{}is\+Synced()\`{}{\ttfamily is\+Synced()}
+\end{DoxyItemize}— Checks whether the synced condition is true.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3324}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3324}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3325}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Get\+Headers}}{{\ttfamily Msg\+Get\+Headers}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3325}
+Cerere:\+ "{}am blocuri pana la height X, trimite-\/mi de la X+1"{}
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily from\+\_\+height}  &{\ttfamily u64}  &From\+\_\+height  \\
+{\ttfamily max\+\_\+count}  &{\ttfamily u16}  &Max\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 17}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3327}{}\doxysubsection{\texorpdfstring{{\ttfamily Block\+Header}}{{\ttfamily Block\+Header}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3327}
+Un header compact de bloc pentru sync rapid (fara TX-\/uri) 88 bytes per header
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+{\ttfamily timestamp}  &{\ttfamily i64}  &Timestamp  \\
+{\ttfamily prev\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Prev\+\_\+hash  \\
+{\ttfamily merkle\+\_\+root}  &{\ttfamily \+[32]\+u8}  &Merkle\+\_\+root  \\
+{\ttfamily nonce}  &{\ttfamily u64}  &Nonce  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 39}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3329}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Headers}}{{\ttfamily Msg\+Headers}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3329}
+Raspuns la Get\+Headers:\+ lista de headere compacte
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily count}  &{\ttfamily u16}  &Count  \\
+{\ttfamily headers}  &{\ttfamily \+[]\+Block\+Header}  &Headers  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 91}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3331}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Blocks}}{{\ttfamily Msg\+Blocks}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3331}
+Raspuns cu blocuri complete:\+ \+[count:\+2]\+\+[header0:\+88]\+\+[header1:\+88]\+... Acelasi format ca Msg\+Headers dar semnifica blocuri descarcate complet
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily count}  &{\ttfamily u16}  &Count  \\
+{\ttfamily headers}  &{\ttfamily \+[]\+Block\+Header}  &Headers  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 125}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3333}{}\doxysubsection{\texorpdfstring{{\ttfamily Msg\+Get\+Blocks}}{{\ttfamily Msg\+Get\+Blocks}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3333}
+Cerere blocuri complete dupa height
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily from\+\_\+height}  &{\ttfamily u64}  &From\+\_\+height  \\
+{\ttfamily max\+\_\+count}  &{\ttfamily u16}  &Max\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 158}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3335}{}\doxysubsection{\texorpdfstring{{\ttfamily Sync\+State}}{{\ttfamily Sync\+State}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3335}
+Data structure for sync state. Fields include:\+ status, local\+\_\+height, peer\+\_\+height, blocks\+\_\+pending, started\+\_\+at.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily status}  &{\ttfamily Sync\+Status}  &Status  \\
+{\ttfamily local\+\_\+height}  &{\ttfamily u64}  &Local\+\_\+height  \\
+{\ttfamily peer\+\_\+height}  &{\ttfamily u64}  &Peer\+\_\+height  \\
+{\ttfamily blocks\+\_\+pending}  &{\ttfamily u64}  &Blocks\+\_\+pending  \\
+{\ttfamily started\+\_\+at}  &{\ttfamily i64}  &Started\+\_\+at  \\
+{\ttfamily last\+\_\+progress}  &{\ttfamily i64}  &Last\+\_\+progress  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 187}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3337}{}\doxysubsection{\texorpdfstring{{\ttfamily Sync\+Manager}}{{\ttfamily Sync\+Manager}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3337}
+Data structure for sync manager. Fields include:\+ state, allocator.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily state}  &{\ttfamily Sync\+State}  &State  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 231}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3339}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3339}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Blockchain}  &{\ttfamily blockchain\+\_\+mod.\+Blockchain}  &Blockchain  \\
+{\ttfamily Block}  &{\ttfamily block\+\_\+mod.\+Block}  &Block  \\
+{\ttfamily Sync\+Status}  &{\ttfamily enum \{}  &Sync status  \\
+{\ttfamily MAX\+\_\+\+HEADERS\+\_\+\+PER\+\_\+\+REQ}  &{\ttfamily u16 = 2000}  &M a x\+\_\+ h e a d e r s\+\_\+ p e r\+\_\+ r e q  \\
+{\ttfamily MAX\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+REQ}  &{\ttfamily u16 = 128}  &M a x\+\_\+ b l o c k s\+\_\+ p e r\+\_\+ r e q  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3341}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3341}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3342}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3342}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ MsgGetHeaders)\ [10]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Msg\+Get\+Headers}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[10]\+u8}
+
+{\itshape Defined at line 21}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3344}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3344}
+Attempts to find decode. Returns null if not found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(buf:\ []const\ u8)\ ?MsgGetHeaders\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily buf}  &{\ttfamily \+[]\+const u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Msg\+Get\+Headers}
+
+{\itshape Defined at line 28}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3346}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Block()}}{{\ttfamily from\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3346}
+Performs the from block operation on the sync module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromBlock(b:\ *const\ Block,\ height:\ u64)\ BlockHeader\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily b}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Block}  &B  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Block\+Header}
+
+{\itshape Defined at line 46}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3348}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3348}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ BlockHeader,\ buf:\ *[88]u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Block\+Header}  &The instance  \\
+{\ttfamily buf}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+[88]\+u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 66}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3350}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3350}
+Attempts to find decode. Returns null if not found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(buf:\ []const\ u8)\ ?BlockHeader\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily buf}  &{\ttfamily \+[]\+const u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Block\+Header}
+
+{\itshape Defined at line 74}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3352}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3352}
+Encode:\+ \+[count:\+2]\+\+[header0:\+88]\+\+[header1:\+88]\+...
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ MsgHeaders,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Msg\+Headers}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 96}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3354}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3354}
+Performs the decode operation on the sync module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(buf:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !MsgHeaders\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily buf}  &{\ttfamily \+[]\+const u8}  &Buf  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Msg\+Headers}
+
+{\itshape Defined at line 108}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3356}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3356}
+Encode:\+ \+[count:\+2]\+\+[header0:\+88]\+\+[header1:\+88]\+...
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ MsgBlocks,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Msg\+Blocks}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 130}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3358}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3358}
+Performs the decode operation on the sync module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(buf:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !MsgBlocks\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily buf}  &{\ttfamily \+[]\+const u8}  &Buf  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Msg\+Blocks}
+
+{\itshape Defined at line 142}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3360}{}\doxysubsection{\texorpdfstring{{\ttfamily encode()}}{{\ttfamily encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3360}
+Decodes the encoded data back to its original format.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ encode(self:\ MsgGetBlocks)\ [10]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily Msg\+Get\+Blocks}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[10]\+u8}
+
+{\itshape Defined at line 162}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3362}{}\doxysubsection{\texorpdfstring{{\ttfamily decode()}}{{\ttfamily decode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3362}
+Attempts to find decode. Returns null if not found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ decode(buf:\ []const\ u8)\ ?MsgGetBlocks\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily buf}  &{\ttfamily \+[]\+const u8}  &Buf  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Msg\+Get\+Blocks}
+
+{\itshape Defined at line 169}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3364}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3364}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(local\_height:\ u64)\ SyncState\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily local\+\_\+height}  &{\ttfamily u64}  &Local\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Sync\+State}
+
+{\itshape Defined at line 195}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3366}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Behind()}}{{\ttfamily is\+Behind()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3366}
+Checks whether the behind condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isBehind(self:\ *const\ SyncState)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Sync\+State}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 206}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3368}{}\doxysubsection{\texorpdfstring{{\ttfamily progress\+Pct()}}{{\ttfamily progress\+Pct()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3368}
+Performs the progress pct operation on the sync module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ progressPct(self:\ *const\ SyncState)\ f64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Sync\+State}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily f64}
+
+{\itshape Defined at line 210}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3370}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3370}
+Performs the print operation on the sync module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ SyncState)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Sync\+State}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 216}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3372}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3372}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(local\_height:\ u64,\ allocator:\ std.mem.Allocator)\ SyncManager\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily local\+\_\+height}  &{\ttfamily u64}  &Local\+\_\+height  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Sync\+Manager}
+
+{\itshape Defined at line 240}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3374}{}\doxysubsection{\texorpdfstring{{\ttfamily on\+Peer\+Height()}}{{\ttfamily on\+Peer\+Height()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3374}
+Notifica ca un peer are height mai mare Returneaza Get\+Headers encodat daca trebuie sa sincronizam
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ onPeerHeight(self:\ *SyncManager,\ peer\_height:\ u64)\ ?[10]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sync\+Manager}  &The instance  \\
+{\ttfamily peer\+\_\+height}  &{\ttfamily u64}  &Peer\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[10]\+u8}
+
+{\itshape Defined at line 249}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3376}{}\doxysubsection{\texorpdfstring{{\ttfamily on\+Block\+Applied()}}{{\ttfamily on\+Block\+Applied()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3376}
+Notifica ca un bloc nou a fost primit si validat
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ onBlockApplied(self:\ *SyncManager,\ new\_height:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sync\+Manager}  &The instance  \\
+{\ttfamily new\+\_\+height}  &{\ttfamily u64}  &New\+\_\+height  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 330}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3378}{}\doxysubsection{\texorpdfstring{{\ttfamily on\+Blocks\+Received()}}{{\ttfamily on\+Blocks\+Received()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3378}
+Proceseaza un batch de blocuri primite:\+
+\begin{DoxyItemize}
+\item actualizeaza local\+\_\+height cu count blocuri noi
+\item actualizeaza last\+\_\+progress
+\item trece in .synced daca am ajuns la peer\+\_\+height
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ onBlocksReceived(self:\ *SyncManager,\ count:\ u32)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sync\+Manager}  &The instance  \\
+{\ttfamily count}  &{\ttfamily u32}  &Count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 347}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3380}{}\doxysubsection{\texorpdfstring{{\ttfamily retry\+If\+Stalled()}}{{\ttfamily retry\+If\+Stalled()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3380}
+Daca sync-\/ul e blocat (is\+Stalled), reseteaza la .requesting pentru retry. Returneaza true daca s-\/a facut retry.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ retryIfStalled(self:\ *SyncManager)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Sync\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 368}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3382}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Stalled()}}{{\ttfamily is\+Stalled()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3382}
+Verifica daca sync-\/ul a blocat (\texorpdfstring{$>$}{>}60s fara progres)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isStalled(self:\ *const\ SyncManager)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Sync\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 378}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3384}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Synced()}}{{\ttfamily is\+Synced()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2sync_autotoc_md3384}
+Checks whether the synced condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isSynced(self:\ *const\ SyncManager)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Sync\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 384}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

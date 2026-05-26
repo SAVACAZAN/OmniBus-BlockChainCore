@@ -1,0 +1,8 @@
+// P2WPKH (segwit) - bc1q...
+const addr = try btc.address.deriveP2WPKHAddress(seed, account, index);
+
+// P2TR (taproot) - bc1p...
+const taproot = try btc.address.deriveP2TRAddress(seed, account, index);
+
+// Testnet
+const testnet = try btc.address.deriveTestnetP2WPKHAddress(seed, account, index);

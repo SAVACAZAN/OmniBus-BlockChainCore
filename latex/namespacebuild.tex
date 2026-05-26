@@ -1,0 +1,35 @@
+\doxysection{build Namespace Reference}
+\hypertarget{namespacebuild}{}\label{namespacebuild}\index{build@{build}}
+
+
+-\/zig-\/updater  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/zig-\/updater 
+
+-\/failure-\/tracker
+
+\begin{DoxyVerb}OmniBus Blockchain Core — build.zig Updater
+
+Automatically adds a new core/*.zig module to build.zig test steps.
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}build-failure-tracker.py
+
+Track Zig build failures from CI logs or local build output files.
+Extracts:
+  - Most common Zig compiler error types
+  - Which modules cause the most problems
+  - Temporal pattern: after updating module X, module Y tends to break
+
+Scans:
+  - tools/LEARNING/data/build-logs/ for *.log files
+  - git log for revert / fixup commits referencing build failures
+
+Outputs: tools/LEARNING/data/build-history.json
+\end{DoxyVerb}
+ 

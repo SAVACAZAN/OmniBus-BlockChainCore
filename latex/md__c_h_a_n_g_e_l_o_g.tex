@@ -1,0 +1,187 @@
+\chapter{Changelog }
+\hypertarget{md__c_h_a_n_g_e_l_o_g}{}\label{md__c_h_a_n_g_e_l_o_g}\index{Changelog@{Changelog}}
+\label{md__c_h_a_n_g_e_l_o_g_autotoc_md25}%
+\Hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md25}%
+
+
+All notable changes to this project will be documented in this file.
+
+The format is based on \href{https://keepachangelog.com/en/1.0.0/}{\texttt{Keep a Changelog}} and this project adheres to \href{https://semver.org/spec/v2.0.0.html}{\texttt{Semantic Versioning}}.\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md26}{}\doxysection{\texorpdfstring{\+[v0.\+3.\+2]\+ -\/ 2026-\/04-\/25 (later same day)}{\+[v0.\+3.\+2]\+ -\/ 2026-\/04-\/25 (later same day)}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md26}
+\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md27}{}\doxysubsection{\texorpdfstring{Fixed — DB path wiring + chain selection (was incomplete in v0.\+3.\+0)}{Fixed — DB path wiring + chain selection (was incomplete in v0.\+3.\+0)}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md27}
+{\bfseries{Critical bugs discovered \& fixed during live multi-\/chain testing:\+}}
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{DB cross-\/contamination}} — {\ttfamily -\/-\/testnet} was writing to {\ttfamily omnibus-\/chain.\+dat} (mainnet DB). Cause:\+ {\ttfamily main.\+zig} had hardcoded {\ttfamily const DB\+\_\+\+PATH = "{}omnibus-\/chain.\+dat"{}}. Fix:\+ replaced with runtime {\ttfamily db\+\_\+path} calculated per chain via {\ttfamily database\+\_\+mod.\+db\+Path\+For\+Chain(allocator, short\+\_\+name)}. 8 references updated.
+\item {\bfseries{Chain selection ignored}} — {\ttfamily -\/-\/regtest} flag parsed correctly but {\ttfamily main.\+zig} still used legacy {\ttfamily if (config.\+testnet) testnet else mainnet} boolean. Fix:\+ switched from {\ttfamily cli.\+parse\+Args(args)} to {\ttfamily cli.\+parse\+Args\+Full(args)}, then {\ttfamily switch (parsed.\+chain\+\_\+mode)} for Chain\+Config selection.
+\item {\bfseries{DB path safety}} — Mainnet now prefers legacy {\ttfamily omnibus-\/chain.\+dat} if present (back-\/compat with existing user data). Testnet/\+regtest {\bfseries{always}} use {\ttfamily data/\+\{chain\}/\+chain.dat} — never legacy.
+\end{DoxyEnumerate}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md28}{}\doxysubsection{\texorpdfstring{Verified live}{Verified live}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md28}
+
+\begin{DoxyItemize}
+\item {\ttfamily -\/-\/mainnet} → loads {\ttfamily omnibus-\/chain.\+dat} (140 blocks restored OK)
+\item {\ttfamily -\/-\/testnet} → uses {\ttfamily data/\+testnet/\+chain.\+dat} (isolated)
+\item {\ttfamily -\/-\/regtest} → uses {\ttfamily data/\+regtest/\+chain.\+dat} (isolated)
+\end{DoxyItemize}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md29}{}\doxysubsection{\texorpdfstring{Added — 7 missing standard Bitcoin RPC methods}{Added — 7 missing standard Bitcoin RPC methods}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md29}
+{\ttfamily core/\+rpc\+\_\+server.\+zig} extended with:\+
+
+
+\begin{DoxyTable}{2}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Method  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Returns  \\
+{\ttfamily getbestblockhash}  &hex hash of latest block  \\
+{\ttfamily getdifficulty}  &current network difficulty  \\
+{\ttfamily getblockhash(height)}  &hash at given height (error -\/8 if out of range)  \\
+{\ttfamily getblock(hash)}  &full block JSON:\+ hash, height, timestamp, previous\+Hash, merkle\+Root, difficulty, nonce, tx\+Count, size, miner, reward\+SAT (error -\/5 if not found)  \\
+{\ttfamily getconnectioncount}  &peer count  \\
+{\ttfamily getpeerinfo}  &array of peer details (id, addr, host, port, height, version, alive)  \\
+{\ttfamily getmininginfo}  &object:\+ blocks, difficulty, networkhashps, hashrate, pooledtx, chain, currentblockreward  \\
+\end{DoxyTable}
+
+
+{\bfseries{RPC coverage:\+}} 12/\+12 methods verified live (was 5/\+12 before).\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md30}{}\doxysubsection{\texorpdfstring{Test infrastructure}{Test infrastructure}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md30}
+
+\begin{DoxyItemize}
+\item New folder {\ttfamily test\+\_\+results/\+\{date\}/\+} with subdirs:\+ {\ttfamily 01\+\_\+unit\+\_\+tests/\+}, {\ttfamily 02\+\_\+rpc\+\_\+tests/\+}, {\ttfamily 03\+\_\+p2p\+\_\+sync/\+}, {\ttfamily 04\+\_\+node\+\_\+logs/\+}
+\item Unit tests:\+ 8/\+8 PASS (test, test-\/crypto, test-\/chain, test-\/net, test-\/shard, test-\/storage, test-\/light, test-\/pq)
+\item P2P sync verified at 2 nodes (block announce + gossip relay)
+\item Live RPC tests scripted
+\end{DoxyItemize}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md31}{}\doxysubsection{\texorpdfstring{DB safety trail}{DB safety trail}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md31}
+Backups maintained:\+ {\ttfamily omnibus-\/chain.\+dat.\+backup-\/20260425-\/1230} (pre-\/test snapshot), {\ttfamily omnibus-\/chain.\+dat.\+test-\/tainted-\/1237} (test-\/mined version, kept for reference, not active).\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md32}{}\doxysection{\texorpdfstring{\+[v0.\+3.\+0]\+ -\/ 2026-\/04-\/25}{\+[v0.\+3.\+0]\+ -\/ 2026-\/04-\/25}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md32}
+\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md33}{}\doxysubsection{\texorpdfstring{Added — Multi-\/chain Selection (Mainnet /\+ Testnet /\+ Regtest)}{Added — Multi-\/chain Selection (Mainnet /\+ Testnet /\+ Regtest)}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md33}
+{\bfseries{Wired Chain\+Config as primary network configuration}} (was:\+ legacy {\ttfamily Network\+Config} in {\ttfamily genesis.\+zig}).
+
+{\bfseries{{\ttfamily core/\+chain\+\_\+config.\+zig}}} — was already defined, now actually used:\+
+\begin{DoxyItemize}
+\item 4 chain modes:\+ {\ttfamily .mainnet} (chain\+\_\+id=1), {\ttfamily .testnet} (chain\+\_\+id=2), {\ttfamily .devnet} (chain\+\_\+id=3, enum only), {\ttfamily .regtest} (chain\+\_\+id=4, fast mining)
+\item Per-\/chain network magic bytes (P2P message identification, prevents cross-\/network connection)
+\item Per-\/chain ports:\+ mainnet 8332/\+8333/\+8334, testnet 18332/\+18333/\+18334, regtest 28332/\+28333/\+28334
+\item Per-\/chain genesis hash + timestamp + difficulty
+\item Mainnet checkpoints for fast-\/sync
+\end{DoxyItemize}
+
+{\bfseries{{\ttfamily core/\+cli.\+zig}}} — new chain flags (mutually exclusive):\+
+\begin{DoxyItemize}
+\item {\ttfamily -\/-\/chain MODE} — explicit chain selection (mainnet \texorpdfstring{$\vert$}{|} testnet \texorpdfstring{$\vert$}{|} regtest)
+\item {\ttfamily -\/-\/mainnet}, {\ttfamily -\/-\/testnet}, {\ttfamily -\/-\/regtest} — short aliases
+\item Conflict detection:\+ {\ttfamily -\/-\/mainnet -\/-\/testnet} returns {\ttfamily error.\+Conflicting\+Chain\+Flags}
+\item Backward compat:\+ legacy {\ttfamily -\/-\/testnet} boolean still works
+\item New {\ttfamily parse\+Args\+Full()} returns {\ttfamily Parsed\+Args \{ node, chain\+\_\+mode \}}; legacy {\ttfamily parse\+Args()} preserved
+\end{DoxyItemize}
+
+{\bfseries{{\ttfamily core/\+database.\+zig}}} — DB path separation per chain:\+
+\begin{DoxyItemize}
+\item New {\ttfamily db\+Path\+For\+Chain(allocator, chain\+\_\+name)} — returns {\ttfamily data/\+\{chain\}/\+chain.dat}
+\item Auto-\/creates directory tree
+\item Backward compat:\+ legacy {\ttfamily omnibus-\/chain.\+dat} at root still loadable
+\item {\ttfamily check\+Legacy\+Migration()} warns if user has legacy DB but new layout missing
+\end{DoxyItemize}
+
+{\bfseries{{\ttfamily core/\+main.\+zig}}} — uses {\ttfamily Chain\+Config} instead of deprecated {\ttfamily Network\+Config}:\+
+\begin{DoxyItemize}
+\item Configuration selection wired to {\ttfamily config.\+chain\+\_\+mode}
+\item Calls {\ttfamily Genesis\+State.\+from\+Chain\+Config(net\+\_\+cfg, allocator)} (new API)
+\item Imports {\ttfamily Chain\+Config}, {\ttfamily Chain\+Id} from chain\+\_\+config.\+zig
+\end{DoxyItemize}
+
+{\bfseries{{\ttfamily core/\+genesis.\+zig}}} — accepts Chain\+Config:\+
+\begin{DoxyItemize}
+\item New {\ttfamily Genesis\+State.\+from\+Chain\+Config(cc, allocator)}
+\item New {\ttfamily build\+Blockchain\+From\+Chain(chain\+\_\+config, allocator)}
+\item Legacy {\ttfamily Genesis\+State.\+init(\+Network\+Config, ...)} preserved for tests/\+back-\/compat
+\item {\ttfamily Network\+Config.\+from\+Chain\+Config(cc)} adapter for legacy callers
+\item Per-\/chain genesis message via {\ttfamily genesis\+Message\+For(chain\+\_\+id)}
+\end{DoxyItemize}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md34}{}\doxysubsection{\texorpdfstring{Compatibility}{Compatibility}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md34}
+
+\begin{DoxyItemize}
+\item All old CLI scripts using {\ttfamily -\/-\/testnet} continue to work
+\item Existing {\ttfamily omnibus-\/chain.\+dat} at root still loadable (legacy fallback)
+\item Legacy {\ttfamily Network\+Config} API preserved in {\ttfamily genesis.\+zig} (deprecated, but functional)
+\end{DoxyItemize}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md35}{}\doxysubsection{\texorpdfstring{Verified}{Verified}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md35}
+
+\begin{DoxyItemize}
+\item {\ttfamily zig build -\/Doqs=false} — exit 0, no warnings
+\item {\ttfamily omnibus-\/node.\+exe -\/-\/help} — new CHAIN SELECTION section displayed correctly
+\end{DoxyItemize}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md36}{}\doxysubsection{\texorpdfstring{Known Issues}{Known Issues}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md36}
+
+\begin{DoxyItemize}
+\item {\ttfamily chain\+\_\+config.\+zig} field {\ttfamily MAINNET\+\_\+\+CHECKPOINTS\+[0]\+.hash} has 65 chars (typo, expected 64) — not yet fixed
+\item {\ttfamily Chain\+Id.\+devnet} enum value exists but {\ttfamily Chain\+Config.\+devnet()} constructor not implemented
+\item Tests in {\ttfamily genesis.\+zig} still reference legacy {\ttfamily Network\+Config} — pass but use deprecated API
+\end{DoxyItemize}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md37}{}\doxysubsection{\texorpdfstring{Co-\/\+Authors}{Co-\/\+Authors}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md37}
+5 parallel sub-\/agents executed this migration:\+
+\begin{DoxyItemize}
+\item A1 — main.\+zig wiring
+\item A2 — CLI flags
+\item A3 — database path separation
+\item A4 — genesis.\+zig Chain\+Config accept
+\item A5 — full audit (read-\/only)
+\end{DoxyItemize}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md38}{}\doxysection{\texorpdfstring{\+[v0.\+2.\+0]\+ -\/ 2026-\/03-\/31}{\+[v0.\+2.\+0]\+ -\/ 2026-\/03-\/31}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md38}
+\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md39}{}\doxysubsection{\texorpdfstring{Added — Bech32 Addresses + Full BTC Parity (115\%)}{Added — Bech32 Addresses + Full BTC Parity (115\%)}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md39}
+{\bfseries{8 New Core Modules:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily bech32.\+zig} — Bech32/\+\+Bech32m encoder/\+decoder (BIP-\/173/\+350), HRP="{}ob"{}
+\item {\ttfamily utxo.\+zig} — Full UTXO set with address index, coin selection, coinbase maturity
+\item {\ttfamily psbt.\+zig} — Partially Signed Bitcoin Transactions (BIP-\/174), multisig workflow
+\item {\ttfamily block\+\_\+filter.\+zig} — Compact Block Filters (BIP-\/157/\+158), GCS encoding
+\item {\ttfamily htlc.\+zig} — Hash Time-\/\+Locked Contracts + registry (Lightning prereq)
+\item {\ttfamily lightning.\+zig} — Lightning Network:\+ channels, invoices, routing, liquidity
+\item {\ttfamily tor\+\_\+proxy.\+zig} — Tor SOCKS5 proxy support, .onion detection
+\item {\ttfamily encrypted\+\_\+p2p.\+zig} — BIP-\/324 encrypted P2P transport (ECDH + AES-\/256-\/\+GCM)
+\end{DoxyItemize}
+
+{\bfseries{Bech32 Address Migration:\+}}
+\begin{DoxyItemize}
+\item Native OMNI (coin 777):\+ {\ttfamily ob\+\_\+omni\+\_\+} -\/\texorpdfstring{$>$}{>} {\ttfamily ob1q...} (42 chars, identical to BTC {\ttfamily bc1q})
+\item PQ domains keep unique prefixes:\+ {\ttfamily ob\+\_\+k1\+\_\+}, {\ttfamily ob\+\_\+f5\+\_\+}, {\ttfamily ob\+\_\+d5\+\_\+}, {\ttfamily ob\+\_\+s3\+\_\+}
+\item 346 test addresses migrated across 28 files
+\end{DoxyItemize}
+
+{\bfseries{Full BTC Wallet Metadata:\+}}
+\begin{DoxyItemize}
+\item master\+\_\+fingerprint, parent\+\_\+fingerprint, network (OMNI/\+\+TOMNI)
+\item xpub/\+xprv extended key serialization (Base58\+Check) per domain
+\item WIF private key encoding, hash160, script\+\_\+pubkey, witness\+\_\+version
+\item Full derivation path string (m/\+44\textquotesingle{}/\+777\textquotesingle{}/\+0\textquotesingle{}/\+0/\+0)
+\item Passphrase support (BIP-\/39, was TODO)
+\end{DoxyItemize}
+
+{\bfseries{Transaction Upgrades:\+}}
+\begin{DoxyItemize}
+\item RBF (Replace-\/\+By-\/\+Fee):\+ sequence field, opt-\/in, mempool replacement
+\item CPFP (Child-\/\+Pays-\/\+For-\/\+Parent):\+ package feerate calculation
+\item Change addresses:\+ chain=1 derivation (derive\+Change\+Address/\+\+Key)
+\item UTXO tracking integrated in blockchain.\+zig add\+Block flow
+\end{DoxyItemize}
+
+{\bfseries{19-\/Chain Multi-\/\+Wallet:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily scripts/\+generate\+\_\+multiwallet.\+py}:\+ OMNI(5) + BTC(4) + ETH + SOL + ADA + DOT + EGLD + ATOM + XLM + XRP + BNB + OP + LTC(2) + DOGE + BCH
+\item 138 addresses from 1 mnemonic, account-\/based structure with xpub/\+xprv
+\end{DoxyItemize}
+
+{\bfseries{Comparison Tool:\+}}
+\begin{DoxyItemize}
+\item {\ttfamily FULLBTCDEV/\+generate\+\_\+comparison.\+py}:\+ auto-\/scans 78 .zig modules vs Bitcoin
+\item 10 category reports:\+ 115\% BTC parity + 30 unique extras
+\end{DoxyItemize}\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md40}{}\doxysubsection{\texorpdfstring{Changed}{Changed}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md40}
+
+\begin{DoxyItemize}
+\item {\ttfamily build.\+zig} — fixed WASM step (add\+Log not available in Zig 0.\+15)
+\item {\ttfamily blockchain.\+zig} — log truncation increased from 20 to 42 chars (full Bech32)
+\item {\ttfamily mempool.\+zig} — nonce per TX in test helpers (prevents RBF conflicts)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md42}{}\doxysection{\texorpdfstring{\+[v0.\+1.\+0]\+ -\/ 2026-\/03-\/30}{\+[v0.\+1.\+0]\+ -\/ 2026-\/03-\/30}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md42}
+\hypertarget{md__c_h_a_n_g_e_l_o_g_autotoc_md43}{}\doxysubsection{\texorpdfstring{Added}{Added}}\label{md__c_h_a_n_g_e_l_o_g_autotoc_md43}
+
+\begin{DoxyItemize}
+\item sub\+\_\+block.\+zig â€” 10 Ã— 0.\+1s â†’ 1 Key\+Block + integrat in main (a5e66f3)
+\item p2p.\+zig â€” transport TCP real + integrat in main (78b1153)
+\item integreaza genesis + mempool + consensus in main.\+zig (bef7070)
+\item genesis + mempool + consensus â€” modulare, nu afecteaza trecutul (87e03e2)
+\item adauga BFT, Oracle, Slashing, Bots, MEV in arhitectura OMNI (555d2ab)
+\item corect parametri economici OMNI + doc arhitectura completa (4f5187f)
+\item Base58\+Check address encoding â€” match Python Omnibus\+Wallet (a910943)
+\item genesis-\/ready â€” block reward, balance tracking, public RPC, miner registration (5d4984a)
+\item validate\+Transaction real, gettransactions RPC, database persistence (4f5d4a1) 
+\end{DoxyItemize}

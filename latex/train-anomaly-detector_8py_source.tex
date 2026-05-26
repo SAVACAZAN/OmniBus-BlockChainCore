@@ -1,0 +1,119 @@
+\doxysection{train-\/anomaly-\/detector.py}
+\hypertarget{train-anomaly-detector_8py_source}{}\label{train-anomaly-detector_8py_source}\index{tools/AI/train-\/anomaly-\/detector.py@{tools/AI/train-\/anomaly-\/detector.py}}
+\doxymbox{\hyperlink{train-anomaly-detector_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00001}\doxymbox{\hyperlink{namespacetrain-anomaly-detector}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00002}\doxymbox{\hyperlink{namespacetrain}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Anomaly\ Detector\ Trainer}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00005}00005\ \textcolor{stringliteral}{Reads\ omnibus-\/chain.dat,\ extracts\ features\ (tx\ patterns,\ block\ times,\ fee\ distribution),}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00006}00006\ \textcolor{stringliteral}{trains\ an\ Isolation\ Forest,\ and\ saves\ model\ +\ alert\ thresholds.}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00011}00011\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00012}00012\ \textcolor{keyword}{import}\ pickle}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00013}00013\ \textcolor{keyword}{import}\ struct}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00014}00014\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00015}00015\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List,\ Tuple}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00017}00017\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00019}\doxymbox{\hyperlink{namespacetrain-anomaly-detector_aa8e6a6481e941ce8254b2b076efdb5cb}{00019}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00020}\doxymbox{\hyperlink{namespacetrain-anomaly-detector_ae343bc238f599d20ec5d06a12cb30803}{00020}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00021}\doxymbox{\hyperlink{namespacetrain-anomaly-detector_a94551feca8d9822caf7869694033f11c}{00021}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00022}\doxymbox{\hyperlink{namespacetrain-anomaly-detector_af11eaa33b8f6def9b0c31aad3b18ba31}{00022}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00025}\doxymbox{\hyperlink{namespacetrain-anomaly-detector_acd59877dca2a9957888013a6f06aab6d}{00025}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetrain-anomaly-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00026}00026\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00029}\doxymbox{\hyperlink{namespacetrain-anomaly-detector_aaefbdc768677bdd292b3c0ea51e71a94}{00029}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetrain-anomaly-detector_aaefbdc768677bdd292b3c0ea51e71a94}{extract\_features}}(chain\_file:\ str)\ -\/>\ List[List[float]]:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00030}00030\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Parse\ binary\ chain\ file\ and\ extract\ block-\/level\ features."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00031}00031\ \ \ \ \ features:\ List[List[float]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00032}00032\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isfile(chain\_file):}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetrain-anomaly-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Chain\ file\ not\ found:\ \{chain\_file\},\ generating\ synthetic\ features"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(500):}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \ \ \ \ features.append([}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ random.gauss(120,\ 15),\ \ \ \textcolor{comment}{\#\ block\ time}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ random.gauss(2000,\ 400),\ \textcolor{comment}{\#\ tx\ count}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ random.gauss(500,\ 100),\ \ \textcolor{comment}{\#\ avg\ fee}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ random.gauss(100000,\ 20000),\ \textcolor{comment}{\#\ block\ size}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ ])}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ features}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00044}00044\ \ \ \ \ \textcolor{keyword}{with}\ open(chain\_file,\ \textcolor{stringliteral}{"{}rb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ data\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00046}00046\ \ \ \ \ \textcolor{comment}{\#\ Heuristic:\ read\ every\ 256\ bytes\ as\ a\ pseudo-\/block\ header}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00047}00047\ \ \ \ \ offset\ =\ 0}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00048}00048\ \ \ \ \ \textcolor{keywordflow}{while}\ offset\ +\ 32\ <=\ len(data):}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ chunk\ =\ data[offset\ :\ offset\ +\ 256]}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(chunk)\ <\ 32:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Use\ first\ 4\ dwords\ as\ feature\ proxies}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ vals\ =\ struct.unpack(\textcolor{stringliteral}{"{}<4I"{}},\ chunk[:16])}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ block\_time\ =\ vals[0]\ \%\ 300\ +\ 1}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ tx\_count\ =\ vals[1]\ \%\ 5000}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ avg\_fee\ =\ vals[2]\ \%\ 1000}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ block\_size\ =\ vals[3]\ \%\ 200000}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ features.append([float(block\_time),\ float(tx\_count),\ float(avg\_fee),\ float(block\_size)])}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ offset\ +=\ 256}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{return}\ features}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00063}\doxymbox{\hyperlink{namespacetrain-anomaly-detector_afaf4b686a2417ca860d6cf019fc9ec7b}{00063}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetrain-anomaly-detector_afaf4b686a2417ca860d6cf019fc9ec7b}{train\_model}}(features:\ List[List[float]])\ -\/>\ Tuple[Any,\ Dict[str,\ float]]:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00064}00064\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keyword}{from}\ sklearn.ensemble\ \textcolor{keyword}{import}\ IsolationForest}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetrain-anomaly-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ \textcolor{stringliteral}{"{}scikit-\/learn\ not\ installed.\ Using\ stub\ threshold\ logic."{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Fallback:\ use\ median\ absolute\ deviation}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ statistics}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ transposed\ =\ list(zip(*features))}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ thresholds\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ col\ \textcolor{keywordflow}{in}\ enumerate(transposed):}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ med\ =\ statistics.median(col)}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ mad\ =\ statistics.median([abs(x\ -\/\ med)\ \textcolor{keywordflow}{for}\ x\ \textcolor{keywordflow}{in}\ col])\ \textcolor{keywordflow}{or}\ 1.0}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ thresholds[f\textcolor{stringliteral}{"{}feature\_\{i\}\_threshold"{}}]\ =\ mad\ *\ 3.0}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None},\ thresholds}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00078}00078\ \ \ \ \ model\ =\ IsolationForest(n\_estimators=100,\ contamination=0.05,\ random\_state=42)}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00079}00079\ \ \ \ \ model.fit(features)}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00080}00080\ \ \ \ \ scores\ =\ model.score\_samples(features)}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00081}00081\ \ \ \ \ thresholds\ =\ \{}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mean\_score"{}}:\ float(sum(scores)\ /\ len(scores)),}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}threshold"{}}:\ float(min(scores)\ +\ (max(scores)\ -\/\ min(scores))\ *\ 0.1),}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00084}00084\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{return}\ model,\ thresholds}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00088}\doxymbox{\hyperlink{namespacetrain-anomaly-detector_a7431cb90017e54fe695b23d4190db046}{00088}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetrain-anomaly-detector_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00089}00089\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Train\ anomaly\ detector\ on\ OmniBus\ chain\ data"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00090}00090\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/chain-\/file"{}},\ default=\textcolor{stringliteral}{"{}omnibus-\/chain.dat"{}},\ help=\textcolor{stringliteral}{"{}Path\ to\ chain\ data"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00091}00091\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/model-\/out"{}},\ default=\textcolor{stringliteral}{"{}anomaly-\/model.pkl"{}},\ help=\textcolor{stringliteral}{"{}Output\ model\ path"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00092}00092\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/thresholds-\/out"{}},\ default=\textcolor{stringliteral}{"{}alert-\/thresholds.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ thresholds\ JSON"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00093}00093\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00095}00095\ \ \ \ \ \doxymbox{\hyperlink{namespacetrain-anomaly-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Anomaly\ Detector\ Trainer\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00096}00096\ \ \ \ \ features\ =\ \doxymbox{\hyperlink{namespacetrain-anomaly-detector_aaefbdc768677bdd292b3c0ea51e71a94}{extract\_features}}(args.chain\_file)}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00097}00097\ \ \ \ \ \doxymbox{\hyperlink{namespacetrain-anomaly-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Extracted\ \{len(features)\}\ feature\ vectors"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00099}00099\ \ \ \ \ model,\ thresholds\ =\ \doxymbox{\hyperlink{namespacetrain-anomaly-detector_afaf4b686a2417ca860d6cf019fc9ec7b}{train\_model}}(features)}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00101}00101\ \ \ \ \ \textcolor{keywordflow}{if}\ model:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.model\_out,\ \textcolor{stringliteral}{"{}wb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ pickle.dump(model,\ f)}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacetrain-anomaly-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Model\ saved\ to\ \{args.model\_out\}"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00106}00106\ \ \ \ \ \textcolor{keyword}{with}\ open(args.thresholds\_out,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ json.dump(thresholds,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00108}00108\ \ \ \ \ \doxymbox{\hyperlink{namespacetrain-anomaly-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Thresholds\ saved\ to\ \{args.thresholds\_out\}"{}})}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00112}00112\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{train-anomaly-detector_8py_source_l00113}00113\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacetrain-anomaly-detector_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

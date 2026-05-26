@@ -1,0 +1,76 @@
+\doxysection{oracle\+\_\+verifier Namespace Reference}
+\hypertarget{namespaceoracle__verifier}{}\label{namespaceoracle__verifier}\index{oracle\_verifier@{oracle\_verifier}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_source}{Oracle\+Source}}
+\item 
+class \doxymbox{\hyperlink{classoracle__verifier_1_1_data_status}{Data\+Status}}
+\item 
+class \doxymbox{\hyperlink{classoracle__verifier_1_1_price_data}{Price\+Data}}
+\item 
+class \doxymbox{\hyperlink{classoracle__verifier_1_1_verification_result}{Verification\+Result}}
+\item 
+class \doxymbox{\hyperlink{classoracle__verifier_1_1_oracle_verifier}{Oracle\+Verifier}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceoracle__verifier_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceoracle__verifier_a243c71cba311e901491bf0cfb24f35cb}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}oracle_verifier.py - Oracle Data Verifier v1.0
+
+Verifică datele de la oracles pentru OmniBus:
+  - Price feed validation (outlier detection)
+  - Multi-oracle consensus
+  - Stale data detection
+  - Manipulation detection
+  - Chainlink, Band Protocol, API3 support
+
+Usage:
+  python tools/BRIDGE/oracle_verifier.py --price BTC --value 45000
+  python tools/BRIDGE/oracle_verifier.py --check-stale
+  python tools/BRIDGE/oracle_verifier.py --consensus BTC
+\end{DoxyVerb}
+ 
+
+\label{namespaceoracle__verifier_doc-func-members}
+\Hypertarget{namespaceoracle__verifier_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceoracle__verifier_a51af30a60f9f02777c6396b8247e356f}\index{oracle\_verifier@{oracle\_verifier}!main@{main}}
+\index{main@{main}!oracle\_verifier@{oracle\_verifier}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceoracle__verifier_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00278}{278}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+
+
+\label{namespaceoracle__verifier_doc-var-members}
+\Hypertarget{namespaceoracle__verifier_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceoracle__verifier_a243c71cba311e901491bf0cfb24f35cb}\index{oracle\_verifier@{oracle\_verifier}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!oracle\_verifier@{oracle\_verifier}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespaceoracle__verifier_a243c71cba311e901491bf0cfb24f35cb} 
+oracle\+\_\+verifier.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{oracle__verifier_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{oracle__verifier_8py_source}{oracle\+\_\+verifier.\+py}}.
+

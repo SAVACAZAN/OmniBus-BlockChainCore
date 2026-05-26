@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
+import { rpc, ExchangeBalance } from "../../api/rpc-client";
+import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { fetchChainBalance, fetchUsdcBalance, fetchEurcBalance, type ChainBalance } from "../../api/multichain-balances";
 import { MultiWalletBalances } from "./MultiWalletBalances";
 import { useGlobalBalance } from "../../api/use-global-balance";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
-const rpc = new OmniBusRpcClient();
-const SAT = 1_000_000_000;
-const MU  = 1_000_000;
 
 type WalletRow = {
   label: string;
@@ -19,27 +19,19 @@ type WalletRow = {
   role: "maker" | "taker" | "omni";
 };
 
+const EXPLORER_BASE: Record<string, string> = {
+  OMNI:         "https://omnibusblockchain.cc:8443/#/address/",
+  SEPOLIA:      "https://sepolia.etherscan.io/address/",
+  BASE_SEPOLIA: "https://sepolia-explorer.base.org/address/",
+  ETH:          "https://etherscan.io/address/",
+  BASE:         "https://basescan.org/address/",
+};
+
 function explorerFor(chain: string, address: string): string {
-  switch (chain) {
-    case "OMNI":         return `https://omnibusblockchain.cc:8443/#/address/${address}`;
-    case "SEPOLIA":      return `https://sepolia.etherscan.io/address/${address}`;
-    case "BASE_SEPOLIA": return `https://sepolia-explorer.base.org/address/${address}`;
-    case "ETH":          return `https://etherscan.io/address/${address}`;
-    case "BASE":         return `https://basescan.org/address/${address}`;
-    default:             return `#`;
-  }
+  const base = EXPLORER_BASE[chain];
+  return base ? `${base}${address}` : "#";
 }
 
-// How much is locked in open orders for a given token
-function exchLocked(exchBalances: ExchangeBalance[], token: string | null): number {
-  if (!token) return 0;
-  const b = exchBalances.find(b => b.token === token);
-  if (!b || !b.locked) return 0;
-  if (token === "OMNI") return b.locked / SAT;
-  if (token === "ETH")  return b.locked / 1e18;
-  if (token === "USDC" || token === "LCX") return b.locked / MU;
-  return b.locked;
-}
 
 export function BalancesPanel() {
   const [, force] = useState(0);
@@ -57,15 +49,18 @@ export function BalancesPanel() {
   const [loading, setLoading] = useState(false);
   const [exchBalances, setExchBalances] = useState<ExchangeBalance[]>([]);
 
-  // Poll exchange internal balances every 8s
+  // Fetch exchange internal balances; live refresh on new blocks.
   useEffect(() => {
     if (!u?.address) return;
     let cancelled = false;
     const fetch = () =>
-      rpc.exchangeGetBalances(u.address).then(bal => { if (!cancelled) setExchBalances(bal); });
-    fetch();
-    const id = setInterval(fetch, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+      rpc.exchangeGetBalances(u.address)
+        .then(bal => { if (!cancelled) setExchBalances(bal); })
+        .catch(() => {});
+    void fetch();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void fetch(); });
+    const id = setInterval(() => { void fetch(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [u?.address]);
 
   useEffect(() => {
@@ -111,7 +106,7 @@ export function BalancesPanel() {
     const fetches: Promise<void>[] = [];
     if (globalBal.address === u.address && globalBal.fetched_at > 0) {
       update("OMNI", {
-        native: (globalBal.wallet_sat / SAT).toFixed(8),
+        native: (globalBal.wallet_sat / SAT_PER_OMNI).toFixed(8),
         symbol: "OMNI",
         raw: String(globalBal.wallet_sat),
       });
@@ -168,6 +163,44 @@ export function BalancesPanel() {
       </div>
 
       {/* Header */}
+      {rows.length > 0 && rows.every(r => r.balance !== "loading") && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => {
+              const csvRows = [
+                ["chain", "token", "label", "address", "free", "in_orders", "total", "role"].join(","),
+                ...rows.map((row) => {
+                  const bal = row.balance as import("../../api/multichain-balances").ChainBalance | null;
+                  const onChain = bal ? Number(bal.native) : 0;
+                  const eb = row.exchToken ? exchBalances.find(b => b.token === row.exchToken) : null;
+                  const div = row.exchToken === "OMNI" ? SAT_PER_OMNI : row.exchToken === "ETH" ? 1e18 : MICRO_PER_USD;
+                  const inOrders = eb ? eb.locked / div : 0;
+                  const free = Math.max(0, onChain - inOrders);
+                  const dec = row.exchToken === "OMNI" ? 8 : row.exchToken === "ETH" ? 8 : 6;
+                  return [
+                    `"${row.chain}"`,
+                    `"${row.exchToken ?? ""}"`,
+                    `"${row.label}"`,
+                    `"${row.address}"`,
+                    free.toFixed(dec),
+                    inOrders.toFixed(dec),
+                    onChain.toFixed(dec),
+                    row.role,
+                  ].join(",");
+                }),
+              ].join("\n");
+              const blob = new Blob([csvRows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-balances.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        </div>
+      )}
       <div className="overflow-x-auto -mx-1">
       <div className="min-w-[440px] px-1">
       <div className="grid text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1 gap-1"
@@ -196,7 +229,7 @@ export function BalancesPanel() {
           // sell orders so the user can't double-spend that part). Pulled
           // from exchange balance lookup; null/0 if not in any order.
           const eb = row.exchToken ? exchBalances.find(b => b.token === row.exchToken) : null;
-          const div = row.exchToken === "OMNI" ? SAT : row.exchToken === "ETH" ? 1e18 : MU;
+          const div = row.exchToken === "OMNI" ? SAT_PER_OMNI : row.exchToken === "ETH" ? 1e18 : MICRO_PER_USD;
           const inOrders = eb ? eb.locked / div : 0;
 
           // Total = on-chain wallet balance (single source of truth).
@@ -222,7 +255,7 @@ export function BalancesPanel() {
                 <a href={row.explorerUrl} target="_blank" rel="noopener noreferrer"
                   className="text-[10px] font-mono text-mempool-text-dim hover:text-mempool-blue truncate block max-w-[28ch]"
                   title={row.address}>
-                  {row.address.slice(0, 14)}…{row.address.slice(-6)}
+                  {midTrunc(row.address, 14, 6)}
                 </a>
               </div>
 
@@ -279,7 +312,7 @@ export function BalancesPanel() {
           {evmAddr && (
             <div className="flex justify-between text-[10px]">
               <span className="text-mempool-text-dim">EVM (ETH/USDC)</span>
-              <span className="font-mono text-mempool-text" title={evmAddr}>{evmAddr.slice(0, 10)}…{evmAddr.slice(-6)}</span>
+              <span className="font-mono text-mempool-text" title={evmAddr}>{midTrunc(evmAddr, 10, 6)}</span>
             </div>
           )}
         </div>

@@ -1,0 +1,292 @@
+\doxysection{git-\/zig-\/evolution Namespace Reference}
+\hypertarget{namespacegit-zig-evolution}{}\label{namespacegit-zig-evolution}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacegit-zig-evolution_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacegit-zig-evolution_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacegit-zig-evolution_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb}{run\+\_\+git}} (list\+[str]\+ args, str cwd)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacegit-zig-evolution_aa498602fce9ff6b792ef009597081a93}{get\+\_\+commits}} (str cwd, int max\+\_\+commits=200)
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_ae23c0e01a3fac822627f315c3bd715ac}{get\+\_\+file\+\_\+at\+\_\+commit}} (str cwd, str commit\+\_\+hash, str file\+\_\+path)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacegit-zig-evolution_aa2b4571da638f0d2ce2089c0a2e9604a}{list\+\_\+zig\+\_\+files}} (str cwd, str commit\+\_\+hash)
+\item 
+int \doxymbox{\hyperlink{namespacegit-zig-evolution_a9e37984b9df268e6fc00b0abed5c9a27}{count\+\_\+loc}} (str source)
+\item 
+int \doxymbox{\hyperlink{namespacegit-zig-evolution_a2b2891e715a164437979a30153ddef76}{complexity\+\_\+score}} (str source)
+\item 
+bool \doxymbox{\hyperlink{namespacegit-zig-evolution_a38d052450fdb6c1e9cc1273181f2c761}{has\+\_\+allocations}} (str source)
+\item 
+bool \doxymbox{\hyperlink{namespacegit-zig-evolution_a73956d33be817e7537546311e43392b4}{fix\+\_\+indicator}} (str commit\+\_\+msg)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacegit-zig-evolution_a9e9960d4c7756bb68a1da8cce11a78d9}{analyze\+\_\+evolution}} (str cwd, int max\+\_\+commits)
+\item 
+int \doxymbox{\hyperlink{namespacegit-zig-evolution_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_a3a0904634d69ecb240683fc884c34e02}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_a1c61ef499bffe47f1436a7633079def6}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_a666c8aed86e55995ac75035797ac462d}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_ac48acdb273637f065885833c6f7421cf}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacegit-zig-evolution_a3f3464d7c8bc36b9f8ce540f288b6b5d}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacegit-zig-evolution_doc-func-members}
+\Hypertarget{namespacegit-zig-evolution_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacegit-zig-evolution_a9e9960d4c7756bb68a1da8cce11a78d9}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!analyze\_evolution@{analyze\_evolution}}
+\index{analyze\_evolution@{analyze\_evolution}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{analyze\_evolution()}{analyze\_evolution()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a9e9960d4c7756bb68a1da8cce11a78d9} 
+ dict\+[str, Any]\+ analyze\+\_\+evolution (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{int}]{max\+\_\+commits}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00177}{177}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacegit-zig-evolution_a2b2891e715a164437979a30153ddef76}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!complexity\_score@{complexity\_score}}
+\index{complexity\_score@{complexity\_score}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{complexity\_score()}{complexity\_score()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a2b2891e715a164437979a30153ddef76} 
+ int complexity\+\_\+score (\begin{DoxyParamCaption}\item[{str}]{source}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Rough complexity: number of functions + branching keywords.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00138}{138}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacegit-zig-evolution_a9e37984b9df268e6fc00b0abed5c9a27}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!count\_loc@{count\_loc}}
+\index{count\_loc@{count\_loc}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{count\_loc()}{count\_loc()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a9e37984b9df268e6fc00b0abed5c9a27} 
+ int count\+\_\+loc (\begin{DoxyParamCaption}\item[{str}]{source}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Count non-empty, non-comment lines.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00116}{116}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacegit-zig-evolution_a73956d33be817e7537546311e43392b4}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!fix\_indicator@{fix\_indicator}}
+\index{fix\_indicator@{fix\_indicator}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{fix\_indicator()}{fix\_indicator()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a73956d33be817e7537546311e43392b4} 
+ bool fix\+\_\+indicator (\begin{DoxyParamCaption}\item[{str}]{commit\+\_\+msg}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Heuristic: does the commit message indicate a fix?\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00167}{167}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacegit-zig-evolution_aa498602fce9ff6b792ef009597081a93}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!get\_commits@{get\_commits}}
+\index{get\_commits@{get\_commits}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{get\_commits()}{get\_commits()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_aa498602fce9ff6b792ef009597081a93} 
+ list\+[dict\+[str, Any]\+]\+ get\+\_\+commits (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{int }]{max\+\_\+commits}{ = {\ttfamily 200}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return list of commits with hash, date, and message.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00071}{71}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacegit-zig-evolution_ae23c0e01a3fac822627f315c3bd715ac}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!get\_file\_at\_commit@{get\_file\_at\_commit}}
+\index{get\_file\_at\_commit@{get\_file\_at\_commit}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{get\_file\_at\_commit()}{get\_file\_at\_commit()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_ae23c0e01a3fac822627f315c3bd715ac} 
+ str get\+\_\+file\+\_\+at\+\_\+commit (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{str}]{commit\+\_\+hash}{, }\item[{str}]{file\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Return file contents at a specific commit.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00093}{93}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacegit-zig-evolution_a38d052450fdb6c1e9cc1273181f2c761}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!has\_allocations@{has\_allocations}}
+\index{has\_allocations@{has\_allocations}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{has\_allocations()}{has\_allocations()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a38d052450fdb6c1e9cc1273181f2c761} 
+ bool has\+\_\+allocations (\begin{DoxyParamCaption}\item[{str}]{source}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Detect allocator usage patterns in Zig source.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00150}{150}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacegit-zig-evolution_aa2b4571da638f0d2ce2089c0a2e9604a}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!list\_zig\_files@{list\_zig\_files}}
+\index{list\_zig\_files@{list\_zig\_files}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{list\_zig\_files()}{list\_zig\_files()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_aa2b4571da638f0d2ce2089c0a2e9604a} 
+ list\+[str]\+ list\+\_\+zig\+\_\+files (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{str}]{commit\+\_\+hash}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}List core/*.zig files present at a given commit.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00101}{101}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacegit-zig-evolution_abf994b8269849d29e07697ea8a840f74}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 13
+\Hypertarget{namespacegit-zig-evolution_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 14
+\Hypertarget{namespacegit-zig-evolution_adf0e2aa4d06b5ca38e44721821eca783}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 15
+\Hypertarget{namespacegit-zig-evolution_a7431cb90017e54fe695b23d4190db046}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!main@{main}}
+\index{main@{main}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00251}{251}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 16
+Here is the caller graph for this function:\+
+% FIG 17
+\Hypertarget{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!run\_git@{run\_git}}
+\index{run\_git@{run\_git}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{run\_git()}{run\_git()}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_af75e1ce2fb614a29a830e10ed79788eb} 
+ str run\+\_\+git (\begin{DoxyParamCaption}\item[{list\+[str]\+}]{args}{, }\item[{str}]{cwd}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run a git command and return stdout. Raises on failure.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00056}{56}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 18
+
+
+\label{namespacegit-zig-evolution_doc-var-members}
+\Hypertarget{namespacegit-zig-evolution_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacegit-zig-evolution_ac48acdb273637f065885833c6f7421cf}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_ac48acdb273637f065885833c6f7421cf} 
+str \doxymbox{\hyperlink{namespacegit}{git}}-\/\doxymbox{\hyperlink{namespacezig}{zig}}-\/evolution.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+\Hypertarget{namespacegit-zig-evolution_a3a0904634d69ecb240683fc884c34e02}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a3a0904634d69ecb240683fc884c34e02} 
+str \doxymbox{\hyperlink{namespacegit}{git}}-\/\doxymbox{\hyperlink{namespacezig}{zig}}-\/evolution.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+\Hypertarget{namespacegit-zig-evolution_a1c61ef499bffe47f1436a7633079def6}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!RED@{RED}}
+\index{RED@{RED}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a1c61ef499bffe47f1436a7633079def6} 
+str \doxymbox{\hyperlink{namespacegit}{git}}-\/\doxymbox{\hyperlink{namespacezig}{zig}}-\/evolution.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+\Hypertarget{namespacegit-zig-evolution_a3f3464d7c8bc36b9f8ce540f288b6b5d}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!RESET@{RESET}}
+\index{RESET@{RESET}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a3f3464d7c8bc36b9f8ce540f288b6b5d} 
+str \doxymbox{\hyperlink{namespacegit}{git}}-\/\doxymbox{\hyperlink{namespacezig}{zig}}-\/evolution.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+
+\Hypertarget{namespacegit-zig-evolution_a666c8aed86e55995ac75035797ac462d}\index{git-\/zig-\/evolution@{git-\/zig-\/evolution}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!git-\/zig-\/evolution@{git-\/zig-\/evolution}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacegit-zig-evolution_a666c8aed86e55995ac75035797ac462d} 
+str \doxymbox{\hyperlink{namespacegit}{git}}-\/\doxymbox{\hyperlink{namespacezig}{zig}}-\/evolution.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{git-zig-evolution_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{git-zig-evolution_8py_source}{git-\/zig-\/evolution.\+py}}.
+

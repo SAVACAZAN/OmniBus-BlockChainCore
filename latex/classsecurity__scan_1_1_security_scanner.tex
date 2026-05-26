@@ -1,0 +1,130 @@
+\doxysection{security\+\_\+scan.\+Security\+Scanner Class Reference}
+\hypertarget{classsecurity__scan_1_1_security_scanner}{}\label{classsecurity__scan_1_1_security_scanner}\index{security\_scan.SecurityScanner@{security\_scan.SecurityScanner}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classsecurity__scan_1_1_security_scanner_ab508df29a83300e0975f538fdf2dd3ed}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, Path project\+\_\+root)
+\item 
+List\+[\doxymbox{\hyperlink{classsecurity__scan_1_1_security_issue}{Security\+Issue}}]\+ \doxymbox{\hyperlink{classsecurity__scan_1_1_security_scanner_a2956c2d2e0fbecf1a6c7c2634ff16ef8}{scan\+\_\+file}} (self, Path filepath)
+\item 
+List\+[\doxymbox{\hyperlink{classsecurity__scan_1_1_security_issue}{Security\+Issue}}]\+ \doxymbox{\hyperlink{classsecurity__scan_1_1_security_scanner_ad5986b2a582275a400ad5b21b869c417}{scan\+\_\+project}} (self)
+\item 
+Dict \doxymbox{\hyperlink{classsecurity__scan_1_1_security_scanner_a0e2e5ac39d404346886ccbdd50a9b69f}{get\+\_\+stats}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classsecurity__scan_1_1_security_scanner_a85e211821fc19aa5ab7e7ddd497b819a}{project\+\_\+root}} = project\+\_\+root
+\item 
+list \doxymbox{\hyperlink{classsecurity__scan_1_1_security_scanner_a01b3a76bf01b63aa2e472d373323d8d1}{issues}} = \+[$\,$]\+
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{classsecurity__scan_1_1_security_scanner_a51baca4894a3349080712eb454f578d3}{PATTERNS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Scaner pentru vulnerabilități de securitate.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{security__scan_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{security__scan_8py_source}{security\+\_\+scan.\+py}}.
+
+
+
+\label{classsecurity__scan_1_1_security_scanner_doc-constructors}
+\Hypertarget{classsecurity__scan_1_1_security_scanner_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classsecurity__scan_1_1_security_scanner_ab508df29a83300e0975f538fdf2dd3ed}\index{security\_scan.SecurityScanner@{security\_scan.SecurityScanner}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!security\_scan.SecurityScanner@{security\_scan.SecurityScanner}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classsecurity__scan_1_1_security_scanner_ab508df29a83300e0975f538fdf2dd3ed} 
+security\+\_\+scan.\+Security\+Scanner.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{security__scan_8py_source_l00129}{129}} of file \doxymbox{\hyperlink{security__scan_8py_source}{security\+\_\+scan.\+py}}.
+
+
+
+\label{classsecurity__scan_1_1_security_scanner_doc-func-members}
+\Hypertarget{classsecurity__scan_1_1_security_scanner_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classsecurity__scan_1_1_security_scanner_a0e2e5ac39d404346886ccbdd50a9b69f}\index{security\_scan.SecurityScanner@{security\_scan.SecurityScanner}!get\_stats@{get\_stats}}
+\index{get\_stats@{get\_stats}!security\_scan.SecurityScanner@{security\_scan.SecurityScanner}}
+\doxysubsubsection{\texorpdfstring{get\_stats()}{get\_stats()}}
+{\footnotesize\ttfamily \label{classsecurity__scan_1_1_security_scanner_a0e2e5ac39d404346886ccbdd50a9b69f} 
+ Dict security\+\_\+scan.\+Security\+Scanner.\+get\+\_\+stats (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Returnează statistici despre issue-uri.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{security__scan_8py_source_l00184}{184}} of file \doxymbox{\hyperlink{security__scan_8py_source}{security\+\_\+scan.\+py}}.
+
+\Hypertarget{classsecurity__scan_1_1_security_scanner_a2956c2d2e0fbecf1a6c7c2634ff16ef8}\index{security\_scan.SecurityScanner@{security\_scan.SecurityScanner}!scan\_file@{scan\_file}}
+\index{scan\_file@{scan\_file}!security\_scan.SecurityScanner@{security\_scan.SecurityScanner}}
+\doxysubsubsection{\texorpdfstring{scan\_file()}{scan\_file()}}
+{\footnotesize\ttfamily \label{classsecurity__scan_1_1_security_scanner_a2956c2d2e0fbecf1a6c7c2634ff16ef8} 
+ List\+[\doxymbox{\hyperlink{classsecurity__scan_1_1_security_issue}{Security\+Issue}}]\+ security\+\_\+scan.\+Security\+Scanner.\+scan\+\_\+file (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scanează un singur fișier.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{security__scan_8py_source_l00133}{133}} of file \doxymbox{\hyperlink{security__scan_8py_source}{security\+\_\+scan.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{classsecurity__scan_1_1_security_scanner_ad5986b2a582275a400ad5b21b869c417}\index{security\_scan.SecurityScanner@{security\_scan.SecurityScanner}!scan\_project@{scan\_project}}
+\index{scan\_project@{scan\_project}!security\_scan.SecurityScanner@{security\_scan.SecurityScanner}}
+\doxysubsubsection{\texorpdfstring{scan\_project()}{scan\_project()}}
+{\footnotesize\ttfamily \label{classsecurity__scan_1_1_security_scanner_ad5986b2a582275a400ad5b21b869c417} 
+ List\+[\doxymbox{\hyperlink{classsecurity__scan_1_1_security_issue}{Security\+Issue}}]\+ security\+\_\+scan.\+Security\+Scanner.\+scan\+\_\+project (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Scanează întregul proiect.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{security__scan_8py_source_l00165}{165}} of file \doxymbox{\hyperlink{security__scan_8py_source}{security\+\_\+scan.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+
+
+\label{classsecurity__scan_1_1_security_scanner_doc-variable-members}
+\Hypertarget{classsecurity__scan_1_1_security_scanner_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classsecurity__scan_1_1_security_scanner_a01b3a76bf01b63aa2e472d373323d8d1}\index{security\_scan.SecurityScanner@{security\_scan.SecurityScanner}!issues@{issues}}
+\index{issues@{issues}!security\_scan.SecurityScanner@{security\_scan.SecurityScanner}}
+\doxysubsubsection{\texorpdfstring{issues}{issues}}
+{\footnotesize\ttfamily \label{classsecurity__scan_1_1_security_scanner_a01b3a76bf01b63aa2e472d373323d8d1} 
+list security\+\_\+scan.\+Security\+Scanner.\+issues = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{security__scan_8py_source_l00131}{131}} of file \doxymbox{\hyperlink{security__scan_8py_source}{security\+\_\+scan.\+py}}.
+
+\Hypertarget{classsecurity__scan_1_1_security_scanner_a51baca4894a3349080712eb454f578d3}\index{security\_scan.SecurityScanner@{security\_scan.SecurityScanner}!PATTERNS@{PATTERNS}}
+\index{PATTERNS@{PATTERNS}!security\_scan.SecurityScanner@{security\_scan.SecurityScanner}}
+\doxysubsubsection{\texorpdfstring{PATTERNS}{PATTERNS}}
+{\footnotesize\ttfamily \label{classsecurity__scan_1_1_security_scanner_a51baca4894a3349080712eb454f578d3} 
+dict security\+\_\+scan.\+Security\+Scanner.\+PATTERNS\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{security__scan_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{security__scan_8py_source}{security\+\_\+scan.\+py}}.
+
+\Hypertarget{classsecurity__scan_1_1_security_scanner_a85e211821fc19aa5ab7e7ddd497b819a}\index{security\_scan.SecurityScanner@{security\_scan.SecurityScanner}!project\_root@{project\_root}}
+\index{project\_root@{project\_root}!security\_scan.SecurityScanner@{security\_scan.SecurityScanner}}
+\doxysubsubsection{\texorpdfstring{project\_root}{project\_root}}
+{\footnotesize\ttfamily \label{classsecurity__scan_1_1_security_scanner_a85e211821fc19aa5ab7e7ddd497b819a} 
+security\+\_\+scan.\+Security\+Scanner.\+project\+\_\+root = project\+\_\+root}
+
+
+
+Definition at line \doxymbox{\hyperlink{security__scan_8py_source_l00130}{130}} of file \doxymbox{\hyperlink{security__scan_8py_source}{security\+\_\+scan.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+archived-\/4-\/eterniti/\+tools-\/python/\+agentscripts/\+\doxymbox{\hyperlink{security__scan_8py}{security\+\_\+scan.\+py}}\end{DoxyCompactItemize}

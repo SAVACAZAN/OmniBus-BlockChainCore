@@ -1,0 +1,227 @@
+\chapter{Module:\+ {\ttfamily ubi\+\_\+distributor} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor}{}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor}\index{Module: $<$tt$>$ubi\_distributor$<$/tt$>$@{Module: $<$tt$>$ubi\_distributor$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3446}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3446}%
+
+
+\begin{quote}
+Universal Basic Income — 1 OMNI/\+day per eligible address, epoch-\/based distribution, built into protocol. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+ubi\+\_\+distributor.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 310 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 5 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 10
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3448}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3448}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3449}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3449}
+
+\begin{DoxyItemize}
+\item \`{}\+Ubi\+Beneficiary\`{}{\ttfamily Ubi\+Beneficiary}
+\end{DoxyItemize}— Data structure for ubi beneficiary. Fields include:\+ anchor\+\_\+addr, registered\+\_\+bloc...
+\begin{DoxyItemize}
+\item \`{}\+Ubi\+Epoch\+Report\`{}{\ttfamily Ubi\+Epoch\+Report}
+\end{DoxyItemize}— Data structure for ubi epoch report. Fields include:\+ epoch\+\_\+number, block\+\_\+start, ...
+\begin{DoxyItemize}
+\item \`{}\+Ubi\+Distributor\`{}{\ttfamily Ubi\+Distributor}
+\end{DoxyItemize}— Data structure for ubi distributor. Fields include:\+ allocator, beneficiaries, po...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3450}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3450}
+
+\begin{DoxyItemize}
+\item 4 constants defined4 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3451}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3451}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+To\+Pool()\`{}{\ttfamily add\+To\+Pool()}
+\end{DoxyItemize}— Adauga profit din Vault\+Engine in pool
+\begin{DoxyItemize}
+\item \`{}active\+Count()\`{}{\ttfamily active\+Count()}
+\end{DoxyItemize}— Performs the active count operation on the ubi\+\_\+distributor module.
+\begin{DoxyItemize}
+\item \`{}print\+Status()\`{}{\ttfamily print\+Status()}
+\end{DoxyItemize}— Performs the print status operation on the ubi\+\_\+distributor module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3453}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3453}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3454}{}\doxysubsection{\texorpdfstring{{\ttfamily Ubi\+Beneficiary}}{{\ttfamily Ubi\+Beneficiary}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3454}
+Data structure for ubi beneficiary. Fields include:\+ anchor\+\_\+addr, registered\+\_\+block, total\+\_\+received\+\_\+sat, last\+\_\+epoch, active.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily anchor\+\_\+addr}  &{\ttfamily \+[32]\+u8}  &Anchor\+\_\+addr  \\
+{\ttfamily registered\+\_\+block}  &{\ttfamily u64}  &Registered\+\_\+block  \\
+{\ttfamily total\+\_\+received\+\_\+sat}  &{\ttfamily u64}  &Total\+\_\+received\+\_\+sat  \\
+{\ttfamily last\+\_\+epoch}  &{\ttfamily u64}  &Last\+\_\+epoch  \\
+{\ttfamily active}  &{\ttfamily bool}  &Active  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 37}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3456}{}\doxysubsection{\texorpdfstring{{\ttfamily Ubi\+Epoch\+Report}}{{\ttfamily Ubi\+Epoch\+Report}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3456}
+Data structure for ubi epoch report. Fields include:\+ epoch\+\_\+number, block\+\_\+start, block\+\_\+end, pool\+\_\+sat, distributed\+\_\+sat.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily epoch\+\_\+number}  &{\ttfamily u64}  &Epoch\+\_\+number  \\
+{\ttfamily block\+\_\+start}  &{\ttfamily u64}  &Block\+\_\+start  \\
+{\ttfamily block\+\_\+end}  &{\ttfamily u64}  &Block\+\_\+end  \\
+{\ttfamily pool\+\_\+sat}  &{\ttfamily u64}  &Pool\+\_\+sat  \\
+{\ttfamily distributed\+\_\+sat}  &{\ttfamily u64}  &Distributed\+\_\+sat  \\
+{\ttfamily beneficiary\+\_\+count}  &{\ttfamily u64}  &Beneficiary\+\_\+count  \\
+{\ttfamily per\+\_\+beneficiary\+\_\+sat}  &{\ttfamily u64}  &Per\+\_\+beneficiary\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 45}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3458}{}\doxysubsection{\texorpdfstring{{\ttfamily Ubi\+Distributor}}{{\ttfamily Ubi\+Distributor}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3458}
+Data structure for ubi distributor. Fields include:\+ allocator, beneficiaries, pool\+\_\+sat, current\+\_\+epoch, total\+\_\+distributed\+\_\+sat.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+{\ttfamily beneficiaries}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Ubi\+Beneficiary)}  &Beneficiaries  \\
+{\ttfamily pool\+\_\+sat}  &{\ttfamily u64}  &Pool\+\_\+sat  \\
+{\ttfamily current\+\_\+epoch}  &{\ttfamily u64}  &Current\+\_\+epoch  \\
+{\ttfamily total\+\_\+distributed\+\_\+sat}  &{\ttfamily u64}  &Total\+\_\+distributed\+\_\+sat  \\
+{\ttfamily epoch\+\_\+reports}  &{\ttfamily std.\+array\+\_\+list.\+Managed(\+Ubi\+Epoch\+Report)}  &Epoch\+\_\+reports  \\
+{\ttfamily anchor\+\_\+addr}  &{\ttfamily \+[32]\+u8}  &Anchor\+\_\+addr  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 57}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3460}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3460}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily UBI\+\_\+\+EPOCH\+\_\+\+BLOCKS}  &{\ttfamily u64 = 126\+\_\+144}  &U b i\+\_\+ e p o c h\+\_\+ b l o c k s  \\
+{\ttfamily UBI\+\_\+\+DAILY\+\_\+\+SAT}  &{\ttfamily u64 = 1\+\_\+000\+\_\+000\+\_\+000}  &U b i\+\_\+ d a i l y\+\_\+ s a t  \\
+{\ttfamily UBI\+\_\+\+PER\+\_\+\+EPOCH\+\_\+\+SAT}  &{\ttfamily u64 = UBI\+\_\+\+DAILY\+\_\+\+SAT \texorpdfstring{$\ast$}{*} UBI\+\_\+\+EPOCH\+\_\+\+BLOCKS /\+ 86\+\_\+400}  &U b i\+\_\+ p e r\+\_\+ e p o c h\+\_\+ s a t  \\
+{\ttfamily MAX\+\_\+\+BENEFICIARIES}  &{\ttfamily usize = 1\+\_\+000\+\_\+000\+\_\+000}  &M a x\+\_\+ b e n e f i c i a r i e s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3462}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3462}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3463}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3463}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ UbiDistributor\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Ubi\+Distributor}
+
+{\itshape Defined at line 73}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3465}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3465}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *UbiDistributor)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ubi\+Distributor}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 84}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3467}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+To\+Pool()}}{{\ttfamily add\+To\+Pool()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3467}
+Adauga profit din Vault\+Engine in pool
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addToPool(self:\ *UbiDistributor,\ amount\_sat:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Ubi\+Distributor}  &The instance  \\
+{\ttfamily amount\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 112}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3469}{}\doxysubsection{\texorpdfstring{{\ttfamily active\+Count()}}{{\ttfamily active\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3469}
+Performs the active count operation on the ubi\+\_\+distributor module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ activeCount(self:\ *const\ UbiDistributor)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Ubi\+Distributor}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 168}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3471}{}\doxysubsection{\texorpdfstring{{\ttfamily print\+Status()}}{{\ttfamily print\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2ubi__distributor_autotoc_md3471}
+Performs the print status operation on the ubi\+\_\+distributor module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ printStatus(self:\ *const\ UbiDistributor)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Ubi\+Distributor}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 184}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

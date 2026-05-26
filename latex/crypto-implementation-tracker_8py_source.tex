@@ -1,0 +1,276 @@
+\doxysection{crypto-\/implementation-\/tracker.py}
+\hypertarget{crypto-implementation-tracker_8py_source}{}\label{crypto-implementation-tracker_8py_source}\index{tools/LEARNING/crypto-\/implementation-\/tracker.py@{tools/LEARNING/crypto-\/implementation-\/tracker.py}}
+\doxymbox{\hyperlink{crypto-implementation-tracker_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00001}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00003}00003\ \textcolor{stringliteral}{crypto-\/implementation-\/tracker.py}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00005}00005\ \textcolor{stringliteral}{Track\ the\ evolution\ of\ cryptographic\ implementations\ in\ a\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00006}00006\ \textcolor{stringliteral}{repository\ via\ git\ history.\ \ Monitors:}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ secp256k1.zig\ iterations,\ bug\ fixes,\ test\ vector\ changes}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ BIP-\/32\ derivation\ path\ handling\ changes}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Crypto-\/related\ API\ surface\ changes\ over\ time}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00011}00011\ \textcolor{stringliteral}{Outputs:\ crypto-\/evolution-\/timeline.json}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00012}00012\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00014}00014\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00015}00015\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00016}00016\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00017}00017\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00018}00018\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00020}00020\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00021}00021\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00022}00022\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00024}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a62c2940823227b3e2fcd4f8f289d7e50}{00024}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00025}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a1d319bfebf85b9ecc11670bdb01d8c21}{00025}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00026}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a53eb97caa366fca1b7cc3b18afd7ee96}{00026}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00027}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a6ae08909cb7cad701bf31937904fb13c}{00027}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00028}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a56e480bfbe9a0ff3cdaf4a5b24dd4086}{00028}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00031}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00031}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00032}00032\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00035}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00035}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00036}00036\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00039}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_abf994b8269849d29e07697ea8a840f74}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00040}00040\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00043}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_adf0e2aa4d06b5ca38e44721821eca783}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00044}00044\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00047}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}(args:\ list[str],\ cwd:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00048}00048\ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}git"{}}]\ +\ args,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ cwd=cwd,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ text=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ errors=\textcolor{stringliteral}{"{}replace"{}},}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00055}00055\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{if}\ result.returncode\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError(f\textcolor{stringliteral}{"{}git\ \{'\ '.join(args)\}\ failed:\ \{result.stderr\}"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{return}\ result.stdout}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00061}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a325d15f9028f8a2ef5e35fc072270b13}{00061}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a325d15f9028f8a2ef5e35fc072270b13}{get\_crypto\_commits}}(cwd:\ str,\ max\_commits:\ int\ =\ 300)\ -\/>\ list[dict[str,\ str]]:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00062}00062\ \ \ \ \ fmt\ =\ \textcolor{stringliteral}{"{}\%H|\%aI|\%s"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00063}00063\ \ \ \ \ \textcolor{comment}{\#\ commits\ touching\ crypto-\/related\ files}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00064}00064\ \ \ \ \ paths\ =\ [\textcolor{stringliteral}{"{}core/secp256k1.zig"{}},\ \textcolor{stringliteral}{"{}core/crypto.zig"{}},\ \textcolor{stringliteral}{"{}core/bip32\_wallet.zig"{}},\ \textcolor{stringliteral}{"{}core/schnorr.zig"{}}]}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00065}00065\ \ \ \ \ out\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}log"{}},\ f\textcolor{stringliteral}{"{}-\/-\/format=\{fmt\}"{}},\ f\textcolor{stringliteral}{"{}-\/n\{max\_commits\}"{}},\ \textcolor{stringliteral}{"{}-\/-\/"{}}]\ +\ paths,\ cwd=cwd)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00066}00066\ \ \ \ \ commits:\ list[dict[str,\ str]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00067}00067\ \ \ \ \ seen\ =\ set()}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ out.strip().splitlines():}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}|"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ parts\ =\ line.split(\textcolor{stringliteral}{"{}|"{}},\ 2)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ h\ =\ parts[0]}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ h\ \textcolor{keywordflow}{in}\ seen:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ seen.add(h)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ commits.append(\{\textcolor{stringliteral}{"{}hash"{}}:\ h,\ \textcolor{stringliteral}{"{}date"{}}:\ parts[1],\ \textcolor{stringliteral}{"{}message"{}}:\ parts[2]\})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{return}\ commits}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00080}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a67825f85b5121d471419dc0f805e3a7e}{00080}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a67825f85b5121d471419dc0f805e3a7e}{get\_changed\_files}}(cwd:\ str,\ commit\_hash:\ str)\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00081}00081\ \ \ \ \ out\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}diff-\/tree"{}},\ \textcolor{stringliteral}{"{}-\/-\/no-\/commit-\/id"{}},\ \textcolor{stringliteral}{"{}-\/-\/name-\/only"{}},\ \textcolor{stringliteral}{"{}-\/r"{}},\ commit\_hash],\ cwd=cwd)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00082}00082\ \ \ \ \ \textcolor{keywordflow}{return}\ [ln\ \textcolor{keywordflow}{for}\ ln\ \textcolor{keywordflow}{in}\ out.strip().splitlines()\ \textcolor{keywordflow}{if}\ ln]}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00085}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af396f1f065658dd6bbbf17d8aa752837}{00085}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af396f1f065658dd6bbbf17d8aa752837}{get\_file\_diff}}(cwd:\ str,\ commit\_hash:\ str,\ file\_path:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00086}00086\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ parent\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}rev-\/list"{}},\ \textcolor{stringliteral}{"{}-\/-\/parents"{}},\ \textcolor{stringliteral}{"{}-\/n1"{}},\ commit\_hash],\ cwd=cwd).strip().split()[1]}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00088}00088\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ parent\ =\ f\textcolor{stringliteral}{"{}\{commit\_hash\}\string^"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00090}00090\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}diff"{}},\ parent,\ commit\_hash,\ \textcolor{stringliteral}{"{}-\/-\/"{}},\ file\_path],\ cwd=cwd)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00092}00092\ \ \ \ \ \textcolor{keywordflow}{except}\ RuntimeError:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00096}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac}{00096}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac}{get\_file\_at\_commit}}(cwd:\ str,\ commit\_hash:\ str,\ file\_path:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00097}00097\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af75e1ce2fb614a29a830e10ed79788eb}{run\_git}}([\textcolor{stringliteral}{"{}show"{}},\ f\textcolor{stringliteral}{"{}\{commit\_hash\}:\{file\_path\}"{}}],\ cwd=cwd)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00099}00099\ \ \ \ \ \textcolor{keywordflow}{except}\ RuntimeError:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00103}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a34f8790f86e0c2a5ab191d28ba09d434}{00103}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a34f8790f86e0c2a5ab191d28ba09d434}{classify\_commit}}(message:\ str)\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00104}00104\ \ \ \ \ tags:\ list[str]\ =\ []}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00105}00105\ \ \ \ \ m\ =\ message.lower()}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00106}00106\ \ \ \ \ \textcolor{keywordflow}{if}\ any(w\ \textcolor{keywordflow}{in}\ m\ \textcolor{keywordflow}{for}\ w\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}fix"{}},\ \textcolor{stringliteral}{"{}bug"{}},\ \textcolor{stringliteral}{"{}patch"{}},\ \textcolor{stringliteral}{"{}repair"{}}]):}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ tags.append(\textcolor{stringliteral}{"{}bugfix"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{if}\ any(w\ \textcolor{keywordflow}{in}\ m\ \textcolor{keywordflow}{for}\ w\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}test"{}},\ \textcolor{stringliteral}{"{}spec"{}},\ \textcolor{stringliteral}{"{}vector"{}}]):}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ tags.append(\textcolor{stringliteral}{"{}test-\/related"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00110}00110\ \ \ \ \ \textcolor{keywordflow}{if}\ any(w\ \textcolor{keywordflow}{in}\ m\ \textcolor{keywordflow}{for}\ w\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}perf"{}},\ \textcolor{stringliteral}{"{}optim"{}},\ \textcolor{stringliteral}{"{}speed"{}},\ \textcolor{stringliteral}{"{}fast"{}}]):}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ tags.append(\textcolor{stringliteral}{"{}performance"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00112}00112\ \ \ \ \ \textcolor{keywordflow}{if}\ any(w\ \textcolor{keywordflow}{in}\ m\ \textcolor{keywordflow}{for}\ w\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}refactor"{}},\ \textcolor{stringliteral}{"{}clean"{}},\ \textcolor{stringliteral}{"{}restructure"{}}]):}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ tags.append(\textcolor{stringliteral}{"{}refactor"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00114}00114\ \ \ \ \ \textcolor{keywordflow}{if}\ any(w\ \textcolor{keywordflow}{in}\ m\ \textcolor{keywordflow}{for}\ w\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}feat"{}},\ \textcolor{stringliteral}{"{}add"{}},\ \textcolor{stringliteral}{"{}introduce"{}},\ \textcolor{stringliteral}{"{}implement"{}},\ \textcolor{stringliteral}{"{}new"{}}]):}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ tags.append(\textcolor{stringliteral}{"{}feature"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00116}00116\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ tags:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ tags.append(\textcolor{stringliteral}{"{}misc"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00118}00118\ \ \ \ \ \textcolor{keywordflow}{return}\ tags}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00121}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_aa69cd138a139ff2183fd1ab69911a3e3}{00121}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_aa69cd138a139ff2183fd1ab69911a3e3}{extract\_bip32\_paths}}(source:\ str)\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00122}00122\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ BIP-\/32\ derivation\ path\ strings\ in\ source\ code."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00123}00123\ \ \ \ \ \textcolor{keywordflow}{return}\ list(dict.fromkeys(re.findall(\textcolor{stringliteral}{r"{}m/[\(\backslash\)d'h/]+"{}},\ source)))}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00126}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a4b43486f1bc2c54cbcbbdc89c7518ab3}{00126}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a4b43486f1bc2c54cbcbbdc89c7518ab3}{extract\_secp256k1\_functions}}(source:\ str)\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00127}00127\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ public\ function\ names\ in\ secp256k1\ source."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00128}00128\ \ \ \ \ \textcolor{keywordflow}{return}\ re.findall(\textcolor{stringliteral}{r"{}\(\backslash\)bpub\(\backslash\)s+fn\(\backslash\)s+([\(\backslash\)w\_]+)"{}},\ source)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00131}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a46937613af41ea6e3f8f3ca996864275}{00131}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a46937613af41ea6e3f8f3ca996864275}{extract\_test\_vectors}}(source:\ str)\ -\/>\ list[str]:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00132}00132\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ hard-\/coded\ hex\ test\ vectors\ (>=\ 32\ hex\ chars)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00133}00133\ \ \ \ \ \textcolor{keywordflow}{return}\ list(dict.fromkeys(re.findall(\textcolor{stringliteral}{r"{}[0-\/9a-\/fA-\/F]\{64,\}"{}},\ source)))}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00136}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a077060df86b0a80c94c057c46dde52aa}{00136}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a077060df86b0a80c94c057c46dde52aa}{analyze\_crypto\_evolution}}(cwd:\ str,\ max\_commits:\ int)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00137}00137\ \ \ \ \ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Fetching\ crypto-\/related\ commits\ …"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00138}00138\ \ \ \ \ commits\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a325d15f9028f8a2ef5e35fc072270b13}{get\_crypto\_commits}}(cwd,\ max\_commits)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00139}00139\ \ \ \ \ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Unique\ crypto\ commits:\ \{len(commits)\}"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00141}00141\ \ \ \ \ secp\_timeline:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00142}00142\ \ \ \ \ bip32\_timeline:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00143}00143\ \ \ \ \ crypto\_api\_changes:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00145}00145\ \ \ \ \ secp\_funcs\_over\_time:\ dict[str,\ list[str]]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00146}00146\ \ \ \ \ bip32\_paths\_over\_time:\ dict[str,\ list[str]]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00148}00148\ \ \ \ \ \textcolor{keywordflow}{for}\ idx,\ commit\ \textcolor{keywordflow}{in}\ enumerate(commits):}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ changed\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a67825f85b5121d471419dc0f805e3a7e}{get\_changed\_files}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}])}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ tags\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a34f8790f86e0c2a5ab191d28ba09d434}{classify\_commit}}(commit[\textcolor{stringliteral}{"{}message"{}}])}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ secp256k1\ tracking}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}core/secp256k1.zig"{}}\ \textcolor{keywordflow}{in}\ changed:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ src\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac}{get\_file\_at\_commit}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}],\ \textcolor{stringliteral}{"{}core/secp256k1.zig"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ diff\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af396f1f065658dd6bbbf17d8aa752837}{get\_file\_diff}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}],\ \textcolor{stringliteral}{"{}core/secp256k1.zig"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ funcs\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a4b43486f1bc2c54cbcbbdc89c7518ab3}{extract\_secp256k1\_functions}}(src)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ vectors\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a46937613af41ea6e3f8f3ca996864275}{extract\_test\_vectors}}(src)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ secp\_timeline.append(}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commit"{}}:\ commit[\textcolor{stringliteral}{"{}hash"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}date"{}}:\ commit[\textcolor{stringliteral}{"{}date"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}message"{}}:\ commit[\textcolor{stringliteral}{"{}message"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tags"{}}:\ tags,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}functions"{}}:\ funcs,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}function\_count"{}}:\ len(funcs),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\_vectors\_count"{}}:\ len(vectors),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}diff\_lines"{}}:\ len(diff.splitlines()),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ secp\_funcs\_over\_time[commit[\textcolor{stringliteral}{"{}hash"{}}]]\ =\ funcs}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ BIP-\/32\ tracking}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}core/bip32\_wallet.zig"{}}\ \textcolor{keywordflow}{in}\ changed:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ src\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac}{get\_file\_at\_commit}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}],\ \textcolor{stringliteral}{"{}core/bip32\_wallet.zig"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ diff\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_af396f1f065658dd6bbbf17d8aa752837}{get\_file\_diff}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}],\ \textcolor{stringliteral}{"{}core/bip32\_wallet.zig"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ paths\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_aa69cd138a139ff2183fd1ab69911a3e3}{extract\_bip32\_paths}}(src)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ bip32\_timeline.append(}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commit"{}}:\ commit[\textcolor{stringliteral}{"{}hash"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}date"{}}:\ commit[\textcolor{stringliteral}{"{}date"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}message"{}}:\ commit[\textcolor{stringliteral}{"{}message"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tags"{}}:\ tags,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}derivation\_paths"{}}:\ paths,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}path\_count"{}}:\ len(paths),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}diff\_lines"{}}:\ len(diff.splitlines()),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ bip32\_paths\_over\_time[commit[\textcolor{stringliteral}{"{}hash"{}}]]\ =\ paths}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ General\ crypto\ API\ surface}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ crypto\_files\ =\ [c\ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ changed\ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}crypto"{}}\ \textcolor{keywordflow}{in}\ c.lower()\ \textcolor{keywordflow}{and}\ c.endswith(\textcolor{stringliteral}{"{}.zig"{}})]}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ cf\ \textcolor{keywordflow}{in}\ crypto\_files:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ src\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_ae23c0e01a3fac822627f315c3bd715ac}{get\_file\_at\_commit}}(cwd,\ commit[\textcolor{stringliteral}{"{}hash"{}}],\ cf)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ funcs\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a4b43486f1bc2c54cbcbbdc89c7518ab3}{extract\_secp256k1\_functions}}(src)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ crypto\_api\_changes.append(}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commit"{}}:\ commit[\textcolor{stringliteral}{"{}hash"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}date"{}}:\ commit[\textcolor{stringliteral}{"{}date"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}file"{}}:\ cf,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}message"{}}:\ commit[\textcolor{stringliteral}{"{}message"{}}],}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tags"{}}:\ tags,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}public\_functions"{}}:\ funcs,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (idx\ +\ 1)\ \%\ 20\ ==\ 0\ \textcolor{keywordflow}{or}\ idx\ ==\ len(commits)\ -\/\ 1:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}\ \ processed\ \{idx\ +\ 1\}/\{len(commits)\}\ commits"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00209}00209\ \ \ \ \ \textcolor{comment}{\#\ Summaries}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00210}00210\ \ \ \ \ bugfix\_count\ =\ sum(1\ \textcolor{keywordflow}{for}\ e\ \textcolor{keywordflow}{in}\ secp\_timeline\ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}bugfix"{}}\ \textcolor{keywordflow}{in}\ e[\textcolor{stringliteral}{"{}tags"{}}])}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00211}00211\ \ \ \ \ test\_change\_count\ =\ sum(1\ \textcolor{keywordflow}{for}\ e\ \textcolor{keywordflow}{in}\ secp\_timeline\ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}test-\/related"{}}\ \textcolor{keywordflow}{in}\ e[\textcolor{stringliteral}{"{}tags"{}}])}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00213}00213\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}commits\_scanned"{}}:\ len(commits),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}summary"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1\_commits"{}}:\ len(secp\_timeline),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1\_bugfixes"{}}:\ bugfix\_count,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1\_test\_changes"{}}:\ test\_change\_count,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bip32\_commits"{}}:\ len(bip32\_timeline),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crypto\_api\_changes"{}}:\ len(crypto\_api\_changes),}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}secp256k1\_timeline"{}}:\ secp\_timeline,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bip32\_timeline"{}}:\ bip32\_timeline,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crypto\_api\_changes"{}}:\ crypto\_api\_changes,}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00226}00226\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00227}00227\ \ \ \ \ \textcolor{keywordflow}{return}\ report}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00230}\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a7431cb90017e54fe695b23d4190db046}{00230}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00231}00231\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}Track\ crypto\ implementation\ evolution\ via\ git\ history."{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00233}00233\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00234}00234\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/repo"{}},\ default=\textcolor{stringliteral}{"{}."{}},\ help=\textcolor{stringliteral}{"{}Path\ to\ git\ repository"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00235}00235\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/max-\/commits"{}},\ type=int,\ default=300,\ help=\textcolor{stringliteral}{"{}Max\ commits\ (default:\ 300)"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00237}00237\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00238}00238\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/output"{}},}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ default=\textcolor{stringliteral}{"{}tools/LEARNING/crypto-\/evolution-\/timeline.json"{}},}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}},}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00242}00242\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00243}00243\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00245}00245\ \ \ \ \ repo\ =\ os.path.abspath(args.repo)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00246}00246\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isdir(os.path.join(repo,\ \textcolor{stringliteral}{"{}.git"{}})):}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}\{repo\}\ is\ not\ a\ git\ repository."{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00250}00250\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ report\ =\ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a077060df86b0a80c94c057c46dde52aa}{analyze\_crypto\_evolution}}(repo,\ args.max\_commits)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00252}00252\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(str(exc))}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00256}00256\ \ \ \ \ out\_path\ =\ os.path.join(repo,\ args.output)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00257}00257\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00258}00258\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00260}00260\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00261}00261\ \ \ \ \ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00262}00262\ \ \ \ \ \doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}secp256k1\ commits:\ \{report['summary']['secp256k1\_commits']\},\ "{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}BIP-\/32\ commits:\ \{report['summary']['bip32\_commits']\}"{}}}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00265}00265\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00266}00266\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00267}00267\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00268}00268\ }
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00269}00269\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{crypto-implementation-tracker_8py_source_l00270}00270\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacecrypto-implementation-tracker_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

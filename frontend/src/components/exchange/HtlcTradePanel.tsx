@@ -14,18 +14,21 @@
  *   4. Claims OMNI
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserProvider, JsonRpcSigner, ethers } from "ethers";
-import OmniBusRpcClient from "../../api/rpc-client";
-import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
-import { signPlaceOrderPayload } from "../../api/exchange-sign";
-import {
-  HTLC_CONTRACTS, HTLC_ABI, lockEth, claimEth,
-} from "../../api/htlc-eth";
-import { fetchUsdcBalance } from "../../api/multichain-balances";
 
-const rpc = new OmniBusRpcClient();
-const SAT = 1_000_000_000;
+import type { Eip1193Provider } from "ethers";
+
+declare global {
+  interface Window { ethereum?: Eip1193Provider; }
+}
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
+import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
+import {
+  HTLC_CONTRACTS, lockEth, claimEth,
+} from "../../api/htlc-eth";
+
 
 // USDC contract on Sepolia
 const USDC_SEPOLIA = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
@@ -49,6 +52,41 @@ type Step =
   | "done"
   | "error";
 
+const BUSY_STEPS = new Set<Step>(["omni_locking", "evm_approving", "evm_locking", "evm_claiming", "omni_claiming"]);
+
+const STEP_LABEL: Record<Step, string> = {
+  idle: "Ready",
+  omni_locking: "Locking OMNI…",
+  omni_locked: "OMNI locked ✅ — waiting for EVM lock",
+  evm_approving: "Approving USDC…",
+  evm_locking: "Locking on Sepolia…",
+  evm_locked: "EVM locked ✅ — maker to claim",
+  evm_claiming: "Maker claiming EVM…",
+  omni_claiming: "Taker claiming OMNI…",
+  done: "✅ Swap complete!",
+  error: "❌ Error",
+};
+
+const STEP_COLOR: Record<Step, string> = {
+  idle: "text-mempool-text-dim",
+  omni_locking: "text-yellow-400 animate-pulse",
+  omni_locked: "text-blue-400",
+  evm_approving: "text-yellow-400 animate-pulse",
+  evm_locking: "text-yellow-400 animate-pulse",
+  evm_locked: "text-blue-400",
+  evm_claiming: "text-yellow-400 animate-pulse",
+  omni_claiming: "text-yellow-400 animate-pulse",
+  done: "text-green-400",
+  error: "text-red-400",
+};
+
+const HTLC_STATE_COLOR: Record<string, string> = {
+  active:   "text-green-400",
+  claimed:  "text-mempool-blue",
+  refunded: "text-yellow-400",
+  expired:  "text-red-400",
+};
+
 interface HtlcState {
   step: Step;
   omniHtlcId?: string;
@@ -71,7 +109,7 @@ function addLog(s: HtlcState, msg: string): HtlcState {
 
 // Get MetaMask signer on Sepolia
 async function getEvmSigner(): Promise<JsonRpcSigner> {
-  const eth = (window as any).ethereum;
+  const eth = window.ethereum;
   if (!eth) throw new Error("MetaMask not found");
   const provider = new BrowserProvider(eth);
   await provider.send("eth_requestAccounts", []);
@@ -100,7 +138,6 @@ export function HtlcTradePanel() {
   }, [state.log]);
 
   const log = (msg: string) => setState(s => addLog(s, msg));
-  const setStep = (step: Step) => setState(s => ({ ...s, step }));
   const setErr = (msg: string) => setState(s => ({ ...s, step: "error", error: msg, log: [...s.log, `[${ts()}] ❌ ${msg}`] }));
 
   const evmAddr = u?.allAddresses?.[0]?.evmAddress
@@ -129,18 +166,17 @@ export function HtlcTradePanel() {
       log(`HashLock: ${hashHex.slice(0, 16)}…`);
 
       const timelockBlocks = Number(timelock);
-      const blockRes = await (rpc as any).request_raw("getblockcount", []) as any;
-      const currentBlock = typeof blockRes === "number" ? blockRes : (blockRes?.count ?? blockRes?.blocks ?? 0);
+      const currentBlock: number = await rpc.getBlockCount();
       const timelockBlock = currentBlock + timelockBlocks;
 
       log(`Current block: ${currentBlock}, timelock at: ${timelockBlock}`);
 
-      const res = await (rpc as any).request_raw("htlc_init", [{
+      const res = await rpc.request_raw("htlc_init", [{
         receiver: evmAddr.toLowerCase(), // taker's EVM address as receiver placeholder — OmniBus uses ob1q but store note
-        amount_sat: Math.round(omni * SAT),
+        amount_sat: Math.round(omni * SAT_PER_OMNI),
         hash_lock: hashHex,
         timelock_block: timelockBlock,
-      }]) as any;
+      }]);
 
       log(`OMNI HTLC created: tx=${res.tx_hash?.slice(0, 12)}… htlc_id=${res.htlc_id?.slice(0, 12)}…`);
 
@@ -172,11 +208,11 @@ export function HtlcTradePanel() {
       log(`Taker EVM: ${takerAddr}`);
 
       const usdcContract = new ethers.Contract(USDC_SEPOLIA, USDC_ABI_MIN, signer);
-      const usdcRaw = BigInt(Math.round(usdc * 1_000_000));
+      const usdcRaw = BigInt(Math.round(usdc * MICRO_PER_USD));
 
       // Check balance
       const bal = await usdcContract.balanceOf(takerAddr);
-      log(`USDC balance: ${Number(bal) / 1_000_000} USDC`);
+      log(`USDC balance: ${Number(bal) / MICRO_PER_USD} USDC`);
       if (bal < usdcRaw) return setErr(`Insufficient USDC: have ${Number(bal)/1e6}, need ${usdc}`);
 
       // Approve HTLC contract to spend USDC
@@ -267,10 +303,10 @@ export function HtlcTradePanel() {
     if (!state.omniHtlcId || !state.preimage) return setErr("No OMNI HTLC or preimage");
 
     try {
-      const res = await (rpc as any).request_raw("htlc_claim", [{
+      const res = await rpc.request_raw("htlc_claim", [{
         htlc_id: state.omniHtlcId,
         preimage: state.preimage,
-      }]) as any;
+      }]);
 
       log(`OMNI claim tx: ${res.tx_hash?.slice(0, 12)}… ✅`);
       setState(s => ({
@@ -285,46 +321,25 @@ export function HtlcTradePanel() {
   // ── List pending HTLCs ──────────────────────────────────────────────────
   const [htlcs, setHtlcs] = useState<any[]>([]);
   const [loadingHtlcs, setLoadingHtlcs] = useState(false);
+  const [htlcErr, setHtlcErr] = useState<string | null>(null);
 
   async function loadHtlcs() {
     if (!u) return;
     setLoadingHtlcs(true);
+    setHtlcErr(null);
     try {
-      const res = await (rpc as any).request_raw("htlc_listByAddress", [{ address: u.address }]) as any[];
-      setHtlcs(Array.isArray(res) ? res : []);
-    } catch { setHtlcs([]); }
+      const res = await rpc.htlcListByAddress(u.address);
+      setHtlcs(res);
+    } catch (e: any) {
+      setHtlcs([]);
+      setHtlcErr(e?.message ?? String(e));
+    }
     setLoadingHtlcs(false);
   }
 
   useEffect(() => { loadHtlcs(); }, [u?.address]);
 
-  const stepLabel: Record<Step, string> = {
-    idle: "Ready",
-    omni_locking: "Locking OMNI…",
-    omni_locked: "OMNI locked ✅ — waiting for EVM lock",
-    evm_approving: "Approving USDC…",
-    evm_locking: "Locking on Sepolia…",
-    evm_locked: "EVM locked ✅ — maker to claim",
-    evm_claiming: "Maker claiming EVM…",
-    omni_claiming: "Taker claiming OMNI…",
-    done: "✅ Swap complete!",
-    error: "❌ Error",
-  };
-
-  const stepColor: Record<Step, string> = {
-    idle: "text-mempool-text-dim",
-    omni_locking: "text-yellow-400 animate-pulse",
-    omni_locked: "text-blue-400",
-    evm_approving: "text-yellow-400 animate-pulse",
-    evm_locking: "text-yellow-400 animate-pulse",
-    evm_locked: "text-blue-400",
-    evm_claiming: "text-yellow-400 animate-pulse",
-    omni_claiming: "text-yellow-400 animate-pulse",
-    done: "text-green-400",
-    error: "text-red-400",
-  };
-
-  const busy = ["omni_locking","evm_approving","evm_locking","evm_claiming","omni_claiming"].includes(state.step);
+  const busy = BUSY_STEPS.has(state.step);
 
   if (!u) {
     return (
@@ -351,8 +366,8 @@ export function HtlcTradePanel() {
         </p>
 
         {/* Status bar */}
-        <div className={`text-[11px] font-semibold mb-4 ${stepColor[state.step]}`}>
-          Status: {stepLabel[state.step]}
+        <div className={`text-[11px] font-semibold mb-4 ${STEP_COLOR[state.step]}`}>
+          Status: {STEP_LABEL[state.step]}
           {state.error && <span className="ml-2 font-normal text-red-300">{state.error}</span>}
         </div>
 
@@ -360,19 +375,19 @@ export function HtlcTradePanel() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">OMNI to lock</label>
-            <input type="number" step="any" value={omniAmt} onChange={e => setOmniAmt(e.target.value)}
+            <input type="number" step="any" min="0" value={omniAmt} onChange={e => setOmniAmt(e.target.value)}
               disabled={busy || state.step !== "idle"}
               className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue disabled:opacity-50" />
           </div>
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">USDC to receive</label>
-            <input type="number" step="any" value={usdcAmt} onChange={e => setUsdcAmt(e.target.value)}
+            <input type="number" step="any" min="0" value={usdcAmt} onChange={e => setUsdcAmt(e.target.value)}
               disabled={busy || state.step !== "idle"}
               className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue disabled:opacity-50" />
           </div>
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-mempool-text-dim mb-1">Timelock (blocks)</label>
-            <input type="number" value={timelock} onChange={e => setTimelock(e.target.value)}
+            <input type="number" min="1" value={timelock} onChange={e => setTimelock(e.target.value)}
               disabled={busy || state.step !== "idle"}
               className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-sm font-mono text-mempool-text focus:outline-none focus:border-mempool-blue disabled:opacity-50" />
           </div>
@@ -436,24 +451,54 @@ export function HtlcTradePanel() {
       <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-3 sm:p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-xs font-semibold text-mempool-text uppercase tracking-wider">My HTLCs</h4>
-          <button onClick={loadHtlcs} disabled={loadingHtlcs}
-            className="text-[10px] text-mempool-blue hover:underline disabled:opacity-50">
-            {loadingHtlcs ? "Loading…" : "Refresh"}
-          </button>
+          <div className="flex items-center gap-2">
+            {htlcs.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["htlc_id","amount_omni","state","timelock_block","sender","receiver"].join(","),
+                    ...htlcs.map((h: any) => [
+                      `"${h.htlc_id ?? ""}"`,
+                      ((h.amount_sat ?? 0) / SAT_PER_OMNI).toFixed(8),
+                      h.state ?? "",
+                      h.timelock_block ?? "",
+                      `"${h.sender ?? ""}"`,
+                      `"${h.receiver ?? ""}"`,
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = "omnibus-htlcs.csv";
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="px-2 py-0.5 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+              >
+                ⬇ CSV
+              </button>
+            )}
+            <button onClick={loadHtlcs} disabled={loadingHtlcs}
+              className="text-[10px] text-mempool-blue hover:underline disabled:opacity-50">
+              {loadingHtlcs ? "Loading…" : "Refresh"}
+            </button>
+          </div>
         </div>
-        {htlcs.length === 0 ? (
+        {htlcErr && (
+          <p className="text-[10px] text-red-400 font-mono">{htlcErr}</p>
+        )}
+        {!htlcErr && htlcs.length === 0 ? (
           <p className="text-[10px] text-mempool-text-dim">No HTLCs found for this address.</p>
         ) : (
           <div className="space-y-2">
-            {htlcs.map((h, i) => (
-              <div key={i} className="rounded bg-mempool-bg p-2 text-[10px] font-mono space-y-0.5">
+            {htlcs.map((h) => (
+              <div key={h.htlc_id} className="rounded bg-mempool-bg p-2 text-[10px] font-mono space-y-0.5">
                 <div className="flex justify-between">
                   <span className="text-mempool-text-dim">ID</span>
-                  <span className="text-mempool-text">{h.htlc_id?.slice(0, 16)}…</span>
+                  <span className="text-mempool-text">{midTrunc(h.htlc_id, 16, 6)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-mempool-text-dim">Amount</span>
-                  <span className="text-green-400">{(h.amount_sat / SAT).toFixed(4)} OMNI</span>
+                  <span className="text-green-400">{(h.amount_sat / SAT_PER_OMNI).toFixed(4)} OMNI</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-mempool-text-dim">State</span>
@@ -475,7 +520,7 @@ export function HtlcTradePanel() {
                   <button onClick={async () => {
                     log(`Refunding HTLC ${h.htlc_id?.slice(0,8)}…`);
                     try {
-                      const res = await (rpc as any).request_raw("htlc_refund", [{ htlc_id: h.htlc_id }]) as any;
+                      const res = await rpc.request_raw("htlc_refund", [{ htlc_id: h.htlc_id }]);
                       log(`Refund tx: ${res.tx_hash?.slice(0,12)}… ✅`);
                       loadHtlcs();
                     } catch(e: any) { log(`Refund failed: ${e.message}`); }
@@ -492,3 +537,86 @@ export function HtlcTradePanel() {
     </div>
   );
 }
+
+// ── HTLC Lookup panel (htlc_get) ──────────────────────────────────────────
+
+interface HtlcEntry {
+  htlc_id: string;
+  sender: string;
+  receiver: string;
+  amount_sat: number;
+  hash_lock: string;
+  timelock_block: number;
+  state: string;
+  preimage?: string;
+  tx_hash?: string;
+  claim_tx_hash?: string;
+}
+
+export function HtlcLookupPanel() {
+  const [htlcId, setHtlcId] = useState("");
+  const [entry, setEntry] = useState<HtlcEntry | null>(null);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const lookup = useCallback(async () => {
+    const id = htlcId.trim();
+    if (!id) { setErr("Enter HTLC ID"); return; }
+    setLoading(true); setErr(""); setEntry(null);
+    try {
+      const r = await rpc.htlcGet(id) as HtlcEntry;
+      if (r && typeof r === "object" && "htlc_id" in r) setEntry(r);
+      else setErr("HTLC not found");
+    } catch (e) { setErr(String(e)); }
+    finally { setLoading(false); }
+  }, [htlcId]);
+
+  return (
+    <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+      <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+        HTLC Lookup (htlc_get)
+      </h3>
+      <div className="flex gap-2">
+        <input
+          value={htlcId}
+          onChange={(e) => setHtlcId(e.target.value)}
+          placeholder="64-hex HTLC ID"
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text"
+        />
+        <button
+          onClick={lookup}
+          disabled={loading || !htlcId}
+          className="px-4 py-1.5 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {entry && (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg/50 p-3 space-y-1.5 text-xs">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="font-semibold text-mempool-text">HTLC</span>
+            <span className="font-mono text-mempool-text-dim">{entry.htlc_id.slice(0, 16)}…</span>
+            <span className={`ml-auto font-semibold ${HTLC_STATE_COLOR[entry.state] ?? "text-mempool-text-dim"}`}>{entry.state}</span>
+          </div>
+          {[
+            ["Sender", entry.sender],
+            ["Receiver", entry.receiver],
+            ["Amount", `${(entry.amount_sat / SAT_PER_OMNI).toFixed(9)} OMNI`],
+            ["Hash lock", entry.hash_lock.slice(0, 32) + "…"],
+            ["Timelock block", String(entry.timelock_block)],
+            ...(entry.tx_hash ? [["Init TX", entry.tx_hash.slice(0, 16) + "…"]] : []),
+            ...(entry.claim_tx_hash ? [["Claim TX", entry.claim_tx_hash.slice(0, 16) + "…"]] : []),
+            ...(entry.preimage ? [["Preimage", entry.preimage.slice(0, 16) + "…"]] : []),
+          ].map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-2">
+              <span className="text-mempool-text-dim">{k}</span>
+              <span className="font-mono text-mempool-text break-all text-right">{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+

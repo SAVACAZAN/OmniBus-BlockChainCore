@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent } from "../../types";
+import { AddressLabel } from "../common/AddressLabel";
+import { KindBadge, SchemeTag } from "../common/TxBadges";
+import { satToOmni, midTrunc, fmtDuration } from "../../utils/fmt";
 import {
   ResponsiveContainer,
   BarChart,
@@ -12,21 +15,6 @@ import {
   Cell,
 } from "recharts";
 
-const rpc = new OmniBusRpcClient();
-const SAT = 1e9;
-
-function fmtSat(sat: number) { return (sat / SAT).toFixed(8); }
-function midTrunc(s: string | undefined | null, h = 10, t = 8): string {
-  if (!s) return "—";
-  if (s.length <= h + t + 3) return s;
-  return s.slice(0, h) + "…" + s.slice(-t);
-}
-function fmtAge(ts: number): string {
-  const diff = Math.floor((Date.now() / 1000) - ts);
-  if (diff < 60) return `${diff}s`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  return `${Math.floor(diff / 3600)}h`;
-}
 
 interface MempoolTx {
   txid: string;
@@ -35,13 +23,23 @@ interface MempoolTx {
   amount: number;
   fee: number;
   timestamp?: number;
+  scheme?: string;
+  nonce?: number;
+  kind?: string;
 }
+
 
 interface Stats {
   size: number;
   maxTx: number;
   bytes: number;
   maxBytes: number;
+}
+
+interface FeeEstimate {
+  feeSAT: number;
+  minFeeSAT: number;
+  burnPct: number;
 }
 
 // Fee buckets in SAT
@@ -55,24 +53,66 @@ const FEE_BUCKETS = [
 
 const BUCKET_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#f97316", "#ef4444"];
 
+const FEE_TIERS = [
+  { label: "Fast",    sub: "next 1-2 blocks", mult: 2,    color: "text-red-400",    dot: "bg-red-400" },
+  { label: "Normal",  sub: "3-6 blocks",      mult: 1,    color: "text-orange-400", dot: "bg-orange-400" },
+  { label: "Economy", sub: "7+ blocks",        mult: null, color: "text-green-400",  dot: "bg-green-400" },
+] as const;
+
 export function MempoolPage() {
   const [txs, setTxs] = useState<MempoolTx[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [feeEst, setFeeEst] = useState<FeeEstimate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchErr, setFetchErr] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(0);
+  const [sortCol, setSortCol] = useState<"amount" | "fee" | "age" | null>("fee");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const PAGE_SIZE = 25;
+
+  const toggleSort = (col: "amount" | "fee" | "age") => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortCol(col);
+      setSortDir("desc");
+    }
+    setPage(0);
+  };
   // Keep a live feed of incoming TXs (from WS) prepended to the list
   const wsBuffer = useRef<MempoolTx[]>([]);
 
   const fetchMempool = async () => {
+    setFetchErr(null);
     try {
-      const [mempoolData, statsData] = await Promise.allSettled([
+      const [mempoolData, statsData, feeData, pendingData] = await Promise.allSettled([
         rpc.getMempoolTransactions(),
         rpc.getMempoolStats(),
+        rpc.estimateFee(),
+        rpc.getPendingTxs(200),
       ]);
 
-      if (mempoolData.status === "fulfilled" && mempoolData.value) {
+      if (pendingData.status === "fulfilled" && pendingData.value?.transactions?.length) {
+        // Use rich pending TX list (has scheme/nonce) when available
+        const mapped: MempoolTx[] = pendingData.value.transactions.map((tx: any) => ({
+          txid: tx.txid || "",
+          from: tx.from || "",
+          to: tx.to || "",
+          amount: tx.amount || 0,
+          fee: tx.fee || 0,
+          timestamp: tx.timestamp,
+          scheme: tx.scheme,
+          nonce: tx.nonce,
+          kind: tx.kind,
+        }));
+        const existing = new Set(mapped.map((t) => t.txid));
+        const merged = [
+          ...wsBuffer.current.filter((t) => !existing.has(t.txid)),
+          ...mapped,
+        ];
+        setTxs(merged.slice(0, 500));
+      } else if (mempoolData.status === "fulfilled" && mempoolData.value) {
         const val: any = mempoolData.value;
         const raw = Array.isArray(val) ? val : val?.transactions || [];
         const mapped: MempoolTx[] = raw.map((tx: any) => ({
@@ -83,7 +123,6 @@ export function MempoolPage() {
           fee: tx.fee || 0,
           timestamp: tx.timestamp,
         }));
-        // Merge WS buffer (live arrivals not yet in RPC list)
         const existing = new Set(mapped.map((t) => t.txid));
         const merged = [
           ...wsBuffer.current.filter((t) => !existing.has(t.txid)),
@@ -101,13 +140,25 @@ export function MempoolPage() {
           maxBytes: s.maxBytes ?? s.max_bytes ?? 10_000_000,
         });
       }
-    } catch {}
+
+      if (feeData.status === "fulfilled" && feeData.value) {
+        const f = feeData.value;
+        setFeeEst({
+          feeSAT: f.feeSAT ?? f.fee_sat ?? 1000,
+          minFeeSAT: f.minFeeSAT ?? f.min_fee_sat ?? 500,
+          burnPct: f.burnPct ?? f.burn_pct ?? 0,
+        });
+      }
+    } catch (e: any) {
+      setFetchErr(e?.message || "Failed to load mempool");
+    }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchMempool();
-    const id = setInterval(fetchMempool, 3000);
+    // new_tx WS (below) prepends TXs live — this poll only refreshes fee estimates.
+    const id = setInterval(() => { void fetchMempool(); }, 30_000);
     return () => clearInterval(id);
   }, []);
 
@@ -131,23 +182,38 @@ export function MempoolPage() {
   }, []);
 
   // Fee distribution chart data
-  const feeChart = FEE_BUCKETS.map((b, i) => ({
+  const feeChart = useMemo(() => FEE_BUCKETS.map((b, i) => ({
     label: b.label,
     count: txs.filter((t) => t.fee >= b.min && t.fee < b.max).length,
     color: BUCKET_COLORS[i],
-  }));
+  })), [txs]);
 
-  // Filter + paginate
-  const filtered = filter
+  const avgFee = useMemo(() =>
+    txs.length === 0 ? 0 : Math.round(txs.reduce((s, t) => s + t.fee, 0) / txs.length),
+  [txs]);
+
+  // Filter + sort + paginate (memoized to avoid re-runs on unrelated state changes)
+  const filtered = useMemo(() => filter
     ? txs.filter(
         (t) =>
           t.txid.includes(filter) ||
           t.from.includes(filter) ||
           t.to.includes(filter)
       )
-    : txs;
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const pageTxs = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+    : txs, [txs, filter]);
+
+  const sorted = useMemo(() => sortCol
+    ? [...filtered].sort((a, b) => {
+        let va = 0; let vb = 0;
+        if (sortCol === "fee")    { va = a.fee;       vb = b.fee; }
+        if (sortCol === "amount") { va = a.amount;    vb = b.amount; }
+        if (sortCol === "age")    { va = a.timestamp ?? 0; vb = b.timestamp ?? 0; }
+        return sortDir === "desc" ? vb - va : va - vb;
+      })
+    : filtered, [filtered, sortCol, sortDir]);
+
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const pageTxs = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const capacityPct = stats
     ? Math.min(100, Math.round((stats.size / stats.maxTx) * 100))
@@ -206,10 +272,55 @@ export function MempoolPage() {
           value={
             loading || txs.length === 0
               ? "—"
-              : `${Math.round(txs.reduce((s, t) => s + t.fee, 0) / txs.length).toLocaleString()} SAT`
+              : `${avgFee.toLocaleString()} SAT`
           }
           color="orange"
         />
+      </div>
+
+      {/* Fee Estimator */}
+      <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
+        <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
+          Fee Estimator
+          {feeEst && feeEst.burnPct > 0 && (
+            <span className="ml-2 text-orange-400 normal-case font-normal text-[10px]">
+              🔥 {feeEst.burnPct}% burned
+            </span>
+          )}
+        </h3>
+        <div className="grid grid-cols-3 gap-3">
+          {FEE_TIERS.map((tier) => {
+            const sat = tier.label === "Fast"
+              ? (feeEst ? Math.round(feeEst.feeSAT * 2) : null)
+              : tier.label === "Normal"
+              ? (feeEst?.feeSAT ?? null)
+              : (feeEst?.minFeeSAT ?? null);
+            return (
+              <div key={tier.label} className="bg-mempool-bg border border-mempool-border rounded-lg p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${tier.dot}`} />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-mempool-text-dim">{tier.label}</span>
+                </div>
+                <div className={`text-base font-mono font-bold ${tier.color}`}>
+                  {sat === null ? (
+                    <span className="animate-pulse text-mempool-text-dim">…</span>
+                  ) : (
+                    sat.toLocaleString()
+                  )}
+                  {sat !== null && <span className="text-[10px] text-mempool-text-dim font-normal ml-1">SAT</span>}
+                </div>
+                <div className="text-[10px] text-mempool-text-dim">{tier.sub}</div>
+              </div>
+            );
+          })}
+        </div>
+        {feeEst && (
+          <div className="mt-2 text-[10px] text-mempool-text-dim">
+            Median mempool fee: <span className="text-mempool-text font-mono">{feeEst.feeSAT.toLocaleString()} SAT</span>
+            {" · "}
+            Min accepted: <span className="text-mempool-text font-mono">{feeEst.minFeeSAT.toLocaleString()} SAT</span>
+          </div>
+        )}
       </div>
 
       {/* Fee distribution chart */}
@@ -230,7 +341,7 @@ export function MempoolPage() {
                   fontSize: "11px",
                   color: "#c9d1d9",
                 }}
-                formatter={(v: any) => [`${v} TXs`, "Count"]}
+                formatter={(v: number) => [`${v} TXs`, "Count"]}
               />
               <Bar dataKey="count" radius={[3, 3, 0, 0]}>
                 {feeChart.map((entry, i) => (
@@ -247,7 +358,7 @@ export function MempoolPage() {
         {/* Search */}
         <div className="px-4 py-3 border-b border-mempool-border flex items-center gap-3">
           <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim whitespace-nowrap">
-            Pending ({filtered.length})
+            Pending ({sorted.length})
           </h3>
           <input
             type="text"
@@ -261,6 +372,33 @@ export function MempoolPage() {
               ✕
             </button>
           )}
+          {sorted.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["txid", "from", "to", "amount_omni", "fee_sat", "kind", "scheme", "age_s"].join(","),
+                  ...sorted.map((t) => [
+                    `"${t.txid}"`,
+                    `"${t.from}"`,
+                    `"${t.to}"`,
+                    satToOmni(t.amount),
+                    t.fee,
+                    t.kind ?? "transfer",
+                    t.scheme ?? "",
+                    t.timestamp ? Math.floor(Date.now() / 1000) - t.timestamp : "",
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-mempool.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue font-mono whitespace-nowrap"
+            >
+              ⬇ CSV
+            </button>
+          )}
         </div>
 
         <div className="overflow-x-auto">
@@ -270,21 +408,43 @@ export function MempoolPage() {
                 <th className="px-4 py-2.5 font-medium">TX Hash</th>
                 <th className="px-4 py-2.5 font-medium">From</th>
                 <th className="px-4 py-2.5 font-medium">To</th>
-                <th className="px-4 py-2.5 font-medium text-right">Amount</th>
-                <th className="px-4 py-2.5 font-medium text-right">Fee (SAT)</th>
-                <th className="px-4 py-2.5 font-medium text-right">Age</th>
+                <th
+                  className="px-4 py-2.5 font-medium text-right cursor-pointer select-none hover:text-mempool-blue transition-colors"
+                  onClick={() => toggleSort("amount")}
+                >
+                  Amount (OMNI) {sortCol === "amount" ? (sortDir === "desc" ? "↓" : "↑") : "↕"}
+                </th>
+                <th
+                  className="px-4 py-2.5 font-medium text-right cursor-pointer select-none hover:text-mempool-blue transition-colors"
+                  onClick={() => toggleSort("fee")}
+                >
+                  Fee (SAT) {sortCol === "fee" ? (sortDir === "desc" ? "↓" : "↑") : "↕"}
+                </th>
+                <th className="px-4 py-2.5 font-medium">Scheme</th>
+                <th
+                  className="px-4 py-2.5 font-medium text-right cursor-pointer select-none hover:text-mempool-blue transition-colors"
+                  onClick={() => toggleSort("age")}
+                >
+                  Age {sortCol === "age" ? (sortDir === "desc" ? "↓" : "↑") : "↕"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-mempool-border/30">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim animate-pulse">
+                  <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim animate-pulse">
                     Loading mempool…
+                  </td>
+                </tr>
+              ) : fetchErr ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-red-400 text-xs font-mono">
+                    {fetchErr}
                   </td>
                 </tr>
               ) : pageTxs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-mempool-text-dim">
+                  <td colSpan={7} className="px-4 py-8 text-center text-mempool-text-dim">
                     {filter ? "No matching transactions" : "Mempool is empty"}
                   </td>
                 </tr>
@@ -305,7 +465,7 @@ export function MempoolPage() {
                           onClick={() => { window.location.hash = `#/address/${tx.from}`; }}
                           className="hover:text-mempool-blue hover:underline transition-colors"
                         >
-                          {midTrunc(tx.from, 8, 6)}
+                          <AddressLabel address={tx.from} showEmoji truncate={{ left: 8, right: 6 }} />
                         </button>
                       ) : "—"}
                     </td>
@@ -315,18 +475,24 @@ export function MempoolPage() {
                           onClick={() => { window.location.hash = `#/address/${tx.to}`; }}
                           className="hover:text-mempool-blue hover:underline transition-colors"
                         >
-                          {midTrunc(tx.to, 8, 6)}
+                          <AddressLabel address={tx.to} showEmoji truncate={{ left: 8, right: 6 }} />
                         </button>
                       ) : "—"}
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono text-mempool-text">
-                      {fmtSat(tx.amount)}
+                      {satToOmni(tx.amount)}
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono">
                       <FeeTag fee={tx.fee} />
                     </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-1">
+                        <KindBadge kind={tx.kind} />
+                        {tx.scheme ? <SchemeTag scheme={tx.scheme} /> : <span className="text-mempool-text-dim">—</span>}
+                      </div>
+                    </td>
                     <td className="px-4 py-2.5 text-right text-mempool-text-dim">
-                      {tx.timestamp ? fmtAge(tx.timestamp) : "—"}
+                      {tx.timestamp ? fmtDuration(tx.timestamp) : "—"}
                     </td>
                   </tr>
                 ))
@@ -346,10 +512,10 @@ export function MempoolPage() {
               ← Prev
             </button>
             <span className="text-mempool-text-dim">
-              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
+              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, sorted.length)} of {sorted.length}
             </span>
             <button
-              disabled={(page + 1) * PAGE_SIZE >= filtered.length}
+              disabled={(page + 1) * PAGE_SIZE >= sorted.length}
               onClick={() => setPage((p) => p + 1)}
               className="px-3 py-1.5 rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
@@ -370,6 +536,14 @@ function FeeTag({ fee }: { fee: number }) {
   return <span className="text-red-400">{fee.toLocaleString()}</span>;
 }
 
+const STAT_CARD_COLOR: Record<string, string> = {
+  blue:   "text-mempool-blue",
+  green:  "text-green-400",
+  orange: "text-orange-400",
+  red:    "text-red-400",
+  dim:    "text-mempool-text",
+};
+
 function StatCard({
   label,
   value,
@@ -381,13 +555,7 @@ function StatCard({
   sub?: React.ReactNode;
   color: "blue" | "green" | "orange" | "red" | "dim";
 }) {
-  const cls = {
-    blue: "text-mempool-blue",
-    green: "text-green-400",
-    orange: "text-orange-400",
-    red: "text-red-400",
-    dim: "text-mempool-text",
-  }[color];
+  const cls = STAT_CARD_COLOR[color];
   return (
     <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-3">
       <div className={`text-lg font-mono font-bold ${cls}`}>{value}</div>

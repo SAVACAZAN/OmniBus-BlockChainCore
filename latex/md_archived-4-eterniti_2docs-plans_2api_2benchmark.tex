@@ -1,0 +1,597 @@
+\chapter{Module:\+ {\ttfamily benchmark} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark}{}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark}\index{Module: $<$tt$>$benchmark$<$/tt$>$@{Module: $<$tt$>$benchmark$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md723}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md723}%
+
+
+\begin{quote}
+Performance benchmarks — measure hash rate, TX throughput, block validation speed, P2P latency. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+benchmark.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 628 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 22 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 14
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md725}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md725}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md726}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md726}
+
+\begin{DoxyItemize}
+\item \`{}\+Bench\+Result\`{}{\ttfamily Bench\+Result}
+\end{DoxyItemize}— Data structure for bench result. Fields include:\+ name, iterations, total\+\_\+ns, avg...
+\begin{DoxyItemize}
+\item \`{}\+Metrics\`{}{\ttfamily Metrics}
+\end{DoxyItemize}— Data structure for metrics. Fields include:\+ start\+\_\+time, blocks\+\_\+mined, txs\+\_\+proces...
+\begin{DoxyItemize}
+\item \doxylink{namespacebenchmark}{\`{}\+Benchmark\`{}}{\ttfamily Benchmark}
+\end{DoxyItemize}— Data structure representing a benchmark in the benchmark module.\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md727}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md727}
+
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the benchmark module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}start()\`{}{\ttfamily start()}
+\end{DoxyItemize}— Set the start time to now (call at runtime, not comptime)
+\begin{DoxyItemize}
+\item \`{}record\+Tx()\`{}{\ttfamily record\+Tx()}
+\end{DoxyItemize}— Record a processed transaction
+\begin{DoxyItemize}
+\item \`{}record\+Block()\`{}{\ttfamily record\+Block()}
+\end{DoxyItemize}— Record a mined block
+\begin{DoxyItemize}
+\item \`{}record\+Rpc\+Request()\`{}{\ttfamily record\+Rpc\+Request()}
+\end{DoxyItemize}— Record an RPC request
+\begin{DoxyItemize}
+\item \`{}record\+P2p\+Message()\`{}{\ttfamily record\+P2p\+Message()}
+\end{DoxyItemize}— Record a P2P message
+\begin{DoxyItemize}
+\item \`{}update\+Hashrate()\`{}{\ttfamily update\+Hashrate()}
+\end{DoxyItemize}— Update mining hashrate from nonces tried and time taken
+\begin{DoxyItemize}
+\item \`{}current\+Tps()\`{}{\ttfamily current\+Tps()}
+\end{DoxyItemize}— Calculate current TPS from the rolling window (TXs in the last 10 seco...
+\begin{DoxyItemize}
+\item \`{}uptime\+Seconds()\`{}{\ttfamily uptime\+Seconds()}
+\end{DoxyItemize}— Uptime in seconds
+\begin{DoxyItemize}
+\item \`{}avg\+Block\+Time\+Ms()\`{}{\ttfamily avg\+Block\+Time\+Ms()}
+\end{DoxyItemize}— Average block time in ms (blocks\+\_\+mined /\+ uptime)
+\begin{DoxyItemize}
+\item \`{}blocks\+Per\+Minute()\`{}{\ttfamily blocks\+Per\+Minute()}
+\end{DoxyItemize}— Blocks per minute
+\begin{DoxyItemize}
+\item \`{}bench\+Hashing()\`{}{\ttfamily bench\+Hashing()}
+\end{DoxyItemize}— Benchmark SHA256d hashing
+\begin{DoxyItemize}
+\item \`{}bench\+Key\+Gen()\`{}{\ttfamily bench\+Key\+Gen()}
+\end{DoxyItemize}— Benchmark secp256k1 key generation
+\begin{DoxyItemize}
+\item \`{}bench\+Tx\+Validation()\`{}{\ttfamily bench\+Tx\+Validation()}
+\end{DoxyItemize}— Benchmark TX hash calculation (the core of TX validation)
+\begin{DoxyItemize}
+\item \`{}bench\+Tx\+Signing()\`{}{\ttfamily bench\+Tx\+Signing()}
+\end{DoxyItemize}— Benchmark TX creation + signing speed (secp256k1 ECDSA sign)
+\begin{DoxyItemize}
+\item \`{}bench\+Mining()\`{}{\ttfamily bench\+Mining()}
+\end{DoxyItemize}— Benchmark block mining (PoW) — hashes with leading zeros check
+\begin{DoxyItemize}
+\item \`{}bench\+Merkle\+Root()\`{}{\ttfamily bench\+Merkle\+Root()}
+\end{DoxyItemize}— Benchmark merkle root calculation
+\begin{DoxyItemize}
+\item \`{}bench\+Mempool()\`{}{\ttfamily bench\+Mempool()}
+\end{DoxyItemize}— Benchmark mempool add/\+remove throughput
+\begin{DoxyItemize}
+\item \`{}bench\+Hmac\+Sha512()\`{}{\ttfamily bench\+Hmac\+Sha512()}
+\end{DoxyItemize}— Benchmark HMAC-\/\+SHA512 (BIP32 key derivation core)
+\begin{DoxyItemize}
+\item \`{}run\+All()\`{}{\ttfamily run\+All()}
+\end{DoxyItemize}— Run all benchmarks and print results
+\begin{DoxyItemize}
+\item \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_23_831_80_2_compiler_id_c_x_x_2_c_make_c_x_x_compiler_id_8cpp_a0ddf1224851353fc92bfbff6f499fa97}{\`{}main()\`{}}{\ttfamily \doxylink{gui-qt-ada-hybrid_2build_2_c_make_files_2_show_includes_2main_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}{main()}}
+\end{DoxyItemize}— Performs the main operation on the benchmark module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md729}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md729}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md730}{}\doxysubsection{\texorpdfstring{{\ttfamily Bench\+Result}}{{\ttfamily Bench\+Result}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md730}
+Data structure for bench result. Fields include:\+ name, iterations, total\+\_\+ns, avg\+\_\+ns, ops\+\_\+per\+\_\+sec.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+{\ttfamily iterations}  &{\ttfamily u32}  &Iterations  \\
+{\ttfamily total\+\_\+ns}  &{\ttfamily u64}  &Total\+\_\+ns  \\
+{\ttfamily avg\+\_\+ns}  &{\ttfamily u64}  &Avg\+\_\+ns  \\
+{\ttfamily ops\+\_\+per\+\_\+sec}  &{\ttfamily u64}  &Ops\+\_\+per\+\_\+sec  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 16}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md732}{}\doxysubsection{\texorpdfstring{{\ttfamily Metrics}}{{\ttfamily Metrics}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md732}
+Data structure for metrics. Fields include:\+ start\+\_\+time, blocks\+\_\+mined, txs\+\_\+processed, rpc\+\_\+requests, p2p\+\_\+messages.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily start\+\_\+time}  &{\ttfamily i64}  &Start\+\_\+time  \\
+{\ttfamily blocks\+\_\+mined}  &{\ttfamily u64}  &Blocks\+\_\+mined  \\
+{\ttfamily txs\+\_\+processed}  &{\ttfamily u64}  &Txs\+\_\+processed  \\
+{\ttfamily rpc\+\_\+requests}  &{\ttfamily u64}  &Rpc\+\_\+requests  \\
+{\ttfamily p2p\+\_\+messages}  &{\ttfamily u64}  &P2p\+\_\+messages  \\
+{\ttfamily peak\+\_\+tps}  &{\ttfamily u64}  &Peak\+\_\+tps  \\
+{\ttfamily tx\+\_\+timestamps}  &{\ttfamily \+[TX\+\_\+\+TS\+\_\+\+RING\+\_\+\+SIZE]\+i64}  &Tx\+\_\+timestamps  \\
+{\ttfamily tx\+\_\+ts\+\_\+head}  &{\ttfamily u32}  &Tx\+\_\+ts\+\_\+head  \\
+{\ttfamily tx\+\_\+ts\+\_\+count}  &{\ttfamily u32}  &Tx\+\_\+ts\+\_\+count  \\
+{\ttfamily last\+\_\+mining\+\_\+nonces}  &{\ttfamily u64}  &Last\+\_\+mining\+\_\+nonces  \\
+{\ttfamily last\+\_\+mining\+\_\+time\+\_\+ns}  &{\ttfamily u64}  &Last\+\_\+mining\+\_\+time\+\_\+ns  \\
+{\ttfamily hashrate}  &{\ttfamily u64}  &Hashrate  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 38}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md734}{}\doxysubsection{\texorpdfstring{{\ttfamily Benchmark}}{{\ttfamily Benchmark}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md734}
+Data structure representing a benchmark in the benchmark module.
+
+{\itshape Defined at line 157}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md736}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md736}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md737}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md737}
+Performs the print operation on the benchmark module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ BenchResult)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bench\+Result}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 23}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md739}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md739}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ Metrics\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Metrics}
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md741}{}\doxysubsection{\texorpdfstring{{\ttfamily start()}}{{\ttfamily start()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md741}
+Set the start time to now (call at runtime, not comptime)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ start(self:\ *Metrics)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 72}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md743}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+Tx()}}{{\ttfamily record\+Tx()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md743}
+Record a processed transaction
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordTx(self:\ *Metrics)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 77}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md745}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+Block()}}{{\ttfamily record\+Block()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md745}
+Record a mined block
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordBlock(self:\ *Metrics)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 93}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md747}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+Rpc\+Request()}}{{\ttfamily record\+Rpc\+Request()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md747}
+Record an RPC request
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordRpcRequest(self:\ *Metrics)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 98}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md749}{}\doxysubsection{\texorpdfstring{{\ttfamily record\+P2p\+Message()}}{{\ttfamily record\+P2p\+Message()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md749}
+Record a P2P message
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ recordP2pMessage(self:\ *Metrics)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 103}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md751}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Hashrate()}}{{\ttfamily update\+Hashrate()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md751}
+Update mining hashrate from nonces tried and time taken
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateHashrate(self:\ *Metrics,\ nonces:\ u64,\ time\_ns:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Metrics}  &The instance  \\
+{\ttfamily nonces}  &{\ttfamily u64}  &Nonces  \\
+{\ttfamily time\+\_\+ns}  &{\ttfamily u64}  &Time\+\_\+ns  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 108}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md753}{}\doxysubsection{\texorpdfstring{{\ttfamily current\+Tps()}}{{\ttfamily current\+Tps()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md753}
+Calculate current TPS from the rolling window (TXs in the last 10 seconds)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ currentTps(self:\ *const\ Metrics)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 118}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md755}{}\doxysubsection{\texorpdfstring{{\ttfamily uptime\+Seconds()}}{{\ttfamily uptime\+Seconds()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md755}
+Uptime in seconds
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ uptimeSeconds(self:\ *const\ Metrics)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 134}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md757}{}\doxysubsection{\texorpdfstring{{\ttfamily avg\+Block\+Time\+Ms()}}{{\ttfamily avg\+Block\+Time\+Ms()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md757}
+Average block time in ms (blocks\+\_\+mined /\+ uptime)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ avgBlockTimeMs(self:\ *const\ Metrics)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 141}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md759}{}\doxysubsection{\texorpdfstring{{\ttfamily blocks\+Per\+Minute()}}{{\ttfamily blocks\+Per\+Minute()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md759}
+Blocks per minute
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ blocksPerMinute(self:\ *const\ Metrics)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Metrics}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 148}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md761}{}\doxysubsection{\texorpdfstring{{\ttfamily bench\+Hashing()}}{{\ttfamily bench\+Hashing()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md761}
+Benchmark SHA256d hashing
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ benchHashing(iterations:\ u32)\ BenchResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily iterations}  &{\ttfamily u32}  &Iterations  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bench\+Result}
+
+{\itshape Defined at line 159}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md763}{}\doxysubsection{\texorpdfstring{{\ttfamily bench\+Key\+Gen()}}{{\ttfamily bench\+Key\+Gen()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md763}
+Benchmark secp256k1 key generation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ benchKeyGen(iterations:\ u32)\ BenchResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily iterations}  &{\ttfamily u32}  &Iterations  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bench\+Result}
+
+{\itshape Defined at line 183}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md765}{}\doxysubsection{\texorpdfstring{{\ttfamily bench\+Tx\+Validation()}}{{\ttfamily bench\+Tx\+Validation()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md765}
+Benchmark TX hash calculation (the core of TX validation)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ benchTxValidation(iterations:\ u32)\ BenchResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily iterations}  &{\ttfamily u32}  &Iterations  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bench\+Result}
+
+{\itshape Defined at line 206}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md767}{}\doxysubsection{\texorpdfstring{{\ttfamily bench\+Tx\+Signing()}}{{\ttfamily bench\+Tx\+Signing()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md767}
+Benchmark TX creation + signing speed (secp256k1 ECDSA sign)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ benchTxSigning(iterations:\ u32)\ BenchResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily iterations}  &{\ttfamily u32}  &Iterations  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bench\+Result}
+
+{\itshape Defined at line 242}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md769}{}\doxysubsection{\texorpdfstring{{\ttfamily bench\+Mining()}}{{\ttfamily bench\+Mining()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md769}
+Benchmark block mining (PoW) — hashes with leading zeros check
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ benchMining(difficulty:\ u32,\ max\_nonces:\ u64)\ BenchResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacedifficulty}{difficulty}}  &{\ttfamily u32}  &Difficulty  \\
+{\ttfamily max\+\_\+nonces}  &{\ttfamily u64}  &Max\+\_\+nonces  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bench\+Result}
+
+{\itshape Defined at line 272}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md771}{}\doxysubsection{\texorpdfstring{{\ttfamily bench\+Merkle\+Root()}}{{\ttfamily bench\+Merkle\+Root()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md771}
+Benchmark merkle root calculation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ benchMerkleRoot(tx\_count:\ u32)\ BenchResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily tx\+\_\+count}  &{\ttfamily u32}  &Tx\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bench\+Result}
+
+{\itshape Defined at line 312}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md773}{}\doxysubsection{\texorpdfstring{{\ttfamily bench\+Mempool()}}{{\ttfamily bench\+Mempool()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md773}
+Benchmark mempool add/\+remove throughput
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ benchMempool(iterations:\ u32)\ BenchResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily iterations}  &{\ttfamily u32}  &Iterations  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bench\+Result}
+
+{\itshape Defined at line 365}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md775}{}\doxysubsection{\texorpdfstring{{\ttfamily bench\+Hmac\+Sha512()}}{{\ttfamily bench\+Hmac\+Sha512()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md775}
+Benchmark HMAC-\/\+SHA512 (BIP32 key derivation core)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ benchHmacSha512(iterations:\ u32)\ BenchResult\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily iterations}  &{\ttfamily u32}  &Iterations  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bench\+Result}
+
+{\itshape Defined at line 408}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md777}{}\doxysubsection{\texorpdfstring{{\ttfamily run\+All()}}{{\ttfamily run\+All()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md777}
+Run all benchmarks and print results
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ runAll()\ void\ \{}
+
+\end{DoxyCode}
+
+
+{\itshape Defined at line 434}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md779}{}\doxysubsection{\texorpdfstring{{\ttfamily main()}}{{\ttfamily main()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2benchmark_autotoc_md779}
+Performs the main operation on the benchmark module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ main()\ void\ \{}
+
+\end{DoxyCode}
+
+
+{\itshape Defined at line 474}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

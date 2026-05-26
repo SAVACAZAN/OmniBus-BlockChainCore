@@ -1,0 +1,3 @@
+var rpc = try btc_rpc.BtcRpcClient.init(allocator, config);
+const balance = try rpc.getBalance(address);
+const utxos = try rpc.getUtxos(address);

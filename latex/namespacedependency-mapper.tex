@@ -1,0 +1,276 @@
+\doxysection{dependency-\/mapper Namespace Reference}
+\hypertarget{namespacedependency-mapper}{}\label{namespacedependency-mapper}\index{dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacedependency-mapper_a4ad06e4b4f9339ecfeaaebe9db065dca}{scan\+\_\+imports}} (Path filepath)
+\item 
+tuple\+[dict, set]\+ \doxymbox{\hyperlink{namespacedependency-mapper_a521e937760b667355ad3b54158bc8a62}{build\+\_\+graph}} (Path source\+\_\+dir)
+\item 
+list\+[list\+[str]\+]\+ \doxymbox{\hyperlink{namespacedependency-mapper_a22849f25db764f143af3c264451889ed}{find\+\_\+cycles}} (dict graph)
+\item 
+dict \doxymbox{\hyperlink{namespacedependency-mapper_ab679069bfc1c4b9a42619b18b8da6347}{compute\+\_\+stats}} (dict graph, set all\+\_\+modules)
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a73f9bf4ddc6894f9d851b31afd43448f}{generate\+\_\+dot}} (dict graph, set all\+\_\+modules, list cycles)
+\item 
+\doxymbox{\hyperlink{namespacedependency-mapper_a3fec805535123fdab817a87253f848c1}{print\+\_\+adjacency}} (dict graph, dict stats, set all\+\_\+modules)
+\item 
+\doxymbox{\hyperlink{namespacedependency-mapper_ab3684a0b469f7719aaeab2e5d02c343c}{print\+\_\+cycles}} (list cycles)
+\item 
+\doxymbox{\hyperlink{namespacedependency-mapper_a07867ceec30a539b94c8c446ccacad2b}{print\+\_\+summary}} (set all\+\_\+modules, dict graph, dict stats, set external\+\_\+deps)
+\item 
+\doxymbox{\hyperlink{namespacedependency-mapper_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a72be22cb35448430f24b009c2bae04e2}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a31b1c7874ca5739b7f8bad914b75a025}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_aff4520c86a613031eadae3a6fde86f4d}{DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a0eaaf2fbced8003dc5f14cc7b69e8856}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a906f3702fda59e08f15fdf2a75d297f0}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a9f37eb5f8264588bee806e9c59c1a790}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a7cfbc710055cb7fb4a29b0ebcaba9487}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_ae3f5eff9147c6a211b932270155924bb}{MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a1528c1374202e2e66888c7145a5e5e41}{WHITE}} = "{}\textbackslash{}033\+[97m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedependency-mapper_a507557f1792b665edd09947da0d0d37b}{BG\+\_\+\+BLUE}} = "{}\textbackslash{}033\+[44m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacedependency-mapper_doc-func-members}
+\Hypertarget{namespacedependency-mapper_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacedependency-mapper_a521e937760b667355ad3b54158bc8a62}\index{dependency-\/mapper@{dependency-\/mapper}!build\_graph@{build\_graph}}
+\index{build\_graph@{build\_graph}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{build\_graph()}{build\_graph()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a521e937760b667355ad3b54158bc8a62} 
+ tuple\+[dict, set]\+ build\+\_\+graph (\begin{DoxyParamCaption}\item[{Path}]{source\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Build dependency graph.  Returns (graph, all_modules).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacedependency-mapper_ab679069bfc1c4b9a42619b18b8da6347}\index{dependency-\/mapper@{dependency-\/mapper}!compute\_stats@{compute\_stats}}
+\index{compute\_stats@{compute\_stats}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{compute\_stats()}{compute\_stats()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_ab679069bfc1c4b9a42619b18b8da6347} 
+ dict compute\+\_\+stats (\begin{DoxyParamCaption}\item[{dict}]{graph}{, }\item[{set}]{all\+\_\+modules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Compute graph statistics.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00110}{110}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacedependency-mapper_a22849f25db764f143af3c264451889ed}\index{dependency-\/mapper@{dependency-\/mapper}!find\_cycles@{find\_cycles}}
+\index{find\_cycles@{find\_cycles}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{find\_cycles()}{find\_cycles()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a22849f25db764f143af3c264451889ed} 
+ list\+[list\+[str]\+]\+ find\+\_\+cycles (\begin{DoxyParamCaption}\item[{dict}]{graph}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Detect circular dependencies using DFS.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacedependency-mapper_a73f9bf4ddc6894f9d851b31afd43448f}\index{dependency-\/mapper@{dependency-\/mapper}!generate\_dot@{generate\_dot}}
+\index{generate\_dot@{generate\_dot}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{generate\_dot()}{generate\_dot()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a73f9bf4ddc6894f9d851b31afd43448f} 
+ str generate\+\_\+dot (\begin{DoxyParamCaption}\item[{dict}]{graph}{, }\item[{set}]{all\+\_\+modules}{, }\item[{list}]{cycles}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate DOT format for Graphviz.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00131}{131}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacedependency-mapper_a51af30a60f9f02777c6396b8247e356f}\index{dependency-\/mapper@{dependency-\/mapper}!main@{main}}
+\index{main@{main}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00227}{227}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacedependency-mapper_a3fec805535123fdab817a87253f848c1}\index{dependency-\/mapper@{dependency-\/mapper}!print\_adjacency@{print\_adjacency}}
+\index{print\_adjacency@{print\_adjacency}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{print\_adjacency()}{print\_adjacency()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a3fec805535123fdab817a87253f848c1} 
+print\+\_\+adjacency (\begin{DoxyParamCaption}\item[{dict}]{graph}{, }\item[{dict}]{stats}{, }\item[{set}]{all\+\_\+modules}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print adjacency list as table.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00158}{158}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacedependency-mapper_ab3684a0b469f7719aaeab2e5d02c343c}\index{dependency-\/mapper@{dependency-\/mapper}!print\_cycles@{print\_cycles}}
+\index{print\_cycles@{print\_cycles}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{print\_cycles()}{print\_cycles()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_ab3684a0b469f7719aaeab2e5d02c343c} 
+print\+\_\+cycles (\begin{DoxyParamCaption}\item[{list}]{cycles}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print detected cycles.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00191}{191}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespacedependency-mapper_a07867ceec30a539b94c8c446ccacad2b}\index{dependency-\/mapper@{dependency-\/mapper}!print\_summary@{print\_summary}}
+\index{print\_summary@{print\_summary}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{print\_summary()}{print\_summary()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a07867ceec30a539b94c8c446ccacad2b} 
+print\+\_\+summary (\begin{DoxyParamCaption}\item[{set}]{all\+\_\+modules}{, }\item[{dict}]{graph}{, }\item[{dict}]{stats}{, }\item[{set}]{external\+\_\+deps}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Print summary stats.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00204}{204}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacedependency-mapper_a4ad06e4b4f9339ecfeaaebe9db065dca}\index{dependency-\/mapper@{dependency-\/mapper}!scan\_imports@{scan\_imports}}
+\index{scan\_imports@{scan\_imports}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{scan\_imports()}{scan\_imports()}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a4ad06e4b4f9339ecfeaaebe9db065dca} 
+ list\+[str]\+ scan\+\_\+imports (\begin{DoxyParamCaption}\item[{Path}]{filepath}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract @import targets from a .zig file.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+
+
+\label{namespacedependency-mapper_doc-var-members}
+\Hypertarget{namespacedependency-mapper_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacedependency-mapper_a507557f1792b665edd09947da0d0d37b}\index{dependency-\/mapper@{dependency-\/mapper}!BG\_BLUE@{BG\_BLUE}}
+\index{BG\_BLUE@{BG\_BLUE}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{BG\_BLUE}{BG\_BLUE}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a507557f1792b665edd09947da0d0d37b} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+BG\+\_\+\+BLUE = "{}\textbackslash{}033\+[44m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_a31b1c7874ca5739b7f8bad914b75a025}\index{dependency-\/mapper@{dependency-\/mapper}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a31b1c7874ca5739b7f8bad914b75a025} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_a7cfbc710055cb7fb4a29b0ebcaba9487}\index{dependency-\/mapper@{dependency-\/mapper}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a7cfbc710055cb7fb4a29b0ebcaba9487} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_aff4520c86a613031eadae3a6fde86f4d}\index{dependency-\/mapper@{dependency-\/mapper}!DIM@{DIM}}
+\index{DIM@{DIM}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{DIM}{DIM}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_aff4520c86a613031eadae3a6fde86f4d} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+DIM = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00029}{29}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_a906f3702fda59e08f15fdf2a75d297f0}\index{dependency-\/mapper@{dependency-\/mapper}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a906f3702fda59e08f15fdf2a75d297f0} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_ae3f5eff9147c6a211b932270155924bb}\index{dependency-\/mapper@{dependency-\/mapper}!MAGENTA@{MAGENTA}}
+\index{MAGENTA@{MAGENTA}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{MAGENTA}{MAGENTA}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_ae3f5eff9147c6a211b932270155924bb} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+MAGENTA = "{}\textbackslash{}033\+[95m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_a0eaaf2fbced8003dc5f14cc7b69e8856}\index{dependency-\/mapper@{dependency-\/mapper}!RED@{RED}}
+\index{RED@{RED}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a0eaaf2fbced8003dc5f14cc7b69e8856} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_a72be22cb35448430f24b009c2bae04e2}\index{dependency-\/mapper@{dependency-\/mapper}!RESET@{RESET}}
+\index{RESET@{RESET}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a72be22cb35448430f24b009c2bae04e2} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_a1528c1374202e2e66888c7145a5e5e41}\index{dependency-\/mapper@{dependency-\/mapper}!WHITE@{WHITE}}
+\index{WHITE@{WHITE}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{WHITE}{WHITE}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a1528c1374202e2e66888c7145a5e5e41} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+WHITE = "{}\textbackslash{}033\+[97m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+
+\Hypertarget{namespacedependency-mapper_a9f37eb5f8264588bee806e9c59c1a790}\index{dependency-\/mapper@{dependency-\/mapper}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!dependency-\/mapper@{dependency-\/mapper}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacedependency-mapper_a9f37eb5f8264588bee806e9c59c1a790} 
+str \doxymbox{\hyperlink{namespacedependency}{dependency}}-\/mapper.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{dependency-mapper_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{dependency-mapper_8py_source}{dependency-\/mapper.\+py}}.
+

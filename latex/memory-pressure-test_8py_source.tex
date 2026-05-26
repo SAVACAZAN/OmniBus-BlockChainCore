@@ -1,0 +1,345 @@
+\doxysection{memory-\/pressure-\/test.py}
+\hypertarget{memory-pressure-test_8py_source}{}\label{memory-pressure-test_8py_source}\index{tools/PERFORMANCE/memory-\/pressure-\/test.py@{tools/PERFORMANCE/memory-\/pressure-\/test.py}}
+\doxymbox{\hyperlink{memory-pressure-test_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00001}\doxymbox{\hyperlink{namespacememory-pressure-test}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00002}\doxymbox{\hyperlink{namespacememory}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ Memory\ Pressure\ Test.}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00004}00004\ \textcolor{stringliteral}{Sends\ via\ RPC\ (port\ 8332):}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00005}00005\ \textcolor{stringliteral}{\ \ -\/\ Extremely\ long\ string\ params\ (1MB)}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Deeply\ nested\ JSON\ (100\ levels)}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Array\ with\ 100k\ elements}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Binary\ data\ in\ hex\ fields}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00010}00010\ \textcolor{stringliteral}{Checks\ node\ doesn't\ crash\ (ping\ after\ each\ test).}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00011}00011\ \textcolor{stringliteral}{Reports\ which\ inputs\ caused\ errors\ vs\ crashes.}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00012}00012\ \textcolor{stringliteral}{Stdlib\ only\ (http.client).}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00013}00013\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00015}00015\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00016}00016\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00017}00017\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00018}00018\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00019}00019\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00021}00021\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00022}\doxymbox{\hyperlink{namespacememory-pressure-test_af44ba4f1b2c38c18012a79258fcf0d95}{00022}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00023}\doxymbox{\hyperlink{namespacememory-pressure-test_afade89ba3f750a1217df1b1659149c68}{00023}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00024}\doxymbox{\hyperlink{namespacememory-pressure-test_aa48d9e89d2dcf18ba441980c4c56586f}{00024}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00025}\doxymbox{\hyperlink{namespacememory-pressure-test_a476e9d9da80fc63b88085112a95d9f49}{00025}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00026}\doxymbox{\hyperlink{namespacememory-pressure-test_a45099a22307b16936e53d6e364c57f4c}{00026}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00027}\doxymbox{\hyperlink{namespacememory-pressure-test_acd8011aa911661b6e2c6d4121904106e}{00027}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00029}00029\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00030}\doxymbox{\hyperlink{namespacememory-pressure-test_a080dd91078b84d448eddfc018d71ace7}{00030}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00031}\doxymbox{\hyperlink{namespacememory-pressure-test_aa8ebe05d5802582e9fbf9023e0880b37}{00031}}\ P2P\_PORT\ =\ 9000}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00032}\doxymbox{\hyperlink{namespacememory-pressure-test_aaf3fe821bd550cf27edc0e48ebe53780}{00032}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00033}\doxymbox{\hyperlink{namespacememory-pressure-test_a664ddd0e2c3f002eafa03b377a1948d7}{00033}}\ SUB\_BLOCKS\_PER\_BLOCK\ =\ 10\ \ \textcolor{comment}{\#\ 10\ x\ 0.1s}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00034}\doxymbox{\hyperlink{namespacememory-pressure-test_aca2361103cc86e4ac485d921f59a6a21}{00034}}\ MAX\_SUPPLY\ =\ 21\_000\_000}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00035}\doxymbox{\hyperlink{namespacememory-pressure-test_a29d0bf2ffbd12d8fff89610d15659549}{00035}}\ SAT\ =\ int(1e9)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00036}\doxymbox{\hyperlink{namespacememory-pressure-test_a9b613786b134d30221637400b030561b}{00036}}\ BLOCK\_REWARD\ =\ 50}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00037}\doxymbox{\hyperlink{namespacememory-pressure-test_aac05f9374903ed4fe78d17bbf053b4a2}{00037}}\ HALVING\_INTERVAL\ =\ 210\_000}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00038}\doxymbox{\hyperlink{namespacememory-pressure-test_a00e37e61cfeed9dcb2f3356104f8ca3a}{00038}}\ CHAIN\_DATA\ =\ \textcolor{stringliteral}{"{}omnibus-\/chain.dat"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00041}\doxymbox{\hyperlink{namespacememory-pressure-test_a3288633b2590c47ad281f4f6c81b6a4a}{00041}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_a3288633b2590c47ad281f4f6c81b6a4a}{rpc\_raw}}(host:\ str,\ port:\ int,\ payload:\ str,\ timeout:\ int\ =\ 10)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00042}00042\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ raw\ JSON\ payload\ to\ RPC."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00043}00043\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload,\ \{}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Content-\/Length"{}}:\ str(len(payload)),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ status\ =\ resp.status}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ data\ =\ resp.read().decode(\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ status,\ \textcolor{stringliteral}{"{}body"{}}:\ data[:1000],\ \textcolor{stringliteral}{"{}crashed"{}}:\ \textcolor{keyword}{False}\}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00054}00054\ \ \ \ \ \textcolor{keywordflow}{except}\ (ConnectionRefusedError,\ ConnectionResetError,\ BrokenPipeError):}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ 0,\ \textcolor{stringliteral}{"{}body"{}}:\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{stringliteral}{"{}crashed"{}}:\ \textcolor{keyword}{True}\}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ 0,\ \textcolor{stringliteral}{"{}body"{}}:\ str(exc),\ \textcolor{stringliteral}{"{}crashed"{}}:\ \textcolor{stringliteral}{"{}refused"{}}\ \textcolor{keywordflow}{in}\ str(exc).lower()\}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00060}\doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{00060}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{ping\_node}}(host:\ str,\ port:\ int)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00061}00061\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Verify\ node\ is\ alive\ with\ a\ simple\ getblockcount."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00062}00062\ \ \ \ \ payload\ =\ json.dumps(\{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,\ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}getblockcount"{}},\ \textcolor{stringliteral}{"{}params"{}}:\ []\})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00063}00063\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=5)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload,\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ resp.read()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.status\ \textcolor{keywordflow}{in}\ (200,\ 400,\ 500)\ \ \textcolor{comment}{\#\ Any\ HTTP\ response\ =\ alive}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00074}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result}{00074}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result}{TestResult}}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00075}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a5c9840bdbb3b239bb751925a9b05da23}{00075}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a5c9840bdbb3b239bb751925a9b05da23}{\_\_init\_\_}}(self,\ name:\ str,\ description:\ str):}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00076}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a83d42b43f063eb1252d35a2696ca2308}{00076}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a83d42b43f063eb1252d35a2696ca2308}{name}}\ =\ name}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00077}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a7156e1d765f77c49311d48e7f7e17ffd}{00077}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a7156e1d765f77c49311d48e7f7e17ffd}{description}}\ =\ description}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00078}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_af52f037c49b71def227b3fc4d5eee74e}{00078}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_af52f037c49b71def227b3fc4d5eee74e}{response\_status}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00079}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_af5a52b0a73956be8535848231695bd9f}{00079}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_af5a52b0a73956be8535848231695bd9f}{response\_body}}\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00080}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_aa6ade3615dc0e2ac9b36b3dfe336ad8c}{00080}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_aa6ade3615dc0e2ac9b36b3dfe336ad8c}{node\_alive\_after}}\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00081}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_ac443db14b45c4f2100d8930f03ebcb21}{00081}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_ac443db14b45c4f2100d8930f03ebcb21}{error\_type}}\ =\ \textcolor{stringliteral}{"{}none"{}}\ \ \textcolor{comment}{\#\ none,\ error\_response,\ crash,\ timeout}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00082}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a1effad3061155de62ec3bbf4fcf60894}{00082}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a1effad3061155de62ec3bbf4fcf60894}{elapsed\_ms}}\ =\ 0}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00084}\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a57c23651ea566d1a6fd28fe29338f09c}{00084}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a57c23651ea566d1a6fd28fe29338f09c}{to\_dict}}(self):}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}name"{}}:\ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a83d42b43f063eb1252d35a2696ca2308}{name}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}description"{}}:\ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a7156e1d765f77c49311d48e7f7e17ffd}{description}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}response\_status"{}}:\ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_af52f037c49b71def227b3fc4d5eee74e}{response\_status}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}error\_type"{}}:\ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_ac443db14b45c4f2100d8930f03ebcb21}{error\_type}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}node\_alive\_after"{}}:\ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_aa6ade3615dc0e2ac9b36b3dfe336ad8c}{node\_alive\_after}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}elapsed\_ms"{}}:\ self.\doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result_a1effad3061155de62ec3bbf4fcf60894}{elapsed\_ms}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00095}\doxymbox{\hyperlink{namespacememory-pressure-test_a4123a20ad0b5345984b68159ff5b183a}{00095}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_a4123a20ad0b5345984b68159ff5b183a}{test\_long\_string}}(host:\ str,\ port:\ int)\ -\/>\ TestResult:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00096}00096\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ 1MB\ string\ parameter."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00097}00097\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result}{TestResult}}(\textcolor{stringliteral}{"{}long\_string\_1mb"{}},\ \textcolor{stringliteral}{"{}1MB\ string\ in\ JSON-\/RPC\ params"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00098}00098\ \ \ \ \ long\_str\ =\ \textcolor{stringliteral}{"{}A"{}}\ *\ (1024\ *\ 1024)\ \ \textcolor{comment}{\#\ 1MB}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00099}00099\ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}getblock"{}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ [long\_str],}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00103}00103\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00105}00105\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00106}00106\ \ \ \ \ resp\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a3288633b2590c47ad281f4f6c81b6a4a}{rpc\_raw}}(host,\ port,\ payload,\ timeout=30)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00107}00107\ \ \ \ \ result.elapsed\_ms\ =\ round((time.time()\ -\/\ t0)\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00108}00108\ \ \ \ \ result.response\_status\ =\ resp[\textcolor{stringliteral}{"{}status"{}}]}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00109}00109\ \ \ \ \ result.response\_body\ =\ resp[\textcolor{stringliteral}{"{}body"{}}]}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00111}00111\ \ \ \ \ \textcolor{keywordflow}{if}\ resp[\textcolor{stringliteral}{"{}crashed"{}}]:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}crash"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ result.node\_alive\_after\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00114}00114\ \ \ \ \ \textcolor{keywordflow}{elif}\ resp[\textcolor{stringliteral}{"{}status"{}}]\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}timeout"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00116}00116\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}error\_response"{}}\ \ \textcolor{comment}{\#\ Expected:\ node\ rejects\ gracefully}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00119}00119\ \ \ \ \ \textcolor{comment}{\#\ Verify\ alive}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00120}00120\ \ \ \ \ time.sleep(0.5)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00121}00121\ \ \ \ \ result.node\_alive\_after\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{ping\_node}}(host,\ port)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00122}00122\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00125}\doxymbox{\hyperlink{namespacememory-pressure-test_a52473338b7b19334b11f6a7cf1e80a78}{00125}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_a52473338b7b19334b11f6a7cf1e80a78}{test\_deeply\_nested\_json}}(host:\ str,\ port:\ int)\ -\/>\ TestResult:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00126}00126\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ 100-\/level\ nested\ JSON."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00127}00127\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result}{TestResult}}(\textcolor{stringliteral}{"{}nested\_json\_100"{}},\ \textcolor{stringliteral}{"{}100-\/level\ deep\ nested\ JSON"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00129}00129\ \ \ \ \ \textcolor{comment}{\#\ Build\ nested\ structure\ manually\ (json.dumps\ might\ be\ slow)}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00130}00130\ \ \ \ \ inner\ =\ \textcolor{stringliteral}{'"{}deep"{}'}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00131}00131\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(100):}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ inner\ =\ \textcolor{stringliteral}{'\{"{}level"{}:\ '}\ +\ inner\ +\ \textcolor{stringliteral}{'\}'}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00134}00134\ \ \ \ \ payload\ =\ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,"{}method"{}:"{}echo"{},"{}params"{}:['}\ +\ inner\ +\ \textcolor{stringliteral}{']\}'}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00136}00136\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00137}00137\ \ \ \ \ resp\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a3288633b2590c47ad281f4f6c81b6a4a}{rpc\_raw}}(host,\ port,\ payload,\ timeout=15)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00138}00138\ \ \ \ \ result.elapsed\_ms\ =\ round((time.time()\ -\/\ t0)\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00139}00139\ \ \ \ \ result.response\_status\ =\ resp[\textcolor{stringliteral}{"{}status"{}}]}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{if}\ resp[\textcolor{stringliteral}{"{}crashed"{}}]:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}crash"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00143}00143\ \ \ \ \ \textcolor{keywordflow}{elif}\ resp[\textcolor{stringliteral}{"{}status"{}}]\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}timeout"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}error\_response"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00148}00148\ \ \ \ \ time.sleep(0.5)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00149}00149\ \ \ \ \ result.node\_alive\_after\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{ping\_node}}(host,\ port)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00153}\doxymbox{\hyperlink{namespacememory-pressure-test_a4664e444f4c1a6beb3da3280085e5e25}{00153}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_a4664e444f4c1a6beb3da3280085e5e25}{test\_large\_array}}(host:\ str,\ port:\ int)\ -\/>\ TestResult:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00154}00154\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ array\ with\ 100k\ elements."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00155}00155\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result}{TestResult}}(\textcolor{stringliteral}{"{}large\_array\_100k"{}},\ \textcolor{stringliteral}{"{}Array\ with\ 100,000\ elements\ in\ params"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00157}00157\ \ \ \ \ elements\ =\ \textcolor{stringliteral}{"{},"{}}.join(str(i)\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(100\_000))}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00158}00158\ \ \ \ \ payload\ =\ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,"{}method"{}:"{}batch"{},"{}params"{}:[['}\ +\ elements\ +\ \textcolor{stringliteral}{']]\}'}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00159}00159\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00160}00160\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00161}00161\ \ \ \ \ resp\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a3288633b2590c47ad281f4f6c81b6a4a}{rpc\_raw}}(host,\ port,\ payload,\ timeout=30)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00162}00162\ \ \ \ \ result.elapsed\_ms\ =\ round((time.time()\ -\/\ t0)\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00163}00163\ \ \ \ \ result.response\_status\ =\ resp[\textcolor{stringliteral}{"{}status"{}}]}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00165}00165\ \ \ \ \ \textcolor{keywordflow}{if}\ resp[\textcolor{stringliteral}{"{}crashed"{}}]:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}crash"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00167}00167\ \ \ \ \ \textcolor{keywordflow}{elif}\ resp[\textcolor{stringliteral}{"{}status"{}}]\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}timeout"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00169}00169\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}error\_response"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00172}00172\ \ \ \ \ time.sleep(0.5)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00173}00173\ \ \ \ \ result.node\_alive\_after\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{ping\_node}}(host,\ port)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00174}00174\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00177}\doxymbox{\hyperlink{namespacememory-pressure-test_ab09a14e25d926373e89134b536f04ceb}{00177}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_ab09a14e25d926373e89134b536f04ceb}{test\_binary\_hex}}(host:\ str,\ port:\ int)\ -\/>\ TestResult:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00178}00178\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ large\ binary\ data\ encoded\ as\ hex."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00179}00179\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result}{TestResult}}(\textcolor{stringliteral}{"{}binary\_hex\_500k"{}},\ \textcolor{stringliteral}{"{}500KB\ of\ hex\ data\ in\ sendrawtransaction"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00181}00181\ \ \ \ \ \textcolor{keyword}{import}\ secrets}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00182}00182\ \ \ \ \ hex\_data\ =\ secrets.token\_hex(500\_000)\ \ \textcolor{comment}{\#\ 500KB\ =\ 1M\ hex\ chars}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00183}00183\ \ \ \ \ payload\ =\ json.dumps(\{}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}sendrawtransaction"{}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ [hex\_data],}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00187}00187\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00189}00189\ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00190}00190\ \ \ \ \ resp\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a3288633b2590c47ad281f4f6c81b6a4a}{rpc\_raw}}(host,\ port,\ payload,\ timeout=30)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00191}00191\ \ \ \ \ result.elapsed\_ms\ =\ round((time.time()\ -\/\ t0)\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00192}00192\ \ \ \ \ result.response\_status\ =\ resp[\textcolor{stringliteral}{"{}status"{}}]}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00194}00194\ \ \ \ \ \textcolor{keywordflow}{if}\ resp[\textcolor{stringliteral}{"{}crashed"{}}]:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}crash"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00196}00196\ \ \ \ \ \textcolor{keywordflow}{elif}\ resp[\textcolor{stringliteral}{"{}status"{}}]\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}timeout"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00198}00198\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}error\_response"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00201}00201\ \ \ \ \ time.sleep(0.5)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00202}00202\ \ \ \ \ result.node\_alive\_after\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{ping\_node}}(host,\ port)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00203}00203\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00206}\doxymbox{\hyperlink{namespacememory-pressure-test_a104da041a907434a508a2a2237a647ca}{00206}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_a104da041a907434a508a2a2237a647ca}{test\_malformed\_json}}(host:\ str,\ port:\ int)\ -\/>\ TestResult:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00207}00207\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ malformed\ JSON."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00208}00208\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result}{TestResult}}(\textcolor{stringliteral}{"{}malformed\_json"{}},\ \textcolor{stringliteral}{"{}Invalid\ JSON\ (truncated,\ wrong\ encoding)"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00210}00210\ \ \ \ \ payloads\ =\ [}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,"{}method"{}:"{}get'},\ \ \textcolor{comment}{\#\ truncated}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\(\backslash\)x00\(\backslash\)x01\(\backslash\)x02\(\backslash\)x03\(\backslash\)xff\(\backslash\)xfe'},\ \ \textcolor{comment}{\#\ binary\ garbage}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,'}\ +\ \textcolor{stringliteral}{'"{}'}\ *\ 50000,\ \ \textcolor{comment}{\#\ quote\ flood}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:'}\ +\ \textcolor{stringliteral}{'9'}\ *\ 100000\ +\ \textcolor{stringliteral}{'\}'},\ \ \textcolor{comment}{\#\ huge\ number}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00215}00215\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00217}00217\ \ \ \ \ worst\_type\ =\ \textcolor{stringliteral}{"{}none"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00218}00218\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ payload\ \textcolor{keywordflow}{in}\ enumerate(payloads):}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ resp\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a3288633b2590c47ad281f4f6c81b6a4a}{rpc\_raw}}(host,\ port,\ payload,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ elapsed\ =\ (time.time()\ -\/\ t0)\ *\ 1000}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ resp[\textcolor{stringliteral}{"{}crashed"{}}]:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ worst\_type\ =\ \textcolor{stringliteral}{"{}crash"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ resp[\textcolor{stringliteral}{"{}status"{}}]\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ worst\_type\ =\ \textcolor{stringliteral}{"{}timeout"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ time.sleep(0.2)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00230}00230\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00231}00231\ \ \ \ \ result.error\_type\ =\ worst\_type\ \textcolor{keywordflow}{if}\ worst\_type\ !=\ \textcolor{stringliteral}{"{}none"{}}\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}error\_response"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00232}00232\ \ \ \ \ result.elapsed\_ms\ =\ round(elapsed)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00233}00233\ \ \ \ \ result.node\_alive\_after\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{ping\_node}}(host,\ port)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00234}00234\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00237}\doxymbox{\hyperlink{namespacememory-pressure-test_afaed78cc70c942916994c984c7f83ff4}{00237}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_afaed78cc70c942916994c984c7f83ff4}{test\_zero\_content\_length}}(host:\ str,\ port:\ int)\ -\/>\ TestResult:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00238}00238\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Send\ with\ Content-\/Length:\ 0\ but\ non-\/empty\ body."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00239}00239\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{classmemory-pressure-test_1_1_test_result}{TestResult}}(\textcolor{stringliteral}{"{}zero\_content\_length"{}},\ \textcolor{stringliteral}{"{}Content-\/Length:0\ with\ non-\/empty\ body"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00241}00241\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ body\ =\ \textcolor{stringliteral}{'\{"{}jsonrpc"{}:"{}2.0"{},"{}id"{}:1,"{}method"{}:"{}getblockcount"{}\}'}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ body,\ \{}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Content-\/Length"{}}:\ \textcolor{stringliteral}{"{}0"{}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ t0\ =\ time.time()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00249}00249\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ resp.read()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ result.elapsed\_ms\ =\ round((time.time()\ -\/\ t0)\ *\ 1000)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ result.response\_status\ =\ resp.status}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}error\_response"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00255}00255\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ result.error\_type\ =\ \textcolor{stringliteral}{"{}timeout"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00257}00257\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00258}00258\ \ \ \ \ result.node\_alive\_after\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{ping\_node}}(host,\ port)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00259}00259\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00260}00260\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00262}\doxymbox{\hyperlink{namespacememory-pressure-test_a51af30a60f9f02777c6396b8247e356f}{00262}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacememory-pressure-test_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00263}00263\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ Memory\ Pressure\ Test"{}}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00265}00265\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00266}00266\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}RPC\ host"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00267}00267\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=RPC\_PORT,\ help=f\textcolor{stringliteral}{"{}RPC\ port\ (default:\ \{RPC\_PORT\})"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00268}00268\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00269}00269\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00271}00271\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00272}00272\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ Memory\ Pressure\ Test"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00273}00273\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Target:\ \{args.host\}:\{args.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00274}00274\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Chain\ data:\ \{CHAIN\_DATA\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00275}00275\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Max\ supply:\ \{MAX\_SUPPLY:,\}\ OMNI\ (\{SAT\}\ SAT/OMNI)"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00276}00276\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00278}00278\ \ \ \ \ \textcolor{comment}{\#\ Preflight}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00279}00279\ \ \ \ \ alive\ =\ \doxymbox{\hyperlink{namespacememory-pressure-test_a4d045a8207f81ec6076cabd7f7ce46dc}{ping\_node}}(args.host,\ args.port)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00280}00280\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ alive:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[ERROR]\ Node\ not\ responding\ at\ \{args.host\}:\{args.port\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ args.json:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00285}00285\ \ \ \ \ tests\ =\ [}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}1MB\ string\ param"{}},\ test\_long\_string),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}100-\/level\ nested\ JSON"{}},\ test\_deeply\_nested\_json),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}100k\ element\ array"{}},\ test\_large\_array),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}500KB\ hex\ binary"{}},\ test\_binary\_hex),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Malformed\ JSON"{}},\ test\_malformed\_json),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ (\textcolor{stringliteral}{"{}Zero\ Content-\/Length"{}},\ test\_zero\_content\_length),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00292}00292\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00294}00294\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00295}00295\ \ \ \ \ any\_crash\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00297}00297\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ test\_fn\ \textcolor{keywordflow}{in}\ tests:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[TEST]\ \{name\}\ ...\{RESET\}"{}},\ end=\textcolor{stringliteral}{"{}\ "{}},\ flush=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ result\ =\ test\_fn(args.host,\ args.port)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ results.append(result)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00301}00301\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ result.node\_alive\_after:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ any\_crash\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}CRASH!\ Node\ died!\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}\ \ Stopping\ further\ tests\ —\ node\ is\ down\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ result.error\_type\ ==\ \textcolor{stringliteral}{"{}timeout"{}}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}TIMEOUT\ (\{result.elapsed\_ms\}ms)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}OK\ —\ graceful\ error\ (\{result.elapsed\_ms\}ms)\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00311}00311\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00312}00312\ \ \ \ \ \textcolor{comment}{\#\ Build\ report}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00313}00313\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target"{}}:\ f\textcolor{stringliteral}{"{}\{args.host\}:\{args.port\}"{}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ [r.to\_dict()\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results],}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crashes"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ r.node\_alive\_after),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timeouts"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r.error\_type\ ==\ \textcolor{stringliteral}{"{}timeout"{}}),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}graceful\_errors"{}}:\ sum(1\ \textcolor{keywordflow}{for}\ r\ \textcolor{keywordflow}{in}\ results\ \textcolor{keywordflow}{if}\ r.error\_type\ ==\ \textcolor{stringliteral}{"{}error\_response"{}}),}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}verdict"{}}:\ \textcolor{stringliteral}{"{}FAIL\ —\ NODE\ CRASHED"{}}\ \textcolor{keywordflow}{if}\ any\_crash\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}PASS"{}},}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00320}00320\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00322}00322\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00324}00324\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00325}00325\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ RESULTS"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Tests\ run:\ \ \ \ \ \ \ \{len(results)\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00329}00329\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Crashes:\ \ \ \ \ \ \ \ \ \{RED\}\{report['crashes']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00330}00330\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Timeouts:\ \ \ \ \ \ \ \ \{YELLOW\}\{report['timeouts']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00331}00331\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Graceful:\ \ \ \ \ \ \ \ \{GREEN\}\{report['graceful\_errors']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00332}00332\ \ \ \ \ \ \ \ \ vc\ =\ GREEN\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ any\_crash\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00333}00333\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Verdict:\ \ \ \ \ \ \ \ \ \{vc\}\{BOLD\}\{report['verdict']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00335}00335\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ any\_crash\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00336}00336\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00337}00337\ }
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00338}00338\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{memory-pressure-test_8py_source_l00339}00339\ \ \ \ \ \doxymbox{\hyperlink{namespacememory-pressure-test_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

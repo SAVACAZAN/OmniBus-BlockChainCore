@@ -1,0 +1,58 @@
+\doxysection{Status\+Bar.\+cpp}
+\hypertarget{_status_bar_8cpp_source}{}\label{_status_bar_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/StatusBar.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/StatusBar.cpp}}
+\doxymbox{\hyperlink{_status_bar_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_status_bar_8h}{widgets/StatusBar.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00003}00003\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00005}\doxymbox{\hyperlink{classomni_1_1_status_bar_a4c65b15692b2a46cbf65ca72a30aacfd}{00005}}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a4c65b15692b2a46cbf65ca72a30aacfd}{StatusBar::StatusBar}}(QWidget*\ parent)}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00006}00006\ \ \ \ \ :\ QStatusBar(parent)}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00007}00007\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00008}00008\ \ \ \ \ m\_heightLabel\ \ \ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Block:\ 0"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00009}00009\ \ \ \ \ m\_peersLabel\ \ \ \ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Peers:\ 0"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00010}00010\ \ \ \ \ m\_wsIndicator\ \ \ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}WS"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00011}00011\ \ \ \ \ m\_syncLabel\ \ \ \ \ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}Sync:\ -\/-\/"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00012}00012\ \ \ \ \ m\_lastBlockLabel\ =\ \textcolor{keyword}{new}\ QLabel(\textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00014}00014\ \ \ \ \ m\_wsIndicator-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#d94a4a;\ font-\/weight:\ bold;"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00016}00016\ \ \ \ \ addWidget(m\_heightLabel);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00017}00017\ \ \ \ \ addWidget(m\_peersLabel);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00018}00018\ \ \ \ \ addWidget(m\_wsIndicator);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00019}00019\ \ \ \ \ addWidget(m\_syncLabel);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00020}00020\ \ \ \ \ addPermanentWidget(m\_lastBlockLabel);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00021}00021\ \}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00023}\doxymbox{\hyperlink{classomni_1_1_status_bar_a296314cd9a1ebb174f7703b9a0134776}{00023}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a296314cd9a1ebb174f7703b9a0134776}{StatusBar::setBlockHeight}}(\textcolor{keywordtype}{int}\ height)\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00024}00024\ \ \ \ \ m\_heightLabel-\/>setText(QString(\textcolor{stringliteral}{"{}Block:\ \%1"{}}).arg(height));}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00025}00025\ \}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00027}\doxymbox{\hyperlink{classomni_1_1_status_bar_a87d41a209be2898517504f4aadb2634d}{00027}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a87d41a209be2898517504f4aadb2634d}{StatusBar::setPeerCount}}(\textcolor{keywordtype}{int}\ count)\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00028}00028\ \ \ \ \ m\_peersLabel-\/>setText(QString(\textcolor{stringliteral}{"{}Peers:\ \%1"{}}).arg(count));}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00029}00029\ \}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00031}\doxymbox{\hyperlink{classomni_1_1_status_bar_a2953b5d0c1ae55eacab9b674c1b8b661}{00031}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a2953b5d0c1ae55eacab9b674c1b8b661}{StatusBar::setWsConnected}}(\textcolor{keywordtype}{bool}\ connected)\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00032}00032\ \ \ \ \ \textcolor{keywordflow}{if}\ (connected)\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00033}00033\ \ \ \ \ \ \ \ \ m\_wsIndicator-\/>setText(\textcolor{stringliteral}{"{}WS:\ Connected"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00034}00034\ \ \ \ \ \ \ \ \ m\_wsIndicator-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#00b3a4;\ font-\/weight:\ bold;"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00035}00035\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00036}00036\ \ \ \ \ \ \ \ \ m\_wsIndicator-\/>setText(\textcolor{stringliteral}{"{}WS:\ Disconnected"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00037}00037\ \ \ \ \ \ \ \ \ m\_wsIndicator-\/>setStyleSheet(\textcolor{stringliteral}{"{}color:\ \#d94a4a;\ font-\/weight:\ bold;"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00038}00038\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00039}00039\ \}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00041}\doxymbox{\hyperlink{classomni_1_1_status_bar_a957745c9d8265dff179004f5ef32ad3a}{00041}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a957745c9d8265dff179004f5ef32ad3a}{StatusBar::setSyncPercent}}(\textcolor{keywordtype}{double}\ pct)\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00042}00042\ \ \ \ \ \textcolor{keywordflow}{if}\ (pct\ >=\ 100.0)}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00043}00043\ \ \ \ \ \ \ \ \ m\_syncLabel-\/>setText(\textcolor{stringliteral}{"{}Synced"{}});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00044}00044\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00045}00045\ \ \ \ \ \ \ \ \ m\_syncLabel-\/>setText(QString(\textcolor{stringliteral}{"{}Sync:\ \%1\%"{}}).arg(pct,\ 0,\ \textcolor{charliteral}{'f'},\ 1));}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00046}00046\ \}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00048}\doxymbox{\hyperlink{classomni_1_1_status_bar_af8b6d7c91bf9a5bfdba2a92e78448dcc}{00048}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_af8b6d7c91bf9a5bfdba2a92e78448dcc}{StatusBar::setLastBlockTime}}(\textcolor{keyword}{const}\ QString\&\ time)\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00049}00049\ \ \ \ \ m\_lastBlockLabel-\/>setText(time.isEmpty()\ ?\ \textcolor{stringliteral}{"{}"{}}\ :\ \textcolor{stringliteral}{"{}Last\ block:\ "{}}\ +\ time);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00050}00050\ \}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8cpp_source_l00052}00052\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

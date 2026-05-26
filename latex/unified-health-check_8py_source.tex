@@ -1,0 +1,152 @@
+\doxysection{unified-\/health-\/check.py}
+\hypertarget{unified-health-check_8py_source}{}\label{unified-health-check_8py_source}\index{scripts/cross/unified-\/health-\/check.py@{scripts/cross/unified-\/health-\/check.py}}
+\doxymbox{\hyperlink{unified-health-check_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00001}\doxymbox{\hyperlink{namespaceunified-health-check}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00002}\doxymbox{\hyperlink{namespaceunified}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00003}00003\ \textcolor{stringliteral}{unified-\/health-\/check.py}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00005}00005\ \textcolor{stringliteral}{Check\ the\ health\ of\ both\ OmniBus\ projects:}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ BlockChainCore\ Zig\ node\ (RPC\ port\ 8332)}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ aweb3\ Liberty\ Solidity\ contracts\ (RPC\ port\ 8545)}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00008}00008\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00009}00009\ \textcolor{stringliteral}{Outputs:\ unified-\/health.json}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00010}00010\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00012}00012\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00013}00013\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00014}00014\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00015}00015\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00016}00016\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00017}00017\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00018}00018\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00020}00020\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00022}\doxymbox{\hyperlink{namespaceunified-health-check_a3571c8742056f6908ce8c52234f7b0c2}{00022}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00023}\doxymbox{\hyperlink{namespaceunified-health-check_a032ca73738fab1ec6fd6e9206368890c}{00023}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00024}\doxymbox{\hyperlink{namespaceunified-health-check_ade001ce0bc83165688e69ee9fbaf2643}{00024}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00025}\doxymbox{\hyperlink{namespaceunified-health-check_a30f2515d5a238a202c1679fae5cb6b24}{00025}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00026}\doxymbox{\hyperlink{namespaceunified-health-check_a956b873fbf9e9a3b6d9be87676917b08}{00026}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00029}\doxymbox{\hyperlink{namespaceunified-health-check_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00029}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceunified-health-check_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00030}00030\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00033}\doxymbox{\hyperlink{namespaceunified-health-check_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00033}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceunified-health-check_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00034}00034\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00037}\doxymbox{\hyperlink{namespaceunified-health-check_abf994b8269849d29e07697ea8a840f74}{00037}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceunified-health-check_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00038}00038\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00041}\doxymbox{\hyperlink{namespaceunified-health-check_adf0e2aa4d06b5ca38e44721821eca783}{00041}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceunified-health-check_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00042}00042\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00045}00045\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00046}00046\ \textcolor{comment}{\#\ Health\ checkers}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00047}00047\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00048}\doxymbox{\hyperlink{namespaceunified-health-check_a8827e587bc8b38ab920fe11a76de7aa1}{00048}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceunified-health-check_a8827e587bc8b38ab920fe11a76de7aa1}{check\_zig\_node}}(url:\ str,\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00049}00049\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ auth=auth,\ timeout=10.0)}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ data\ =\ resp.json()}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ result\ =\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ result:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}healthy"{}},}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}blocks"{}}:\ result.get(\textcolor{stringliteral}{"{}blocks"{}}),}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}headers"{}}:\ result.get(\textcolor{stringliteral}{"{}headers"{}}),}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bestblockhash"{}}:\ result.get(\textcolor{stringliteral}{"{}bestblockhash"{}}),}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}difficulty"{}}:\ result.get(\textcolor{stringliteral}{"{}difficulty"{}}),}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}unhealthy"{}},\ \textcolor{stringliteral}{"{}error"{}}:\ data.get(\textcolor{stringliteral}{"{}error"{}})\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00063}00063\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}unreachable"{}},\ \textcolor{stringliteral}{"{}error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00067}\doxymbox{\hyperlink{namespaceunified-health-check_a3bea94fd81e873b15c66703b48e0c390}{00067}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceunified-health-check_a3bea94fd81e873b15c66703b48e0c390}{check\_eth\_node}}(url:\ str)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00068}00068\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}eth\_blockNumber"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ timeout=10.0)}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ data\ =\ resp.json()}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ result\ =\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ result:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}healthy"{}},\ \textcolor{stringliteral}{"{}block\_number"{}}:\ result\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}unhealthy"{}},\ \textcolor{stringliteral}{"{}error"{}}:\ data.get(\textcolor{stringliteral}{"{}error"{}})\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}unreachable"{}},\ \textcolor{stringliteral}{"{}error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00080}\doxymbox{\hyperlink{namespaceunified-health-check_a9771031822e1161114b3dbba489fc032}{00080}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceunified-health-check_a9771031822e1161114b3dbba489fc032}{check\_eth\_net\_version}}(url:\ str)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00081}00081\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}net\_version"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00082}00082\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ timeout=10.0)}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ data\ =\ resp.json()}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ result\ =\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}healthy"{}},\ \textcolor{stringliteral}{"{}net\_version"{}}:\ result\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}unreachable"{}},\ \textcolor{stringliteral}{"{}error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00091}00091\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00092}00092\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00093}00093\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00094}\doxymbox{\hyperlink{namespaceunified-health-check_a7431cb90017e54fe695b23d4190db046}{00094}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceunified-health-check_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00095}00095\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Unified\ health\ check\ for\ OmniBus\ ecosystem."{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00096}00096\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/rpc"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}},\ help=\textcolor{stringliteral}{"{}BlockChainCore\ RPC"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00097}00097\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/eth-\/rpc"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8545"{}},\ help=\textcolor{stringliteral}{"{}aweb3\ /\ Liberty\ RPC"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00098}00098\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Zig\ RPC\ user"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00099}00099\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Zig\ RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00100}00100\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}scripts/cross/unified-\/health.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00101}00101\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00103}00103\ \ \ \ \ zig\_auth\ =\ (args.zig\_user,\ args.zig\_password)\ \textcolor{keywordflow}{if}\ args.zig\_user\ \textcolor{keywordflow}{or}\ args.zig\_password\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00105}00105\ \ \ \ \ \doxymbox{\hyperlink{namespaceunified-health-check_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Checking\ BlockChainCore\ Zig\ node\ …"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00106}00106\ \ \ \ \ zig\_health\ =\ \doxymbox{\hyperlink{namespaceunified-health-check_a8827e587bc8b38ab920fe11a76de7aa1}{check\_zig\_node}}(args.zig\_rpc,\ zig\_auth)}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{if}\ zig\_health[\textcolor{stringliteral}{"{}status"{}}]\ ==\ \textcolor{stringliteral}{"{}healthy"{}}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceunified-health-check_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}\ \ Zig\ node\ up\ at\ height\ \{zig\_health.get('blocks')\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceunified-health-check_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}\ \ Zig\ node\ \{zig\_health['status']\}:\ \{zig\_health.get('error')\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00112}00112\ \ \ \ \ \doxymbox{\hyperlink{namespaceunified-health-check_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Checking\ aweb3\ Liberty\ node\ …"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00113}00113\ \ \ \ \ eth\_health\ =\ \doxymbox{\hyperlink{namespaceunified-health-check_a3bea94fd81e873b15c66703b48e0c390}{check\_eth\_node}}(args.eth\_rpc)}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00114}00114\ \ \ \ \ eth\_net\ =\ \doxymbox{\hyperlink{namespaceunified-health-check_a9771031822e1161114b3dbba489fc032}{check\_eth\_net\_version}}(args.eth\_rpc)}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{if}\ eth\_health[\textcolor{stringliteral}{"{}status"{}}]\ ==\ \textcolor{stringliteral}{"{}healthy"{}}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceunified-health-check_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}\ \ ETH\ node\ up\ at\ block\ \{eth\_health.get('block\_number')\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00117}00117\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceunified-health-check_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}\ \ ETH\ node\ \{eth\_health['status']\}:\ \{eth\_health.get('error')\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00120}00120\ \ \ \ \ overall\_healthy\ =\ zig\_health[\textcolor{stringliteral}{"{}status"{}}]\ ==\ \textcolor{stringliteral}{"{}healthy"{}}\ \textcolor{keywordflow}{and}\ eth\_health[\textcolor{stringliteral}{"{}status"{}}]\ ==\ \textcolor{stringliteral}{"{}healthy"{}}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00122}00122\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}overall\_healthy"{}}:\ overall\_healthy,}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}zig\_node"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rpc\_url"{}}:\ args.zig\_rpc,}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ **zig\_health,}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}eth\_node"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rpc\_url"{}}:\ args.eth\_rpc,}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ **eth\_health,}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ **eth\_net,}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00134}00134\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00136}00136\ \ \ \ \ out\_path\ =\ os.path.abspath(args.output)}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00137}00137\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00138}00138\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00141}00141\ \ \ \ \ \doxymbox{\hyperlink{namespaceunified-health-check_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Health\ report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00142}00142\ \ \ \ \ \textcolor{keywordflow}{return}\ 0\ \textcolor{keywordflow}{if}\ overall\_healthy\ \textcolor{keywordflow}{else}\ 1}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00145}00145\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{unified-health-check_8py_source_l00146}00146\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespaceunified-health-check_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

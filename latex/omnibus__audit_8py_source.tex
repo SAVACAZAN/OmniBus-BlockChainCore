@@ -1,0 +1,583 @@
+\doxysection{omnibus\+\_\+audit.\+py}
+\hypertarget{omnibus__audit_8py_source}{}\label{omnibus__audit_8py_source}\index{archived-\/4-\/eterniti/fullbtcdev-\/comparison/omnibus\_audit.py@{archived-\/4-\/eterniti/fullbtcdev-\/comparison/omnibus\_audit.py}}
+\doxymbox{\hyperlink{omnibus__audit_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00001}\doxymbox{\hyperlink{namespaceomnibus__audit}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00003}00003\ \textcolor{stringliteral}{omnibus\_audit.py\ —\ OmniBus\ Blockchain\ Master\ Audit\ Framework\ v2.0}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00005}00005\ \textcolor{stringliteral}{DYNAMIC:\ Scaneaza\ automat\ TOATE\ fisierele\ .zig\ din\ core/,\ fara\ liste\ hardcodate.}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00006}00006\ \textcolor{stringliteral}{Inlocuieste\ 20+\ scripturi\ vechi\ din\ tools/\ cu\ un\ singur\ framework.}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00007}00007\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00008}00008\ \textcolor{stringliteral}{Features:}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ 1.\ Module\ Scanner\ \ \ \ \ —\ gaseste\ toate\ .zig,\ numara\ LOC/functii/teste}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ 2.\ Dependency\ Graph\ \ \ —\ import\ graph,\ circular\ deps,\ layer\ violations}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ 3.\ Security\ Scan\ \ \ \ \ \ —\ TODO/FIXME,\ hardcoded\ secrets,\ debug\ prints}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ 4.\ Test\ Runner\ \ \ \ \ \ \ \ —\ ruleaza\ zig\ build\ test-\/*\ si\ raporteaza}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ 5.\ Code\ Metrics\ \ \ \ \ \ \ —\ LOC,\ test\ ratio,\ complexity}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ 6.\ Wiki\ Sync\ Check\ \ \ \ —\ verifica\ docs/api/\ exista\ pt\ fiecare\ modul}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ 7.\ BTC\ Comparison\ \ \ \ \ —\ ruleaza\ generate\_comparison.py}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ 8.\ Full\ Report\ \ \ \ \ \ \ \ —\ genereaza\ MASTER\_AUDIT\_REPORT.md}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00017}00017\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00018}00018\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00019}00019\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Full\ audit}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00020}00020\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ -\/-\/module\ \ \ \ \ \ \ \ \ \ \ \ \#\ Module\ scan\ only}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00021}00021\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ -\/-\/deps\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Dependencies\ only}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00022}00022\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ -\/-\/security\ \ \ \ \ \ \ \ \ \ \#\ Security\ only}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00023}00023\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ -\/-\/tests\ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Run\ tests\ only}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00024}00024\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ -\/-\/metrics\ \ \ \ \ \ \ \ \ \ \ \#\ Metrics\ only}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00025}00025\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ -\/-\/wiki\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Wiki\ sync\ only}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00026}00026\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ -\/-\/compare\ \ \ \ \ \ \ \ \ \ \ \#\ BTC\ comparison}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00027}00027\ \textcolor{stringliteral}{\ \ python\ FULLBTCDEV/omnibus\_audit.py\ -\/-\/json\ report.json\ \ \#\ JSON\ output}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00028}00028\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00030}00030\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00031}00031\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00032}00032\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00033}00033\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00034}00034\ \textcolor{keyword}{import}\ glob}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00035}00035\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00036}00036\ \textcolor{keyword}{import}\ datetime}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00037}00037\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00038}00038\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00039}00039\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00041}00041\ \textcolor{comment}{\#\ ──\ Paths\ ─────────────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00043}\doxymbox{\hyperlink{namespaceomnibus__audit_a3c7b906245e46a9a75d88abe396b973e}{00043}}\ ROOT\ =\ Path(\_\_file\_\_).parent.parent}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00044}\doxymbox{\hyperlink{namespaceomnibus__audit_aafc7ea77125dfba16b870b4318e77f0d}{00044}}\ CORE\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00045}\doxymbox{\hyperlink{namespaceomnibus__audit_a4eba94de6173158a85c857705038d692}{00045}}\ TEST\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}test"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00046}\doxymbox{\hyperlink{namespaceomnibus__audit_a987dbc086674eef9901803c33cd6dcf5}{00046}}\ DOCS\_API\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}docs"{}}\ /\ \textcolor{stringliteral}{"{}api"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00047}\doxymbox{\hyperlink{namespaceomnibus__audit_a10c5bfb8045a701d82dd635f53a0b83e}{00047}}\ FULLBTCDEV\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}FULLBTCDEV"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00048}\doxymbox{\hyperlink{namespaceomnibus__audit_ade029a22039a1c2ebfa699f6c7840071}{00048}}\ REPORTS\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}reports"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00050}00050\ \textcolor{comment}{\#\ ──\ Dynamic\ Module\ Scanner\ ────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00052}\doxymbox{\hyperlink{namespaceomnibus__audit_a82b2e4e6711f719621e0d6ca9faf889e}{00052}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus__audit_a82b2e4e6711f719621e0d6ca9faf889e}{scan\_all\_modules}}():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00053}00053\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Scan\ ALL\ .zig\ files\ in\ core/\ dynamically.\ No\ hardcoded\ lists."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00054}00054\ \ \ \ \ modules\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{for}\ path\ \textcolor{keywordflow}{in}\ sorted(CORE.glob(\textcolor{stringliteral}{"{}*.zig"{}})):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ name\ =\ path.stem}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ content\ =\ path.read\_text(encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}ignore"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ lines\ =\ content.split(\textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ loc\ =\ len([l\ \textcolor{keywordflow}{for}\ l\ \textcolor{keywordflow}{in}\ lines\ \textcolor{keywordflow}{if}\ l.strip()\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ l.strip().startswith(\textcolor{stringliteral}{"{}//"{}})])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ comments\ =\ len([l\ \textcolor{keywordflow}{for}\ l\ \textcolor{keywordflow}{in}\ lines\ \textcolor{keywordflow}{if}\ l.strip().startswith(\textcolor{stringliteral}{"{}//"{}})])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ pub\_fns\ =\ len(re.findall(\textcolor{stringliteral}{r"{}pub\ fn\ \(\backslash\)w+"{}},\ content))}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ tests\ =\ len(re.findall(\textcolor{stringliteral}{r'\string^test\ "{}'},\ content,\ re.MULTILINE))}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ structs\ =\ len(re.findall(\textcolor{stringliteral}{r"{}pub\ const\ \(\backslash\)w+\ =\ struct"{}},\ content))}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ enums\ =\ len(re.findall(\textcolor{stringliteral}{r"{}pub\ const\ \(\backslash\)w+\ =\ enum"{}},\ content))}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ imports\ =\ re.findall(\textcolor{stringliteral}{r'@import\(\backslash\)("{}(\(\backslash\)w+)\(\backslash\).zig"{}\(\backslash\))'},\ content)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ todos\ =\ len(re.findall(\textcolor{stringliteral}{r"{}TODO|FIXME|HACK|XXX"{}},\ content,\ re.IGNORECASE))}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ debug\_prints\ =\ len(re.findall(\textcolor{stringliteral}{r"{}std\(\backslash\).debug\(\backslash\).print"{}},\ content))}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ modules[name]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}path"{}}:\ str(path),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}loc"{}}:\ loc,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}comments"{}}:\ comments,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}pub\_functions"{}}:\ pub\_fns,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ tests,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}structs"{}}:\ structs,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}enums"{}}:\ enums,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}imports"{}}:\ imports,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}todos"{}}:\ todos,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}debug\_prints"{}}:\ debug\_prints,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}is\_real"{}}:\ loc\ >\ 20\ \textcolor{keywordflow}{and}\ pub\_fns\ >\ 0,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}has\_tests"{}}:\ tests\ >\ 0,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{return}\ modules}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00088}00088\ \textcolor{comment}{\#\ ──\ Layer\ Detection\ (Dynamic)\ ────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00090}00090\ \textcolor{comment}{\#\ Layers\ are\ inferred\ from\ import\ depth,\ not\ hardcoded}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00091}\doxymbox{\hyperlink{namespaceomnibus__audit_af10bc0aee15e4d3009bdd5a79ff3f83b}{00091}}\ LAYER\_HINTS\ =\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00092}00092\ \ \ \ \ \textcolor{comment}{\#\ L0:\ Pure\ crypto/utils\ (no\ core\ imports)}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00093}00093\ \ \ \ \ \textcolor{stringliteral}{"{}crypto"{}}:\ 0,\ \textcolor{stringliteral}{"{}secp256k1"{}}:\ 0,\ \textcolor{stringliteral}{"{}ripemd160"{}}:\ 0,\ \textcolor{stringliteral}{"{}hex\_utils"{}}:\ 0,\ \textcolor{stringliteral}{"{}bech32"{}}:\ 0,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00094}00094\ \ \ \ \ \textcolor{stringliteral}{"{}encrypted\_p2p"{}}:\ 0,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00095}00095\ \ \ \ \ \textcolor{comment}{\#\ L1:\ Types/data\ structures}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00096}00096\ \ \ \ \ \textcolor{stringliteral}{"{}transaction"{}}:\ 1,\ \textcolor{stringliteral}{"{}block"{}}:\ 1,\ \textcolor{stringliteral}{"{}bip32\_wallet"{}}:\ 1,\ \textcolor{stringliteral}{"{}compact\_transaction"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00097}00097\ \ \ \ \ \textcolor{stringliteral}{"{}witness\_data"{}}:\ 1,\ \textcolor{stringliteral}{"{}utxo"{}}:\ 1,\ \textcolor{stringliteral}{"{}psbt"{}}:\ 1,\ \textcolor{stringliteral}{"{}block\_filter"{}}:\ 1,\ \textcolor{stringliteral}{"{}htlc"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00098}00098\ \ \ \ \ \textcolor{stringliteral}{"{}compact\_blocks"{}}:\ 1,\ \textcolor{stringliteral}{"{}tx\_receipt"{}}:\ 1,\ \textcolor{stringliteral}{"{}script"{}}:\ 1,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00099}00099\ \ \ \ \ \textcolor{comment}{\#\ L2:\ Core\ logic}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00100}00100\ \ \ \ \ \textcolor{stringliteral}{"{}blockchain"{}}:\ 2,\ \textcolor{stringliteral}{"{}blockchain\_v2"{}}:\ 2,\ \textcolor{stringliteral}{"{}genesis"{}}:\ 2,\ \textcolor{stringliteral}{"{}consensus"{}}:\ 2,\ \textcolor{stringliteral}{"{}mempool"{}}:\ 2,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00101}00101\ \ \ \ \ \textcolor{stringliteral}{"{}wallet"{}}:\ 2,\ \textcolor{stringliteral}{"{}sub\_block"{}}:\ 2,\ \textcolor{stringliteral}{"{}finality"{}}:\ 2,\ \textcolor{stringliteral}{"{}governance"{}}:\ 2,\ \textcolor{stringliteral}{"{}database"{}}:\ 2,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00102}00102\ \ \ \ \ \textcolor{stringliteral}{"{}light\_client"{}}:\ 2,\ \textcolor{stringliteral}{"{}chain\_config"{}}:\ 2,\ \textcolor{stringliteral}{"{}spark\_invariants"{}}:\ 2,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00103}00103\ \ \ \ \ \textcolor{comment}{\#\ L3:\ Network}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00104}00104\ \ \ \ \ \textcolor{stringliteral}{"{}p2p"{}}:\ 3,\ \textcolor{stringliteral}{"{}sync"{}}:\ 3,\ \textcolor{stringliteral}{"{}bootstrap"{}}:\ 3,\ \textcolor{stringliteral}{"{}network"{}}:\ 3,\ \textcolor{stringliteral}{"{}ws\_server"{}}:\ 3,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00105}00105\ \ \ \ \ \textcolor{stringliteral}{"{}peer\_scoring"{}}:\ 3,\ \textcolor{stringliteral}{"{}kademlia\_dht"{}}:\ 3,\ \textcolor{stringliteral}{"{}dns\_registry"{}}:\ 3,\ \textcolor{stringliteral}{"{}tor\_proxy"{}}:\ 3,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00106}00106\ \ \ \ \ \textcolor{comment}{\#\ L4:\ Storage}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00107}00107\ \ \ \ \ \textcolor{stringliteral}{"{}storage"{}}:\ 4,\ \textcolor{stringliteral}{"{}state\_trie"{}}:\ 4,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00108}00108\ \ \ \ \ \textcolor{comment}{\#\ These\ are\ used\ by\ blockchain\_v2\ (L2),\ so\ keep\ them\ accessible}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00109}00109\ \ \ \ \ \textcolor{stringliteral}{"{}binary\_codec"{}}:\ 2,\ \textcolor{stringliteral}{"{}archive\_manager"{}}:\ 2,\ \textcolor{stringliteral}{"{}prune\_config"{}}:\ 2,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00110}00110\ \ \ \ \ \textcolor{comment}{\#\ L5:\ Node\ services}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00111}00111\ \ \ \ \ \textcolor{stringliteral}{"{}node\_launcher"{}}:\ 5,\ \textcolor{stringliteral}{"{}cli"{}}:\ 5,\ \textcolor{stringliteral}{"{}mining\_pool"{}}:\ 5,\ \textcolor{stringliteral}{"{}light\_miner"{}}:\ 5,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00112}00112\ \ \ \ \ \textcolor{stringliteral}{"{}miner\_wallet"{}}:\ 5,\ \textcolor{stringliteral}{"{}miner\_genesis"{}}:\ 5,\ \textcolor{stringliteral}{"{}e2e\_mining"{}}:\ 5,\ \textcolor{stringliteral}{"{}lightning"{}}:\ 5,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00113}00113\ \ \ \ \ \textcolor{stringliteral}{"{}shard\_coordinator"{}}:\ 5,\ \textcolor{stringliteral}{"{}metachain"{}}:\ 5,\ \textcolor{stringliteral}{"{}shard\_config"{}}:\ 5,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00114}00114\ \ \ \ \ \textcolor{stringliteral}{"{}payment\_channel"{}}:\ 5,\ \textcolor{stringliteral}{"{}staking"{}}:\ 5,\ \textcolor{stringliteral}{"{}key\_encryption"{}}:\ 5,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00115}00115\ \ \ \ \ \textcolor{stringliteral}{"{}schnorr"{}}:\ 0,\ \textcolor{stringliteral}{"{}multisig"{}}:\ 0,\ \textcolor{stringliteral}{"{}bls\_signatures"{}}:\ 0,\ \textcolor{stringliteral}{"{}pq\_crypto"{}}:\ 0,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00116}00116\ \ \ \ \ \textcolor{comment}{\#\ L6:\ Services/economic}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00117}00117\ \ \ \ \ \textcolor{stringliteral}{"{}rpc\_server"{}}:\ 6,\ \textcolor{stringliteral}{"{}vault\_reader"{}}:\ 6,\ \textcolor{stringliteral}{"{}vault\_engine"{}}:\ 6,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00118}00118\ \ \ \ \ \textcolor{stringliteral}{"{}bread\_ledger"{}}:\ 6,\ \textcolor{stringliteral}{"{}domain\_minter"{}}:\ 6,\ \textcolor{stringliteral}{"{}ubi\_distributor"{}}:\ 6,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00119}00119\ \ \ \ \ \textcolor{stringliteral}{"{}bridge\_relay"{}}:\ 6,\ \textcolor{stringliteral}{"{}oracle"{}}:\ 6,\ \textcolor{stringliteral}{"{}omni\_brain"{}}:\ 6,\ \textcolor{stringliteral}{"{}guardian"{}}:\ 6,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00120}00120\ \ \ \ \ \textcolor{stringliteral}{"{}synapse\_priority"{}}:\ 6,\ \textcolor{stringliteral}{"{}os\_mode"{}}:\ 6,\ \textcolor{stringliteral}{"{}benchmark"{}}:\ 6,\ \textcolor{stringliteral}{"{}agent\_manager"{}}:\ 6,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00121}00121\ \ \ \ \ \textcolor{comment}{\#\ L7:\ Entry}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00122}00122\ \ \ \ \ \textcolor{stringliteral}{"{}main"{}}:\ 7,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00123}00123\ \}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00125}\doxymbox{\hyperlink{namespaceomnibus__audit_a5d0d51234ad145139afb4fa2bef907cc}{00125}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus__audit_a5d0d51234ad145139afb4fa2bef907cc}{infer\_layers}}(modules):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00126}00126\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Infer\ module\ layers\ from\ import\ depth."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00127}00127\ \ \ \ \ \textcolor{comment}{\#\ Start\ with\ hints}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00128}00128\ \ \ \ \ layers\ =\ dict(LAYER\_HINTS)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00130}00130\ \ \ \ \ \textcolor{comment}{\#\ BFS\ from\ known\ layers}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00131}00131\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(8):\ \ \textcolor{comment}{\#\ max\ iterations}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ mod\ \textcolor{keywordflow}{in}\ modules.items():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ name\ \textcolor{keywordflow}{in}\ layers:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ import\_layers\ =\ [layers.get(imp,\ -\/1)\ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ mod[\textcolor{stringliteral}{"{}imports"{}}]\ \textcolor{keywordflow}{if}\ imp\ \textcolor{keywordflow}{in}\ modules]}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ import\_layers\ =\ [l\ \textcolor{keywordflow}{for}\ l\ \textcolor{keywordflow}{in}\ import\_layers\ \textcolor{keywordflow}{if}\ l\ >=\ 0]}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ import\_layers:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Module\ is\ one\ layer\ above\ its\ highest\ import}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ layers[name]\ =\ min(max(import\_layers)\ +\ 1,\ 7)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00141}00141\ \ \ \ \ \textcolor{comment}{\#\ Assign\ remaining\ to\ middle\ layer}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00142}00142\ \ \ \ \ \textcolor{keywordflow}{for}\ name\ \textcolor{keywordflow}{in}\ modules:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ name\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ layers:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ layers[name]\ =\ 3\ \ \textcolor{comment}{\#\ default\ middle}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00146}00146\ \ \ \ \ \textcolor{keywordflow}{return}\ layers}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00149}00149\ \textcolor{comment}{\#\ ──\ Dependency\ Analysis\ ──────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00151}\doxymbox{\hyperlink{namespaceomnibus__audit_a241d7d821dd9572ca707740f60874013}{00151}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus__audit_a241d7d821dd9572ca707740f60874013}{analyze\_dependencies}}(modules):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00152}00152\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ circular\ deps,\ layer\ violations,\ isolated\ modules."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00153}00153\ \ \ \ \ layers\ =\ \doxymbox{\hyperlink{namespaceomnibus__audit_a5d0d51234ad145139afb4fa2bef907cc}{infer\_layers}}(modules)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00155}00155\ \ \ \ \ \textcolor{comment}{\#\ Build\ import\ graph}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00156}00156\ \ \ \ \ graph\ =\ \{name:\ set(mod[\textcolor{stringliteral}{"{}imports"{}}])\ \&\ set(modules.keys())\ \textcolor{keywordflow}{for}\ name,\ mod\ \textcolor{keywordflow}{in}\ modules.items()\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00157}00157\ \ \ \ \ reverse\_graph\ =\ defaultdict(set)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00158}00158\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ imports\ \textcolor{keywordflow}{in}\ graph.items():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ imports:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ reverse\_graph[imp].add(name)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00162}00162\ \ \ \ \ \textcolor{comment}{\#\ Find\ circular\ dependencies\ (DFS)}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00163}00163\ \ \ \ \ cycles\ =\ []}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00164}00164\ \ \ \ \ visited\ =\ set()}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00165}00165\ \ \ \ \ rec\_stack\ =\ set()}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00167}00167\ \ \ \ \ \textcolor{keyword}{def\ }dfs(node,\ path):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ visited.add(node)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ rec\_stack.add(node)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ neighbor\ \textcolor{keywordflow}{in}\ graph.get(node,\ []):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ neighbor\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ visited:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dfs(neighbor,\ path\ +\ [neighbor])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ neighbor\ \textcolor{keywordflow}{in}\ rec\_stack:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Found\ cycle}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cycle\_start\ =\ path.index(neighbor)\ \textcolor{keywordflow}{if}\ neighbor\ \textcolor{keywordflow}{in}\ path\ \textcolor{keywordflow}{else}\ len(path)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cycle\ =\ path[cycle\_start:]\ +\ [neighbor]}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(cycle)\ >=\ 2:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cycle\_str\ =\ \textcolor{stringliteral}{"{}\ -\/>\ "{}}.join(cycle)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ cycle\_str\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ [c[\textcolor{stringliteral}{"{}path"{}}]\ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ cycles]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cycles.append(\{\textcolor{stringliteral}{"{}path"{}}:\ cycle\_str,\ \textcolor{stringliteral}{"{}length"{}}:\ len(cycle)\})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ rec\_stack.discard(node)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00183}00183\ \ \ \ \ \textcolor{keywordflow}{for}\ node\ \textcolor{keywordflow}{in}\ modules:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ node\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ visited:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ dfs(node,\ [node])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00187}00187\ \ \ \ \ \textcolor{comment}{\#\ Find\ layer\ violations}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00188}00188\ \ \ \ \ violations\ =\ []}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00189}00189\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ imports\ \textcolor{keywordflow}{in}\ graph.items():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ my\_layer\ =\ layers.get(name,\ 3)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ imports:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ imp\_layer\ =\ layers.get(imp,\ 3)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\_layer\ >\ my\_layer\ +\ 1:\ \ \textcolor{comment}{\#\ Allow\ importing\ from\ same\ or\ one\ layer\ up}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ violations.append(\{}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}from"{}}:\ name,\ \textcolor{stringliteral}{"{}from\_layer"{}}:\ my\_layer,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}to"{}}:\ imp,\ \textcolor{stringliteral}{"{}to\_layer"{}}:\ imp\_layer,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00199}00199\ \ \ \ \ \textcolor{comment}{\#\ Find\ isolated\ modules}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00200}00200\ \ \ \ \ isolated\ =\ [name\ \textcolor{keywordflow}{for}\ name\ \textcolor{keywordflow}{in}\ modules}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ graph.get(name)\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ reverse\_graph.get(name)]}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00203}00203\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}layers"{}}:\ layers,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cycles"{}}:\ cycles,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}violations"{}}:\ violations,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}isolated"{}}:\ isolated,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}edges"{}}:\ sum(len(v)\ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ graph.values()),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nodes"{}}:\ len(modules),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00210}00210\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00211}00211\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00213}00213\ \textcolor{comment}{\#\ ──\ Security\ Scan\ ────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00215}\doxymbox{\hyperlink{namespaceomnibus__audit_a0920836449aaf565151ed465e58f515d}{00215}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacesecurity__scan}{security\_scan}}(modules):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00216}00216\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Scan\ for\ security\ issues\ dynamically."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00217}00217\ \ \ \ \ issues\ =\ \{\textcolor{stringliteral}{"{}critical"{}}:\ [],\ \textcolor{stringliteral}{"{}medium"{}}:\ [],\ \textcolor{stringliteral}{"{}low"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ mod\ \textcolor{keywordflow}{in}\ modules.items():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ content\ =\ Path(mod[\textcolor{stringliteral}{"{}path"{}}]).read\_text(encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}ignore"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Critical:\ hardcoded\ secrets\ (but\ filter\ test\ files\ and\ known\ constants)}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ match\ \textcolor{keywordflow}{in}\ re.finditer(\textcolor{stringliteral}{r'const\(\backslash\)s+(\(\backslash\)w*(?:key|secret|password|token)\(\backslash\)w*)\(\backslash\)s*=\(\backslash\)s*"{}([\string^"{}]+)"{}'},\ content,\ re.IGNORECASE):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ var\_name,\ value\ =\ match.group(1),\ match.group(2)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Filter\ known\ non-\/secrets:\ test\ data,\ protocol\ constants,\ crypto\ seeds}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ known\_safe\ =\ (}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}\ \textcolor{keywordflow}{in}\ var\_name.lower()\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}test"{}}\ \textcolor{keywordflow}{in}\ name.lower()\ \textcolor{keywordflow}{or}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Bitcoin\ seed"{}}\ \textcolor{keywordflow}{in}\ value\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{"{}sample"{}}\ \textcolor{keywordflow}{in}\ value.lower()\ \textcolor{keywordflow}{or}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}header"{}}\ \textcolor{keywordflow}{in}\ var\_name.lower()\ \textcolor{keywordflow}{or}\ \ \textcolor{comment}{\#\ HTTP/WS\ headers}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}pubkey"{}}\ \textcolor{keywordflow}{in}\ var\_name.lower()\ \textcolor{keywordflow}{or}\ \ \ \textcolor{comment}{\#\ test\ public\ keys}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}dGhlIHNhbXBsZSBub25jZQ=="{}}\ \textcolor{keywordflow}{in}\ value\ \textcolor{keywordflow}{or}\ \ \textcolor{comment}{\#\ WebSocket\ RFC\ 6455\ magic}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}258EAFA5"{}}\ \textcolor{keywordflow}{in}\ value\ \textcolor{keywordflow}{or}\ \ \textcolor{comment}{\#\ WebSocket\ GUID}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ len(value)\ <\ 6\ \ \textcolor{comment}{\#\ Too\ short\ to\ be\ a\ real\ secret}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ known\_safe:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ issues[\textcolor{stringliteral}{"{}critical"{}}].append(f\textcolor{stringliteral}{"{}\{name\}:\ hardcoded\ \{var\_name\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Medium:\ debug\ prints\ (count\ only)}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00240}00240\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mod[\textcolor{stringliteral}{"{}debug\_prints"{}}]\ >\ 0\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}test"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ name:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ issues[\textcolor{stringliteral}{"{}medium"{}}].append(f\textcolor{stringliteral}{"{}\{name\}:\ \{mod['debug\_prints']\}\ debug\ prints"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00242}00242\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Low:\ TODOs}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mod[\textcolor{stringliteral}{"{}todos"{}}]\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ issues[\textcolor{stringliteral}{"{}low"{}}].append(f\textcolor{stringliteral}{"{}\{name\}:\ \{mod['todos']\}\ TODO/FIXME"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00247}00247\ \ \ \ \ \textcolor{keywordflow}{return}\ issues}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00250}00250\ \textcolor{comment}{\#\ ──\ Test\ Runner\ ──────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00252}\doxymbox{\hyperlink{namespaceomnibus__audit_a1b195c8c3f9d2b24bcb228bdf68dce12}{00252}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus__audit_a1b195c8c3f9d2b24bcb228bdf68dce12}{run\_tests}}():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00253}00253\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Run\ all\ zig\ build\ test-\/*\ steps."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00254}00254\ \ \ \ \ test\_steps\ =\ [}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test-\/crypto"{}},\ \textcolor{stringliteral}{"{}test-\/chain"{}},\ \textcolor{stringliteral}{"{}test-\/net"{}},\ \textcolor{stringliteral}{"{}test-\/shard"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test-\/storage"{}},\ \textcolor{stringliteral}{"{}test-\/light"{}},\ \textcolor{stringliteral}{"{}test-\/pq"{}},\ \textcolor{stringliteral}{"{}test-\/wallet"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test-\/econ"{}},\ \textcolor{stringliteral}{"{}test-\/bench"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00258}00258\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00259}00259\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00260}00260\ \ \ \ \ results\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00261}00261\ \ \ \ \ \textcolor{keywordflow}{for}\ step\ \textcolor{keywordflow}{in}\ test\_steps:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{"{}zig"{}},\ \textcolor{stringliteral}{"{}build"{}},\ step],}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=120,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cwd=str(ROOT),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ results[step]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ result.returncode\ ==\ 0,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}time\_ms"{}}:\ 0,\ \ \textcolor{comment}{\#\ zig\ build\ doesn't\ report\ timing\ easily}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}errors"{}}:\ result.stderr[:200]\ \textcolor{keywordflow}{if}\ result.returncode\ !=\ 0\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ results[step]\ =\ \{\textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}time\_ms"{}}:\ 120000,\ \textcolor{stringliteral}{"{}errors"{}}:\ \textcolor{stringliteral}{"{}TIMEOUT"{}}\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \ \ \ \ results[step]\ =\ \{\textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}time\_ms"{}}:\ 0,\ \textcolor{stringliteral}{"{}errors"{}}:\ str(e)\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00278}00278\ \ \ \ \ \textcolor{keywordflow}{return}\ results}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00280}00280\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00281}00281\ \textcolor{comment}{\#\ ──\ Wiki\ Sync\ ────────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00283}\doxymbox{\hyperlink{namespaceomnibus__audit_a287dbb9f8e09cf53469f62291f3845b4}{00283}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus__audit_a287dbb9f8e09cf53469f62291f3845b4}{check\_wiki\_sync}}(modules):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00284}00284\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ if\ each\ module\ has\ docs/api/*.md."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00285}00285\ \ \ \ \ missing\_docs\ =\ []}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00286}00286\ \ \ \ \ \textcolor{keywordflow}{for}\ name\ \textcolor{keywordflow}{in}\ modules:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ doc\_path\ =\ DOCS\_API\ /\ f\textcolor{stringliteral}{"{}\{name\}.md"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ doc\_path.exists():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ missing\_docs.append(name)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00290}00290\ \ \ \ \ \textcolor{keywordflow}{return}\ missing\_docs}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00293}00293\ \textcolor{comment}{\#\ ──\ Code\ Metrics\ ─────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00295}\doxymbox{\hyperlink{namespaceomnibus__audit_a2d5dcf327821a266db8913c17f5f3316}{00295}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus__audit_a2d5dcf327821a266db8913c17f5f3316}{compute\_metrics}}(modules):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00296}00296\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Compute\ aggregate\ code\ metrics."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00297}00297\ \ \ \ \ total\_loc\ =\ sum(m[\textcolor{stringliteral}{"{}loc"{}}]\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules.values())}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00298}00298\ \ \ \ \ total\_comments\ =\ sum(m[\textcolor{stringliteral}{"{}comments"{}}]\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules.values())}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00299}00299\ \ \ \ \ total\_tests\ =\ sum(m[\textcolor{stringliteral}{"{}tests"{}}]\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules.values())}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00300}00300\ \ \ \ \ total\_fns\ =\ sum(m[\textcolor{stringliteral}{"{}pub\_functions"{}}]\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules.values())}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00301}00301\ \ \ \ \ total\_structs\ =\ sum(m[\textcolor{stringliteral}{"{}structs"{}}]\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules.values())}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00302}00302\ \ \ \ \ total\_enums\ =\ sum(m[\textcolor{stringliteral}{"{}enums"{}}]\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules.values())}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00303}00303\ \ \ \ \ real\_modules\ =\ sum(1\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules.values()\ \textcolor{keywordflow}{if}\ m[\textcolor{stringliteral}{"{}is\_real"{}}])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00304}00304\ \ \ \ \ tested\_modules\ =\ sum(1\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ modules.values()\ \textcolor{keywordflow}{if}\ m[\textcolor{stringliteral}{"{}has\_tests"{}}])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00305}00305\ \ \ \ \ modules\_without\_tests\ =\ [n\ \textcolor{keywordflow}{for}\ n,\ m\ \textcolor{keywordflow}{in}\ modules.items()\ \textcolor{keywordflow}{if}\ m[\textcolor{stringliteral}{"{}is\_real"{}}]\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ m[\textcolor{stringliteral}{"{}has\_tests"{}}]]}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00306}00306\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00307}00307\ \ \ \ \ test\_ratio\ =\ (total\_tests\ /\ max(total\_fns,\ 1))\ *\ 100}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00308}00308\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00309}00309\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_modules"{}}:\ len(modules),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}real\_modules"{}}:\ real\_modules,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tested\_modules"{}}:\ tested\_modules,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_loc"{}}:\ total\_loc,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_comments"{}}:\ total\_comments,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_tests"{}}:\ total\_tests,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_functions"{}}:\ total\_fns,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_structs"{}}:\ total\_structs,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_enums"{}}:\ total\_enums,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00319}00319\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test\_ratio\_pct"{}}:\ round(test\_ratio,\ 1),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}comment\_ratio\_pct"{}}:\ round(total\_comments\ /\ max(total\_loc,\ 1)\ *\ 100,\ 1),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00321}00321\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}avg\_loc\_per\_module"{}}:\ round(total\_loc\ /\ max(len(modules),\ 1)),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules\_without\_tests"{}}:\ modules\_without\_tests,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}top\_10\_largest"{}}:\ sorted(}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ \ \ \ \ [(n,\ m[\textcolor{stringliteral}{"{}loc"{}}])\ \textcolor{keywordflow}{for}\ n,\ m\ \textcolor{keywordflow}{in}\ modules.items()],}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00325}00325\ \ \ \ \ \ \ \ \ \ \ \ \ key=\textcolor{keyword}{lambda}\ x:\ -\/x[1]}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ )[:10],}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00327}00327\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00328}00328\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00329}00329\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00330}00330\ \textcolor{comment}{\#\ ──\ Report\ Generator\ ────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00332}\doxymbox{\hyperlink{namespaceomnibus__audit_ad500dfc26e88e0f5997cc0ae575b527b}{00332}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus__audit_ad500dfc26e88e0f5997cc0ae575b527b}{generate\_report}}(modules,\ deps,\ security,\ tests,\ metrics,\ wiki\_missing):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00333}00333\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Generate\ markdown\ report."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00334}00334\ \ \ \ \ now\ =\ datetime.datetime.now().strftime(\textcolor{stringliteral}{"{}\%Y-\/\%m-\/\%d\ \%H:\%M"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00335}00335\ \ \ \ \ passed\_tests\ =\ sum(1\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ tests.values()\ \textcolor{keywordflow}{if}\ t[\textcolor{stringliteral}{"{}passed"{}}])\ \textcolor{keywordflow}{if}\ tests\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00336}00336\ \ \ \ \ total\_tests\ =\ len(tests)\ \textcolor{keywordflow}{if}\ tests\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00337}00337\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00338}00338\ \ \ \ \ lines\ =\ [}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\#\ OmniBus\ Blockchain\ —\ Master\ Audit\ Report\ v2.0"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00340}00340\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}**Date:**\ \{now\}"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00342}00342\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}**Tool:**\ FULLBTCDEV/omnibus\_audit.py\ (dynamic,\ no\ hardcoded\ lists)"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}**Modules:**\ \{metrics['total\_modules']\}\ scanned\ from\ core/*.zig"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00345}00345\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}-\/-\/-\/"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00347}00347\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\#\#\ Summary"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00348}00348\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00349}00349\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Metric\ |\ Value\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00350}00350\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/|"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00351}00351\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Modules\ (total)\ |\ \{metrics['total\_modules']\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Modules\ (real)\ |\ \{metrics['real\_modules']\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Modules\ with\ tests\ |\ \{metrics['tested\_modules']\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00354}00354\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Lines\ of\ code\ |\ \{metrics['total\_loc']:,\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00355}00355\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Public\ functions\ |\ \{metrics['total\_functions']\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00356}00356\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Inline\ tests\ |\ \{metrics['total\_tests']\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00357}00357\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Test\ ratio\ |\ \{metrics['test\_ratio\_pct']\}\%\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Structs\ |\ \{metrics['total\_structs']\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00359}00359\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Enums\ |\ \{metrics['total\_enums']\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00360}00360\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Dependency\ edges\ |\ \{deps['edges']\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00361}00361\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Circular\ deps\ |\ \{len(deps['cycles'])\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00362}00362\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Layer\ violations\ |\ \{len(deps['violations'])\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00363}00363\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Isolated\ modules\ |\ \{len(deps['isolated'])\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00364}00364\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Security\ critical\ |\ \{len(security['critical'])\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00365}00365\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Missing\ API\ docs\ |\ \{len(wiki\_missing)\}\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00366}00366\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}|\ Test\ suites\ |\ \{passed\_tests\}/\{total\_tests\}\ passed\ |"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00367}00367\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00368}00368\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}-\/-\/-\/"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00369}00369\ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}"{}},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00370}00370\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00371}00371\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00372}00372\ \ \ \ \ \textcolor{comment}{\#\ Circular\ deps}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00373}00373\ \ \ \ \ \textcolor{keywordflow}{if}\ deps[\textcolor{stringliteral}{"{}cycles"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00374}00374\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\#\#\ Circular\ Dependencies"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00375}00375\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00376}00376\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ deps[\textcolor{stringliteral}{"{}cycles"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00377}00377\ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}-\/\ \`{}\{c['path']\}`"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00378}00378\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00380}00380\ \ \ \ \ \textcolor{comment}{\#\ Layer\ violations}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00381}00381\ \ \ \ \ \textcolor{keywordflow}{if}\ deps[\textcolor{stringliteral}{"{}violations"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00382}00382\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\#\#\ Layer\ Violations"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00383}00383\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00384}00384\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ deps[\textcolor{stringliteral}{"{}violations"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00385}00385\ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}-\/\ \`{}\{v['from']\}`\ (L\{v['from\_layer']\})\ imports\ \`{}\{v['to']\}`\ (L\{v['to\_layer']\})"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00386}00386\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00387}00387\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00388}00388\ \ \ \ \ \textcolor{comment}{\#\ Security}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00389}00389\ \ \ \ \ \textcolor{keywordflow}{if}\ security[\textcolor{stringliteral}{"{}critical"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00390}00390\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\#\#\ Security\ —\ Critical"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00391}00391\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00392}00392\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ security[\textcolor{stringliteral}{"{}critical"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00393}00393\ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}-\/\ \{s\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00394}00394\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00395}00395\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00396}00396\ \ \ \ \ \textcolor{comment}{\#\ Tests}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00397}00397\ \ \ \ \ \textcolor{keywordflow}{if}\ tests:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00398}00398\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\#\#\ Test\ Results"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00399}00399\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00400}00400\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}|\ Suite\ |\ Status\ |"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00401}00401\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}|-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/-\/-\/-\/-\/|"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00402}00402\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ result\ \textcolor{keywordflow}{in}\ tests.items():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00403}00403\ \ \ \ \ \ \ \ \ \ \ \ \ status\ =\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ result[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00404}00404\ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}|\ \{name\}\ |\ \{status\}\ |"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00405}00405\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00406}00406\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00407}00407\ \ \ \ \ \textcolor{comment}{\#\ Modules\ without\ tests}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00408}00408\ \ \ \ \ \textcolor{keywordflow}{if}\ metrics[\textcolor{stringliteral}{"{}modules\_without\_tests"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00409}00409\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\#\#\ Modules\ Without\ Tests"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00410}00410\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00411}00411\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ metrics[\textcolor{stringliteral}{"{}modules\_without\_tests"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00412}00412\ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}-\/\ \{m\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00413}00413\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00414}00414\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00415}00415\ \ \ \ \ \textcolor{comment}{\#\ Top\ 10\ largest}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00416}00416\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\#\#\ Top\ 10\ Largest\ Modules"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00417}00417\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00418}00418\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}|\ \#\ |\ Module\ |\ LOC\ |"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00419}00419\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}|:-\/:|-\/-\/-\/-\/-\/-\/-\/-\/|-\/-\/-\/-\/:|"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00420}00420\ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ (name,\ loc)\ \textcolor{keywordflow}{in}\ enumerate(metrics[\textcolor{stringliteral}{"{}top\_10\_largest"{}}],\ 1):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00421}00421\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}|\ \{i\}\ |\ \{name\}\ |\ \{loc:,\}\ |"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00422}00422\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00423}00423\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00424}00424\ \ \ \ \ \textcolor{comment}{\#\ Missing\ docs}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00425}00425\ \ \ \ \ \textcolor{keywordflow}{if}\ wiki\_missing:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00426}00426\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\#\#\ Missing\ API\ Docs"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00427}00427\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00428}00428\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ wiki\_missing:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00429}00429\ \ \ \ \ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}-\/\ docs/api/\{m\}.md"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00430}00430\ \ \ \ \ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00431}00431\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00432}00432\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}-\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00433}00433\ \ \ \ \ lines.append(f\textcolor{stringliteral}{"{}*Generated\ by\ omnibus\_audit.py\ v2.0\ —\ \{now\}*"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00434}00434\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00435}00435\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00436}00436\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00437}00437\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00438}00438\ \textcolor{comment}{\#\ ──\ Main\ ─────────────────────────────────────────────────────────────────────}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00439}00439\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00440}\doxymbox{\hyperlink{namespaceomnibus__audit_a51af30a60f9f02777c6396b8247e356f}{00440}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceomnibus__audit_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00441}00441\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}OmniBus\ Blockchain\ Master\ Audit\ v2.0"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00442}00442\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/module"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Module\ scan\ only"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00443}00443\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/deps"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Dependency\ analysis\ only"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00444}00444\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/security"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Security\ scan\ only"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00445}00445\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/tests"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Run\ tests\ only"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00446}00446\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/metrics"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Code\ metrics\ only"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00447}00447\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/wiki"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Wiki\ sync\ check\ only"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00448}00448\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/compare"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Run\ BTC\ comparison"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00449}00449\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ type=str,\ help=\textcolor{stringliteral}{"{}Save\ JSON\ report"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00450}00450\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/no-\/tests"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Skip\ test\ execution\ (faster)"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00451}00451\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00452}00452\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00453}00453\ \ \ \ \ run\_all\ =\ \textcolor{keywordflow}{not}\ any([args.module,\ args.deps,\ args.security,\ args.tests,\ args.metrics,\ args.wiki,\ args.compare])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00454}00454\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00455}00455\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00456}00456\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ OmniBus\ Blockchain\ —\ Master\ Audit\ v2.0"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00457}00457\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Dynamic\ scanner\ (no\ hardcoded\ module\ lists)"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00458}00458\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00459}00459\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00460}00460\ \ \ \ \ \textcolor{comment}{\#\ 1.\ Scan\ modules\ (always)}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00461}00461\ \ \ \ \ print(\textcolor{stringliteral}{"{}[1/7]\ Scanning\ core/*.zig\ modules..."{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00462}00462\ \ \ \ \ modules\ =\ \doxymbox{\hyperlink{namespaceomnibus__audit_a82b2e4e6711f719621e0d6ca9faf889e}{scan\_all\_modules}}()}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00463}00463\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Found\ \{len(modules)\}\ modules"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00464}00464\ \ \ \ \ \textcolor{keywordflow}{if}\ args.module\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ run\_all:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00465}00465\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ name,\ mod\ \textcolor{keywordflow}{in}\ sorted(modules.items()):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00466}00466\ \ \ \ \ \ \ \ \ \ \ \ \ status\ =\ \textcolor{stringliteral}{"{}REAL"{}}\ \textcolor{keywordflow}{if}\ mod[\textcolor{stringliteral}{"{}is\_real"{}}]\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}stub"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00467}00467\ \ \ \ \ \ \ \ \ \ \ \ \ test\_status\ =\ f\textcolor{stringliteral}{"{}\{mod['tests']\}T"{}}\ \textcolor{keywordflow}{if}\ mod[\textcolor{stringliteral}{"{}has\_tests"{}}]\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}no\ tests"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00468}00468\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{name:30s\}\ \{mod['loc']:5d\}\ LOC\ \ \{mod['pub\_functions']:3d\}\ fns\ \ \{test\_status:8s\}\ \ [\{status\}]"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00469}00469\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00470}00470\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00471}00471\ \ \ \ \ \textcolor{comment}{\#\ 2.\ Dependencies}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00472}00472\ \ \ \ \ deps\ =\ \{\textcolor{stringliteral}{"{}cycles"{}}:\ [],\ \textcolor{stringliteral}{"{}violations"{}}:\ [],\ \textcolor{stringliteral}{"{}isolated"{}}:\ [],\ \textcolor{stringliteral}{"{}edges"{}}:\ 0,\ \textcolor{stringliteral}{"{}nodes"{}}:\ 0,\ \textcolor{stringliteral}{"{}layers"{}}:\ \{\}\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00473}00473\ \ \ \ \ \textcolor{keywordflow}{if}\ run\_all\ \textcolor{keywordflow}{or}\ args.deps:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00474}00474\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}[2/7]\ Analyzing\ dependencies..."{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00475}00475\ \ \ \ \ \ \ \ \ deps\ =\ \doxymbox{\hyperlink{namespaceomnibus__audit_a241d7d821dd9572ca707740f60874013}{analyze\_dependencies}}(modules)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00476}00476\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{deps['nodes']\}\ nodes,\ \{deps['edges']\}\ edges"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00477}00477\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Circular\ deps:\ \{len(deps['cycles'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00478}00478\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Layer\ violations:\ \{len(deps['violations'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00479}00479\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Isolated:\ \{len(deps['isolated'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00480}00480\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ args.deps\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ run\_all:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00481}00481\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ c\ \textcolor{keywordflow}{in}\ deps[\textcolor{stringliteral}{"{}cycles"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00482}00482\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ CYCLE:\ \{c['path']\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00483}00483\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ v\ \textcolor{keywordflow}{in}\ deps[\textcolor{stringliteral}{"{}violations"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00484}00484\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ VIOLATION:\ \{v['from']\}\ (L\{v['from\_layer']\})\ -\/>\ \{v['to']\}\ (L\{v['to\_layer']\})"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00485}00485\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ deps[\textcolor{stringliteral}{"{}isolated"{}}]:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00486}00486\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ ISOLATED:\ \{i\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00487}00487\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00488}00488\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00489}00489\ \ \ \ \ \textcolor{comment}{\#\ 3.\ Security}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00490}00490\ \ \ \ \ security\ =\ \{\textcolor{stringliteral}{"{}critical"{}}:\ [],\ \textcolor{stringliteral}{"{}medium"{}}:\ [],\ \textcolor{stringliteral}{"{}low"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00491}00491\ \ \ \ \ \textcolor{keywordflow}{if}\ run\_all\ \textcolor{keywordflow}{or}\ args.security:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00492}00492\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}[3/7]\ Security\ scan..."{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00493}00493\ \ \ \ \ \ \ \ \ security\ =\ \doxymbox{\hyperlink{namespacesecurity__scan}{security\_scan}}(modules)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00494}00494\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Critical:\ \{len(security['critical'])\},\ Medium:\ \{len(security['medium'])\},\ Low:\ \{len(security['low'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00495}00495\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00496}00496\ \ \ \ \ \textcolor{comment}{\#\ 4.\ Tests}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00497}00497\ \ \ \ \ tests\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00498}00498\ \ \ \ \ \textcolor{keywordflow}{if}\ (run\_all\ \textcolor{keywordflow}{and}\ \textcolor{keywordflow}{not}\ args.no\_tests)\ \textcolor{keywordflow}{or}\ args.tests:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00499}00499\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}[4/7]\ Running\ test\ suites..."{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00500}00500\ \ \ \ \ \ \ \ \ tests\ =\ \doxymbox{\hyperlink{namespaceomnibus__audit_a1b195c8c3f9d2b24bcb228bdf68dce12}{run\_tests}}()}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00501}00501\ \ \ \ \ \ \ \ \ passed\ =\ sum(1\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ tests.values()\ \textcolor{keywordflow}{if}\ t[\textcolor{stringliteral}{"{}passed"{}}])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00502}00502\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{passed\}/\{len(tests)\}\ passed"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00503}00503\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00504}00504\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}[4/7]\ Tests\ skipped\ (use\ -\/-\/tests\ or\ remove\ -\/-\/no-\/tests)"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00505}00505\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00506}00506\ \ \ \ \ \textcolor{comment}{\#\ 5.\ Metrics}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00507}00507\ \ \ \ \ metrics\ =\ \doxymbox{\hyperlink{namespaceomnibus__audit_a2d5dcf327821a266db8913c17f5f3316}{compute\_metrics}}(modules)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00508}00508\ \ \ \ \ \textcolor{keywordflow}{if}\ run\_all\ \textcolor{keywordflow}{or}\ args.metrics:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00509}00509\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}[5/7]\ Code\ metrics:"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00510}00510\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{metrics['total\_loc']:,\}\ LOC,\ \{metrics['total\_functions']\}\ functions,\ \{metrics['total\_tests']\}\ tests"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00511}00511\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Test\ ratio:\ \{metrics['test\_ratio\_pct']\}\%"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00512}00512\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Modules\ without\ tests:\ \{len(metrics['modules\_without\_tests'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00513}00513\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00514}00514\ \ \ \ \ \textcolor{comment}{\#\ 6.\ Wiki\ sync}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00515}00515\ \ \ \ \ wiki\_missing\ =\ \doxymbox{\hyperlink{namespaceomnibus__audit_a287dbb9f8e09cf53469f62291f3845b4}{check\_wiki\_sync}}(modules)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00516}00516\ \ \ \ \ \textcolor{keywordflow}{if}\ run\_all\ \textcolor{keywordflow}{or}\ args.wiki:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00517}00517\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}[6/7]\ Wiki\ sync:\ \{len(wiki\_missing)\}\ missing\ API\ docs"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00518}00518\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00519}00519\ \ \ \ \ \textcolor{comment}{\#\ 7.\ BTC\ comparison}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00520}00520\ \ \ \ \ \textcolor{keywordflow}{if}\ run\_all\ \textcolor{keywordflow}{or}\ args.compare:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00521}00521\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}[7/7]\ Running\ BTC\ comparison..."{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00522}00522\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00523}00523\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00524}00524\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [sys.executable,\ str(FULLBTCDEV\ /\ \textcolor{stringliteral}{"{}generate\_comparison.py"{}})],}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00525}00525\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},\ text=\textcolor{keyword}{True},\ timeout=30,\ cwd=str(ROOT),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00526}00526\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00527}00527\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ result.stdout.split(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}):}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00528}00528\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}RESULT"{}}\ \textcolor{keywordflow}{in}\ line:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00529}00529\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{line.strip()\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00530}00530\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00531}00531\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Error:\ \{e\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00532}00532\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00533}00533\ \ \ \ \ \textcolor{comment}{\#\ Generate\ report}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00534}00534\ \ \ \ \ report\ =\ \doxymbox{\hyperlink{namespaceomnibus__audit_ad500dfc26e88e0f5997cc0ae575b527b}{generate\_report}}(modules,\ deps,\ security,\ tests,\ metrics,\ wiki\_missing)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00535}00535\ \ \ \ \ REPORTS.mkdir(exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00536}00536\ \ \ \ \ report\_path\ =\ FULLBTCDEV\ /\ \textcolor{stringliteral}{"{}MASTER\_AUDIT\_REPORT.md"{}}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00537}00537\ \ \ \ \ report\_path.write\_text(report,\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00538}00538\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Report:\ \{report\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00539}00539\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00540}00540\ \ \ \ \ \textcolor{comment}{\#\ JSON\ output}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00541}00541\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00542}00542\ \ \ \ \ \ \ \ \ json\_data\ =\ \{}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00543}00543\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.datetime.now().isoformat(),}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00544}00544\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ \{k:\ \{kk:\ vv\ \textcolor{keywordflow}{for}\ kk,\ vv\ \textcolor{keywordflow}{in}\ v.items()\ \textcolor{keywordflow}{if}\ kk\ !=\ \textcolor{stringliteral}{"{}path"{}}\}\ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ modules.items()\},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00545}00545\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}dependencies"{}}:\ \{k:\ v\ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ deps.items()\ \textcolor{keywordflow}{if}\ k\ !=\ \textcolor{stringliteral}{"{}layers"{}}\},}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00546}00546\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}security"{}}:\ security,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00547}00547\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tests"{}}:\ tests,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00548}00548\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}metrics"{}}:\ metrics,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00549}00549\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}wiki\_missing"{}}:\ wiki\_missing,}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00550}00550\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00551}00551\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.json,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00552}00552\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(json\_data,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00553}00553\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ JSON:\ \{args.json\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00554}00554\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00555}00555\ \ \ \ \ \textcolor{comment}{\#\ Final\ score}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00556}00556\ \ \ \ \ total\_checks\ =\ 7}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00557}00557\ \ \ \ \ passed\_checks\ =\ 0}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00558}00558\ \ \ \ \ \textcolor{keywordflow}{if}\ metrics[\textcolor{stringliteral}{"{}real\_modules"{}}]\ >\ 70:\ passed\_checks\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00559}00559\ \ \ \ \ \textcolor{keywordflow}{if}\ len(deps[\textcolor{stringliteral}{"{}cycles"{}}])\ <\ 5:\ passed\_checks\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00560}00560\ \ \ \ \ \textcolor{keywordflow}{if}\ len(deps[\textcolor{stringliteral}{"{}violations"{}}])\ <\ 5:\ passed\_checks\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00561}00561\ \ \ \ \ \textcolor{keywordflow}{if}\ len(security[\textcolor{stringliteral}{"{}critical"{}}])\ ==\ 0:\ passed\_checks\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00562}00562\ \ \ \ \ \textcolor{keywordflow}{if}\ metrics[\textcolor{stringliteral}{"{}test\_ratio\_pct"{}}]\ >\ 30:\ passed\_checks\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00563}00563\ \ \ \ \ \textcolor{keywordflow}{if}\ len(wiki\_missing)\ <\ 5:\ passed\_checks\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00564}00564\ \ \ \ \ \textcolor{keywordflow}{if}\ tests:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00565}00565\ \ \ \ \ \ \ \ \ t\_passed\ =\ sum(1\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ tests.values()\ \textcolor{keywordflow}{if}\ t[\textcolor{stringliteral}{"{}passed"{}}])}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00566}00566\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ t\_passed\ >=\ len(tests)\ *\ 0.8:\ passed\_checks\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00567}00567\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00568}00568\ \ \ \ \ \ \ \ \ passed\_checks\ +=\ 1\ \ \textcolor{comment}{\#\ skipped\ =\ OK}}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00569}00569\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00570}00570\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00571}00571\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ AUDIT\ SCORE:\ \{passed\_checks\}/\{total\_checks\}\ checks\ passed"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00572}00572\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{metrics['total\_modules']\}\ modules\ |\ \{metrics['total\_loc']:,\}\ LOC\ |\ \{metrics['total\_tests']\}\ tests"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00573}00573\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00574}00574\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00575}00575\ }
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00576}00576\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{omnibus__audit_8py_source_l00577}00577\ \ \ \ \ \doxymbox{\hyperlink{namespaceomnibus__audit_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

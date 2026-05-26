@@ -13,22 +13,16 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { Lock, Unlock, RefreshCw, AlertTriangle } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { Lock, RefreshCw, AlertTriangle } from "lucide-react";
+import { rpc } from "../../api/rpc-client";
+import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
+import { useBlockHeight } from "../../api/use-block-height";
 
-const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
+
 const BLOCKS_PER_DAY = 86_400; // 1s blocks
 
-function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
-}
-function shortAddr(addr: string): string {
-  if (addr.length <= 16) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-6)}`;
-}
 function shortId(id: string): string {
   if (id.length <= 12) return id;
   return `${id.slice(0, 8)}…`;
@@ -46,29 +40,26 @@ interface TimelockVault {
   state: VaultState;
 }
 
-function stateBadge(state: VaultState): string {
-  switch (state) {
-    case "locked":   return "bg-mempool-orange/15 text-mempool-orange border-mempool-orange/40";
-    case "unlocked": return "bg-mempool-green/15 text-mempool-green border-mempool-green/40";
-    case "spent":    return "bg-mempool-border/30 text-mempool-text-dim border-mempool-border";
-  }
-}
-function stateIcon(state: VaultState): string {
-  switch (state) {
-    case "locked":   return "🔒";
-    case "unlocked": return "🔓";
-    case "spent":    return "✅";
-  }
-}
+const STATE_BADGE: Record<VaultState, string> = {
+  locked:   "bg-mempool-orange/15 text-mempool-orange border-mempool-orange/40",
+  unlocked: "bg-mempool-green/15 text-mempool-green border-mempool-green/40",
+  spent:    "bg-mempool-border/30 text-mempool-text-dim border-mempool-border",
+};
+const STATE_ICON: Record<VaultState, string> = {
+  locked:   "🔒",
+  unlocked: "🔓",
+  spent:    "✅",
+};
 
 export function TimelockPanel() {
   const wallet = useWallet();
-  const [blockHeight, setBlockHeight] = useState(0);
+  const blockHeight = useBlockHeight();
   const [vaults, setVaults] = useState<TimelockVault[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [spendBusy, setSpendBusy] = useState<string | null>(null);
+  const [statusMap, setStatusMap] = useState<Record<string, { blocks_remaining: number }>>({});
 
   // Create form
   const [dest, setDest] = useState("");
@@ -81,28 +72,13 @@ export function TimelockPanel() {
     window.setTimeout(() => setToast(null), 6000);
   };
 
-  // Fetch block height
-  useEffect(() => {
-    let cancelled = false;
-    const tick = async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    };
-    void tick();
-    const id = setInterval(() => void tick(), 5000);
-    return () => { cancelled = true; clearInterval(id); };
-  }, []);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setErr(null);
     try {
       const owner = wallet?.address;
-      const result = await rpc.request_raw("timelock_list", [
-        owner ? { owner } : {},
-      ]) as { vaults?: TimelockVault[] } | null;
+      const result = await rpc.timelockList(owner) as { vaults?: TimelockVault[] } | null;
       setVaults(result?.vaults ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -123,12 +99,12 @@ export function TimelockPanel() {
     }
     setCreateBusy(true);
     try {
-      const result = await rpc.request_raw("timelock_create", [{
+      const result = await rpc.timelockCreate({
         owner: wallet.address,
         dest: dest.trim(),
         amount_sat: amountSat,
         unlock_block: unlock,
-      }]) as { vault_id?: string } | null;
+      }) as { vault_id?: string } | null;
       showToast(`Vault created: ${result?.vault_id ?? "—"}`);
       setDest(""); setAmountStr(""); setUnlockBlock("");
       await refresh();
@@ -139,10 +115,17 @@ export function TimelockPanel() {
     }
   };
 
+  const handleStatus = async (vaultId: string) => {
+    try {
+      const r = await rpc.timelockStatus(vaultId) as { blocks_remaining?: number } | null;
+      if (r) setStatusMap((prev) => ({ ...prev, [vaultId]: { blocks_remaining: r.blocks_remaining ?? 0 } }));
+    } catch { /* ignore */ }
+  };
+
   const handleSpend = async (vaultId: string) => {
     setSpendBusy(vaultId);
     try {
-      await rpc.request_raw("timelock_spend", [{ vault_id: vaultId }]);
+      await rpc.timelockSpend(vaultId);
       showToast(`Vault ${shortId(vaultId)} spent`);
       await refresh();
     } catch (e) {
@@ -248,6 +231,32 @@ export function TimelockPanel() {
           Vaults ({vaults.length})
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {vaults.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["vault_id", "owner", "dest", "amount_omni", "unlock_block", "created_block", "state"].join(","),
+                ...vaults.map((v) => [
+                  `"${v.vault_id}"`,
+                  `"${v.owner}"`,
+                  `"${v.dest}"`,
+                  (v.amount_sat / SAT_PER_OMNI).toFixed(4),
+                  v.unlock_block,
+                  v.created_block,
+                  v.state,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-timelock-vaults.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
@@ -278,16 +287,25 @@ export function TimelockPanel() {
                   <span className="font-mono text-[10px] text-mempool-text-dim">
                     #{shortId(v.vault_id)}
                   </span>
-                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-medium ${stateBadge(v.state)}`}>
-                    {stateIcon(v.state)} {v.state}
+                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-medium ${STATE_BADGE[v.state]}`}>
+                    {STATE_ICON[v.state]} {v.state}
                   </span>
                   <span className="font-mono text-sm text-mempool-text">
-                    {fmtOmni(v.amount_sat)} <span className="text-xs text-mempool-text-dim">OMNI</span>
+                    {satToOmni(v.amount_sat, 4)} <span className="text-xs text-mempool-text-dim">OMNI</span>
                   </span>
                   <span className="text-xs text-mempool-text-dim font-mono">
-                    dest: {shortAddr(v.dest)}
+                    dest: {midTrunc(v.dest)}
                   </span>
                   <div className="flex-1" />
+                  <button
+                    onClick={() => void handleStatus(v.vault_id)}
+                    className="px-2 py-1 text-[10px] rounded border border-mempool-border/40 text-mempool-text-dim hover:border-mempool-blue/40 hover:text-mempool-blue"
+                    title="Fetch live status"
+                  >
+                    {statusMap[v.vault_id] !== undefined
+                      ? `${statusMap[v.vault_id].blocks_remaining.toLocaleString()} blk left`
+                      : "Status"}
+                  </button>
                   {v.state !== "spent" && (
                     <button
                       onClick={() => void handleSpend(v.vault_id)}

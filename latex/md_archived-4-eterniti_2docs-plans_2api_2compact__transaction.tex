@@ -1,0 +1,182 @@
+\chapter{Module:\+ {\ttfamily compact\+\_\+transaction} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction}{}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction}\index{Module: $<$tt$>$compact\_transaction$<$/tt$>$@{Module: $<$tt$>$compact\_transaction$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1316}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1316}%
+
+
+\begin{quote}
+Seg\+Wit-\/style compact TX — 161 bytes/\+\+TX (63\% reduction), witness data separation. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+compact\+\_\+transaction.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 223 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 5 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 1 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 4
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1318}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1318}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1319}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1319}
+
+\begin{DoxyItemize}
+\item \`{}\+Compact\+Transaction\`{}{\ttfamily Compact\+Transaction}
+\end{DoxyItemize}— Seg\+Wit-\/style compact transaction (signatures separated) Reduces per-\/transaction ...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1320}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1320}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1321}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1321}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}from\+Transaction()\`{}{\ttfamily from\+Transaction()}
+\end{DoxyItemize}— Convert from full Transaction to Compact\+Transaction
+\begin{DoxyItemize}
+\item \`{}serialize()\`{}{\ttfamily serialize()}
+\end{DoxyItemize}— Serialize to binary format (161 bytes)
+\begin{DoxyItemize}
+\item \`{}deserialize()\`{}{\ttfamily deserialize()}
+\end{DoxyItemize}— Deserialize from binary
+\begin{DoxyItemize}
+\item \`{}print()\`{}{\ttfamily print()}
+\end{DoxyItemize}— Performs the print operation on the compact\+\_\+transaction module.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1323}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1323}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1324}{}\doxysubsection{\texorpdfstring{{\ttfamily Compact\+Transaction}}{{\ttfamily Compact\+Transaction}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1324}
+Seg\+Wit-\/style compact transaction (signatures separated) Reduces per-\/transaction size by 60\%
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily id}  &{\ttfamily u32}  &Id  \\
+{\ttfamily from}  &{\ttfamily \+[20]\+u8}  &From  \\
+{\ttfamily to}  &{\ttfamily \+[20]\+u8}  &To  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+{\ttfamily timestamp}  &{\ttfamily u32}  &Timestamp  \\
+{\ttfamily nonce}  &{\ttfamily u32}  &Nonce  \\
+{\ttfamily data\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Data\+\_\+hash  \\
+{\ttfamily sig\+\_\+type}  &{\ttfamily u8}  &Sig\+\_\+type  \\
+{\ttfamily sig\+\_\+hash}  &{\ttfamily \+[32]\+u8}  &Sig\+\_\+hash  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 8}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1326}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1326}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily Transaction}  &{\ttfamily transaction\+\_\+mod.\+Transaction}  &Transaction  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1328}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1328}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1329}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1329}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ CompactTransaction\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Compact\+Transaction}
+
+{\itshape Defined at line 26}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1331}{}\doxysubsection{\texorpdfstring{{\ttfamily from\+Transaction()}}{{\ttfamily from\+Transaction()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1331}
+Convert from full Transaction to Compact\+Transaction
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ fromTransaction(tx:\ *const\ Transaction)\ CompactTransaction\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacetx}{tx}}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Transaction}  &Tx  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Compact\+Transaction}
+
+{\itshape Defined at line 41}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1333}{}\doxysubsection{\texorpdfstring{{\ttfamily serialize()}}{{\ttfamily serialize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1333}
+Serialize to binary format (161 bytes)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ serialize(self:\ *const\ CompactTransaction,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Compact\+Transaction}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 77}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1335}{}\doxysubsection{\texorpdfstring{{\ttfamily deserialize()}}{{\ttfamily deserialize()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1335}
+Deserialize from binary
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deserialize(data:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !CompactTransaction\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily data}  &{\ttfamily \+[]\+const u8}  &Data  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+Compact\+Transaction}
+
+{\itshape Defined at line 122}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1337}{}\doxysubsection{\texorpdfstring{{\ttfamily print()}}{{\ttfamily print()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2compact__transaction_autotoc_md1337}
+Performs the print operation on the compact\+\_\+transaction module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ print(self:\ *const\ CompactTransaction)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Compact\+Transaction}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 169}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

@@ -1,0 +1,354 @@
+\doxysection{project\+\_\+health.\+py}
+\hypertarget{project__health_8py_source}{}\label{project__health_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/agentscripts/project\_health.py@{archived-\/4-\/eterniti/tools-\/python/agentscripts/project\_health.py}}
+\doxymbox{\hyperlink{project__health_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00001}\doxymbox{\hyperlink{namespaceproject__health}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ -\/\ Project\ Health\ Check}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00004}00004\ \textcolor{stringliteral}{=========================================}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00005}00005\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00006}00006\ \textcolor{stringliteral}{Check\ rapid\ al\ stării\ proiectului\ pentru\ AI\ agents.}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00007}00007\ \textcolor{stringliteral}{Fără\ dependințe\ externe\ -\/\ rulează\ în\ <1\ secundă.}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00008}00008\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00009}00009\ \textcolor{stringliteral}{Utilizare:}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ \ \ python\ project\_health.py}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ python\ project\_health.py\ -\/-\/json\ \ \ \ \ \#\ Output\ JSON\ pentru\ parsare}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ python\ project\_health.py\ -\/-\/quiet\ \ \ \ \#\ Doar\ cod\ de\ ieșire\ (0=OK,\ 1=probleme)}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00013}00013\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00014}00014\ \textcolor{stringliteral}{Autor:\ OmniBus\ AI\ Collective}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00015}00015\ \textcolor{stringliteral}{Versiune:\ 1.0.0}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00016}00016\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00018}00018\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00020}00020\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00021}00021\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00022}00022\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00023}00023\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ asdict}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00024}00024\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Dict,\ List,\ Optional,\ Tuple}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00027}00027\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00028}\doxymbox{\hyperlink{classproject__health_1_1_health_status}{00028}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classproject__health_1_1_health_status}{HealthStatus}}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00029}00029\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Rezultatul\ verificării\ stării\ proiectului."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00030}\doxymbox{\hyperlink{classproject__health_1_1_health_status_ac68a4a1978f11d16641e3423b57b8ffb}{00030}}\ \ \ \ \ zig\_installed:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00031}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a5385c486cd80adacf8d5a8fa7f2a5d30}{00031}}\ \ \ \ \ zig\_version:\ str\ =\ \textcolor{stringliteral}{"{}unknown"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00032}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a9db0e08ff21c3153a810d9bdacb081cc}{00032}}\ \ \ \ \ zig\_min\_version:\ str\ =\ \textcolor{stringliteral}{"{}0.15.0"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00033}\doxymbox{\hyperlink{classproject__health_1_1_health_status_ac0ced7de8d54211599b3dd08ab91b833}{00033}}\ \ \ \ \ zig\_version\_ok:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00034}\doxymbox{\hyperlink{classproject__health_1_1_health_status_aa40319b09212a5635c50b4714ad1c074}{00034}}\ \ \ \ \ liboqs\_installed:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00035}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a0cacba6106e0a4cd1f8f5f67d822076a}{00035}}\ \ \ \ \ liboqs\_path:\ Optional[str]\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00036}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a2432eece91eb28c1ecb0dd61ba8279b0}{00036}}\ \ \ \ \ files\_zig:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00037}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a996cd502e9d208be10f90b34140ec562}{00037}}\ \ \ \ \ files\_test:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00038}\doxymbox{\hyperlink{classproject__health_1_1_health_status_ac74b7915b7147afa01680b86d472f996}{00038}}\ \ \ \ \ constants\_count:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00039}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a714323966cda456171ce5fcbb12c665f}{00039}}\ \ \ \ \ enums\_count:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00040}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a6004bd3f1aa7406704b65f3ca2093c9a}{00040}}\ \ \ \ \ loc\_total:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00041}\doxymbox{\hyperlink{classproject__health_1_1_health_status_aaa981fac15b6661e3f06e93b92f0003e}{00041}}\ \ \ \ \ loc\_tests:\ int\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00042}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a388e17fe06f524e634eacf235a98cfc0}{00042}}\ \ \ \ \ build\_zig\_present:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00043}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a30994182dabb758560b595537d7160ff}{00043}}\ \ \ \ \ omnibus\_toml\_present:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00044}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a3c9fad142a20a010981a8146fdc73014}{00044}}\ \ \ \ \ opcodes\_md\_present:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00045}\doxymbox{\hyperlink{classproject__health_1_1_health_status_abdf1c797207b18fef68be0e5499bdab1}{00045}}\ \ \ \ \ readme\_present:\ bool\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00046}\doxymbox{\hyperlink{classproject__health_1_1_health_status_ae793efcbdfc652dbbcb4f7a5e0bb11d2}{00046}}\ \ \ \ \ errors:\ List[str]\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00047}\doxymbox{\hyperlink{classproject__health_1_1_health_status_ad3429e97351984814807504c85466b90}{00047}}\ \ \ \ \ warnings:\ List[str]\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00049}\doxymbox{\hyperlink{classproject__health_1_1_health_status_aa0b0a86c07fc589c3e0bf1ab36a0003f}{00049}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classproject__health_1_1_health_status_aa0b0a86c07fc589c3e0bf1ab36a0003f}{\_\_post\_init\_\_}}(self):}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classproject__health_1_1_health_status_ae793efcbdfc652dbbcb4f7a5e0bb11d2}{errors}}\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classproject__health_1_1_health_status_ae793efcbdfc652dbbcb4f7a5e0bb11d2}{errors}}\ =\ []}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classproject__health_1_1_health_status_ad3429e97351984814807504c85466b90}{warnings}}\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classproject__health_1_1_health_status_ad3429e97351984814807504c85466b90}{warnings}}\ =\ []}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00055}00055\ \ \ \ \ \textcolor{preprocessor}{@property}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00056}\doxymbox{\hyperlink{classproject__health_1_1_health_status_a807c2d5d5f9e18ed98da6e8fdfcb7e27}{00056}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classproject__health_1_1_health_status_a807c2d5d5f9e18ed98da6e8fdfcb7e27}{is\_healthy}}(self)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Verifică\ dacă\ proiectul\ e\ suficient\ de\ sănătos\ pentru\ lucru."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classproject__health_1_1_health_status_ac68a4a1978f11d16641e3423b57b8ffb}{zig\_installed}}\ \textcolor{keywordflow}{and}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classproject__health_1_1_health_status_ac0ced7de8d54211599b3dd08ab91b833}{zig\_version\_ok}}\ \textcolor{keywordflow}{and}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classproject__health_1_1_health_status_a388e17fe06f524e634eacf235a98cfc0}{build\_zig\_present}}\ \textcolor{keywordflow}{and}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ len(self.\doxymbox{\hyperlink{classproject__health_1_1_health_status_ae793efcbdfc652dbbcb4f7a5e0bb11d2}{errors}})\ ==\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00066}\doxymbox{\hyperlink{classproject__health_1_1_colors}{00066}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classproject__health_1_1_colors}{Colors}}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00067}00067\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Coduri\ de\ culoare\ pentru\ terminal."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00068}\doxymbox{\hyperlink{classproject__health_1_1_colors_a6a9e0b441b8df98fc4000863d2740286}{00068}}\ \ \ \ \ RESET\ =\ \textcolor{stringliteral}{'\(\backslash\)033[0m'}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00069}\doxymbox{\hyperlink{classproject__health_1_1_colors_a5f744b5d4aa51245d432042e646065b5}{00069}}\ \ \ \ \ GREEN\ =\ \textcolor{stringliteral}{'\(\backslash\)033[92m'}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00070}\doxymbox{\hyperlink{classproject__health_1_1_colors_afc2beaa68c2c70de5561f10c52f1ca84}{00070}}\ \ \ \ \ YELLOW\ =\ \textcolor{stringliteral}{'\(\backslash\)033[93m'}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00071}\doxymbox{\hyperlink{classproject__health_1_1_colors_a8ff1c29a531c3de080c6ba4b166635de}{00071}}\ \ \ \ \ RED\ =\ \textcolor{stringliteral}{'\(\backslash\)033[91m'}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00072}\doxymbox{\hyperlink{classproject__health_1_1_colors_a63f478fb972368ece54cea19d7a8a7a5}{00072}}\ \ \ \ \ BLUE\ =\ \textcolor{stringliteral}{'\(\backslash\)033[94m'}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00073}\doxymbox{\hyperlink{classproject__health_1_1_colors_a0d7b28c75a6cd359139d2d353adca156}{00073}}\ \ \ \ \ BOLD\ =\ \textcolor{stringliteral}{'\(\backslash\)033[1m'}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00075}00075\ \ \ \ \ \textcolor{preprocessor}{@classmethod}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00076}\doxymbox{\hyperlink{classproject__health_1_1_colors_ad3f0a5441295fae63c75f99d98a259fa}{00076}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classproject__health_1_1_colors_ad3f0a5441295fae63c75f99d98a259fa}{disable}}(cls):}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Dezactivează\ culorile\ (pentru\ pipe/output\ non-\/TTY)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ cls.\doxymbox{\hyperlink{classproject__health_1_1_colors_a6a9e0b441b8df98fc4000863d2740286}{RESET}}\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ cls.\doxymbox{\hyperlink{classproject__health_1_1_colors_a5f744b5d4aa51245d432042e646065b5}{GREEN}}\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ cls.\doxymbox{\hyperlink{classproject__health_1_1_colors_afc2beaa68c2c70de5561f10c52f1ca84}{YELLOW}}\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ cls.\doxymbox{\hyperlink{classproject__health_1_1_colors_a8ff1c29a531c3de080c6ba4b166635de}{RED}}\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ cls.\doxymbox{\hyperlink{classproject__health_1_1_colors_a63f478fb972368ece54cea19d7a8a7a5}{BLUE}}\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ cls.\doxymbox{\hyperlink{classproject__health_1_1_colors_a0d7b28c75a6cd359139d2d353adca156}{BOLD}}\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00086}\doxymbox{\hyperlink{namespaceproject__health_a0c4fc87778cfa3e5825584c835e426fb}{00086}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceproject__health_a0c4fc87778cfa3e5825584c835e426fb}{get\_zig\_version}}()\ -\/>\ Tuple[bool,\ str]:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00087}00087\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Detectează\ versiunea\ Zig\ instalată."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00088}00088\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{'zig'},\ \textcolor{stringliteral}{'version'}],}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ text=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ timeout=5}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ result.returncode\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ version\ =\ result.stdout.strip()}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True},\ version}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00098}00098\ \ \ \ \ \textcolor{keywordflow}{except}\ (subprocess.TimeoutExpired,\ FileNotFoundError):}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00100}00100\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}unknown"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00103}\doxymbox{\hyperlink{namespaceproject__health_ae186e4d00e7fd17c2aa006ea4c54ebdd}{00103}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceproject__health_ae186e4d00e7fd17c2aa006ea4c54ebdd}{check\_version\_meets\_min}}(version:\ str,\ min\_version:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00104}00104\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Verifică\ dacă\ versiunea\ e\ >=\ min\_version."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00105}00105\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ v\_parts\ =\ [int(x)\ \textcolor{keywordflow}{for}\ x\ \textcolor{keywordflow}{in}\ version.split(\textcolor{stringliteral}{'.'})[:2]]}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ min\_parts\ =\ [int(x)\ \textcolor{keywordflow}{for}\ x\ \textcolor{keywordflow}{in}\ min\_version.split(\textcolor{stringliteral}{'.'})[:2]]}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ v\_parts\ >=\ min\_parts}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{except}\ (ValueError,\ IndexError):}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00113}\doxymbox{\hyperlink{namespaceproject__health_a879b634c4835d40f1c19bcf21eec34f8}{00113}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceproject__health_a879b634c4835d40f1c19bcf21eec34f8}{check\_liboqs}}()\ -\/>\ Tuple[bool,\ Optional[str]]:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00114}00114\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Verifică\ dacă\ liboqs\ e\ instalat."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00115}00115\ \ \ \ \ \textcolor{comment}{\#\ Check\ common\ paths}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00116}00116\ \ \ \ \ paths\_to\_check\ =\ [}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ Path(\textcolor{stringliteral}{"{}C:/Kits\ work/limaje\ de\ programare/liboqs-\/src/build"{}}),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ Path(\textcolor{stringliteral}{"{}/usr/local/lib/liboqs.a"{}}),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ Path(\textcolor{stringliteral}{"{}/usr/lib/liboqs.a"{}}),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ Path.home()\ /\ \textcolor{stringliteral}{"{}liboqs"{}}\ /\ \textcolor{stringliteral}{"{}build"{}},}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00121}00121\ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00122}00122\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00123}00123\ \ \ \ \ \textcolor{keywordflow}{for}\ path\ \textcolor{keywordflow}{in}\ paths\_to\_check:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ path.exists():}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True},\ str(path)}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00126}00126\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00127}00127\ \ \ \ \ \textcolor{comment}{\#\ Check\ via\ pkg-\/config}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00128}00128\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ result\ =\ subprocess.run(}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{stringliteral}{'pkg-\/config'},\ \textcolor{stringliteral}{'-\/-\/exists'},\ \textcolor{stringliteral}{'liboqs'}],}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ capture\_output=\textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ timeout=2}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ result.returncode\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True},\ \textcolor{stringliteral}{"{}system"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00136}00136\ \ \ \ \ \textcolor{keywordflow}{except}\ (subprocess.TimeoutExpired,\ FileNotFoundError):}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00138}00138\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00139}00139\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False},\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00142}\doxymbox{\hyperlink{namespaceproject__health_a7183fcad6479afd86499edef39219f0d}{00142}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceproject__health_a7183fcad6479afd86499edef39219f0d}{count\_zig\_files}}(root\_dir:\ Path)\ -\/>\ Tuple[int,\ int,\ int,\ int]:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00143}00143\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Numără\ fișierele\ Zig,\ testele,\ liniile\ de\ cod."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00144}00144\ \ \ \ \ zig\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00145}00145\ \ \ \ \ test\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00146}00146\ \ \ \ \ loc\_total\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00147}00147\ \ \ \ \ loc\_tests\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00148}00148\ \ \ \ \ constants\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00149}00149\ \ \ \ \ enums\_count\ =\ 0}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00150}00150\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00151}00151\ \ \ \ \ \textcolor{keywordflow}{for}\ filepath\ \textcolor{keywordflow}{in}\ root\_dir.rglob(\textcolor{stringliteral}{'*.zig'}):}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Skip\ cache\ și\ output}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ any(part.startswith(\textcolor{stringliteral}{'.'})\ \textcolor{keywordflow}{or}\ part\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{'zig-\/out'},\ \textcolor{stringliteral}{'.zig-\/cache'}]\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ part\ \textcolor{keywordflow}{in}\ filepath.parts):}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00157}00157\ \ \ \ \ \ \ \ \ zig\_count\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(filepath,\ \textcolor{stringliteral}{'r'},\ encoding=\textcolor{stringliteral}{'utf-\/8'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ content\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lines\ =\ content.split(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loc\_total\ +=\ len(lines)}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Numără\ test\ blocks}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'test\ "{}'}\ \textcolor{keywordflow}{in}\ content\ \textcolor{keywordflow}{or}\ \textcolor{stringliteral}{'test\ \{'}\ \textcolor{keywordflow}{in}\ content:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ test\_count\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loc\_tests\ +=\ len([l\ \textcolor{keywordflow}{for}\ l\ \textcolor{keywordflow}{in}\ lines\ \textcolor{keywordflow}{if}\ l.strip().startswith(\textcolor{stringliteral}{'test\ '})])}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Numără\ constante\ și\ enum-\/uri\ (aproximativ)}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ constants\_count\ +=\ content.count(\textcolor{stringliteral}{'pub\ const'})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ enums\_count\ +=\ content.count(\textcolor{stringliteral}{'=\ enum'})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00175}00175\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00176}00176\ \ \ \ \ \textcolor{keywordflow}{return}\ zig\_count,\ test\_count,\ loc\_total,\ loc\_tests,\ constants\_count,\ enums\_count}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00177}00177\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00179}\doxymbox{\hyperlink{namespaceproject__health_a01e6314e77caac22d0a2512ce43988e9}{00179}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceproject__health_a01e6314e77caac22d0a2512ce43988e9}{check\_project\_structure}}(root\_dir:\ Path)\ -\/>\ Dict[str,\ bool]:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00180}00180\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Verifică\ structura\ de\ bază\ a\ proiectului."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00181}00181\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'build\_zig'}:\ (root\_dir\ /\ \textcolor{stringliteral}{'build.zig'}).exists(),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'omnibus\_toml'}:\ (root\_dir\ /\ \textcolor{stringliteral}{'omnibus.toml'}).exists(),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'opcodes\_md'}:\ (root\_dir\ /\ \textcolor{stringliteral}{'claude-\/kimi-\/deep-\/gemini-\/opcodes'}\ /\ \textcolor{stringliteral}{'OPCODES.md'}).exists(),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'readme'}:\ (root\_dir\ /\ \textcolor{stringliteral}{'README.md'}).exists(),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'core\_dir'}:\ (root\_dir\ /\ \textcolor{stringliteral}{'core'}).exists(),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'test\_dir'}:\ (root\_dir\ /\ \textcolor{stringliteral}{'test'}).exists(),}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00188}00188\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00190}00190\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00191}\doxymbox{\hyperlink{namespaceproject__health_af68a696327b81f926e114f4c0633fa54}{00191}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceproject__health_af68a696327b81f926e114f4c0633fa54}{analyze\_project}}(root\_dir:\ Path)\ -\/>\ HealthStatus:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00192}00192\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Analizează\ starea\ completă\ a\ proiectului."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00193}00193\ \ \ \ \ status\ =\ \doxymbox{\hyperlink{classproject__health_1_1_health_status}{HealthStatus}}()}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00194}00194\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00195}00195\ \ \ \ \ \textcolor{comment}{\#\ Check\ Zig}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00196}00196\ \ \ \ \ status.zig\_installed,\ status.zig\_version\ =\ \doxymbox{\hyperlink{namespaceproject__health_a0c4fc87778cfa3e5825584c835e426fb}{get\_zig\_version}}()}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00197}00197\ \ \ \ \ \textcolor{keywordflow}{if}\ status.zig\_installed:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ status.zig\_version\_ok\ =\ \doxymbox{\hyperlink{namespaceproject__health_ae186e4d00e7fd17c2aa006ea4c54ebdd}{check\_version\_meets\_min}}(}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ status.zig\_version,\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ status.zig\_min\_version}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00202}00202\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ status.errors.append(\textcolor{stringliteral}{"{}Zig\ nu\ este\ instalat\ sau\ nu\ e\ în\ PATH"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00204}00204\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00205}00205\ \ \ \ \ \textcolor{comment}{\#\ Check\ liboqs}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00206}00206\ \ \ \ \ status.liboqs\_installed,\ status.liboqs\_path\ =\ \doxymbox{\hyperlink{namespaceproject__health_a879b634c4835d40f1c19bcf21eec34f8}{check\_liboqs}}()}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00207}00207\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ status.liboqs\_installed:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ status.warnings.append(\textcolor{stringliteral}{"{}liboqs\ nu\ e\ detectat\ (opțional,\ doar\ pentru\ PQ\ crypto)"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00209}00209\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00210}00210\ \ \ \ \ \textcolor{comment}{\#\ Count\ files\ and\ LOC}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00211}00211\ \ \ \ \ (}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ status.files\_zig,}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ status.files\_test,}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ status.loc\_total,}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ status.loc\_tests,}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ status.constants\_count,}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ status.enums\_count}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00218}00218\ \ \ \ \ )\ =\ \doxymbox{\hyperlink{namespaceproject__health_a7183fcad6479afd86499edef39219f0d}{count\_zig\_files}}(root\_dir)}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00219}00219\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00220}00220\ \ \ \ \ \textcolor{comment}{\#\ Check\ structure}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00221}00221\ \ \ \ \ structure\ =\ \doxymbox{\hyperlink{namespaceproject__health_a01e6314e77caac22d0a2512ce43988e9}{check\_project\_structure}}(root\_dir)}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00222}00222\ \ \ \ \ status.build\_zig\_present\ =\ structure[\textcolor{stringliteral}{'build\_zig'}]}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00223}00223\ \ \ \ \ status.omnibus\_toml\_present\ =\ structure[\textcolor{stringliteral}{'omnibus\_toml'}]}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00224}00224\ \ \ \ \ status.opcodes\_md\_present\ =\ structure[\textcolor{stringliteral}{'opcodes\_md'}]}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00225}00225\ \ \ \ \ status.readme\_present\ =\ structure[\textcolor{stringliteral}{'readme'}]}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00226}00226\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00227}00227\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ status.build\_zig\_present:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ status.errors.append(\textcolor{stringliteral}{"{}Lipsește\ build.zig\ -\/\ proiectul\ nu\ poate\ fi\ compilat"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00229}00229\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00230}00230\ \ \ \ \ \textcolor{keywordflow}{return}\ status}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00232}00232\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00233}\doxymbox{\hyperlink{namespaceproject__health_a4504c7225db2ebdf501a7bdb4e234901}{00233}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceproject__health_a4504c7225db2ebdf501a7bdb4e234901}{print\_status}}(status:\ HealthStatus,\ use\_colors:\ bool\ =\ \textcolor{keyword}{True}):}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00234}00234\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Afișează\ starea\ într-\/un\ format\ uman-\/citibil."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00235}00235\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ use\_colors:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ Colors.disable()}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00237}00237\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00238}00238\ \ \ \ \ c\ =\ Colors}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00239}00239\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00240}00240\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{c.BOLD\}╔══════════════════════════════════════════════════════════════╗\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00241}00241\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{c.BOLD\}║\ \ \ \ \ \ \ \ OmniBus\ Blockchain\ -\/\ Project\ Health\ Check\ \ \ \ \ \ \ \ \ \ \ \ \ ║\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00242}00242\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{c.BOLD\}╚══════════════════════════════════════════════════════════════╝\{c.RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00243}00243\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00244}00244\ \ \ \ \ \textcolor{comment}{\#\ Zig\ status}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00245}00245\ \ \ \ \ zig\_color\ =\ c.GREEN\ \textcolor{keywordflow}{if}\ status.zig\_version\_ok\ \textcolor{keywordflow}{else}\ c.RED}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00246}00246\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ status.zig\_installed:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ zig\_color\ =\ c.RED}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.RED\}FAIL\{c.RESET\}]\ Zig:\ \{c.RED\}NU\ este\ instalat\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00249}00249\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ version\_status\ =\ \textcolor{stringliteral}{"{}OK"{}}\ \textcolor{keywordflow}{if}\ status.zig\_version\_ok\ \textcolor{keywordflow}{else}\ f\textcolor{stringliteral}{"{}necesită\ >=\ \{status.zig\_min\_version\}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{zig\_color\}\{'OK'\ if\ status.zig\_version\_ok\ else\ 'WARN'\}\{c.RESET\}]\ Zig:\ \{status.zig\_version\}\ \{version\_status\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00252}00252\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00253}00253\ \ \ \ \ \textcolor{comment}{\#\ liboqs}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00254}00254\ \ \ \ \ \textcolor{keywordflow}{if}\ status.liboqs\_installed:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.GREEN\}OK\{c.RESET\}]\ liboqs:\ \{c.GREEN\}detectat\{c.RESET\}\ (\{status.liboqs\_path\})"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00256}00256\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.YELLOW\}OPT\{c.RESET\}]\ liboqs:\ \{c.YELLOW\}opțional,\ nu\ e\ detectat\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00258}00258\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00259}00259\ \ \ \ \ \textcolor{comment}{\#\ Files}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00260}00260\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{c.BOLD\}Cod:\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00261}00261\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.GREEN\}OK\{c.RESET\}]\ Fișiere\ .zig:\ \{status.files\_zig\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00262}00262\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.GREEN\}OK\{c.RESET\}]\ Fișiere\ cu\ teste:\ \{status.files\_test\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00263}00263\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.GREEN\}OK\{c.RESET\}]\ Linii\ de\ cod:\ \{status.loc\_total:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00264}00264\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.GREEN\}OK\{c.RESET\}]\ Linii\ de\ test:\ \{status.loc\_tests:,\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00265}00265\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.GREEN\}OK\{c.RESET\}]\ Constante:\ \{status.constants\_count\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00266}00266\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{c.GREEN\}OK\{c.RESET\}]\ Enums:\ \{status.enums\_count\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00267}00267\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00268}00268\ \ \ \ \ \textcolor{comment}{\#\ Structure}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00269}00269\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{c.BOLD\}Structură:\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00270}00270\ \ \ \ \ struct\_color\ =\ c.GREEN\ \textcolor{keywordflow}{if}\ status.build\_zig\_present\ \textcolor{keywordflow}{else}\ c.RED}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00271}00271\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{struct\_color\}\{'OK'\ if\ status.build\_zig\_present\ else\ 'FAIL'\}\{c.RESET\}]\ build.zig"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00272}00272\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00273}00273\ \ \ \ \ struct\_color\ =\ c.GREEN\ \textcolor{keywordflow}{if}\ status.omnibus\_toml\_present\ \textcolor{keywordflow}{else}\ c.YELLOW}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00274}00274\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{struct\_color\}\{'OK'\ if\ status.omnibus\_toml\_present\ else\ 'WARN'\}\{c.RESET\}]\ omnibus.toml"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00275}00275\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00276}00276\ \ \ \ \ struct\_color\ =\ c.GREEN\ \textcolor{keywordflow}{if}\ status.opcodes\_md\_present\ \textcolor{keywordflow}{else}\ c.YELLOW}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00277}00277\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{struct\_color\}\{'OK'\ if\ status.opcodes\_md\_present\ else\ 'WARN'\}\{c.RESET\}]\ OPCODES.md"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00278}00278\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00279}00279\ \ \ \ \ struct\_color\ =\ c.GREEN\ \textcolor{keywordflow}{if}\ status.readme\_present\ \textcolor{keywordflow}{else}\ c.YELLOW}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00280}00280\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{struct\_color\}\{'OK'\ if\ status.readme\_present\ else\ 'WARN'\}\{c.RESET\}]\ README.md"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00281}00281\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00282}00282\ \ \ \ \ \textcolor{comment}{\#\ Errors}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00283}00283\ \ \ \ \ \textcolor{keywordflow}{if}\ status.errors:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{c.BOLD\}\{c.RED\}ERORI\ (\{len(status.errors)\}):\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ error\ \textcolor{keywordflow}{in}\ status.errors:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{c.RED\}•\{c.RESET\}\ \{error\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00287}00287\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00288}00288\ \ \ \ \ \textcolor{comment}{\#\ Warnings}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00289}00289\ \ \ \ \ \textcolor{keywordflow}{if}\ status.warnings:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{c.BOLD\}\{c.YELLOW\}AVERTISMENTE\ (\{len(status.warnings)\}):\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ warning\ \textcolor{keywordflow}{in}\ status.warnings:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{c.YELLOW\}•\{c.RESET\}\ \{warning\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00293}00293\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00294}00294\ \ \ \ \ \textcolor{comment}{\#\ Summary}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00295}00295\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \{c.BOLD\}\{'═'\ *\ 60\}\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00296}00296\ \ \ \ \ \textcolor{keywordflow}{if}\ status.is\_healthy:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{c.GREEN\}\{c.BOLD\}STATUS:\ PROIECT\ SĂNĂTOS\ ✓\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{c.GREEN\}Poți\ începe\ să\ lucrezi\ pe\ acest\ proiect.\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00299}00299\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{c.RED\}\{c.BOLD\}STATUS:\ PROBLEME\ DETECTATE\ ✗\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{c.RED\}Rezolvă\ erorile\ de\ mai\ sus\ înainte\ de\ a\ continua.\{c.RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00302}00302\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{c.BOLD\}\{'═'\ *\ 60\}\{c.RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00304}00304\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00305}\doxymbox{\hyperlink{namespaceproject__health_a51af30a60f9f02777c6396b8247e356f}{00305}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceproject__health_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00306}00306\ \ \ \ \ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00307}00307\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00308}00308\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{'Verificare\ rapidă\ starea\ proiectului\ OmniBus\ Blockchain'},}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ formatter\_class=argparse.RawDescriptionHelpFormatter,}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ epilog=\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00312}00312\ \textcolor{stringliteral}{Exemple:}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00313}00313\ \textcolor{stringliteral}{\ \ python\ project\_health.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Verificare\ standard}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00314}00314\ \textcolor{stringliteral}{\ \ python\ project\_health.py\ -\/-\/json\ \ \ \ \ \ \ \#\ Output\ JSON}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00315}00315\ \textcolor{stringliteral}{\ \ python\ project\_health.py\ -\/-\/quiet\ \ \ \ \ \ \#\ Doar\ cod\ de\ ieșire}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00316}00316\ \textcolor{stringliteral}{\ \ python\ project\_health.py\ -\/-\/no-\/color\ \ \ \#\ Fără\ culori}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00317}00317\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00318}00318\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00319}00319\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/json'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Output\ în\ format\ JSON'})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00321}00321\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/quiet'},\ \textcolor{stringliteral}{'-\/q'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Doar\ cod\ de\ ieșire\ (0=sănătos,\ 1=probleme)'})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00323}00323\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{'-\/-\/no-\/color'},\ action=\textcolor{stringliteral}{'store\_true'},}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00324}00324\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{'Dezactivează\ culorile\ în\ output'})}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00325}00325\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00326}00326\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00327}00327\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00328}00328\ \ \ \ \ \textcolor{comment}{\#\ Find\ project\ root}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00329}00329\ \ \ \ \ script\_dir\ =\ Path(\_\_file\_\_).parent}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00330}00330\ \ \ \ \ project\_root\ =\ script\_dir.parent.parent}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00331}00331\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00332}00332\ \ \ \ \ \textcolor{comment}{\#\ Analyze}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00333}00333\ \ \ \ \ status\ =\ \doxymbox{\hyperlink{namespaceproject__health_af68a696327b81f926e114f4c0633fa54}{analyze\_project}}(project\_root)}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00334}00334\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00335}00335\ \ \ \ \ \textcolor{comment}{\#\ Output}}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00336}00336\ \ \ \ \ \textcolor{keywordflow}{if}\ args.quiet:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00337}00337\ \ \ \ \ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ status.is\_healthy\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00338}00338\ \ \ \ \ \textcolor{keywordflow}{elif}\ args.json:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ print(json.dumps(asdict(status),\ indent=2))}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00340}00340\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ use\_colors\ =\ \textcolor{keywordflow}{not}\ args.no\_color\ \textcolor{keywordflow}{and}\ sys.stdout.isatty()}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00342}00342\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceproject__health_a4504c7225db2ebdf501a7bdb4e234901}{print\_status}}(status,\ use\_colors)}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00343}00343\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00344}00344\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ status.is\_healthy\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00345}00345\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00346}00346\ }
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00347}00347\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{'\_\_main\_\_'}:}
+\DoxyCodeLine{\Hypertarget{project__health_8py_source_l00348}00348\ \ \ \ \ \doxymbox{\hyperlink{namespaceproject__health_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

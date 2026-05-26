@@ -17,6 +17,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useBlockHeight } from "../../api/use-block-height";
 import {
   RefreshCw,
   ArrowLeftRight,
@@ -28,40 +29,13 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, midTrunc, fmtInt } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
-import { hexToBytes, bytesToHex } from "../../api/exchange-sign";
-import { sha256 } from "@noble/hashes/sha2";
-import * as secp from "@noble/secp256k1";
-import { hmac } from "@noble/hashes/hmac";
+import { signMessage } from "../../api/exchange-sign";
 
-const rpc = new OmniBusRpcClient();
+// exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 
-// Wire noble HMAC once for RFC6979 deterministic-k (mirrors exchange-sign.ts)
-const _sAny: Record<string, unknown> = secp as unknown as Record<string, unknown>;
-if (_sAny["etc"] && !(_sAny["etc"] as Record<string, unknown>)["hmacSha256Sync"]) {
-  (_sAny["etc"] as Record<string, unknown>)["hmacSha256Sync"] = (
-    key: Uint8Array,
-    ...msgs: Uint8Array[]
-  ) => {
-    let buf = new Uint8Array(0);
-    for (const m of msgs) { const t = new Uint8Array(buf.length + m.length); t.set(buf); t.set(m, buf.length); buf = t; }
-    return hmac(sha256, key, buf);
-  };
-}
-
-/** ECDSA secp256k1 SHA256d signer — mirrors signMessage in exchange-sign.ts. */
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  if (privKeyHex.startsWith("0x")) privKeyHex = privKeyHex.slice(2);
-  const priv = hexToBytes(privKeyHex);
-  const enc = new TextEncoder().encode(msg);
-  const h2 = sha256(sha256(enc));
-  const sig = secp.sign(h2, priv, { lowS: true });
-  return {
-    signature: bytesToHex(sig.toBytes()),
-    publicKey: bytesToHex(secp.getPublicKey(priv, true)),
-  };
-}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -91,8 +65,6 @@ interface LocalIntent {
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const SAT = 1_000_000_000; // 1 OMNI in sats
 
 const TAKER_CHAIN_OPTIONS: { label: string; value: number }[] = [
   { label: "OmniBus", value: 0 },
@@ -124,11 +96,11 @@ function saveLocalIntents(intents: LocalIntent[]): void {
 }
 
 function satToDisplay(sat: number): string {
-  return (sat / SAT).toFixed(4);
+  return (sat / SAT_PER_OMNI).toFixed(4);
 }
 
 function displayToSat(s: string): number {
-  return Math.round(parseFloat(s) * SAT);
+  return Math.round(parseFloat(s) * SAT_PER_OMNI);
 }
 
 function genNonce(): number {
@@ -146,10 +118,9 @@ function genSwapId(): string {
 
 function shortHex(h: string): string {
   if (h.length <= 12) return h;
-  return h.slice(0, 8) + "…" + h.slice(-4);
+  return midTrunc(h, 8, 4);
 }
 
-const intFmt = new Intl.NumberFormat("en-US");
 
 // ── Status badge ─────────────────────────────────────────────────────────────
 
@@ -162,25 +133,28 @@ type IntentStatus =
   | "cancelled"
   | string;
 
+const INTENT_STATUS_LEGEND: { status: IntentStatus; desc: string }[] = [
+  { status: "open",      desc: "Pending taker" },
+  { status: "filled",    desc: "Bond locked" },
+  { status: "settled",   desc: "Complete" },
+  { status: "expired",   desc: "Past expiry" },
+  { status: "cancelled", desc: "Cancelled" },
+];
+
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  open:        "bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/40",
+  pending:     "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
+  filled:      "bg-green-500/20 text-green-400 border border-green-500/40",
+  settled:     "bg-gray-500/20 text-gray-400 border border-gray-500/40",
+  both_locked: "bg-green-500/20 text-green-400 border border-green-500/40",
+  expired:     "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
+  timeout:     "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
+  cancelled:   "bg-red-500/20 text-red-400 border border-red-500/40",
+};
+
 function StatusBadge({ status }: { status: IntentStatus }) {
-  const map: Record<string, string> = {
-    open: "bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/40",
-    pending:
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
-    filled:
-      "bg-green-500/20 text-green-400 border border-green-500/40",
-    settled: "bg-gray-500/20 text-gray-400 border border-gray-500/40",
-    both_locked:
-      "bg-green-500/20 text-green-400 border border-green-500/40",
-    expired:
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
-    timeout:
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40",
-    cancelled:
-      "bg-red-500/20 text-red-400 border border-red-500/40",
-  };
   const cls =
-    map[status] ??
+    STATUS_BADGE_CLASS[status] ??
     "bg-gray-500/20 text-gray-400 border border-gray-500/40";
   return (
     <span
@@ -196,7 +170,7 @@ function StatusBadge({ status }: { status: IntentStatus }) {
 function MyIntentsTab() {
   const wallet = useWallet();
   const [intents, setIntents] = useState<LocalIntent[]>([]);
-  const [blockHeight, setBlockHeight] = useState(0);
+  const blockHeight = useBlockHeight();
   const [busy, setBusy] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
     id: string;
@@ -206,12 +180,10 @@ function MyIntentsTab() {
 
   useEffect(() => {
     setIntents(loadLocalIntents());
-    rpc.getBlockCount().then(setBlockHeight).catch(() => {});
   }, []);
 
   const refresh = useCallback(() => {
     setIntents(loadLocalIntents());
-    rpc.getBlockCount().then(setBlockHeight).catch(() => {});
   }, []);
 
   const markStatus = (intent_id: string, status: LocalIntent["status"]) => {
@@ -271,7 +243,7 @@ function MyIntentsTab() {
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-mempool-text-dim">
-          Block height: {intFmt.format(blockHeight)}
+          Block height: {fmtInt(blockHeight)}
         </span>
         <button
           onClick={refresh}
@@ -320,7 +292,7 @@ function MyIntentsTab() {
               <div>
                 <p className="text-mempool-text-dim text-[10px]">Expiry block</p>
                 <p className={`font-mono ${isExpired ? "text-yellow-400" : "text-mempool-text"}`}>
-                  {intFmt.format(intent.expiry_block)}
+                  {fmtInt(intent.expiry_block)}
                 </p>
               </div>
             </div>
@@ -372,7 +344,7 @@ function MarketTab() {
     setLoading(true);
     setError(null);
     try {
-      const result = await rpc.request_raw("swap_listOpen", []);
+      const result = await rpc.swapListOpen();
       setSwaps(Array.isArray(result) ? result : []);
     } catch (err) {
       setError(String(err));
@@ -382,7 +354,7 @@ function MarketTab() {
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
   const handleFill = async (swap: SwapEntry) => {
@@ -434,20 +406,52 @@ function MarketTab() {
         <span className="text-xs text-mempool-text-dim">
           {swaps.length} open swap{swaps.length !== 1 ? "s" : ""}
         </span>
-        <button
-          onClick={load}
-          disabled={loading}
-          className="flex items-center gap-1 text-xs text-mempool-blue hover:opacity-80 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {swaps.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["swap_id","order_id","state","maker_chain","taker_chain","timeout_block"].join(","),
+                  ...swaps.map((s) => [
+                    `"${s.swap_id}"`,
+                    s.order_id,
+                    s.state,
+                    s.maker_chain,
+                    s.taker_chain,
+                    s.timeout_block,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-intent-swaps.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
+          )}
+          <button
+            onClick={load}
+            disabled={loading}
+            className="flex items-center gap-1 text-xs text-mempool-blue hover:opacity-80 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && (
         <p className="text-red-400 text-xs">{error}</p>
       )}
 
+      {loading && swaps.length === 0 && (
+        <div className="text-mempool-text-dim text-xs text-center py-8 animate-pulse">
+          Loading open swaps…
+        </div>
+      )}
       {!loading && swaps.length === 0 && !error && (
         <div className="text-mempool-text-dim text-sm text-center py-8">
           No open swaps available.
@@ -484,7 +488,7 @@ function MarketTab() {
             </div>
 
             <p className="text-[10px] text-mempool-text-dim">
-              Timeout block: {intFmt.format(swap.timeout_block)}
+              Timeout block: {fmtInt(swap.timeout_block)}
             </p>
 
             {feedback?.id === swap.swap_id && (
@@ -670,7 +674,7 @@ function PostIntentTab() {
           />
           {makerAmount && !isNaN(parseFloat(makerAmount)) && (
             <p className="text-[10px] text-mempool-text-dim mt-0.5">
-              = {intFmt.format(displayToSat(makerAmount))} sat
+              = {fmtInt(displayToSat(makerAmount))} sat
             </p>
           )}
         </div>
@@ -897,7 +901,7 @@ function FillIntentTab() {
           />
           {bondAmount && !isNaN(parseFloat(bondAmount)) && (
             <p className="text-[10px] text-mempool-text-dim mt-0.5">
-              = {intFmt.format(displayToSat(bondAmount))} sat
+              = {fmtInt(displayToSat(bondAmount))} sat
             </p>
           )}
         </div>
@@ -964,20 +968,7 @@ const TABS: { id: SubTab; label: string; Icon: React.FC<{ className?: string }> 
 
 export function IntentSwapPanel() {
   const [tab, setTab] = useState<SubTab>("market");
-  const [blockHeight, setBlockHeight] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    const tick = async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    };
-    tick();
-    const id = window.setInterval(tick, 5000);
-    return () => { cancelled = true; window.clearInterval(id); };
-  }, []);
+  const blockHeight = useBlockHeight();
 
   return (
     <section className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4">
@@ -990,7 +981,7 @@ export function IntentSwapPanel() {
         <div className="flex-1 h-px bg-mempool-border" />
         <div className="flex items-center gap-1 text-[10px] text-mempool-text-dim font-mono whitespace-nowrap">
           <Clock className="w-3 h-3" />
-          block {intFmt.format(blockHeight)}
+          block {fmtInt(blockHeight)}
         </div>
       </div>
 
@@ -1041,15 +1032,7 @@ export function IntentSwapPanel() {
 
       {/* Footer legend */}
       <div className="mt-6 pt-3 border-t border-mempool-border flex flex-wrap gap-3 text-[10px] text-mempool-text-dim">
-        {(
-          [
-            { status: "open",     desc: "Pending taker" },
-            { status: "filled",   desc: "Bond locked" },
-            { status: "settled",  desc: "Complete" },
-            { status: "expired",  desc: "Past expiry" },
-            { status: "cancelled",desc: "Cancelled" },
-          ] as { status: IntentStatus; desc: string }[]
-        ).map(({ status, desc }) => (
+        {INTENT_STATUS_LEGEND.map(({ status, desc }) => (
           <span key={status} className="flex items-center gap-1">
             <StatusBadge status={status} />
             <span>{desc}</span>

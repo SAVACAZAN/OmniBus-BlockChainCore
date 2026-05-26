@@ -1,0 +1,23 @@
+\doxysection{replay Namespace Reference}
+\hypertarget{namespacereplay}{}\label{namespacereplay}\index{replay@{replay}}
+
+
+-\/protection-\/tester  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/protection-\/tester 
+
+\begin{DoxyVerb}replay-protection-tester.py — OmniBus BlockChainCore Replay Protection Tester
+
+Test the blockchain node's replay protection mechanisms:
+  - Create valid transaction, modify chain/genesis identifier, verify REJECTED
+  - Submit the same valid transaction twice (double-spend via RPC)
+  - Submit transaction with wrong genesis hash
+  - Submit transaction with future nonce
+
+Uses http.client for JSON-RPC calls to port 8332 (no external deps).
+\end{DoxyVerb}
+ 

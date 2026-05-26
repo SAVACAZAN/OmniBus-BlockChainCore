@@ -1,0 +1,919 @@
+\chapter{Module:\+ {\ttfamily bootstrap} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap}{}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap}\index{Module: $<$tt$>$bootstrap$<$/tt$>$@{Module: $<$tt$>$bootstrap$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1087}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1087}%
+
+
+\begin{quote}
+Peer discovery and bootstrapping — seed node connections, PEX (Peer Exchange), DNS seed resolution, peer persistence to disk. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+bootstrap.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 810 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 29 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 8 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 11
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1089}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1089}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1090}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1090}
+
+\begin{DoxyItemize}
+\item \`{}\+Peer\+Addr\`{}{\ttfamily Peer\+Addr}
+\end{DoxyItemize}— Data structure for peer addr. Fields include:\+ ip, port.
+\begin{DoxyItemize}
+\item \`{}\+Peer\+Info\`{}{\ttfamily Peer\+Info}
+\end{DoxyItemize}— Data structure for peer info. Fields include:\+ addr, chain\+\_\+height, connected, las...
+\begin{DoxyItemize}
+\item \`{}\+Peer\+Manager\`{}{\ttfamily Peer\+Manager}
+\end{DoxyItemize}— Data structure for peer manager. Fields include:\+ known, allocator.
+\begin{DoxyItemize}
+\item \`{}\+Seed\+Node\+Config\`{}{\ttfamily Seed\+Node\+Config}
+\end{DoxyItemize}— Seed Node Configuration
+\begin{DoxyItemize}
+\item \`{}\+Bootstrap\+Node\`{}{\ttfamily Bootstrap\+Node}
+\end{DoxyItemize}— Bootstrap Node -\/ Entry point for network
+\begin{DoxyItemize}
+\item \doxylink{namespacepeer}{\`{}\+Peer\`{}}{\ttfamily Peer}
+\end{DoxyItemize}— A network peer — stores connection info (host, port), reputation score, and last...
+\begin{DoxyItemize}
+\item \`{}\+Bootstrap\+Stats\`{}{\ttfamily Bootstrap\+Stats}
+\end{DoxyItemize}— Data structure for bootstrap stats. Fields include:\+ uptime\+\_\+seconds, peer\+\_\+count, ...
+\begin{DoxyItemize}
+\item \`{}\+Seed\+Node\+Pool\`{}{\ttfamily Seed\+Node\+Pool}
+\end{DoxyItemize}— Multiple Seed Nodes for redundancy\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1091}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1091}
+
+\begin{DoxyItemize}
+\item 11 constants defined11 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1092}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1092}
+
+\begin{DoxyItemize}
+\item \`{}pex\+Request()\`{}{\ttfamily pex\+Request()}
+\end{DoxyItemize}— Trimite MSG\+\_\+\+GET\+\_\+\+PEERS la un peer conectat
+\begin{DoxyItemize}
+\item \`{}is\+Diverse\+Peer()\`{}{\ttfamily is\+Diverse\+Peer()}
+\end{DoxyItemize}— Check if peer is from a diverse subnet (anti-\/eclipse attack protection...
+\begin{DoxyItemize}
+\item \`{}connect\+To\+Seed\+Peers()\`{}{\ttfamily connect\+To\+Seed\+Peers()}
+\end{DoxyItemize}— Conecteaza la seed peers hardcodati si salveaza peerii descoperiti in ...
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+Peer()\`{}{\ttfamily add\+Peer()}
+\end{DoxyItemize}— Adauga un peer nou daca nu exista deja (deduplicare dupa IP:\+port)
+\begin{DoxyItemize}
+\item \`{}remove\+Peer()\`{}{\ttfamily remove\+Peer()}
+\end{DoxyItemize}— Elimina un peer dupa IP:\+port
+\begin{DoxyItemize}
+\item \`{}get\+Connected\+Count()\`{}{\ttfamily get\+Connected\+Count()}
+\end{DoxyItemize}— Numarul de peeri conectati
+\begin{DoxyItemize}
+\item \`{}get\+Best\+Peer()\`{}{\ttfamily get\+Best\+Peer()}
+\end{DoxyItemize}— Returneaza peer-\/ul cu cea mai mare inaltime a lantului (best peer) Ret...
+\begin{DoxyItemize}
+\item \`{}update\+Height()\`{}{\ttfamily update\+Height()}
+\end{DoxyItemize}— Actualizeaza inaltimea lantului pentru un peer
+\begin{DoxyItemize}
+\item \`{}set\+Connected()\`{}{\ttfamily set\+Connected()}
+\end{DoxyItemize}— Marcheaza peer ca connected/\+disconnected
+\begin{DoxyItemize}
+\item \`{}save\+Peers\+To\+Disk()\`{}{\ttfamily save\+Peers\+To\+Disk()}
+\end{DoxyItemize}— Save known peers to disk as "{}host:\+port\textbackslash{}n"{} lines. Best-\/effort:\+ errors a...
+\begin{DoxyItemize}
+\item \`{}load\+Peers\+From\+Disk()\`{}{\ttfamily load\+Peers\+From\+Disk()}
+\end{DoxyItemize}— Load peers from disk file. One peer per line "{}host:\+port"{}. Best-\/effort:\+...
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}register\+Peer()\`{}{\ttfamily register\+Peer()}
+\end{DoxyItemize}— Register new peer node
+\begin{DoxyItemize}
+\item \`{}get\+Peer\+List()\`{}{\ttfamily get\+Peer\+List()}
+\end{DoxyItemize}— Get list of known peers for new node
+\begin{DoxyItemize}
+\item \`{}update\+Peer\+Status()\`{}{\ttfamily update\+Peer\+Status()}
+\end{DoxyItemize}— Update peer status (heartbeat)
+\begin{DoxyItemize}
+\item \`{}remove\+Stale\+Peers()\`{}{\ttfamily remove\+Stale\+Peers()}
+\end{DoxyItemize}— Remove stale peers (no heartbeat for 60s)
+\begin{DoxyItemize}
+\item \`{}get\+Stats()\`{}{\ttfamily get\+Stats()}
+\end{DoxyItemize}— Get node statistics
+\begin{DoxyItemize}
+\item \`{}set\+Status()\`{}{\ttfamily set\+Status()}
+\end{DoxyItemize}— Update status
+\begin{DoxyItemize}
+\item \`{}ready\+For\+Mining()\`{}{\ttfamily ready\+For\+Mining()}
+\end{DoxyItemize}— Performs the ready for mining operation on the bootstrap module.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}deinit()\`{}{\ttfamily deinit()}
+\end{DoxyItemize}— Clean up and free all allocated memory. Must be called when done.
+\begin{DoxyItemize}
+\item \`{}add\+Secondary\+Node()\`{}{\ttfamily add\+Secondary\+Node()}
+\end{DoxyItemize}— Add secondary seed node
+\begin{DoxyItemize}
+\item \`{}get\+All\+Nodes()\`{}{\ttfamily get\+All\+Nodes()}
+\end{DoxyItemize}— Get all nodes (primary + secondary)
+\begin{DoxyItemize}
+\item \`{}get\+Total\+Peers()\`{}{\ttfamily get\+Total\+Peers()}
+\end{DoxyItemize}— Get total peer count across all nodes
+\begin{DoxyItemize}
+\item \`{}is\+Network\+Ready()\`{}{\ttfamily is\+Network\+Ready()}
+\end{DoxyItemize}— Check if network is ready (all nodes synchronized)
+\begin{DoxyItemize}
+\item \`{}start\+Mining()\`{}{\ttfamily start\+Mining()}
+\end{DoxyItemize}— Start mining on all nodes
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1094}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1094}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1095}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer\+Addr}}{{\ttfamily Peer\+Addr}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1095}
+Data structure for peer addr. Fields include:\+ ip, port.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily ip}  &{\ttfamily \+[4]\+u8}  &Ip  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 5}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1097}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer\+Info}}{{\ttfamily Peer\+Info}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1097}
+Data structure for peer info. Fields include:\+ addr, chain\+\_\+height, connected, last\+\_\+seen.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily addr}  &{\ttfamily Peer\+Addr}  &Addr  \\
+{\ttfamily chain\+\_\+height}  &{\ttfamily u64}  &Chain\+\_\+height  \\
+{\ttfamily connected}  &{\ttfamily bool}  &Connected  \\
+{\ttfamily last\+\_\+seen}  &{\ttfamily i64}  &Last\+\_\+seen  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 106}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1099}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer\+Manager}}{{\ttfamily Peer\+Manager}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1099}
+Data structure for peer manager. Fields include:\+ known, allocator.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily known}  &{\ttfamily array\+\_\+list.\+Managed(\+Peer\+Info)}  &Known  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 113}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1101}{}\doxysubsection{\texorpdfstring{{\ttfamily Seed\+Node\+Config}}{{\ttfamily Seed\+Node\+Config}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1101}
+Seed Node Configuration
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily is\+\_\+primary}  &{\ttfamily bool}  &Is\+\_\+primary  \\
+{\ttfamily max\+\_\+peers}  &{\ttfamily u32}  &Max\+\_\+peers  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 411}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1103}{}\doxysubsection{\texorpdfstring{{\ttfamily Bootstrap\+Node}}{{\ttfamily Bootstrap\+Node}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1103}
+Bootstrap Node -\/ Entry point for network
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Seed\+Node\+Config}  &Config  \\
+{\ttfamily peers}  &{\ttfamily array\+\_\+list.\+Managed(\+Peer)}  &Peers  \\
+{\ttfamily status}  &{\ttfamily Node\+Status}  &Status  \\
+{\ttfamily created\+\_\+at}  &{\ttfamily i64}  &Created\+\_\+at  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 421}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1105}{}\doxysubsection{\texorpdfstring{{\ttfamily Peer}}{{\ttfamily Peer}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1105}
+A network peer — stores connection info (host, port), reputation score, and last seen timestamp.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily host}  &{\ttfamily \+[]\+const u8}  &Host  \\
+{\ttfamily port}  &{\ttfamily u16}  &Port  \\
+{\ttfamily version}  &{\ttfamily \+[]\+const u8}  &Version  \\
+{\ttfamily last\+\_\+seen}  &{\ttfamily i64}  &Last\+\_\+seen  \\
+{\ttfamily latency\+\_\+ms}  &{\ttfamily u32}  &Latency\+\_\+ms  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 435}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1107}{}\doxysubsection{\texorpdfstring{{\ttfamily Bootstrap\+Stats}}{{\ttfamily Bootstrap\+Stats}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1107}
+Data structure for bootstrap stats. Fields include:\+ uptime\+\_\+seconds, peer\+\_\+count, avg\+\_\+latency\+\_\+ms, status.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily uptime\+\_\+seconds}  &{\ttfamily i64}  &Uptime\+\_\+seconds  \\
+{\ttfamily peer\+\_\+count}  &{\ttfamily usize}  &Peer\+\_\+count  \\
+{\ttfamily avg\+\_\+latency\+\_\+ms}  &{\ttfamily u32}  &Avg\+\_\+latency\+\_\+ms  \\
+{\ttfamily status}  &{\ttfamily Bootstrap\+Node.\+Node\+Status}  &Status  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 542}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1109}{}\doxysubsection{\texorpdfstring{{\ttfamily Seed\+Node\+Pool}}{{\ttfamily Seed\+Node\+Pool}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1109}
+Multiple Seed Nodes for redundancy
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily primary}  &{\ttfamily Bootstrap\+Node}  &Primary  \\
+{\ttfamily secondary}  &{\ttfamily array\+\_\+list.\+Managed(\+Bootstrap\+Node)}  &Secondary  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 550}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1111}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1111}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily MSG\+\_\+\+GET\+\_\+\+PEERS}  &{\ttfamily u8 = 0x10}  &M s g\+\_\+ g e t\+\_\+ p e e r s  \\
+{\ttfamily MSG\+\_\+\+PEER\+\_\+\+LIST}  &{\ttfamily u8 = 0x11}  &M s g\+\_\+ p e e r\+\_\+ l i s t  \\
+{\ttfamily SEED\+\_\+\+PEERS}  &{\ttfamily \+[\+\_\+]\+Peer\+Addr\{}  &S e e d\+\_\+ p e e r s  \\
+{\ttfamily MIN\+\_\+\+DIVERSE\+\_\+\+PEERS}  &{\ttfamily usize = 4}  &M i n\+\_\+ d i v e r s e\+\_\+ p e e r s  \\
+{\ttfamily MAX\+\_\+\+PEERS\+\_\+\+PER\+\_\+\+SUBNET}  &{\ttfamily usize = 2}  &M a x\+\_\+ p e e r s\+\_\+ p e r\+\_\+ s u b n e t  \\
+{\ttfamily PEERS\+\_\+\+DAT\+\_\+\+PATH}  &{\ttfamily "{}data/\+peers.\+dat"{}}  &P e e r s\+\_\+ d a t\+\_\+ p a t h  \\
+{\ttfamily MAX\+\_\+\+PEERS}  &{\ttfamily usize = 32}  &M a x\+\_\+ p e e r s  \\
+{\ttfamily DISCOVERY\+\_\+\+INTERVAL\+\_\+S}  &{\ttfamily i64 = 300}  &D i s c o v e r y\+\_\+ i n t e r v a l\+\_\+ s  \\
+{\ttfamily PEER\+\_\+\+TIMEOUT\+\_\+S}  &{\ttfamily i64 = 1800}  &P e e r\+\_\+ t i m e o u t\+\_\+ s  \\
+{\ttfamily Node\+Status}  &{\ttfamily enum \{}  &Node status  \\
+{\ttfamily MIN\+\_\+\+MINERS\+\_\+\+FOR\+\_\+\+MINING}  &{\ttfamily usize = 10}  &M i n\+\_\+ m i n e r s\+\_\+ f o r\+\_\+ m i n i n g  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1113}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1113}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1114}{}\doxysubsection{\texorpdfstring{{\ttfamily pex\+Request()}}{{\ttfamily pex\+Request()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1114}
+Trimite MSG\+\_\+\+GET\+\_\+\+PEERS la un peer conectat
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ pexRequest(conn:\ *p2p\_mod.PeerConnection,\ allocator:\ std.mem.Allocator)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily conn}  &{\ttfamily \texorpdfstring{$\ast$}{*}p2p\+\_\+mod.Peer\+Connection}  &Conn  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 16}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1116}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Diverse\+Peer()}}{{\ttfamily is\+Diverse\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1116}
+Check if peer is from a diverse subnet (anti-\/eclipse attack protection)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isDiversePeer(new\_peer:\ PeerAddr,\ existing\_peers:\ []const\ PeerAddr)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily new\+\_\+peer}  &{\ttfamily Peer\+Addr}  &New\+\_\+peer  \\
+{\ttfamily existing\+\_\+peers}  &{\ttfamily \+[]\+const Peer\+Addr}  &Existing\+\_\+peers  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 61}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1118}{}\doxysubsection{\texorpdfstring{{\ttfamily connect\+To\+Seed\+Peers()}}{{\ttfamily connect\+To\+Seed\+Peers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1118}
+Conecteaza la seed peers hardcodati si salveaza peerii descoperiti in manager. Best-\/effort:\+ esecurile de conectare sunt loggate dar ignorate.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ connectToSeedPeers(manager:\ *PeerManager,\ allocator:\ std.mem.Allocator)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily manager}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Manager}  &Manager  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 74}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1120}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1120}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(allocator:\ std.mem.Allocator)\ PeerManager\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Peer\+Manager}
+
+{\itshape Defined at line 117}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1122}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1122}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *PeerManager)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 124}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1124}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Peer()}}{{\ttfamily add\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1124}
+Adauga un peer nou daca nu exista deja (deduplicare dupa IP:\+port)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addPeer(self:\ *PeerManager,\ addr:\ PeerAddr,\ allocator:\ std.mem.Allocator)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Manager}  &The instance  \\
+{\ttfamily addr}  &{\ttfamily Peer\+Addr}  &Addr  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 129}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1126}{}\doxysubsection{\texorpdfstring{{\ttfamily remove\+Peer()}}{{\ttfamily remove\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1126}
+Elimina un peer dupa IP:\+port
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ removePeer(self:\ *PeerManager,\ addr:\ PeerAddr)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Manager}  &The instance  \\
+{\ttfamily addr}  &{\ttfamily Peer\+Addr}  &Addr  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 150}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1128}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Connected\+Count()}}{{\ttfamily get\+Connected\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1128}
+Numarul de peeri conectati
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getConnectedCount(self:\ *const\ PeerManager)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Peer\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 163}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1130}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Best\+Peer()}}{{\ttfamily get\+Best\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1130}
+Returneaza peer-\/ul cu cea mai mare inaltime a lantului (best peer) Returneaza null daca nu exista peeri conectati
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBestPeer(self:\ *const\ PeerManager)\ ?PeerInfo\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Peer\+Manager}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Peer\+Info}
+
+{\itshape Defined at line 173}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1132}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Height()}}{{\ttfamily update\+Height()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1132}
+Actualizeaza inaltimea lantului pentru un peer
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updateHeight(self:\ *PeerManager,\ addr:\ PeerAddr,\ height:\ u64)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Manager}  &The instance  \\
+{\ttfamily addr}  &{\ttfamily Peer\+Addr}  &Addr  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 185}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1134}{}\doxysubsection{\texorpdfstring{{\ttfamily set\+Connected()}}{{\ttfamily set\+Connected()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1134}
+Marcheaza peer ca connected/\+disconnected
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ setConnected(self:\ *PeerManager,\ addr:\ PeerAddr,\ connected:\ bool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Manager}  &The instance  \\
+{\ttfamily addr}  &{\ttfamily Peer\+Addr}  &Addr  \\
+{\ttfamily connected}  &{\ttfamily bool}  &Connected  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 196}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1136}{}\doxysubsection{\texorpdfstring{{\ttfamily save\+Peers\+To\+Disk()}}{{\ttfamily save\+Peers\+To\+Disk()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1136}
+Save known peers to disk as "{}host:\+port\textbackslash{}n"{} lines. Best-\/effort:\+ errors are logged but not propagated.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ savePeersToDisk(manager:\ *const\ PeerManager,\ path:\ []const\ u8)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily manager}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Peer\+Manager}  &Manager  \\
+{\ttfamily path}  &{\ttfamily \+[]\+const u8}  &Path  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 223}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1138}{}\doxysubsection{\texorpdfstring{{\ttfamily load\+Peers\+From\+Disk()}}{{\ttfamily load\+Peers\+From\+Disk()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1138}
+Load peers from disk file. One peer per line "{}host:\+port"{}. Best-\/effort:\+ invalid lines are skipped silently.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ loadPeersFromDisk(manager:\ *PeerManager,\ path:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily manager}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Peer\+Manager}  &Manager  \\
+{\ttfamily path}  &{\ttfamily \+[]\+const u8}  &Path  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 246}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1140}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1140}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(config:\ SeedNodeConfig)\ BootstrapNode\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily config}  &{\ttfamily Seed\+Node\+Config}  &Config  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bootstrap\+Node}
+
+{\itshape Defined at line 444}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1142}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1142}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *BootstrapNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bootstrap\+Node}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 453}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1144}{}\doxysubsection{\texorpdfstring{{\ttfamily register\+Peer()}}{{\ttfamily register\+Peer()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1144}
+Register new peer node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ registerPeer(self:\ *BootstrapNode,\ peer:\ Peer)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bootstrap\+Node}  &The instance  \\
+{\ttfamily \doxylink{namespacepeer}{peer}}  &{\ttfamily Peer}  &Peer  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 458}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1146}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Peer\+List()}}{{\ttfamily get\+Peer\+List()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1146}
+Get list of known peers for new node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getPeerList(self:\ *const\ BootstrapNode)\ []const\ Peer\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bootstrap\+Node}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily \+[]\+const Peer}
+
+{\itshape Defined at line 468}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1148}{}\doxysubsection{\texorpdfstring{{\ttfamily update\+Peer\+Status()}}{{\ttfamily update\+Peer\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1148}
+Update peer status (heartbeat)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ updatePeerStatus(self:\ *BootstrapNode,\ node\_id:\ []const\ u8,\ latency:\ u32)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bootstrap\+Node}  &The instance  \\
+{\ttfamily node\+\_\+id}  &{\ttfamily \+[]\+const u8}  &Node\+\_\+id  \\
+{\ttfamily latency}  &{\ttfamily u32}  &Latency  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 473}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1150}{}\doxysubsection{\texorpdfstring{{\ttfamily remove\+Stale\+Peers()}}{{\ttfamily remove\+Stale\+Peers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1150}
+Remove stale peers (no heartbeat for 60s)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ removeStalePeers(self:\ *BootstrapNode)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bootstrap\+Node}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 485}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1152}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Stats()}}{{\ttfamily get\+Stats()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1152}
+Get node statistics
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getStats(self:\ *const\ BootstrapNode)\ BootstrapStats\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bootstrap\+Node}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Bootstrap\+Stats}
+
+{\itshape Defined at line 501}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1154}{}\doxysubsection{\texorpdfstring{{\ttfamily set\+Status()}}{{\ttfamily set\+Status()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1154}
+Update status
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ setStatus(self:\ *BootstrapNode,\ status:\ NodeStatus)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Bootstrap\+Node}  &The instance  \\
+{\ttfamily status}  &{\ttfamily Node\+Status}  &Status  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 522}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1156}{}\doxysubsection{\texorpdfstring{{\ttfamily ready\+For\+Mining()}}{{\ttfamily ready\+For\+Mining()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1156}
+Performs the ready for mining operation on the bootstrap module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ readyForMining(self:\ *const\ BootstrapNode)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Bootstrap\+Node}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 534}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1158}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1158}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(primary\_config:\ SeedNodeConfig,\ allocator:\ std.mem.Allocator)\ SeedNodePool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily primary\+\_\+config}  &{\ttfamily Seed\+Node\+Config}  &Primary\+\_\+config  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Seed\+Node\+Pool}
+
+{\itshape Defined at line 555}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1160}{}\doxysubsection{\texorpdfstring{{\ttfamily deinit()}}{{\ttfamily deinit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1160}
+Clean up and free all allocated memory. Must be called when done.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deinit(self:\ *SeedNodePool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Seed\+Node\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 565}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1162}{}\doxysubsection{\texorpdfstring{{\ttfamily add\+Secondary\+Node()}}{{\ttfamily add\+Secondary\+Node()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1162}
+Add secondary seed node
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ addSecondaryNode(self:\ *SeedNodePool,\ config:\ SeedNodeConfig)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Seed\+Node\+Pool}  &The instance  \\
+{\ttfamily config}  &{\ttfamily Seed\+Node\+Config}  &Config  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 574}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1164}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+All\+Nodes()}}{{\ttfamily get\+All\+Nodes()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1164}
+Get all nodes (primary + secondary)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getAllNodes(self:\ *SeedNodePool)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Seed\+Node\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 580}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1166}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Total\+Peers()}}{{\ttfamily get\+Total\+Peers()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1166}
+Get total peer count across all nodes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getTotalPeers(self:\ *const\ SeedNodePool)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Seed\+Node\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 585}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1168}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Network\+Ready()}}{{\ttfamily is\+Network\+Ready()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1168}
+Check if network is ready (all nodes synchronized)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isNetworkReady(self:\ *const\ SeedNodePool)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Seed\+Node\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 596}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1170}{}\doxysubsection{\texorpdfstring{{\ttfamily start\+Mining()}}{{\ttfamily start\+Mining()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bootstrap_autotoc_md1170}
+Start mining on all nodes
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ startMining(self:\ *SeedNodePool)\ void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Seed\+Node\+Pool}  &The instance  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 611}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

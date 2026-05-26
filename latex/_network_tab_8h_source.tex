@@ -1,0 +1,45 @@
+\doxysection{Network\+Tab.\+h}
+\hypertarget{_network_tab_8h_source}{}\label{_network_tab_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/NetworkTab.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/NetworkTab.h}}
+\doxymbox{\hyperlink{_network_tab_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <QTableView>}}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00008}00008\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00010}00010\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_peer_table_model}{PeerTableModel}};}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00012}\doxymbox{\hyperlink{classomni_1_1_network_tab}{00012}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_network_tab_a9b368a708a31322b7b92cbc92a2d4ab1}{NetworkTab}}\ :\ \textcolor{keyword}{public}\ QWidget\ \{}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00013}00013\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00014}00014\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00015}00015\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_network_tab_a9b368a708a31322b7b92cbc92a2d4ab1}{NetworkTab}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00017}00017\ \textcolor{keyword}{public}\ slots:}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00018}00018\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_network_tab_ad540a1e2f801ae884953bcb84f9f6fa6}{onNetworkUpdated}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structomni_1_1_network_info}{NetworkInfo}}\&\ info);}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00020}00020\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ refreshPeers();}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00023}00023\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00024}00024\ \ \ \ \ \textcolor{keywordtype}{void}\ setupUi();}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00026}00026\ \ \ \ \ QLabel*\ m\_chainLabel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00027}00027\ \ \ \ \ QLabel*\ m\_versionLabel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00028}00028\ \ \ \ \ QLabel*\ m\_heightLabel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00029}00029\ \ \ \ \ QLabel*\ m\_diffLabel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00030}00030\ \ \ \ \ QLabel*\ m\_peerCountLabel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00031}00031\ \ \ \ \ QLabel*\ m\_blockTimeLabel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00032}00032\ \ \ \ \ QLabel*\ m\_maxSupplyLabel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00033}00033\ \ \ \ \ QLabel*\ m\_halvingLabel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00035}00035\ \ \ \ \ QTableView*\ m\_peerTable;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00036}00036\ \ \ \ \ \doxymbox{\hyperlink{classomni_1_1_peer_table_model}{PeerTableModel}}*\ m\_peerModel;}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00037}00037\ \};}
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{_network_tab_8h_source_l00039}00039\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

@@ -1,0 +1,23 @@
+\doxysection{test Namespace Reference}
+\hypertarget{namespacetest}{}\label{namespacetest}\index{test@{test}}
+
+
+-\/failure-\/learner  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/failure-\/learner 
+
+\begin{DoxyVerb}test-failure-learner.py
+
+Parse the git log of a BlockChainCore repository to identify commits where
+ tests failed (CI failures, manual fix-up commits, or commit messages that
+ mention a failing test).  Cross-reference the failing test with the files
+ that changed in the commit and in the preceding commit to build
+ "if you change X, check test Y" heuristics.
+
+Outputs: failure-patterns.json
+\end{DoxyVerb}
+ 

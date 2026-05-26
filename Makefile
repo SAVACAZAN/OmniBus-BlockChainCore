@@ -1,4 +1,58 @@
-.PHONY: build build-core build-agent run-node run-rpc run-frontend test clean help
+.PHONY: build build-core build-agent run-node run-rpc run-frontend test clean help \
+        test-suite stress health deploy logs restart clean-cache pq-matrix monitor \
+        quick-stake quick-trade orchestrate
+
+# ============================================================================
+# Automation runners (added 2026-05-10) — drives test-scripts/_*.sh + .mjs
+# ============================================================================
+
+CHAIN ?= testnet
+VPS_HOST ?= omnibus-vps
+
+# `make test` — kept legacy (Zig tests). Use `test-suite` for the bash suite.
+test-suite:
+	@bash test-scripts/run-all.sh --chain $(CHAIN)
+
+stress:
+	@node test-scripts/30-multiwallet-full-stress.mjs --chain $(CHAIN)
+
+pq-matrix:
+	@node tools/TESTING/stress-pq-matrix.mjs --chain $(CHAIN)
+
+health:
+	@bash test-scripts/_vps-health.sh
+
+deploy:
+	@bash test-scripts/_build-deploy.sh
+
+quick-stake:
+	@CHAIN=$(CHAIN) bash test-scripts/_quick-stake-test.sh
+
+quick-trade:
+	@CHAIN=$(CHAIN) bash test-scripts/_quick-trade-test.sh
+
+monitor:
+	@bash test-scripts/_chain-monitor.sh
+
+orchestrate:
+	@node test-scripts/_orchestrator.mjs --chain $(CHAIN)
+
+logs:
+	@ssh $(VPS_HOST) "tail -f /var/log/omnibus/$(CHAIN).log"
+
+restart:
+	@echo "About to restart 5 production services on $(VPS_HOST)."
+	@printf "Type 'yes' to continue: "; \
+	 read confirm; \
+	 if [ "$$confirm" = "yes" ]; then \
+	     ssh $(VPS_HOST) "systemctl restart omnibus-mainnet omnibus-mainnet-miner omnibus-testnet omnibus-regtest"; \
+	     echo "✓ restarted"; \
+	 else echo "aborted."; fi
+
+clean-cache:
+	rm -rf .zig-cache zig-cache zig-out
+
+
 
 # Zig compiler
 ZIG := zig

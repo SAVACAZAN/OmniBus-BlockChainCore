@@ -1,0 +1,327 @@
+\doxysection{generate\+\_\+miners Namespace Reference}
+\hypertarget{namespacegenerate__miners}{}\label{namespacegenerate__miners}\index{generate\_miners@{generate\_miners}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a5131aff6356a52dd3837c3c38b38dc73}{\+\_\+b58encode}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__miners_acb100d43e1ce1f93d11efb2bb2ddecb3}{\+\_\+checksum}} (bytes d)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__miners_ad76d5a49ab295544aaaf16a4826a4f94}{\+\_\+hash160}} (bytes d)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a1e70c32fed62567ab744417e0e8d2230}{\+\_\+omni\+\_\+address}} (bytes pubkey\+\_\+bytes, str prefix, int version\+\_\+byte=0x4F)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__miners_ae25985cbffdd427fbb532b92bd15a356}{\+\_\+hkdf\+\_\+expand}} (bytes prk, bytes info, int length=64)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__miners_a926017e4eb6aef827ffd8e4615709f6f}{\+\_\+seed\+\_\+to\+\_\+keypair}} (bytes seed, int coin\+\_\+type, int index=0)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__miners_a5e3b26742b9f7a597c26ca57549bf36b}{\+\_\+mnemonic\+\_\+to\+\_\+seed}} (str mnemonic, str passphrase="{}"{})
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a61b8fdb9aed25cbbd18f2c46b10ee288}{\+\_\+generate\+\_\+mnemonic\+\_\+12}} ()
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a32d55fe6373f2af1856d5462afc3bb6c}{\+\_\+generate\+\_\+mnemonic\+\_\+fallback}} ()
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__miners_a1931a821caac5ef64d259c646e5767f1}{generate\+\_\+miner}} (str name, int index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__miners_ac88f4a01356a90bad1c7b0b1279ec2e3}{check\+\_\+single\+\_\+instance}} ()
+\item 
+\doxymbox{\hyperlink{namespacegenerate__miners_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__miners_a4e48c7f11c999bc0c745c06471cb7730}{MINER\+\_\+\+NAMES}}
+\item 
+int \doxymbox{\hyperlink{namespacegenerate__miners_a9a2a27f52eb65c9684dfc8ee20439dfd}{OMNI\+\_\+\+COIN\+\_\+\+TYPE}} = 777
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a028a88936890dcf608b1e168bf210e27}{OMNI\+\_\+\+PREFIX}} = "{}ob\+\_\+omni\+\_\+"{}
+\item 
+int \doxymbox{\hyperlink{namespacegenerate__miners_a3e0b89ff8b40f10b42d5a91c8a143748}{OMNI\+\_\+\+VERSION\+\_\+\+BYTE}} = 0x4F
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__miners_af1da04a8072f1cc90f1ce69a8b6de7b1}{PQ\+\_\+\+DOMAINS}}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_ad05934d2810651e0a5f5ac397b1259f9}{\+\_\+\+B58}} = "{}123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"{}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__miners_a2b9f861935f39343d3b18cff786cbada}{SINGLE\+\_\+\+INSTANCE\+\_\+\+ZIG}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}generate_miners.py — OmniBus Miner Key Generator
+Genereaza 10 mineri cu mnemonic BIP-39 real, adrese ob1q (Bech32),
+si exporta JSON compatibil cu OmnibusWallet (import direct in Sidebar).
+
+Rulare:
+    pip install bip_utils mnemonic
+    python generate_miners.py
+
+Output:
+    miners_YYYY-MM-DD.json   — import in OmnibusWallet (PASTREAZA SECRET)
+    miners_public.json       — adrese publice + config nod (poti distribui)
+\end{DoxyVerb}
+ 
+
+\label{namespacegenerate__miners_doc-func-members}
+\Hypertarget{namespacegenerate__miners_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacegenerate__miners_a5131aff6356a52dd3837c3c38b38dc73}\index{generate\_miners@{generate\_miners}!\_b58encode@{\_b58encode}}
+\index{\_b58encode@{\_b58encode}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_b58encode()}{\_b58encode()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a5131aff6356a52dd3837c3c38b38dc73} 
+ str \+\_\+b58encode (\begin{DoxyParamCaption}\item[{bytes}]{data}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacegenerate__miners_acb100d43e1ce1f93d11efb2bb2ddecb3}\index{generate\_miners@{generate\_miners}!\_checksum@{\_checksum}}
+\index{\_checksum@{\_checksum}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_checksum()}{\_checksum()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_acb100d43e1ce1f93d11efb2bb2ddecb3} 
+ bytes \+\_\+checksum (\begin{DoxyParamCaption}\item[{bytes}]{d}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00062}{62}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespacegenerate__miners_a61b8fdb9aed25cbbd18f2c46b10ee288}\index{generate\_miners@{generate\_miners}!\_generate\_mnemonic\_12@{\_generate\_mnemonic\_12}}
+\index{\_generate\_mnemonic\_12@{\_generate\_mnemonic\_12}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_generate\_mnemonic\_12()}{\_generate\_mnemonic\_12()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a61b8fdb9aed25cbbd18f2c46b10ee288} 
+ str \+\_\+generate\+\_\+mnemonic\+\_\+12 (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Genereaza mnemonic BIP-39 de 12 cuvinte.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00117}{117}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespacegenerate__miners_a32d55fe6373f2af1856d5462afc3bb6c}\index{generate\_miners@{generate\_miners}!\_generate\_mnemonic\_fallback@{\_generate\_mnemonic\_fallback}}
+\index{\_generate\_mnemonic\_fallback@{\_generate\_mnemonic\_fallback}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_generate\_mnemonic\_fallback()}{\_generate\_mnemonic\_fallback()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a32d55fe6373f2af1856d5462afc3bb6c} 
+ str \+\_\+generate\+\_\+mnemonic\+\_\+fallback (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Fallback BIP-39 manual — 128 biti, 12 cuvinte.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00134}{134}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacegenerate__miners_ad76d5a49ab295544aaaf16a4826a4f94}\index{generate\_miners@{generate\_miners}!\_hash160@{\_hash160}}
+\index{\_hash160@{\_hash160}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_hash160()}{\_hash160()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_ad76d5a49ab295544aaaf16a4826a4f94} 
+ bytes \+\_\+hash160 (\begin{DoxyParamCaption}\item[{bytes}]{d}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00065}{65}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespacegenerate__miners_ae25985cbffdd427fbb532b92bd15a356}\index{generate\_miners@{generate\_miners}!\_hkdf\_expand@{\_hkdf\_expand}}
+\index{\_hkdf\_expand@{\_hkdf\_expand}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_hkdf\_expand()}{\_hkdf\_expand()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_ae25985cbffdd427fbb532b92bd15a356} 
+ bytes \+\_\+hkdf\+\_\+expand (\begin{DoxyParamCaption}\item[{bytes}]{prk}{, }\item[{bytes}]{info}{, }\item[{int }]{length}{ = {\ttfamily 64}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacegenerate__miners_a5e3b26742b9f7a597c26ca57549bf36b}\index{generate\_miners@{generate\_miners}!\_mnemonic\_to\_seed@{\_mnemonic\_to\_seed}}
+\index{\_mnemonic\_to\_seed@{\_mnemonic\_to\_seed}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_mnemonic\_to\_seed()}{\_mnemonic\_to\_seed()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a5e3b26742b9f7a597c26ca57549bf36b} 
+ bytes \+\_\+mnemonic\+\_\+to\+\_\+seed (\begin{DoxyParamCaption}\item[{str}]{mnemonic}{, }\item[{str }]{passphrase}{ = {\ttfamily "{}"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00109}{109}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacegenerate__miners_a1e70c32fed62567ab744417e0e8d2230}\index{generate\_miners@{generate\_miners}!\_omni\_address@{\_omni\_address}}
+\index{\_omni\_address@{\_omni\_address}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_omni\_address()}{\_omni\_address()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a1e70c32fed62567ab744417e0e8d2230} 
+ str \+\_\+omni\+\_\+address (\begin{DoxyParamCaption}\item[{bytes}]{pubkey\+\_\+bytes}{, }\item[{str}]{prefix}{, }\item[{int }]{version\+\_\+byte}{ = {\ttfamily 0x4F}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacegenerate__miners_a926017e4eb6aef827ffd8e4615709f6f}\index{generate\_miners@{generate\_miners}!\_seed\_to\_keypair@{\_seed\_to\_keypair}}
+\index{\_seed\_to\_keypair@{\_seed\_to\_keypair}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_seed\_to\_keypair()}{\_seed\_to\_keypair()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a926017e4eb6aef827ffd8e4615709f6f} 
+\+\_\+seed\+\_\+to\+\_\+keypair (\begin{DoxyParamCaption}\item[{bytes}]{seed}{, }\item[{int}]{coin\+\_\+type}{, }\item[{int }]{index}{ = {\ttfamily 0}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}BIP-32 secp256k1 via bip_utils, cu HKDF fallback daca lipseste.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00083}{83}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacegenerate__miners_ac88f4a01356a90bad1c7b0b1279ec2e3}\index{generate\_miners@{generate\_miners}!check\_single\_instance@{check\_single\_instance}}
+\index{check\_single\_instance@{check\_single\_instance}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{check\_single\_instance()}{check\_single\_instance()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_ac88f4a01356a90bad1c7b0b1279ec2e3} 
+check\+\_\+single\+\_\+instance (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verifica ca nu ruleaza deja un miner pe acest PC.
+Cross-platform: Windows (Named Mutex) + Linux/Mac (flock).
+\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00222}{222}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+\Hypertarget{namespacegenerate__miners_a1931a821caac5ef64d259c646e5767f1}\index{generate\_miners@{generate\_miners}!generate\_miner@{generate\_miner}}
+\index{generate\_miner@{generate\_miner}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{generate\_miner()}{generate\_miner()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a1931a821caac5ef64d259c646e5767f1} 
+ dict generate\+\_\+miner (\begin{DoxyParamCaption}\item[{str}]{name}{, }\item[{int}]{index}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Genereaza un miner complet: mnemonic + toate adresele OMNI.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00157}{157}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+Here is the caller graph for this function:\+
+% FIG 13
+\Hypertarget{namespacegenerate__miners_a51af30a60f9f02777c6396b8247e356f}\index{generate\_miners@{generate\_miners}!main@{main}}
+\index{main@{main}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00296}{296}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 14
+Here is the caller graph for this function:\+
+% FIG 15
+
+
+\label{namespacegenerate__miners_doc-var-members}
+\Hypertarget{namespacegenerate__miners_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacegenerate__miners_ad05934d2810651e0a5f5ac397b1259f9}\index{generate\_miners@{generate\_miners}!\_B58@{\_B58}}
+\index{\_B58@{\_B58}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{\_B58}{\_B58}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_ad05934d2810651e0a5f5ac397b1259f9} 
+str generate\+\_\+miners.\+\_\+\+B58 = "{}123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"{}\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00052}{52}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+\Hypertarget{namespacegenerate__miners_a4e48c7f11c999bc0c745c06471cb7730}\index{generate\_miners@{generate\_miners}!MINER\_NAMES@{MINER\_NAMES}}
+\index{MINER\_NAMES@{MINER\_NAMES}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{MINER\_NAMES}{MINER\_NAMES}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a4e48c7f11c999bc0c745c06471cb7730} 
+list generate\+\_\+miners.\+MINER\+\_\+\+NAMES}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ROMANIA"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}GERMANY"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}FRANCE"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ITALY"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}SPAIN"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}NETHERLANDS"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}AUSTRIA"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}BELGIUM"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}SWEDEN"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}PORTUGAL"{}},}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+\Hypertarget{namespacegenerate__miners_a9a2a27f52eb65c9684dfc8ee20439dfd}\index{generate\_miners@{generate\_miners}!OMNI\_COIN\_TYPE@{OMNI\_COIN\_TYPE}}
+\index{OMNI\_COIN\_TYPE@{OMNI\_COIN\_TYPE}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{OMNI\_COIN\_TYPE}{OMNI\_COIN\_TYPE}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a9a2a27f52eb65c9684dfc8ee20439dfd} 
+int generate\+\_\+miners.\+OMNI\+\_\+\+COIN\+\_\+\+TYPE = 777}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+\Hypertarget{namespacegenerate__miners_a028a88936890dcf608b1e168bf210e27}\index{generate\_miners@{generate\_miners}!OMNI\_PREFIX@{OMNI\_PREFIX}}
+\index{OMNI\_PREFIX@{OMNI\_PREFIX}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{OMNI\_PREFIX}{OMNI\_PREFIX}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a028a88936890dcf608b1e168bf210e27} 
+str generate\+\_\+miners.\+OMNI\+\_\+\+PREFIX = "{}ob\+\_\+omni\+\_\+"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+\Hypertarget{namespacegenerate__miners_a3e0b89ff8b40f10b42d5a91c8a143748}\index{generate\_miners@{generate\_miners}!OMNI\_VERSION\_BYTE@{OMNI\_VERSION\_BYTE}}
+\index{OMNI\_VERSION\_BYTE@{OMNI\_VERSION\_BYTE}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{OMNI\_VERSION\_BYTE}{OMNI\_VERSION\_BYTE}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a3e0b89ff8b40f10b42d5a91c8a143748} 
+int generate\+\_\+miners.\+OMNI\+\_\+\+VERSION\+\_\+\+BYTE = 0x4F}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+\Hypertarget{namespacegenerate__miners_af1da04a8072f1cc90f1ce69a8b6de7b1}\index{generate\_miners@{generate\_miners}!PQ\_DOMAINS@{PQ\_DOMAINS}}
+\index{PQ\_DOMAINS@{PQ\_DOMAINS}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{PQ\_DOMAINS}{PQ\_DOMAINS}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_af1da04a8072f1cc90f1ce69a8b6de7b1} 
+list generate\+\_\+miners.\+PQ\+\_\+\+DOMAINS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ [}
+\DoxyCodeLine{\ \ \ \ \{\textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}OMNI"{}},\ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}coin\_type"{}}:\ 777,\ \textcolor{stringliteral}{"{}prefix"{}}:\ \textcolor{stringliteral}{"{}ob\_omni\_"{}},\ \textcolor{stringliteral}{"{}algorithm"{}}:\ \textcolor{stringliteral}{"{}ML-\/KEM-\/768"{}},\ \ \ \ \textcolor{stringliteral}{"{}chain\_id"{}}:\ \textcolor{stringliteral}{"{}OMNI\_OMNI"{}}\},}
+\DoxyCodeLine{\ \ \ \ \{\textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}OMNI\_LOVE"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}coin\_type"{}}:\ 778,\ \textcolor{stringliteral}{"{}prefix"{}}:\ \textcolor{stringliteral}{"{}ob\_k1\_"{}},\ \ \ \textcolor{stringliteral}{"{}algorithm"{}}:\ \textcolor{stringliteral}{"{}ML-\/DSA-\/87"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}chain\_id"{}}:\ \textcolor{stringliteral}{"{}OMNI\_LOVE"{}}\},}
+\DoxyCodeLine{\ \ \ \ \{\textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}OMNI\_FOOD"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}coin\_type"{}}:\ 779,\ \textcolor{stringliteral}{"{}prefix"{}}:\ \textcolor{stringliteral}{"{}ob\_f5\_"{}},\ \ \ \textcolor{stringliteral}{"{}algorithm"{}}:\ \textcolor{stringliteral}{"{}Falcon-\/512"{}},\ \ \ \ \textcolor{stringliteral}{"{}chain\_id"{}}:\ \textcolor{stringliteral}{"{}OMNI\_FOOD"{}}\},}
+\DoxyCodeLine{\ \ \ \ \{\textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}OMNI\_RENT"{}},\ \ \ \ \ \textcolor{stringliteral}{"{}coin\_type"{}}:\ 780,\ \textcolor{stringliteral}{"{}prefix"{}}:\ \textcolor{stringliteral}{"{}ob\_d5\_"{}},\ \ \ \textcolor{stringliteral}{"{}algorithm"{}}:\ \textcolor{stringliteral}{"{}SLH-\/DSA-\/256s"{}},\ \ \textcolor{stringliteral}{"{}chain\_id"{}}:\ \textcolor{stringliteral}{"{}OMNI\_RENT"{}}\},}
+\DoxyCodeLine{\ \ \ \ \{\textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}OMNI\_VACATION"{}},\ \textcolor{stringliteral}{"{}coin\_type"{}}:\ 781,\ \textcolor{stringliteral}{"{}prefix"{}}:\ \textcolor{stringliteral}{"{}ob\_s3\_"{}},\ \ \ \textcolor{stringliteral}{"{}algorithm"{}}:\ \textcolor{stringliteral}{"{}Falcon-\/Light"{}},\ \ \textcolor{stringliteral}{"{}chain\_id"{}}:\ \textcolor{stringliteral}{"{}OMNI\_VACATION"{}}\},}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+
+\Hypertarget{namespacegenerate__miners_a2b9f861935f39343d3b18cff786cbada}\index{generate\_miners@{generate\_miners}!SINGLE\_INSTANCE\_ZIG@{SINGLE\_INSTANCE\_ZIG}}
+\index{SINGLE\_INSTANCE\_ZIG@{SINGLE\_INSTANCE\_ZIG}!generate\_miners@{generate\_miners}}
+\doxysubsubsection{\texorpdfstring{SINGLE\_INSTANCE\_ZIG}{SINGLE\_INSTANCE\_ZIG}}
+{\footnotesize\ttfamily \label{namespacegenerate__miners_a2b9f861935f39343d3b18cff786cbada} 
+str generate\+\_\+miners.\+SINGLE\+\_\+\+INSTANCE\+\_\+\+ZIG}
+
+
+
+Definition at line \doxymbox{\hyperlink{generate__miners_8py_source_l00253}{253}} of file \doxymbox{\hyperlink{generate__miners_8py_source}{generate\+\_\+miners.\+py}}.
+

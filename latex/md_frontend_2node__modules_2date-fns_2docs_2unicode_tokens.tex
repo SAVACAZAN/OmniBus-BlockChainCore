@@ -1,0 +1,53 @@
+\chapter{Unicode Tokens }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2unicode_tokens}{}\label{md_frontend_2node__modules_2date-fns_2docs_2unicode_tokens}\index{Unicode Tokens@{Unicode Tokens}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2unicode_tokens_autotoc_md6371}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2unicode_tokens_autotoc_md6371}%
+
+
+Starting with v2, {\ttfamily format} and {\ttfamily parse} use \href{https://www.unicode.org/reports/tr35/tr35-dates.html\#Date_Field_Symbol_Table}{\texttt{Unicode tokens}}.
+
+The tokens are different from Moment.\+js and other libraries that opted to use custom formatting rules. While usage of a standard ensures compatibility and the future of the library, it causes confusion that this document intends to resolve.\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2unicode_tokens_autotoc_md6372}{}\doxysection{\texorpdfstring{Popular mistakes}{Popular mistakes}}\label{md_frontend_2node__modules_2date-fns_2docs_2unicode_tokens_autotoc_md6372}
+There are 4 tokens that cause most of the confusion:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily D} and {\ttfamily DD} that represent the day of a year (1, 2, ..., 365, 366) are often confused with {\ttfamily d} and {\ttfamily dd} that represent the day of a month (1, 2, ..., 31).
+\item {\ttfamily YY} and {\ttfamily YYYY} that represent the local week-\/numbering year (44, 01, 00, 17) are often confused with {\ttfamily yy} and {\ttfamily yyyy} that represent the calendar year.
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ ❌\ Wrong!}
+\DoxyCodeLine{format(new\ Date(),\ 'YYYY-\/MM-\/DD')}
+\DoxyCodeLine{//=>\ 2018-\/10-\/283}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ ✅\ Correct}
+\DoxyCodeLine{format(new\ Date(),\ 'yyyy-\/MM-\/dd')}
+\DoxyCodeLine{//=>\ 2018-\/10-\/10}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ ❌\ Wrong!}
+\DoxyCodeLine{parse('11.02.87',\ 'D.MM.YY',\ new\ Date()).toString()}
+\DoxyCodeLine{//=>\ 'Sat\ Jan\ 11\ 1986\ 00:00:00\ GMT+0200\ (EET)'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ ✅\ Correct}
+\DoxyCodeLine{parse('11.02.87',\ 'd.MM.yy',\ new\ Date()).toString()}
+\DoxyCodeLine{//=>\ 'Wed\ Feb\ 11\ 1987\ 00:00:00\ GMT+0200\ (EET)'}
+
+\end{DoxyCode}
+
+
+To help with the issue, {\ttfamily format} and {\ttfamily parse} functions won\textquotesingle{}t accept these tokens without {\ttfamily use\+Additional\+Day\+Of\+Year\+Tokens} option for {\ttfamily D} and {\ttfamily DD} and {\ttfamily use\+Additional\+Week\+Year\+Tokens} options for {\ttfamily YY} and {\ttfamily YYYY}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{format(new\ Date(),\ 'D',\ \{\ useAdditionalDayOfYearTokens:\ true\ \})}
+\DoxyCodeLine{//=>\ '283'}
+\DoxyCodeLine{}
+\DoxyCodeLine{parse('365+1987',\ 'DD+YYYY',\ new\ Date(),\ \{}
+\DoxyCodeLine{\ \ useAdditionalDayOfYearTokens:\ true,}
+\DoxyCodeLine{\ \ useAdditionalWeekYearTokens:\ true}
+\DoxyCodeLine{\}).toString()}
+\DoxyCodeLine{//=>\ 'Wed\ Dec\ 31\ 1986\ 00:00:00\ GMT+0200\ (EET)'}
+
+\end{DoxyCode}
+ 

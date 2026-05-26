@@ -1,0 +1,92 @@
+{
+  "pairs": {
+    "0": {
+      "placed": 10,
+      "accepted": 10,
+      "cancelled": 10,
+      "filled": 0,
+      "failed": 0,
+      "errors": [],
+      "orderIds": [
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40
+      ],
+      "final_orderbook": {
+        "bids": 5,
+        "asks": 5,
+        "bestBid": 995000,
+        "bestAsk": 1004999
+      }
+    },
+    "6": {
+      "placed": 10,
+      "accepted": 10,
+      "cancelled": 10,
+      "filled": 0,
+      "failed": 0,
+      "errors": [],
+      "orderIds": [
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "final_orderbook": {
+        "bids": 5,
+        "asks": 5,
+        "bestBid": 995000,
+        "bestAsk": 1004999
+      }
+    }
+  },
+  "totals": {
+    "placed": 20,
+    "accepted": 20,
+    "cancelled": 20,
+    "filled": 0,
+    "failed": 0
+  },
+  "lat": [
+    1192,
+    1647,
+    689,
+    1434,
+    627,
+    1087,
+    479,
+    1072,
+    1489,
+    1251,
+    200,
+    321,
+    319,
+    572,
+    355,
+    278,
+    420,
+    275,
+    384,
+    279
+  ],
+  "duration_ms": 99725,
+  "latency": {
+    "count": 20,
+    "p50": 572,
+    "p95": 1647,
+    "max": 1647
+  }
+}

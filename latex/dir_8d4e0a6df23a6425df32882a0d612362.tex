@@ -1,0 +1,1349 @@
+\doxysection{frontend/\+node\+\_\+modules/\+d3-\/array Directory Reference}
+\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362}{}\label{dir_8d4e0a6df23a6425df32882a0d612362}\index{frontend/node\_modules/d3-\/array Directory Reference@{frontend/node\_modules/d3-\/array Directory Reference}}
+Directory dependency graph for d3-\/array:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5946}{}\doxysubsection{\texorpdfstring{d3-\/array}{d3-\/array}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5946}
+Data in Java\+Script is often represented by an iterable (such as an \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array}{\texttt{array}}, \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set}{\texttt{set}} or \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Generator}{\texttt{generator}}), and so iterable manipulation is a common task when analyzing or visualizing data. For example, you might take a contiguous slice (subset) of an array, filter an array using a predicate function, or map an array to a parallel set of values using a transform function. Before looking at the methods that d3-\/array provides, familiarize yourself with the powerful \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array}{\texttt{array methods built-\/in to Java\+Script}}.
+
+Java\+Script includes {\bfseries{mutation methods}} that modify the array:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/pop}{\texttt{{\itshape array}.pop}} -\/ Remove the last element from the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/push}{\texttt{{\itshape array}.push}} -\/ Add one or more elements to the end of the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse}{\texttt{{\itshape array}.reverse}} -\/ Reverse the order of the elements of the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/shift}{\texttt{{\itshape array}.shift}} -\/ Remove the first element from the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/sort}{\texttt{{\itshape array}.sort}} -\/ Sort the elements of the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/splice}{\texttt{{\itshape array}.splice}} -\/ Add or remove elements from the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift}{\texttt{{\itshape array}.unshift}} -\/ Add one or more elements to the front of the array.
+\end{DoxyItemize}
+
+There are also {\bfseries{access methods}} that return some representation of the array:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/concat}{\texttt{{\itshape array}.concat}} -\/ Join the array with other array(s) or value(s).
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/join}{\texttt{{\itshape array}.join}} -\/ Join all elements of the array into a string.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/slice}{\texttt{{\itshape array}.slice}} -\/ Extract a section of the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf}{\texttt{{\itshape array}.index\+Of}} -\/ Find the first occurrence of a value within the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf}{\texttt{{\itshape array}.last\+Index\+Of}} -\/ Find the last occurrence of a value within the array.
+\end{DoxyItemize}
+
+And finally {\bfseries{iteration methods}} that apply functions to elements in the array:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/filter}{\texttt{{\itshape array}.filter}} -\/ Create a new array with only the elements for which a predicate is true.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach}{\texttt{{\itshape array}.for\+Each}} -\/ Call a function for each element in the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/every}{\texttt{{\itshape array}.every}} -\/ See if every element in the array satisfies a predicate.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/map}{\texttt{{\itshape array}.map}} -\/ Create a new array with the result of calling a function on every element in the array.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/some}{\texttt{{\itshape array}.some}} -\/ See if at least one element in the array satisfies a predicate.
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce}{\texttt{{\itshape array}.reduce}} -\/ Apply a function to reduce the array to a single value (from left-\/to-\/right).
+\item \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/reduceRight}{\texttt{{\itshape array}.reduce\+Right}} -\/ Apply a function to reduce the array to a single value (from right-\/to-\/left).
+\end{DoxyItemize}\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5947}{}\doxysubsection{\texorpdfstring{Installing}{Installing}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5947}
+If you use npm, {\ttfamily npm install d3-\/array}. You can also download the \href{https://github.com/d3/d3-array/releases/latest}{\texttt{latest release on Git\+Hub}}. For vanilla HTML in modern browsers, import d3-\/array from js\+Delivr:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ type="{}module"{}>}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ \{min\}\ from\ "{}https://cdn.jsdelivr.net/npm/d3-\/array@3/+esm"{};}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ m\ =\ min(array);}
+\DoxyCodeLine{}
+\DoxyCodeLine{</script>}
+
+\end{DoxyCode}
+
+
+For legacy environments, you can load d3-\/array’s UMD bundle; a {\ttfamily d3} global is exported:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<script\ src="{}https://cdn.jsdelivr.net/npm/d3-\/array@3"{}></script>}
+\DoxyCodeLine{<script>}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ m\ =\ d3.min(array);}
+\DoxyCodeLine{}
+\DoxyCodeLine{</script>}
+
+\end{DoxyCode}
+\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5948}{}\doxysubsection{\texorpdfstring{API Reference}{API Reference}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5948}
+
+\begin{DoxyItemize}
+\item StatisticsStatistics
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SearchSearch
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item TransformationsTransformations
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item IterablesIterables
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item SetsSets
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item BinsBins
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item InterningInterning
+\end{DoxyItemize}\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5949}{}\doxysubsubsection{\texorpdfstring{Statistics}{Statistics}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5949}
+Methods for computing basic summary statistics.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_min}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_min}%
+\# d3.{\bfseries{min}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/min.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-extent}{\texttt{Examples}}
+
+Returns the minimum value in the given {\itshape iterable} using natural order. If the iterable contains no comparable values, returns undefined. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the minimum value.
+
+Unlike the built-\/in \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Math/min}{\texttt{Math.\+min}}, this method ignores undefined, null and NaN values; this is useful for ignoring missing data. In addition, elements are compared using natural order rather than numeric order. For example, the minimum of the strings \+[“20”, “3”]\+ is “20”, while the minimum of the numbers \+[20, 3]\+ is 3.
+
+See also \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_extent}{extent}extent.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_minIndex}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_minIndex}%
+\# d3.{\bfseries{min\+Index}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/minIndex.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-extent}{\texttt{Examples}}
+
+Returns the index of the minimum value in the given {\itshape iterable} using natural order. If the iterable contains no comparable values, returns -\/1. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the minimum value.
+
+Unlike the built-\/in \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Math/min}{\texttt{Math.\+min}}, this method ignores undefined, null and NaN values; this is useful for ignoring missing data. In addition, elements are compared using natural order rather than numeric order. For example, the minimum of the strings \+[“20”, “3”]\+ is “20”, while the minimum of the numbers \+[20, 3]\+ is 3.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_max}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_max}%
+\# d3.{\bfseries{max}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/max.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-extent}{\texttt{Examples}}
+
+Returns the maximum value in the given {\itshape iterable} using natural order. If the iterable contains no comparable values, returns undefined. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the maximum value.
+
+Unlike the built-\/in \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Math/max}{\texttt{Math.\+max}}, this method ignores undefined values; this is useful for ignoring missing data. In addition, elements are compared using natural order rather than numeric order. For example, the maximum of the strings \+[“20”, “3”]\+ is “3”, while the maximum of the numbers \+[20, 3]\+ is 20.
+
+See also \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_extent}{extent}extent.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_maxIndex}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_maxIndex}%
+\# d3.{\bfseries{max\+Index}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/maxIndex.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-extent}{\texttt{Examples}}
+
+Returns the index of the maximum value in the given {\itshape iterable} using natural order. If the iterable contains no comparable values, returns -\/1. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the maximum value.
+
+Unlike the built-\/in \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Math/max}{\texttt{Math.\+max}}, this method ignores undefined values; this is useful for ignoring missing data. In addition, elements are compared using natural order rather than numeric order. For example, the maximum of the strings \+[“20”, “3”]\+ is “3”, while the maximum of the numbers \+[20, 3]\+ is 20.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_extent}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_extent}%
+\# d3.{\bfseries{extent}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/extent.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-extent}{\texttt{Examples}}
+
+Returns the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_min}{minimum}minimum and \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_max}{maximum}maximum value in the given {\itshape iterable} using natural order. If the iterable contains no comparable values, returns \+[undefined, undefined]\+. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the extent.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_mode}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_mode}%
+\# d3.{\bfseries{mode}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/mode.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-mode}{\texttt{Examples}}
+
+Returns the mode of the given {\itshape iterable}, {\itshape i.\+e.} the value which appears the most often. In case of equality, returns the first of the relevant values. If the iterable contains no comparable values, returns undefined. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the mode. This method ignores undefined, null and NaN values; this is useful for ignoring missing data.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_sum}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_sum}%
+\# d3.{\bfseries{sum}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/sum.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-sum}{\texttt{Examples}}
+
+Returns the sum of the given {\itshape iterable} of numbers. If the iterable contains no numbers, returns 0. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the sum. This method ignores undefined and NaN values; this is useful for ignoring missing data.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_mean}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_mean}%
+\# d3.{\bfseries{mean}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/mean.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-mean-d3-median-and-friends}{\texttt{Examples}}
+
+Returns the mean of the given {\itshape iterable} of numbers. If the iterable contains no numbers, returns undefined. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the mean. This method ignores undefined and NaN values; this is useful for ignoring missing data.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_median}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_median}%
+\# d3.{\bfseries{median}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/median.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-mean-d3-median-and-friends}{\texttt{Examples}}
+
+Returns the median of the given {\itshape iterable} of numbers using the \href{https://en.wikipedia.org/wiki/Quantile\#Estimating_quantiles_from_a_sample}{\texttt{R-\/7 method}}. If the iterable contains no numbers, returns undefined. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the median. This method ignores undefined and NaN values; this is useful for ignoring missing data.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_medianIndex}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_medianIndex}%
+\# d3.{\bfseries{median\+Index}}({\itshape array}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/median.js}{\texttt{Source}}
+
+Similar to {\itshape median}, but returns the index of the element to the left of the median.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_cumsum}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_cumsum}%
+\# d3.{\bfseries{cumsum}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/cumsum.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-cumsum}{\texttt{Examples}}
+
+Returns the cumulative sum of the given {\itshape iterable} of numbers, as a Float64\+Array of the same length. If the iterable contains no numbers, returns zeros. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the cumulative sum. This method ignores undefined and NaN values; this is useful for ignoring missing data.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_quantile}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_quantile}%
+\# d3.{\bfseries{quantile}}({\itshape iterable}, {\itshape p}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/quantile.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-mean-d3-median-and-friends}{\texttt{Examples}}
+
+Returns the {\itshape p}-\/quantile of the given {\itshape iterable} of numbers, where {\itshape p} is a number in the range \+[0, 1]\+. For example, the median can be computed using {\itshape p} = 0.\+5, the first quartile at {\itshape p} = 0.\+25, and the third quartile at {\itshape p} = 0.\+75. This particular implementation uses the \href{http://en.wikipedia.org/wiki/Quantile\#Quantiles_of_a_population}{\texttt{R-\/7 method}}, which is the default for the R programming language and Excel. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ a\ =\ [0,\ 10,\ 30];}
+\DoxyCodeLine{d3.quantile(a,\ 0);\ //\ 0}
+\DoxyCodeLine{d3.quantile(a,\ 0.5);\ //\ 10}
+\DoxyCodeLine{d3.quantile(a,\ 1);\ //\ 30}
+\DoxyCodeLine{d3.quantile(a,\ 0.25);\ //\ 5}
+\DoxyCodeLine{d3.quantile(a,\ 0.75);\ //\ 20}
+\DoxyCodeLine{d3.quantile(a,\ 0.1);\ //\ 2}
+
+\end{DoxyCode}
+
+
+An optional {\itshape accessor} function may be specified, which is equivalent to calling {\itshape array}.map({\itshape accessor}) before computing the quantile.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_quantileIndex}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_quantileIndex}%
+\# d3.{\bfseries{quantile\+Index}}({\itshape array}, {\itshape p}\+[, {\itshape accessor}]\+) \href{https://github.com/d3/d3-array/blob/main/src/quantile.js}{\texttt{Source}}
+
+Similar to {\itshape quantile}, but returns the index to the left of {\itshape p}.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_quantileSorted}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_quantileSorted}%
+\# d3.{\bfseries{quantile\+Sorted}}({\itshape array}, {\itshape p}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/quantile.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-mean-d3-median-and-friends}{\texttt{Examples}}
+
+Similar to {\itshape quantile}, but expects the input to be a {\bfseries{sorted}} {\itshape array} of values. In contrast with {\itshape quantile}, the accessor is only called on the elements needed to compute the quantile.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_rank}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_rank}%
+\# d3.{\bfseries{rank}}({\itshape iterable}\+[, {\itshape comparator}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/rank.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/rank}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_rank}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_rank}%
+\# d3.{\bfseries{rank}}({\itshape iterable}\+[, {\itshape accessor}]\+)
+
+Returns an array with the rank of each value in the {\itshape iterable}, {\itshape i.\+e.} the zero-\/based index of the value when the iterable is sorted. Nullish values are sorted to the end and ranked NaN. An optional {\itshape comparator} or {\itshape accessor} function may be specified; the latter is equivalent to calling {\itshape array}.map({\itshape accessor}) before computing the ranks. If {\itshape comparator} is not specified, it defaults to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ascending}{ascending}ascending. Ties (equivalent values) all get the same rank, defined as the first time the value is found.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.rank([\{x:\ 1\},\ \{\},\ \{x:\ 2\},\ \{x:\ 0\}],\ d\ =>\ d.x);\ //\ [1,\ NaN,\ 2,\ 0]}
+\DoxyCodeLine{d3.rank(["{}b"{},\ "{}c"{},\ "{}b"{},\ "{}a"{}]);\ //\ [1,\ 3,\ 1,\ 0]}
+\DoxyCodeLine{d3.rank([1,\ 2,\ 3],\ d3.descending);\ //\ [2,\ 1,\ 0]}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_variance}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_variance}%
+\# d3.{\bfseries{variance}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/variance.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-mean-d3-median-and-friends}{\texttt{Examples}}
+
+Returns an \href{http://mathworld.wolfram.com/SampleVariance.html}{\texttt{unbiased estimator of the population variance}} of the given {\itshape iterable} of numbers using \+[Welford’s algorithm]\+(\href{https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance\#Welford's_online_algorithm}{\texttt{https:\+/\+/\+en.\+wikipedia.\+org/\+wiki/\+\+Algorithms\+\_\+for\+\_\+calculating\+\_\+variance\+\#\+Welford\textquotesingle{}s\+\_\+online\+\_\+algorithm}}). If the iterable has fewer than two numbers, returns undefined. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the variance. This method ignores undefined and NaN values; this is useful for ignoring missing data.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_deviation}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_deviation}%
+\# d3.{\bfseries{deviation}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/deviation.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-mean-d3-median-and-friends}{\texttt{Examples}}
+
+Returns the standard deviation, defined as the square root of the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_variance}{bias-\/corrected variance}bias-\/corrected variance, of the given {\itshape iterable} of numbers. If the iterable has fewer than two numbers, returns undefined. An optional {\itshape accessor} function may be specified, which is equivalent to calling Array.\+from before computing the standard deviation. This method ignores undefined and NaN values; this is useful for ignoring missing data.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_fsum}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_fsum}%
+\# d3.{\bfseries{fsum}}(\+[{\itshape values}]\+\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/fsum.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-fsum}{\texttt{Examples}}
+
+Returns a full precision summation of the given {\itshape values}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.fsum([.1,\ .1,\ .1,\ .1,\ .1,\ .1,\ .1,\ .1,\ .1,\ .1]);\ //\ 1}
+\DoxyCodeLine{d3.sum([.1,\ .1,\ .1,\ .1,\ .1,\ .1,\ .1,\ .1,\ .1,\ .1]);\ //\ 0.9999999999999999}
+
+\end{DoxyCode}
+
+
+Although slower, d3.\+fsum can replace d3.\+sum wherever greater precision is needed. Uses \href{\#adder}{\texttt{d3.\+Adder}}.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_fcumsum}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_fcumsum}%
+\# d3.{\bfseries{fcumsum}}(\+[{\itshape values}]\+\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/fsum.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-fcumsum}{\texttt{Examples}}
+
+Returns a full precision cumulative sum of the given {\itshape values}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.fcumsum([1,\ 1e-\/14,\ -\/1]);\ //\ [1,\ 1.00000000000001,\ 1e-\/14]}
+\DoxyCodeLine{d3.cumsum([1,\ 1e-\/14,\ -\/1]);\ //\ [1,\ 1.00000000000001,\ 9.992e-\/15]}
+
+\end{DoxyCode}
+
+
+Although slower, d3.\+fcumsum can replace d3.\+cumsum when greater precision is needed. Uses \href{\#adder}{\texttt{d3.\+Adder}}.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_adder}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_adder}%
+\# new d3.{\bfseries{Adder}}()
+
+Creates a full precision adder for \href{https://en.wikipedia.org/wiki/IEEE_754}{\texttt{IEEE 754}} floating point numbers, setting its initial value to 0.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_adder_add}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_adder_add}%
+\# {\itshape adder}.{\bfseries{add}}({\itshape number})
+
+Adds the specified {\itshape number} to the adder’s current value and returns the adder.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_adder_valueOf}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_adder_valueOf}%
+\# {\itshape adder}.{\bfseries{value\+Of}}()
+
+Returns the IEEE 754 double precision representation of the adder’s current value. Most useful as the short-\/hand notation {\ttfamily +adder}.\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5950}{}\doxysubsubsection{\texorpdfstring{Search}{Search}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5950}
+Methods for searching arrays for a specific element.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_least}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_least}%
+\# d3.{\bfseries{least}}({\itshape iterable}\+[, {\itshape comparator}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/least.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-least}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_least}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_least}%
+\# d3.{\bfseries{least}}({\itshape iterable}\+[, {\itshape accessor}]\+)
+
+Returns the least element of the specified {\itshape iterable} according to the specified {\itshape comparator} or {\itshape accessor}. If the given {\itshape iterable} contains no comparable elements ({\itshape i.\+e.}, the comparator returns NaN when comparing each element to itself), returns undefined. If {\itshape comparator} is not specified, it defaults to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ascending}{ascending}ascending. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ array\ =\ [\{foo:\ 42\},\ \{foo:\ 91\}];}
+\DoxyCodeLine{d3.least(array,\ (a,\ b)\ =>\ a.foo\ -\/\ b.foo);\ //\ \{foo:\ 42\}}
+\DoxyCodeLine{d3.least(array,\ (a,\ b)\ =>\ b.foo\ -\/\ a.foo);\ //\ \{foo:\ 91\}}
+\DoxyCodeLine{d3.least(array,\ a\ =>\ a.foo);\ //\ \{foo:\ 42\}}
+
+\end{DoxyCode}
+
+
+This function is similar to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_min}{min}min, except it allows the use of a comparator rather than an accessor.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_leastIndex}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_leastIndex}%
+\# d3.{\bfseries{least\+Index}}({\itshape iterable}\+[, {\itshape comparator}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/leastIndex.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-least}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_leastIndex}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_leastIndex}%
+\# d3.{\bfseries{least\+Index}}({\itshape iterable}\+[, {\itshape accessor}]\+)
+
+Returns the index of the least element of the specified {\itshape iterable} according to the specified {\itshape comparator} or {\itshape accessor}. If the given {\itshape iterable} contains no comparable elements ({\itshape i.\+e.}, the comparator returns NaN when comparing each element to itself), returns -\/1. If {\itshape comparator} is not specified, it defaults to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ascending}{ascending}ascending. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ array\ =\ [\{foo:\ 42\},\ \{foo:\ 91\}];}
+\DoxyCodeLine{d3.leastIndex(array,\ (a,\ b)\ =>\ a.foo\ -\/\ b.foo);\ //\ 0}
+\DoxyCodeLine{d3.leastIndex(array,\ (a,\ b)\ =>\ b.foo\ -\/\ a.foo);\ //\ 1}
+\DoxyCodeLine{d3.leastIndex(array,\ a\ =>\ a.foo);\ //\ 0}
+
+\end{DoxyCode}
+
+
+This function is similar to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_minIndex}{min\+Index}min\+Index, except it allows the use of a comparator rather than an accessor.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_greatest}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_greatest}%
+\# d3.{\bfseries{greatest}}({\itshape iterable}\+[, {\itshape comparator}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/greatest.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-least}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_greatest}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_greatest}%
+\# d3.{\bfseries{greatest}}({\itshape iterable}\+[, {\itshape accessor}]\+)
+
+Returns the greatest element of the specified {\itshape iterable} according to the specified {\itshape comparator} or {\itshape accessor}. If the given {\itshape iterable} contains no comparable elements ({\itshape i.\+e.}, the comparator returns NaN when comparing each element to itself), returns undefined. If {\itshape comparator} is not specified, it defaults to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ascending}{ascending}ascending. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ array\ =\ [\{foo:\ 42\},\ \{foo:\ 91\}];}
+\DoxyCodeLine{d3.greatest(array,\ (a,\ b)\ =>\ a.foo\ -\/\ b.foo);\ //\ \{foo:\ 91\}}
+\DoxyCodeLine{d3.greatest(array,\ (a,\ b)\ =>\ b.foo\ -\/\ a.foo);\ //\ \{foo:\ 42\}}
+\DoxyCodeLine{d3.greatest(array,\ a\ =>\ a.foo);\ //\ \{foo:\ 91\}}
+
+\end{DoxyCode}
+
+
+This function is similar to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_max}{max}max, except it allows the use of a comparator rather than an accessor.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_greatestIndex}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_greatestIndex}%
+\# d3.{\bfseries{greatest\+Index}}({\itshape iterable}\+[, {\itshape comparator}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/greatestIndex.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-least}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_greatestIndex}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_greatestIndex}%
+\# d3.{\bfseries{greatest\+Index}}({\itshape iterable}\+[, {\itshape accessor}]\+)
+
+Returns the index of the greatest element of the specified {\itshape iterable} according to the specified {\itshape comparator} or {\itshape accessor}. If the given {\itshape iterable} contains no comparable elements ({\itshape i.\+e.}, the comparator returns NaN when comparing each element to itself), returns -\/1. If {\itshape comparator} is not specified, it defaults to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ascending}{ascending}ascending. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ array\ =\ [\{foo:\ 42\},\ \{foo:\ 91\}];}
+\DoxyCodeLine{d3.greatestIndex(array,\ (a,\ b)\ =>\ a.foo\ -\/\ b.foo);\ //\ 1}
+\DoxyCodeLine{d3.greatestIndex(array,\ (a,\ b)\ =>\ b.foo\ -\/\ a.foo);\ //\ 0}
+\DoxyCodeLine{d3.greatestIndex(array,\ a\ =>\ a.foo);\ //\ 1}
+
+\end{DoxyCode}
+
+
+This function is similar to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_maxIndex}{max\+Index}max\+Index, except it allows the use of a comparator rather than an accessor.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisectLeft}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisectLeft}%
+\# d3.{\bfseries{bisect\+Left}}({\itshape array}, {\itshape x}\+[, {\itshape lo}\+[, {\itshape hi}]\+]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bisect.js}{\texttt{Source}}
+
+Returns the insertion point for {\itshape x} in {\itshape array} to maintain sorted order. The arguments {\itshape lo} and {\itshape hi} may be used to specify a subset of the array which should be considered; by default the entire array is used. If {\itshape x} is already present in {\itshape array}, the insertion point will be before (to the left of) any existing entries. The return value is suitable for use as the first argument to \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/splice}{\texttt{splice}} assuming that {\itshape array} is already sorted. The returned insertion point {\itshape i} partitions the {\itshape array} into two halves so that all {\itshape v} \texorpdfstring{$<$}{<} {\itshape x} for {\itshape v} in {\itshape array}.slice({\itshape lo}, {\itshape i}) for the left side and all {\itshape v} \texorpdfstring{$>$}{>}= {\itshape x} for {\itshape v} in {\itshape array}.slice({\itshape i}, {\itshape hi}) for the right side.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisect}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisect}%
+\# d3.{\bfseries{bisect}}({\itshape array}, {\itshape x}\+[, {\itshape lo}\+[, {\itshape hi}]\+]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bisect.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bisect}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisectRight}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisectRight}%
+\# d3.{\bfseries{bisect\+Right}}({\itshape array}, {\itshape x}\+[, {\itshape lo}\+[, {\itshape hi}]\+]\+)
+
+Similar to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bisectLeft}{bisect\+Left}bisect\+Left, but returns an insertion point which comes after (to the right of) any existing entries of {\itshape x} in {\itshape array}. The returned insertion point {\itshape i} partitions the {\itshape array} into two halves so that all {\itshape v} \texorpdfstring{$<$}{<}= {\itshape x} for {\itshape v} in {\itshape array}.slice({\itshape lo}, {\itshape i}) for the left side and all {\itshape v} \texorpdfstring{$>$}{>} {\itshape x} for {\itshape v} in {\itshape array}.slice({\itshape i}, {\itshape hi}) for the right side.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisectCenter}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisectCenter}%
+\# d3.{\bfseries{bisect\+Center}}({\itshape array}, {\itshape x}\+[, {\itshape lo}\+[, {\itshape hi}]\+]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bisect.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/multi-line-chart}{\texttt{Examples}}
+
+Returns the index of the value closest to {\itshape x} in the given {\itshape array} of numbers. The arguments {\itshape lo} (inclusive) and {\itshape hi} (exclusive) may be used to specify a subset of the array which should be considered; by default the entire array is used.
+
+See \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bisector_center}{\texorpdfstring{$\ast$}{*}bisector\texorpdfstring{$\ast$}{*}.center}{\itshape bisector}.center.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisector}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisector}%
+\# d3.{\bfseries{bisector}}({\itshape accessor}) · \href{https://github.com/d3/d3-array/blob/main/src/bisector.js}{\texttt{Source}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisector}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisector}%
+\# d3.{\bfseries{bisector}}({\itshape comparator})
+
+Returns a new bisector using the specified {\itshape accessor} or {\itshape comparator} function. This method can be used to bisect arrays of objects instead of being limited to simple arrays of primitives. For example, given the following array of objects:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ data\ =\ [}
+\DoxyCodeLine{\ \ \{date:\ new\ Date(2011,\ 1,\ 1),\ value:\ 0.5\},}
+\DoxyCodeLine{\ \ \{date:\ new\ Date(2011,\ 2,\ 1),\ value:\ 0.6\},}
+\DoxyCodeLine{\ \ \{date:\ new\ Date(2011,\ 3,\ 1),\ value:\ 0.7\},}
+\DoxyCodeLine{\ \ \{date:\ new\ Date(2011,\ 4,\ 1),\ value:\ 0.8\}}
+\DoxyCodeLine{];}
+
+\end{DoxyCode}
+
+
+A suitable bisect function could be constructed as:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ bisectDate\ =\ d3.bisector(function(d)\ \{\ return\ d.date;\ \}).right;}
+
+\end{DoxyCode}
+
+
+This is equivalent to specifying a comparator:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ bisectDate\ =\ d3.bisector(function(d,\ x)\ \{\ return\ d.date\ -\/\ x;\ \}).right;}
+
+\end{DoxyCode}
+
+
+And then applied as {\itshape bisect\+Date}({\itshape array}, {\itshape date}), returning an index. Note that the comparator is always passed the search value {\itshape x} as the second argument. Use a comparator rather than an accessor if you want values to be sorted in an order different than natural order, such as in descending rather than ascending order.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisector_left}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisector_left}%
+\# {\itshape bisector}.{\bfseries{left}}({\itshape array}, {\itshape x}\+[, {\itshape lo}\+[, {\itshape hi}]\+]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bisector.js}{\texttt{Source}}
+
+Equivalent to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bisectLeft}{bisect\+Left}bisect\+Left, but uses this bisector’s associated comparator.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisector_right}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisector_right}%
+\# {\itshape bisector}.{\bfseries{right}}({\itshape array}, {\itshape x}\+[, {\itshape lo}\+[, {\itshape hi}]\+]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bisector.js}{\texttt{Source}}
+
+Equivalent to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bisectRight}{bisect\+Right}bisect\+Right, but uses this bisector’s associated comparator.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bisector_center}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bisector_center}%
+\# {\itshape bisector}.{\bfseries{center}}({\itshape array}, {\itshape x}\+[, {\itshape lo}\+[, {\itshape hi}]\+]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bisector.js}{\texttt{Source}}
+
+Returns the index of the closest value to {\itshape x} in the given sorted {\itshape array}. This expects that the bisector’s associated accessor returns a quantitative value, or that the bisector’s associated comparator returns a signed distance; otherwise, this method is equivalent to {\itshape bisector}.left.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_quickselect}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_quickselect}%
+\# d3.{\bfseries{quickselect}}({\itshape array}, {\itshape k}, {\itshape left} = 0, {\itshape right} = {\itshape array}.length -\/ 1, {\itshape compare} = ascending) · \href{https://github.com/d3/d3-array/blob/main/src/quickselect.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-quickselect}{\texttt{Examples}}
+
+See \href{https://github.com/mourner/quickselect/blob/master/README.md}{\texttt{mourner/\+quickselect}}.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_ascending}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_ascending}%
+\# d3.{\bfseries{ascending}}({\itshape a}, {\itshape b}) · \href{https://github.com/d3/d3-array/blob/main/src/ascending.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-ascending}{\texttt{Examples}}
+
+Returns -\/1 if {\itshape a} is less than {\itshape b}, or 1 if {\itshape a} is greater than {\itshape b}, or 0. This is the comparator function for natural order, and can be used in conjunction with the built-\/in \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/sort}{\texttt{{\itshape array}.sort}} method to arrange elements in ascending order. It is implemented as:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{function\ ascending(a,\ b)\ \{}
+\DoxyCodeLine{\ \ return\ a\ ==\ null\ ||\ b\ ==\ null\ ?\ NaN\ :\ a\ <\ b\ ?\ -\/1\ :\ a\ >\ b\ ?\ 1\ :\ a\ >=\ b\ ?\ 0\ :\ NaN;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Note that if no comparator function is specified to the built-\/in sort method, the default order is lexicographic (alphabetical), not natural! This can lead to surprising behavior when sorting an array of numbers.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_descending}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_descending}%
+\# d3.{\bfseries{descending}}({\itshape a}, {\itshape b}) · \href{https://github.com/d3/d3-array/blob/main/src/descending.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-ascending}{\texttt{Examples}}
+
+Returns -\/1 if {\itshape a} is greater than {\itshape b}, or 1 if {\itshape a} is less than {\itshape b}, or 0. This is the comparator function for reverse natural order, and can be used in conjunction with the built-\/in array sort method to arrange elements in descending order. It is implemented as:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{function\ descending(a,\ b)\ \{}
+\DoxyCodeLine{\ \ return\ a\ ==\ null\ ||\ b\ ==\ null\ ?\ NaN\ :\ b\ <\ a\ ?\ -\/1\ :\ b\ >\ a\ ?\ 1\ :\ b\ >=\ a\ ?\ 0\ :\ NaN;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Note that if no comparator function is specified to the built-\/in sort method, the default order is lexicographic (alphabetical), not natural! This can lead to surprising behavior when sorting an array of numbers.\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5951}{}\doxysubsubsection{\texorpdfstring{Transformations}{Transformations}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5951}
+Methods for transforming arrays and for generating new arrays.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_group}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_group}%
+\# d3.{\bfseries{group}}({\itshape iterable}, {\itshape ...keys}) · \href{https://github.com/d3/d3-array/blob/main/src/group.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-group-d3-rollup}{\texttt{Examples}}
+
+Groups the specified {\itshape iterable} of values into an \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_InternMap}{Intern\+Map}Intern\+Map from {\itshape key} to array of value. For example, given some data:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{data\ =\ [}
+\DoxyCodeLine{\ \ \{name:\ "{}jim"{},\ \ \ amount:\ "{}34.0"{},\ \ \ date:\ "{}11/12/2015"{}\},}
+\DoxyCodeLine{\ \ \{name:\ "{}carl"{},\ \ amount:\ "{}120.11"{},\ date:\ "{}11/12/2015"{}\},}
+\DoxyCodeLine{\ \ \{name:\ "{}stacy"{},\ amount:\ "{}12.01"{},\ \ date:\ "{}01/04/2016"{}\},}
+\DoxyCodeLine{\ \ \{name:\ "{}stacy"{},\ amount:\ "{}34.05"{},\ \ date:\ "{}01/04/2016"{}\}}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+To group the data by name:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.group(data,\ d\ =>\ d.name)}
+
+\end{DoxyCode}
+
+
+This produces:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Map(3)\ \{}
+\DoxyCodeLine{\ \ "{}jim"{}\ =>\ Array(1)}
+\DoxyCodeLine{\ \ "{}carl"{}\ =>\ Array(1)}
+\DoxyCodeLine{\ \ "{}stacy"{}\ =>\ Array(2)}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+If more than one {\itshape key} is specified, a nested Intern\+Map is returned. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.group(data,\ d\ =>\ d.name,\ d\ =>\ d.date)}
+
+\end{DoxyCode}
+
+
+This produces:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Map(3)\ \{}
+\DoxyCodeLine{\ \ "{}jim"{}\ =>\ Map(1)\ \{}
+\DoxyCodeLine{\ \ \ \ "{}11/12/2015"{}\ =>\ Array(1)}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ "{}carl"{}\ =>\ Map(1)\ \{}
+\DoxyCodeLine{\ \ \ \ "{}11/12/2015"{}\ =>\ Array(1)}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ "{}stacy"{}\ =>\ Map(1)\ \{}
+\DoxyCodeLine{\ \ \ \ "{}01/04/2016"{}\ =>\ Array(2)}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+To convert a Map to an Array, use \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from}{\texttt{Array.\+from}}. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Array.from(d3.group(data,\ d\ =>\ d.name))}
+
+\end{DoxyCode}
+
+
+This produces:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[}
+\DoxyCodeLine{\ \ ["{}jim"{},\ Array(1)],}
+\DoxyCodeLine{\ \ ["{}carl"{},\ Array(1)],}
+\DoxyCodeLine{\ \ ["{}stacy"{},\ Array(2)]}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+You can also simultaneously convert the \+[{\itshape key}, {\itshape value}]\+ to some other representation by passing a map function to Array.\+from:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Array.from(d3.group(data,\ d\ =>\ d.name),\ ([key,\ value])\ =>\ (\{key,\ value\}))}
+
+\end{DoxyCode}
+
+
+This produces:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{[}
+\DoxyCodeLine{\ \ \{key:\ "{}jim"{},\ value:\ Array(1)\},}
+\DoxyCodeLine{\ \ \{key:\ "{}carl"{},\ value:\ Array(1)\},}
+\DoxyCodeLine{\ \ \{key:\ "{}stacy"{},\ value:\ Array(2)\}}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+\href{https://github.com/d3/d3-selection/blob/main/README.md\#selection_data}{\texttt{{\itshape selection}.data}} accepts iterables directly, meaning that you can use a Map (or Set or other iterable) to perform a data join without first needing to convert to an array.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_groups}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_groups}%
+\# d3.{\bfseries{groups}}({\itshape iterable}, {\itshape ...keys}) · \href{https://github.com/d3/d3-array/blob/main/src/group.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-group-d3-rollup}{\texttt{Examples}}
+
+Equivalent to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_group}{group}group, but returns nested arrays instead of nested maps.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_flatGroup}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_flatGroup}%
+\# d3.{\bfseries{flat\+Group}}({\itshape iterable}, {\itshape ...keys}) · \href{https://github.com/d3/d3-array/blob/main/src/group.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-flatgroup}{\texttt{Examples}}
+
+Equivalent to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_group}{group}group, but returns a flat array of \+[{\itshape key0}, {\itshape key1}, …, {\itshape values}]\+ instead of nested maps.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_index}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_index}%
+\# d3.{\bfseries{index}}({\itshape iterable}, {\itshape ...keys}) · \href{https://github.com/d3/d3-array/blob/main/src/group.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-group}{\texttt{Examples}}
+
+Equivalent to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_group}{group}group but returns a unique value per compound key instead of an array, throwing if the key is not unique.
+
+For example, given the data defined above,
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.index(data,\ d\ =>\ d.amount)}
+
+\end{DoxyCode}
+
+
+returns
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Map(4)\ \{}
+\DoxyCodeLine{\ \ "{}34.0"{}\ =>\ Object\ \{name:\ "{}jim"{},\ amount:\ "{}34.0"{},\ date:\ "{}11/12/2015"{}\}}
+\DoxyCodeLine{\ \ "{}120.11"{}\ =>\ Object\ \{name:\ "{}carl"{},\ amount:\ "{}120.11"{},\ date:\ "{}11/12/2015"{}\}}
+\DoxyCodeLine{\ \ "{}12.01"{}\ =>\ Object\ \{name:\ "{}stacy"{},\ amount:\ "{}12.01"{},\ date:\ "{}01/04/2016"{}\}}
+\DoxyCodeLine{\ \ "{}34.05"{}\ =>\ Object\ \{name:\ "{}stacy"{},\ amount:\ "{}34.05"{},\ date:\ "{}01/04/2016"{}\}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+On the other hand,
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.index(data,\ d\ =>\ d.name)}
+
+\end{DoxyCode}
+
+
+throws an error because two objects share the same name.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_indexes}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_indexes}%
+\# d3.{\bfseries{indexes}}({\itshape iterable}, {\itshape ...keys}) · \href{https://github.com/d3/d3-array/blob/main/src/group.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-group}{\texttt{Examples}}
+
+Equivalent to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_index}{index}index, but returns nested arrays instead of nested maps.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_rollup}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_rollup}%
+\# d3.{\bfseries{rollup}}({\itshape iterable}, {\itshape reduce}, {\itshape ...keys}) · \href{https://github.com/d3/d3-array/blob/main/src/group.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-group-d3-rollup}{\texttt{Examples}}
+
+\doxylink{dir_8d4e0a6df23a6425df32882a0d612362_group}{Groups}Groups and reduces the specified {\itshape iterable} of values into an Intern\+Map from {\itshape key} to value. For example, given some data:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{data\ =\ [}
+\DoxyCodeLine{\ \ \{name:\ "{}jim"{},\ \ \ amount:\ "{}34.0"{},\ \ \ date:\ "{}11/12/2015"{}\},}
+\DoxyCodeLine{\ \ \{name:\ "{}carl"{},\ \ amount:\ "{}120.11"{},\ date:\ "{}11/12/2015"{}\},}
+\DoxyCodeLine{\ \ \{name:\ "{}stacy"{},\ amount:\ "{}12.01"{},\ \ date:\ "{}01/04/2016"{}\},}
+\DoxyCodeLine{\ \ \{name:\ "{}stacy"{},\ amount:\ "{}34.05"{},\ \ date:\ "{}01/04/2016"{}\}}
+\DoxyCodeLine{]}
+
+\end{DoxyCode}
+
+
+To count the number of elements by name:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.rollup(data,\ v\ =>\ v.length,\ d\ =>\ d.name)}
+
+\end{DoxyCode}
+
+
+This produces:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Map(3)\ \{}
+\DoxyCodeLine{\ \ "{}jim"{}\ =>\ 1}
+\DoxyCodeLine{\ \ "{}carl"{}\ =>\ 1}
+\DoxyCodeLine{\ \ "{}stacy"{}\ =>\ 2}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+If more than one {\itshape key} is specified, a nested Map is returned. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.rollup(data,\ v\ =>\ v.length,\ d\ =>\ d.name,\ d\ =>\ d.date)}
+
+\end{DoxyCode}
+
+
+This produces:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Map(3)\ \{}
+\DoxyCodeLine{\ \ "{}jim"{}\ =>\ Map(1)\ \{}
+\DoxyCodeLine{\ \ \ \ "{}11/12/2015"{}\ =>\ 1}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ "{}carl"{}\ =>\ Map(1)\ \{}
+\DoxyCodeLine{\ \ \ \ "{}11/12/2015"{}\ =>\ 1}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\ \ "{}stacy"{}\ =>\ Map(1)\ \{}
+\DoxyCodeLine{\ \ \ \ "{}01/04/2016"{}\ =>\ 2}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+To convert a Map to an Array, use \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from}{\texttt{Array.\+from}}. See \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_group}{d3.group}d3.\+group for examples.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_rollups}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_rollups}%
+\# d3.{\bfseries{rollups}}({\itshape iterable}, {\itshape reduce}, {\itshape ...keys}) · \href{https://github.com/d3/d3-array/blob/main/src/group.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-group-d3-rollup}{\texttt{Examples}}
+
+Equivalent to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_rollup}{rollup}rollup, but returns nested arrays instead of nested maps.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_flatRollup}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_flatRollup}%
+\# d3.{\bfseries{flat\+Rollup}}({\itshape iterable}, {\itshape reduce}, {\itshape ...keys}) · \href{https://github.com/d3/d3-array/blob/main/src/group.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-flatgroup}{\texttt{Examples}}
+
+Equivalent to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_rollup}{rollup}rollup, but returns a flat array of \+[{\itshape key0}, {\itshape key1}, …, {\itshape value}]\+ instead of nested maps.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_groupSort}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_groupSort}%
+\# d3.{\bfseries{group\+Sort}}({\itshape iterable}, {\itshape comparator}, {\itshape key}) · \href{https://github.com/d3/d3-array/blob/main/src/groupSort.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-groupsort}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_groupSort}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_groupSort}%
+\# d3.{\bfseries{group\+Sort}}({\itshape iterable}, {\itshape accessor}, {\itshape key})
+
+Groups the specified {\itshape iterable} of elements according to the specified {\itshape key} function, sorts the groups according to the specified {\itshape comparator}, and then returns an array of keys in sorted order. For example, if you had a table of barley yields for different varieties, sites, and years, to sort the barley varieties by ascending median yield:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.groupSort(barley,\ g\ =>\ d3.median(g,\ d\ =>\ d.yield),\ d\ =>\ d.variety)}
+
+\end{DoxyCode}
+
+
+For descending order, negate the group value:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.groupSort(barley,\ g\ =>\ -\/d3.median(g,\ d\ =>\ d.yield),\ d\ =>\ d.variety)}
+
+\end{DoxyCode}
+
+
+If a {\itshape comparator} is passed instead of an {\itshape accessor} (i.\+e., if the second argument is a function that takes exactly two arguments), it will be asked to compare two groups {\itshape a} and {\itshape b} and should return a negative value if {\itshape a} should be before {\itshape b}, a positive value if {\itshape a} should be after {\itshape b}, or zero for a partial ordering.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_count}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_count}%
+\# d3.{\bfseries{count}}({\itshape iterable}\+[, {\itshape accessor}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/count.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-count}{\texttt{Examples}}
+
+Returns the number of valid number values ({\itshape i.\+e.}, not null, NaN, or undefined) in the specified {\itshape iterable}; accepts an accessor.
+
+For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.count([\{n:\ "{}Alice"{},\ age:\ NaN\},\ \{n:\ "{}Bob"{},\ age:\ 18\},\ \{n:\ "{}Other"{}\}],\ d\ =>\ d.age)\ //\ 1}
+
+\end{DoxyCode}
+ \label{dir_8d4e0a6df23a6425df32882a0d612362_cross}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_cross}%
+\# d3.{\bfseries{cross}}({\itshape ...iterables}\+[, {\itshape reducer}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/cross.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-cross}{\texttt{Examples}}
+
+Returns the \href{https://en.wikipedia.org/wiki/Cartesian_product}{\texttt{Cartesian product}} of the specified {\itshape iterables}. For example, if two iterables {\itshape a} and {\itshape b} are specified, for each element {\itshape i} in the iterable {\itshape a} and each element {\itshape j} in the iterable {\itshape b}, in order, invokes the specified {\itshape reducer} function passing the element {\itshape i} and element {\itshape j}. If a {\itshape reducer} is not specified, it defaults to a function which creates a two-\/element array for each pair:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{function\ pair(a,\ b)\ \{}
+\DoxyCodeLine{\ \ return\ [a,\ b];}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.cross([1,\ 2],\ ["{}x"{},\ "{}y"{}]);\ //\ returns\ [[1,\ "{}x"{}],\ [1,\ "{}y"{}],\ [2,\ "{}x"{}],\ [2,\ "{}y"{}]]}
+\DoxyCodeLine{d3.cross([1,\ 2],\ ["{}x"{},\ "{}y"{}],\ (a,\ b)\ =>\ a\ +\ b);\ //\ returns\ ["{}1x"{},\ "{}1y"{},\ "{}2x"{},\ "{}2y"{}]}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_merge}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_merge}%
+\# d3.{\bfseries{merge}}({\itshape iterables}) · \href{https://github.com/d3/d3-array/blob/main/src/merge.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-merge}{\texttt{Examples}}
+
+Merges the specified iterable of {\itshape iterables} into a single array. This method is similar to the built-\/in array concat method; the only difference is that it is more convenient when you have an array of arrays.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.merge([[1],\ [2,\ 3]]);\ //\ returns\ [1,\ 2,\ 3]}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_pairs}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_pairs}%
+\# d3.{\bfseries{pairs}}({\itshape iterable}\+[, {\itshape reducer}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/pairs.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-pairs}{\texttt{Examples}}
+
+For each adjacent pair of elements in the specified {\itshape iterable}, in order, invokes the specified {\itshape reducer} function passing the element {\itshape i} and element {\itshape i} -\/ 1. If a {\itshape reducer} is not specified, it defaults to a function which creates a two-\/element array for each pair:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{function\ pair(a,\ b)\ \{}
+\DoxyCodeLine{\ \ return\ [a,\ b];}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.pairs([1,\ 2,\ 3,\ 4]);\ //\ returns\ [[1,\ 2],\ [2,\ 3],\ [3,\ 4]]}
+\DoxyCodeLine{d3.pairs([1,\ 2,\ 3,\ 4],\ (a,\ b)\ =>\ b\ -\/\ a);\ //\ returns\ [1,\ 1,\ 1];}
+
+\end{DoxyCode}
+
+
+If the specified iterable has fewer than two elements, returns the empty array.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_permute}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_permute}%
+\# d3.{\bfseries{permute}}({\itshape source}, {\itshape keys}) · \href{https://github.com/d3/d3-array/blob/main/src/permute.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-permute}{\texttt{Examples}}
+
+Returns a permutation of the specified {\itshape source} object (or array) using the specified iterable of {\itshape keys}. The returned array contains the corresponding property of the source object for each key in {\itshape keys}, in order. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{permute(["{}a"{},\ "{}b"{},\ "{}c"{}],\ [1,\ 2,\ 0]);\ //\ returns\ ["{}b"{},\ "{}c"{},\ "{}a"{}]}
+
+\end{DoxyCode}
+
+
+It is acceptable to have more keys than source elements, and for keys to be duplicated or omitted.
+
+This method can also be used to extract the values from an object into an array with a stable order. Extracting keyed values in order can be useful for generating data arrays in nested selections. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{let\ object\ =\ \{yield:\ 27,\ variety:\ "{}Manchuria"{},\ year:\ 1931,\ site:\ "{}University\ Farm"{}\};}
+\DoxyCodeLine{let\ fields\ =\ ["{}site"{},\ "{}variety"{},\ "{}yield"{}];}
+\DoxyCodeLine{}
+\DoxyCodeLine{d3.permute(object,\ fields);\ //\ returns\ ["{}University\ Farm"{},\ "{}Manchuria"{},\ 27]}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_shuffle}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_shuffle}%
+\# d3.{\bfseries{shuffle}}({\itshape array}\+[, {\itshape start}\+[, {\itshape stop}]\+]\+) · \href{https://github.com/d3/d3-array/blob/main/src/shuffle.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-shuffle}{\texttt{Examples}}
+
+Randomizes the order of the specified {\itshape array} in-\/place using the \href{https://bost.ocks.org/mike/shuffle/}{\texttt{Fisher–\+Yates shuffle}} and returns the {\itshape array}. If {\itshape start} is specified, it is the starting index (inclusive) of the {\itshape array} to shuffle; if {\itshape start} is not specified, it defaults to zero. If {\itshape stop} is specified, it is the ending index (exclusive) of the {\itshape array} to shuffle; if {\itshape stop} is not specified, it defaults to {\itshape array}.length. For example, to shuffle the first ten elements of the {\itshape array}:\+ shuffle({\itshape array}, 0, 10).
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_shuffler}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_shuffler}%
+\# d3.{\bfseries{shuffler}}({\itshape random}) · \href{https://github.com/d3/d3-array/blob/main/src/shuffle.js}{\texttt{Source}}
+
+Returns a \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_shuffle}{shuffle function}shuffle function given the specified random source. For example, using \href{https://github.com/d3/d3-random/blob/main/README.md\#randomLcg}{\texttt{d3.\+random\+Lcg}}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ random\ =\ d3.randomLcg(0.9051667019185816);}
+\DoxyCodeLine{const\ shuffle\ =\ d3.shuffler(random);}
+\DoxyCodeLine{}
+\DoxyCodeLine{shuffle([0,\ 1,\ 2,\ 3,\ 4,\ 5,\ 6,\ 7,\ 8,\ 9]);\ //\ returns\ [7,\ 4,\ 5,\ 3,\ 9,\ 0,\ 6,\ 1,\ 2,\ 8]}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_ticks}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_ticks}%
+\# d3.{\bfseries{ticks}}({\itshape start}, {\itshape stop}, {\itshape count}) · \href{https://github.com/d3/d3-array/blob/main/src/ticks.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-ticks}{\texttt{Examples}}
+
+Returns an array of approximately {\itshape count} + 1 uniformly-\/spaced, nicely-\/rounded values between {\itshape start} and {\itshape stop} (inclusive). Each value is a power of ten multiplied by 1, 2 or 5. See also \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_tickIncrement}{d3.tick\+Increment}d3.\+tick\+Increment, \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_tickStep}{d3.tick\+Step}d3.\+tick\+Step and \href{https://github.com/d3/d3-scale/blob/main/README.md\#linear_ticks}{\texttt{{\itshape linear}.ticks}}.
+
+Ticks are inclusive in the sense that they may include the specified {\itshape start} and {\itshape stop} values if (and only if) they are exact, nicely-\/rounded values consistent with the inferred \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_tickStep}{step}step. More formally, each returned tick {\itshape t} satisfies {\itshape start} ≤ {\itshape t} and {\itshape t} ≤ {\itshape stop}.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_tickIncrement}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_tickIncrement}%
+\# d3.{\bfseries{tick\+Increment}}({\itshape start}, {\itshape stop}, {\itshape count}) · \href{https://github.com/d3/d3-array/blob/main/src/ticks.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-ticks}{\texttt{Examples}}
+
+Like \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_tickStep}{d3.tick\+Step}d3.\+tick\+Step, except requires that {\itshape start} is always less than or equal to {\itshape stop}, and if the tick step for the given {\itshape start}, {\itshape stop} and {\itshape count} would be less than one, returns the negative inverse tick step instead. This method is always guaranteed to return an integer, and is used by \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ticks}{d3.ticks}d3.\+ticks to guarantee that the returned tick values are represented as precisely as possible in IEEE 754 floating point.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_tickStep}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_tickStep}%
+\# d3.{\bfseries{tick\+Step}}({\itshape start}, {\itshape stop}, {\itshape count}) · \href{https://github.com/d3/d3-array/blob/main/src/ticks.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-ticks}{\texttt{Examples}}
+
+Returns the difference between adjacent tick values if the same arguments were passed to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ticks}{d3.ticks}d3.\+ticks:\+ a nicely-\/rounded value that is a power of ten multiplied by 1, 2 or 5. Note that due to the limited precision of IEEE 754 floating point, the returned value may not be exact decimals; use \href{https://github.com/d3/d3-format}{\texttt{d3-\/format}} to format numbers for human consumption.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_nice}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_nice}%
+\# d3.{\bfseries{nice}}({\itshape start}, {\itshape stop}, {\itshape count}) · \href{https://github.com/d3/d3-array/blob/main/src/nice.js}{\texttt{Source}}
+
+Returns a new interval \+[{\itshape nice\+Start}, {\itshape nice\+Stop}]\+ covering the given interval \+[{\itshape start}, {\itshape stop}]\+ and where {\itshape nice\+Start} and {\itshape nice\+Stop} are guaranteed to align with the corresponding \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_tickStep}{tick step}tick step. Like \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_tickIncrement}{d3.tick\+Increment}d3.\+tick\+Increment, this requires that {\itshape start} is less than or equal to {\itshape stop}.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_range}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_range}%
+\# d3.{\bfseries{range}}(\+[{\itshape start}, ]\+{\itshape stop}\+[, {\itshape step}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/range.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-range}{\texttt{Examples}}
+
+Returns an array containing an arithmetic progression, similar to the Python built-\/in \href{http://docs.python.org/library/functions.html\#range}{\texttt{range}}. This method is often used to iterate over a sequence of uniformly-\/spaced numeric values, such as the indexes of an array or the ticks of a linear scale. (See also \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ticks}{d3.ticks}d3.\+ticks for nicely-\/rounded values.)
+
+If {\itshape step} is omitted, it defaults to 1. If {\itshape start} is omitted, it defaults to 0. The {\itshape stop} value is exclusive; it is not included in the result. If {\itshape step} is positive, the last element is the largest {\itshape start} + {\itshape i} \texorpdfstring{$\ast$}{*} {\itshape step} less than {\itshape stop}; if {\itshape step} is negative, the last element is the smallest {\itshape start} + {\itshape i} \texorpdfstring{$\ast$}{*} {\itshape step} greater than {\itshape stop}. If the returned array would contain an infinite number of values, an empty range is returned.
+
+The arguments are not required to be integers; however, the results are more predictable if they are. The values in the returned array are defined as {\itshape start} + {\itshape i} \texorpdfstring{$\ast$}{*} {\itshape step}, where {\itshape i} is an integer from zero to one minus the total number of elements in the returned array. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.range(0,\ 1,\ 0.2)\ //\ [0,\ 0.2,\ 0.4,\ 0.6000000000000001,\ 0.8]}
+
+\end{DoxyCode}
+
+
+This unexpected behavior is due to IEEE 754 double-\/precision floating point, which defines 0.\+2 \texorpdfstring{$\ast$}{*} 3 = 0.\+6000000000000001. Use \href{https://github.com/d3/d3-format}{\texttt{d3-\/format}} to format numbers for human consumption with appropriate rounding; see also \href{https://github.com/d3/d3-scale/blob/main/README.md\#linear_tickFormat}{\texttt{linear.\+tick\+Format}} in \href{https://github.com/d3/d3-scale}{\texttt{d3-\/scale}}.
+
+Likewise, if the returned array should have a specific length, consider using \href{https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/map}{\texttt{array.\+map}} on an integer range. For example:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.range(0,\ 1,\ 1\ /\ 49);\ //\ BAD:\ returns\ 50\ elements!}
+\DoxyCodeLine{d3.range(49).map(function(d)\ \{\ return\ d\ /\ 49;\ \});\ //\ GOOD:\ returns\ 49\ elements.}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_transpose}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_transpose}%
+\# d3.{\bfseries{transpose}}({\itshape matrix}) · \href{https://github.com/d3/d3-array/blob/main/src/transpose.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-transpose}{\texttt{Examples}}
+
+Uses the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_zip}{zip}zip operator as a two-\/dimensional \href{http://en.wikipedia.org/wiki/Transpose}{\texttt{matrix transpose}}.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_zip}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_zip}%
+\# d3.{\bfseries{zip}}({\itshape arrays…}) · \href{https://github.com/d3/d3-array/blob/main/src/zip.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-transpose}{\texttt{Examples}}
+
+Returns an array of arrays, where the {\itshape i\texorpdfstring{$\ast$}{*}th array contains the \texorpdfstring{$\ast$}{*}i\texorpdfstring{$\ast$}{*}th element from each of the argument \texorpdfstring{$\ast$}{*}arrays}. The returned array is truncated in length to the shortest array in {\itshape arrays}. If {\itshape arrays} contains only a single array, the returned array contains one-\/element arrays. With no arguments, the returned array is empty.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.zip([1,\ 2],\ [3,\ 4]);\ //\ returns\ [[1,\ 3],\ [2,\ 4]]}
+
+\end{DoxyCode}
+\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5952}{}\doxysubsubsubsection{\texorpdfstring{Blur}{Blur}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5952}
+\label{dir_8d4e0a6df23a6425df32882a0d612362_blur}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_blur}%
+\# d3.{\bfseries{blur}}({\itshape data}, {\itshape radius}) · \href{https://github.com/d3/d3-array/blob/main/src/blur.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-blur}{\texttt{Examples}}
+
+Blurs an array of {\itshape data} in-\/place by applying three iterations of a moving average transform, for a fast approximation of a gaussian kernel of the given {\itshape radius}, a non-\/negative number, and returns the array.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ randomWalk\ =\ d3.cumsum(\{length:\ 1000\},\ ()\ =>\ Math.random()\ -\/\ 0.5);}
+\DoxyCodeLine{blur(randomWalk,\ 5);}
+
+\end{DoxyCode}
+
+
+Copy the data if you don’t want to smooth it in-\/place:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ smoothed\ =\ blur(randomWalk.slice(),\ 5);}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_blur2}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_blur2}%
+\# d3.{\bfseries{blur2}}(\{{\itshape data}, {\itshape width}\+[, {\itshape height}]\+\}, {\itshape rx}\+[, {\itshape ry}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/blur.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-blur}{\texttt{Examples}}
+
+Blurs a matrix of the given {\itshape width} and {\itshape height} in-\/place, by applying an horizontal blur of radius {\itshape rx} and a vertical blur or radius {\itshape ry} (which defaults to {\itshape rx}). The matrix {\itshape data} is stored in a flat array, used to determine the {\itshape height} if it is not specified. Returns the blurred \{data, width, height\}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{data\ =\ [}
+\DoxyCodeLine{\ \ 1,\ 0,\ 0,}
+\DoxyCodeLine{\ \ 0,\ 0,\ 0,}
+\DoxyCodeLine{\ \ 0,\ 0,\ 1}
+\DoxyCodeLine{];}
+\DoxyCodeLine{blur2(\{data,\ width:\ 3\},\ 1);}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_blurImage}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_blurImage}%
+\# d3.{\bfseries{blur\+Image}}({\itshape image\+Data}, {\itshape rx}\+[, {\itshape ry}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/blur.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-blurimage}{\texttt{Examples}}
+
+Blurs an \href{https://developer.mozilla.org/en-US/docs/Web/API/ImageData}{\texttt{Image\+Data}} structure in-\/place, blurring each of the RGBA layers independently by applying an horizontal blur of radius {\itshape rx} and a vertical blur or radius {\itshape ry} (which defaults to {\itshape rx}). Returns the blurred Image\+Data.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ imData\ =\ context.getImageData(0,\ 0,\ width,\ height);}
+\DoxyCodeLine{blurImage(imData,\ 5);}
+
+\end{DoxyCode}
+\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5953}{}\doxysubsubsection{\texorpdfstring{Iterables}{Iterables}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5953}
+These are equivalent to built-\/in array methods, but work with any iterable including Map, Set, and Generator.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_every}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_every}%
+\# d3.{\bfseries{every}}({\itshape iterable}, {\itshape test}) · \href{https://github.com/d3/d3-array/blob/main/src/every.js}{\texttt{Source}}
+
+Returns true if the given {\itshape test} function returns true for every value in the given {\itshape iterable}. This method returns as soon as {\itshape test} returns a non-\/truthy value or all values are iterated over. Equivalent to \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every}{\texttt{{\itshape array}.every}}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.every(new\ Set([1,\ 3,\ 5,\ 7]),\ x\ =>\ x\ \&\ 1)\ //\ true}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_some}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_some}%
+\# d3.{\bfseries{some}}({\itshape iterable}, {\itshape test}) · \href{https://github.com/d3/d3-array/blob/main/src/some.js}{\texttt{Source}}
+
+Returns true if the given {\itshape test} function returns true for any value in the given {\itshape iterable}. This method returns as soon as {\itshape test} returns a truthy value or all values are iterated over. Equivalent to \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some}{\texttt{{\itshape array}.some}}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.some(new\ Set([0,\ 2,\ 3,\ 4]),\ x\ =>\ x\ \&\ 1)\ //\ true}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_filter}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_filter}%
+\# d3.{\bfseries{filter}}({\itshape iterable}, {\itshape test}) · \href{https://github.com/d3/d3-array/blob/main/src/filter.js}{\texttt{Source}}
+
+Returns a new array containing the values from {\itshape iterable}, in order, for which the given {\itshape test} function returns true. Equivalent to \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter}{\texttt{{\itshape array}.filter}}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.filter(new\ Set([0,\ 2,\ 3,\ 4]),\ x\ =>\ x\ \&\ 1)\ //\ [3]}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_map}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_map}%
+\# d3.{\bfseries{map}}({\itshape iterable}, {\itshape mapper}) · \href{https://github.com/d3/d3-array/blob/main/src/map.js}{\texttt{Source}}
+
+Returns a new array containing the mapped values from {\itshape iterable}, in order, as defined by given {\itshape mapper} function. Equivalent to \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map}{\texttt{{\itshape array}.map}} and \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from}{\texttt{Array.\+from}}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.map(new\ Set([0,\ 2,\ 3,\ 4]),\ x\ =>\ x\ \&\ 1)\ //\ [0,\ 0,\ 1,\ 0]}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_reduce}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_reduce}%
+\# d3.{\bfseries{reduce}}({\itshape iterable}, {\itshape reducer}\+[, {\itshape initial\+Value}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/reduce.js}{\texttt{Source}}
+
+Returns the reduced value defined by given {\itshape reducer} function, which is repeatedly invoked for each value in {\itshape iterable}, being passed the current reduced value and the next value. Equivalent to \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce}{\texttt{{\itshape array}.reduce}}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.reduce(new\ Set([0,\ 2,\ 3,\ 4]),\ (p,\ v)\ =>\ p\ +\ v,\ 0)\ //\ 9}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_reverse}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_reverse}%
+\# d3.{\bfseries{reverse}}({\itshape iterable}) · \href{https://github.com/d3/d3-array/blob/main/src/reverse.js}{\texttt{Source}}
+
+Returns an array containing the values in the given {\itshape iterable} in reverse order. Equivalent to \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse}{\texttt{{\itshape array}.reverse}}, except that it does not mutate the given {\itshape iterable}:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.reverse(new\ Set([0,\ 2,\ 3,\ 1]))\ //\ [1,\ 3,\ 2,\ 0]}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_sort}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_sort}%
+\# d3.{\bfseries{sort}}({\itshape iterable}, {\itshape comparator} = d3.\+ascending) · \href{https://github.com/d3/d3-array/blob/main/src/sort.js}{\texttt{Source}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_sort}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_sort}%
+\# d3.{\bfseries{sort}}({\itshape iterable}, ...{\itshape accessors})
+
+Returns an array containing the values in the given {\itshape iterable} in the sorted order defined by the given {\itshape comparator} or {\itshape accessor} function. If {\itshape comparator} is not specified, it defaults to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ascending}{d3.ascending}d3.\+ascending. Equivalent to \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort}{\texttt{{\itshape array}.sort}}, except that it does not mutate the given {\itshape iterable}, and the comparator defaults to natural order instead of lexicographic order:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.sort(new\ Set([0,\ 2,\ 3,\ 1]))\ //\ [0,\ 1,\ 2,\ 3]}
+
+\end{DoxyCode}
+
+
+If an {\itshape accessor} (a function that does not take exactly two arguments) is specified,
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.sort(data,\ d\ =>\ d.value)}
+
+\end{DoxyCode}
+
+
+it is equivalent to a {\itshape comparator} using \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ascending}{natural order}natural order:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.sort(data,\ (a,\ b)\ =>\ d3.ascending(a.value,\ b.value))}
+
+\end{DoxyCode}
+
+
+The {\itshape accessor} is only invoked once per element, and thus the returned sorted order is consistent even if the accessor is nondeterministic.
+
+Multiple accessors may be specified to break ties:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.sort(points,\ (\{x\})\ =>\ x,\ (\{y\})\ =>\ y)}
+
+\end{DoxyCode}
+
+
+This is equivalent to:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.sort(data,\ (a,\ b)\ =>\ d3.ascending(a.x,\ b.x)\ ||\ d3.ascending(a.y,\ b.y))}
+
+\end{DoxyCode}
+\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5954}{}\doxysubsubsection{\texorpdfstring{Sets}{Sets}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5954}
+This methods implement basic set operations for any iterable.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_difference}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_difference}%
+\# d3.{\bfseries{difference}}({\itshape iterable}, ...{\itshape others}) · \href{https://github.com/d3/d3-array/blob/main/src/difference.js}{\texttt{Source}}
+
+Returns a new Intern\+Set containing every value in {\itshape iterable} that is not in any of the {\itshape others} iterables.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.difference([0,\ 1,\ 2,\ 0],\ [1])\ //\ Set\ \{0,\ 2\}}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_union}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_union}%
+\# d3.{\bfseries{union}}(...{\itshape iterables}) · \href{https://github.com/d3/d3-array/blob/main/src/union.js}{\texttt{Source}}
+
+Returns a new Intern\+Set containing every (distinct) value that appears in any of the given {\itshape iterables}. The order of values in the returned set is based on their first occurrence in the given {\itshape iterables}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.union([0,\ 2,\ 1,\ 0],\ [1,\ 3])\ //\ Set\ \{0,\ 2,\ 1,\ 3\}}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_intersection}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_intersection}%
+\# d3.{\bfseries{intersection}}(...{\itshape iterables}) · \href{https://github.com/d3/d3-array/blob/main/src/intersection.js}{\texttt{Source}}
+
+Returns a new Intern\+Set containing every (distinct) value that appears in all of the given {\itshape iterables}. The order of values in the returned set is based on their first occurrence in the given {\itshape iterables}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.intersection([0,\ 2,\ 1,\ 0],\ [1,\ 3])\ //\ Set\ \{1\}}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_superset}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_superset}%
+\# d3.{\bfseries{superset}}({\itshape a}, {\itshape b}) · \href{https://github.com/d3/d3-array/blob/main/src/superset.js}{\texttt{Source}}
+
+Returns true if {\itshape a} is a superset of {\itshape b}:\+ if every value in the given iterable {\itshape b} is also in the given iterable {\itshape a}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.superset([0,\ 2,\ 1,\ 3,\ 0],\ [1,\ 3])\ //\ true}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_subset}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_subset}%
+\# d3.{\bfseries{subset}}({\itshape a}, {\itshape b}) · \href{https://github.com/d3/d3-array/blob/main/src/subset.js}{\texttt{Source}}
+
+Returns true if {\itshape a} is a subset of {\itshape b}:\+ if every value in the given iterable {\itshape a} is also in the given iterable {\itshape b}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.subset([1,\ 3],\ [0,\ 2,\ 1,\ 3,\ 0])\ //\ true}
+
+\end{DoxyCode}
+
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_disjoint}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_disjoint}%
+\# d3.{\bfseries{disjoint}}({\itshape a}, {\itshape b}) · \href{https://github.com/d3/d3-array/blob/main/src/disjoint.js}{\texttt{Source}}
+
+Returns true if {\itshape a} and {\itshape b} are disjoint:\+ if {\itshape a} and {\itshape b} contain no shared value.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{d3.disjoint([1,\ 3],\ [2,\ 4])\ //\ true}
+
+\end{DoxyCode}
+\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5955}{}\doxysubsubsection{\texorpdfstring{Bins}{Bins}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5955}
+\href{http://bl.ocks.org/mbostock/3048450}{\texttt{}}
+
+Binning groups discrete samples into a smaller number of consecutive, non-\/overlapping intervals. They are often used to visualize the distribution of numerical data as histograms.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bin}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bin}%
+\# d3.{\bfseries{bin}}() · \href{https://github.com/d3/d3-array/blob/main/src/bin.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bin}{\texttt{Examples}}
+
+Constructs a new bin generator with the default settings.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362__bin}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362__bin}%
+\# {\itshape bin}({\itshape data}) · \href{https://github.com/d3/d3-array/blob/main/src/bin.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bin}{\texttt{Examples}}
+
+Bins the given iterable of {\itshape data} samples. Returns an array of bins, where each bin is an array containing the associated elements from the input {\itshape data}. Thus, the {\ttfamily length} of the bin is the number of elements in that bin. Each bin has two additional attributes:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily x0} -\/ the lower bound of the bin (inclusive).
+\item {\ttfamily x1} -\/ the upper bound of the bin (exclusive, except for the last bin).
+\end{DoxyItemize}
+
+Any null or non-\/comparable values in the given {\itshape data}, or those outside the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bin_domain}{domain}domain, are ignored.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bin_value}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bin_value}%
+\# {\itshape bin}.{\bfseries{value}}(\+[{\itshape value}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bin.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bin}{\texttt{Examples}}
+
+If {\itshape value} is specified, sets the value accessor to the specified function or constant and returns this bin generator. If {\itshape value} is not specified, returns the current value accessor, which defaults to the identity function.
+
+When bins are \doxylink{dir_8d4e0a6df23a6425df32882a0d612362__bin}{generated}generated, the value accessor will be invoked for each element in the input data array, being passed the element {\ttfamily d}, the index {\ttfamily i}, and the array {\ttfamily data} as three arguments. The default value accessor assumes that the input data are orderable (comparable), such as numbers or dates. If your data are not, then you should specify an accessor that returns the corresponding orderable value for a given datum.
+
+This is similar to mapping your data to values before invoking the bin generator, but has the benefit that the input data remains associated with the returned bins, thereby making it easier to access other fields of the data.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bin_domain}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bin_domain}%
+\# {\itshape bin}.{\bfseries{domain}}(\+[{\itshape domain}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bin.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bin}{\texttt{Examples}}
+
+If {\itshape domain} is specified, sets the domain accessor to the specified function or array and returns this bin generator. If {\itshape domain} is not specified, returns the current domain accessor, which defaults to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_extent}{extent}extent. The bin domain is defined as an array \+[{\itshape min}, {\itshape max}]\+, where {\itshape min} is the minimum observable value and {\itshape max} is the maximum observable value; both values are inclusive. Any value outside of this domain will be ignored when the bins are \doxylink{dir_8d4e0a6df23a6425df32882a0d612362__bin}{generated}generated.
+
+For example, if you are using the bin generator in conjunction with a \href{https://github.com/d3/d3-scale/blob/main/README.md\#linear-scales}{\texttt{linear scale}} {\ttfamily x}, you might say:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ bin\ =\ d3.bin()}
+\DoxyCodeLine{\ \ \ \ .domain(x.domain())}
+\DoxyCodeLine{\ \ \ \ .thresholds(x.ticks(20));}
+
+\end{DoxyCode}
+
+
+You can then compute the bins from an array of numbers like so:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{var\ bins\ =\ bin(numbers);}
+
+\end{DoxyCode}
+
+
+If the default \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_extent}{extent}extent domain is used and the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bin_thresholds}{thresholds}thresholds are specified as a count (rather than explicit values), then the computed domain will be \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_nice}{niced}niced such that all bins are uniform width.
+
+Note that the domain accessor is invoked on the materialized array of \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bin_value}{values}values, not on the input data array.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bin_thresholds}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bin_thresholds}%
+\# {\itshape bin}.{\bfseries{thresholds}}(\+[{\itshape count}]\+) · \href{https://github.com/d3/d3-array/blob/main/src/bin.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bin}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_bin_thresholds}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_bin_thresholds}%
+\# {\itshape bin}.{\bfseries{thresholds}}(\+[{\itshape thresholds}]\+)
+
+If {\itshape thresholds} is specified, sets the threshold generatorthreshold generator to the specified function or array and returns this bin generator. If {\itshape thresholds} is not specified, returns the current threshold generator, which by default implements \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_thresholdSturges}{Sturges’ formula}Sturges’ formula. (Thus by default, the values to be binned must be numbers!) Thresholds are defined as an array of values \+[{\itshape x0}, {\itshape x1}, …]\+. Any value less than {\itshape x0} will be placed in the first bin; any value greater than or equal to {\itshape x0} but less than {\itshape x1} will be placed in the second bin; and so on. Thus, the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362__bin}{generated bins}generated bins will have {\itshape thresholds}.length + 1 bins. See bin thresholdsbin thresholds for more information.
+
+Any threshold values outside the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bin_domain}{domain}domain are ignored. The first {\itshape bin}.x0 is always equal to the minimum domain value, and the last {\itshape bin}.x1 is always equal to the maximum domain value.
+
+If a {\itshape count} is specified instead of an array of {\itshape thresholds}, then the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bin_domain}{domain}domain will be uniformly divided into approximately {\itshape count} bins; see \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ticks}{ticks}ticks.\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5956}{}\doxysubsubsubsection{\texorpdfstring{Bin Thresholds}{Bin Thresholds}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5956}
+These functions are typically not used directly; instead, pass them to \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bin_thresholds}{\texorpdfstring{$\ast$}{*}bin\texorpdfstring{$\ast$}{*}.thresholds}{\itshape bin}.thresholds.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_thresholdFreedmanDiaconis}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_thresholdFreedmanDiaconis}%
+\# d3.{\bfseries{threshold\+Freedman\+Diaconis}}({\itshape values}, {\itshape min}, {\itshape max}) · \href{https://github.com/d3/d3-array/blob/main/src/threshold/freedmanDiaconis.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bin}{\texttt{Examples}}
+
+Returns the number of bins according to the \href{https://en.wikipedia.org/wiki/Histogram\#Mathematical_definition}{\texttt{Freedman–\+Diaconis rule}}; the input {\itshape values} must be numbers.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_thresholdScott}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_thresholdScott}%
+\# d3.{\bfseries{threshold\+Scott}}({\itshape values}, {\itshape min}, {\itshape max}) · \href{https://github.com/d3/d3-array/blob/main/src/threshold/scott.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bin}{\texttt{Examples}}
+
+Returns the number of bins according to \href{https://en.wikipedia.org/wiki/Histogram\#Mathematical_definition}{\texttt{Scott’s normal reference rule}}; the input {\itshape values} must be numbers.
+
+\label{dir_8d4e0a6df23a6425df32882a0d612362_thresholdSturges}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_thresholdSturges}%
+\# d3.{\bfseries{threshold\+Sturges}}({\itshape values}) · \href{https://github.com/d3/d3-array/blob/main/src/threshold/sturges.js}{\texttt{Source}}, \href{https://observablehq.com/@d3/d3-bin}{\texttt{Examples}}
+
+Returns the number of bins according to \href{https://en.wikipedia.org/wiki/Histogram\#Mathematical_definition}{\texttt{Sturges’ formula}}; the input {\itshape values} must be numbers.
+
+You may also implement your own threshold generator taking three arguments:\+ the array of input \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bin_value}{\texorpdfstring{$\ast$}{*}values\texorpdfstring{$\ast$}{*}}{\itshape values} derived from the data, and the \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_bin_domain}{observable domain}observable domain represented as {\itshape min} and {\itshape max}. The generator may then return either the array of numeric thresholds or the {\itshape count} of bins; in the latter case the domain is divided uniformly into approximately {\itshape count} bins; see \doxylink{dir_8d4e0a6df23a6425df32882a0d612362_ticks}{ticks}ticks.
+
+For instance, when binning date values, you might want to use the ticks from a time scale (\href{https://observablehq.com/@d3/d3-bin-time-thresholds}{\texttt{Example}}).\hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5957}{}\doxysubsubsection{\texorpdfstring{Interning}{Interning}}\label{dir_8d4e0a6df23a6425df32882a0d612362_autotoc_md5957}
+\label{dir_8d4e0a6df23a6425df32882a0d612362_InternMap}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_InternMap}%
+\# new d3.{\bfseries{Intern\+Map}}(\+[{\itshape iterable}]\+\+[, {\itshape key}]\+) · \href{https://github.com/mbostock/internmap/blob/main/src/index.js}{\texttt{Source}}, \href{https://observablehq.com/d/d4c5f6ad343866b9}{\texttt{Examples}} ~\newline
+\label{dir_8d4e0a6df23a6425df32882a0d612362_InternSet}%
+\Hypertarget{dir_8d4e0a6df23a6425df32882a0d612362_InternSet}%
+\# new d3.{\bfseries{Intern\+Set}}(\+[{\itshape iterable}]\+\+[, {\itshape key}]\+) · \href{https://github.com/mbostock/internmap/blob/main/src/index.js}{\texttt{Source}}, \href{https://observablehq.com/d/d4c5f6ad343866b9}{\texttt{Examples}}
+
+The \href{https://github.com/mbostock/internmap}{\texttt{Intern\+Map and Intern\+Set}} classes extend the native Java\+Script Map and Set classes, respectively, allowing Dates and other non-\/primitive keys by bypassing the \href{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness}{\texttt{Same\+Value\+Zero algorithm}} when determining key equality. d3.\+group, d3.\+rollup and d3.\+index use an Intern\+Map rather than a native Map. These two classes are exported for convenience. 

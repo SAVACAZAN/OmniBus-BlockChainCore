@@ -1,0 +1,217 @@
+\doxysection{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER Namespace Reference}
+\hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r}{}\label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{class_we-_are-_here-_hod_lum-_w_o_r_k_e_r_1_1_c}{C}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_abb6883e8bd1f51c04bc9823a8e14746c}{\+\_\+enable\+\_\+ansi\+\_\+on\+\_\+windows}} ()
+\item 
+\doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a71c184af60e335ef57f5840abb5315d6}{banner}} ()
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a3f94c31e7435e65cfea118b1a48b175c}{load\+\_\+address\+\_\+from\+\_\+env\+\_\+file}} ()
+\item 
+str \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a808234e6ba4b7c26b28bd2be71c5758f}{resolve\+\_\+miner\+\_\+address}} (str\texorpdfstring{$\vert$}{|}None cli\+\_\+value)
+\item 
+Path \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a5171e89b30a6fbb79dd292206ad1b2fc}{find\+\_\+binary}} ()
+\item 
+str \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a5ec78d4d15f3bfc669b4bd09efcba0d5}{colorize\+\_\+log\+\_\+line}} (str line)
+\item 
+\doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a21da7d543ecdfe37d26fac9f5718fb54}{run\+\_\+miner}} (args)
+\item 
+\doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+dict \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_acfe28eab2a8ceb29e5ea31f0c5b15a86}{DEFAULTS}}
+\item 
+dict \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a6119dedbd63c08799b1f8ec039713999}{SEED\+\_\+\+PORTS}} = \{"{}mainnet"{}:\+ "{}9000"{}, "{}testnet"{}:\+ "{}9001"{}, "{}regtest"{}:\+ "{}9002"{}\}
+\item 
+\doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_ae9fa8e3bd57fafaa21a9b55f6b1a68ec}{HERE}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent
+\item 
+str \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a9e43d8ebd5736d35aef8039fe1b9b0aa}{NODE\+\_\+\+BIN}} = \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_ae9fa8e3bd57fafaa21a9b55f6b1a68ec}{HERE}} /\+ "{}zig-\/out"{} /\+ "{}bin"{} /\+ "{}omnibus-\/node.\+exe"{}
+\item 
+str \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a38c25967c19f7324ee5dc5c13850d988}{ENV\+\_\+\+FILE}} = Path.\+home() /\+ "{}.omnibus"{} /\+ "{}miner.\+env"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_doc-func-members}
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_abb6883e8bd1f51c04bc9823a8e14746c}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!\_enable\_ansi\_on\_windows@{\_enable\_ansi\_on\_windows}}
+\index{\_enable\_ansi\_on\_windows@{\_enable\_ansi\_on\_windows}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{\_enable\_ansi\_on\_windows()}{\_enable\_ansi\_on\_windows()}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_abb6883e8bd1f51c04bc9823a8e14746c} 
+\+\_\+enable\+\_\+ansi\+\_\+on\+\_\+windows (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00081}{81}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a71c184af60e335ef57f5840abb5315d6}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!banner@{banner}}
+\index{banner@{banner}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{banner()}{banner()}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a71c184af60e335ef57f5840abb5315d6} 
+banner (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00100}{100}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a5ec78d4d15f3bfc669b4bd09efcba0d5}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!colorize\_log\_line@{colorize\_log\_line}}
+\index{colorize\_log\_line@{colorize\_log\_line}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{colorize\_log\_line()}{colorize\_log\_line()}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a5ec78d4d15f3bfc669b4bd09efcba0d5} 
+ str colorize\+\_\+log\+\_\+line (\begin{DoxyParamCaption}\item[{str}]{line}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00185}{185}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a5171e89b30a6fbb79dd292206ad1b2fc}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!find\_binary@{find\_binary}}
+\index{find\_binary@{find\_binary}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{find\_binary()}{find\_binary()}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a5171e89b30a6fbb79dd292206ad1b2fc} 
+ Path find\+\_\+binary (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00172}{172}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a3f94c31e7435e65cfea118b1a48b175c}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!load\_address\_from\_env\_file@{load\_address\_from\_env\_file}}
+\index{load\_address\_from\_env\_file@{load\_address\_from\_env\_file}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{load\_address\_from\_env\_file()}{load\_address\_from\_env\_file()}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a3f94c31e7435e65cfea118b1a48b175c} 
+ str \texorpdfstring{$\vert$}{|} None load\+\_\+address\+\_\+from\+\_\+env\+\_\+file (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Read miner address from the env file. Tolerant to PowerShell's
+UTF-16-with-BOM default — `echo > file` on Windows produces
+UTF-16-LE with a 0xFF 0xFE prefix, which breaks naive UTF-8 reads.
+Try utf-8 first, then utf-16, then latin-1 as a last resort.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00109}{109}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a51af30a60f9f02777c6396b8247e356f}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!main@{main}}
+\index{main@{main}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00303}{303}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a808234e6ba4b7c26b28bd2be71c5758f}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!resolve\_miner\_address@{resolve\_miner\_address}}
+\index{resolve\_miner\_address@{resolve\_miner\_address}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{resolve\_miner\_address()}{resolve\_miner\_address()}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a808234e6ba4b7c26b28bd2be71c5758f} 
+ str resolve\+\_\+miner\+\_\+address (\begin{DoxyParamCaption}\item[{str \texorpdfstring{$\vert$}{|} None}]{cli\+\_\+value}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00148}{148}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a21da7d543ecdfe37d26fac9f5718fb54}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!run\_miner@{run\_miner}}
+\index{run\_miner@{run\_miner}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{run\_miner()}{run\_miner()}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a21da7d543ecdfe37d26fac9f5718fb54} 
+run\+\_\+miner (\begin{DoxyParamCaption}\item[{}]{args}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00205}{205}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+
+
+\label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_doc-var-members}
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_acfe28eab2a8ceb29e5ea31f0c5b15a86}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!DEFAULTS@{DEFAULTS}}
+\index{DEFAULTS@{DEFAULTS}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{DEFAULTS}{DEFAULTS}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_acfe28eab2a8ceb29e5ea31f0c5b15a86} 
+dict \doxymbox{\hyperlink{namespace_we}{We}}-\/Are-\/Here-\/Hod\+Lum-\/WORKER.\+DEFAULTS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}node\_id"{}}:\ \ \ \textcolor{stringliteral}{"{}We-\/Are-\/Here-\/HodLum-\/WORKER"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}port"{}}:\ \ \ \ \ \ \textcolor{stringliteral}{"{}9101"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}seed\_host"{}}:\ \textcolor{stringliteral}{"{}38.143.19.97"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}chain"{}}:\ \ \ \ \ \textcolor{stringliteral}{"{}testnet"{}},}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a38c25967c19f7324ee5dc5c13850d988}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!ENV\_FILE@{ENV\_FILE}}
+\index{ENV\_FILE@{ENV\_FILE}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{ENV\_FILE}{ENV\_FILE}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a38c25967c19f7324ee5dc5c13850d988} 
+str \doxymbox{\hyperlink{namespace_we}{We}}-\/Are-\/Here-\/Hod\+Lum-\/WORKER.\+ENV\+\_\+\+FILE = Path.\+home() /\+ "{}.omnibus"{} /\+ "{}miner.\+env"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_ae9fa8e3bd57fafaa21a9b55f6b1a68ec}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!HERE@{HERE}}
+\index{HERE@{HERE}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{HERE}{HERE}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_ae9fa8e3bd57fafaa21a9b55f6b1a68ec} 
+\doxymbox{\hyperlink{namespace_we}{We}}-\/Are-\/Here-\/Hod\+Lum-\/WORKER.\+HERE = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).resolve().parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a9e43d8ebd5736d35aef8039fe1b9b0aa}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!NODE\_BIN@{NODE\_BIN}}
+\index{NODE\_BIN@{NODE\_BIN}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{NODE\_BIN}{NODE\_BIN}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a9e43d8ebd5736d35aef8039fe1b9b0aa} 
+str \doxymbox{\hyperlink{namespace_we}{We}}-\/Are-\/Here-\/Hod\+Lum-\/WORKER.\+NODE\+\_\+\+BIN = \doxymbox{\hyperlink{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_ae9fa8e3bd57fafaa21a9b55f6b1a68ec}{HERE}} /\+ "{}zig-\/out"{} /\+ "{}bin"{} /\+ "{}omnibus-\/node.\+exe"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+
+\Hypertarget{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a6119dedbd63c08799b1f8ec039713999}\index{We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}!SEED\_PORTS@{SEED\_PORTS}}
+\index{SEED\_PORTS@{SEED\_PORTS}!We-\/Are-\/Here-\/HodLum-\/WORKER@{We-\/Are-\/Here-\/HodLum-\/WORKER}}
+\doxysubsubsection{\texorpdfstring{SEED\_PORTS}{SEED\_PORTS}}
+{\footnotesize\ttfamily \label{namespace_we-_are-_here-_hod_lum-_w_o_r_k_e_r_a6119dedbd63c08799b1f8ec039713999} 
+dict \doxymbox{\hyperlink{namespace_we}{We}}-\/Are-\/Here-\/Hod\+Lum-\/WORKER.\+SEED\+\_\+\+PORTS = \{"{}mainnet"{}:\+ "{}9000"{}, "{}testnet"{}:\+ "{}9001"{}, "{}regtest"{}:\+ "{}9002"{}\}}
+
+
+
+Definition at line \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{_we-_are-_here-_hod_lum-_w_o_r_k_e_r_8py_source}{We-\/\+Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER.\+py}}.
+

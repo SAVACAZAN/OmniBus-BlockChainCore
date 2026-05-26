@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { signKycAttestation } from "../../api/exchange-sign";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
 
 interface Props {
   tier: 1 | 2 | 3;
@@ -18,6 +17,8 @@ type Step =
   | { kind: "review" }
   | { kind: "submitting" }
   | { kind: "done"; level: 1 | 2 | 3 };
+
+const KYC_STEP_ORDER = ["personal", "document", "selfie", "review"] as const;
 
 /**
  * KYC verification wizard — testnet flow.
@@ -178,8 +179,8 @@ export function KycVerifyFlow({ tier, onClose, onAttested }: Props) {
 
       {/* Step indicator */}
       <div className="flex items-center gap-1 text-[10px]">
-        {(["personal", "document", "selfie", "review"] as const).map((s, i) => {
-          const idx = ["personal", "document", "selfie", "review"].indexOf(step.kind);
+        {KYC_STEP_ORDER.map((s, i) => {
+          const idx = KYC_STEP_ORDER.indexOf(step.kind as typeof KYC_STEP_ORDER[number]);
           const isCurrent = step.kind === s;
           const isDone = idx > i || step.kind === "done";
           return (

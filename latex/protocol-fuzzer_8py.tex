@@ -1,0 +1,51 @@
+\doxysection{tools/\+\+REVERSE/\+protocol-\/fuzzer.py File Reference}
+\hypertarget{protocol-fuzzer_8py}{}\label{protocol-fuzzer_8py}\index{tools/REVERSE/protocol-\/fuzzer.py@{tools/REVERSE/protocol-\/fuzzer.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceprotocol-fuzzer}{protocol-\/fuzzer}}
+\item 
+namespace \doxymbox{\hyperlink{namespaceprotocol}{protocol}}
+\begin{DoxyCompactList}\small\item\em -\/fuzzer \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a54b6ddaf7ffa1fe8575da1c58ab597e2}{protocol-\/fuzzer.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{protocol-\/fuzzer.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceprotocol-fuzzer_abf994b8269849d29e07697ea8a840f74}{protocol-\/fuzzer.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespaceprotocol-fuzzer_adf0e2aa4d06b5ca38e44721821eca783}{protocol-\/fuzzer.\+log\+\_\+warn}} (str msg)
+\item 
+bytes \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a94781e6736113ecd8748d0fa4c7d3dbc}{protocol-\/fuzzer.\+make\+\_\+valid\+\_\+header}} (bytes command, int payload\+\_\+len)
+\item 
+bytes \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ad4ac49215a1321ac81cf3f913894afd2}{protocol-\/fuzzer.\+make\+\_\+message}} (bytes command, bytes payload)
+\item 
+bytes \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a33b767baf0b1fcf746b9758803b31df0}{protocol-\/fuzzer.\+random\+\_\+payload}} (int min\+\_\+size=0, int max\+\_\+size=4096)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae310059fa6ef4da9b187bac45a37374d}{protocol-\/fuzzer.\+fuzz\+\_\+cases}} ()
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a3b9d2201b09914f48e77c4ea93dc905e}{protocol-\/fuzzer.\+send\+\_\+and\+\_\+probe}} (str host, int port, bytes data, float timeout=5.\+0)
+\item 
+bool \doxymbox{\hyperlink{namespaceprotocol-fuzzer_ae7bf8691239dea8e2128bc30e44da55a}{protocol-\/fuzzer.\+is\+\_\+node\+\_\+alive}} (str host, int port, float timeout=3.\+0)
+\item 
+int \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a7431cb90017e54fe695b23d4190db046}{protocol-\/fuzzer.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a555aeb3fb0ac3046f43adaff6346dfde}{protocol-\/fuzzer.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a41fce64dd50dfcb2dad3155168458c90}{protocol-\/fuzzer.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a4dfbb5d2d67f2ea2bf2308516d18e0db}{protocol-\/fuzzer.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a5841981de5e5a8a010ff130d2047d6f2}{protocol-\/fuzzer.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_a01e2772fe8b4c0a45870ce605a0085cc}{protocol-\/fuzzer.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceprotocol-fuzzer_aef45d1c71b69fd7eb07cac09e600e1c8}{protocol-\/fuzzer.\+MAGIC}} = b"{}\textbackslash{}x4f\textbackslash{}x4d\textbackslash{}x4e\textbackslash{}x49"{}
+\item 
+list \doxymbox{\hyperlink{namespaceprotocol-fuzzer_af782472870ab06274879b57a5ba3b6a0}{protocol-\/fuzzer.\+COMMANDS}} = \+[b"{}version"{}, b"{}verack"{}, b"{}ping"{}, b"{}pong"{}, b"{}getblocks"{}, b"{}inv"{}, b"{}tx"{}, b"{}block"{}]\+
+\end{DoxyCompactItemize}

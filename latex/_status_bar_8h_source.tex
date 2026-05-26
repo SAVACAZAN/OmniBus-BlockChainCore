@@ -1,0 +1,34 @@
+\doxysection{Status\+Bar.\+h}
+\hypertarget{_status_bar_8h_source}{}\label{_status_bar_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/widgets/StatusBar.h@{archived-\/4-\/eterniti/gui-\/qt/src/widgets/StatusBar.h}}
+\doxymbox{\hyperlink{_status_bar_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QStatusBar>}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00006}00006\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00008}\doxymbox{\hyperlink{classomni_1_1_status_bar}{00008}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_status_bar_a4c65b15692b2a46cbf65ca72a30aacfd}{StatusBar}}\ :\ \textcolor{keyword}{public}\ QStatusBar\ \{}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00009}00009\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00010}00010\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00011}00011\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a4c65b15692b2a46cbf65ca72a30aacfd}{StatusBar}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00013}00013\ \textcolor{keyword}{public}\ slots:}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00014}00014\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a296314cd9a1ebb174f7703b9a0134776}{setBlockHeight}}(\textcolor{keywordtype}{int}\ height);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00015}00015\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a87d41a209be2898517504f4aadb2634d}{setPeerCount}}(\textcolor{keywordtype}{int}\ count);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00016}00016\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a2953b5d0c1ae55eacab9b674c1b8b661}{setWsConnected}}(\textcolor{keywordtype}{bool}\ connected);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00017}00017\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_a957745c9d8265dff179004f5ef32ad3a}{setSyncPercent}}(\textcolor{keywordtype}{double}\ pct);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00018}00018\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_status_bar_af8b6d7c91bf9a5bfdba2a92e78448dcc}{setLastBlockTime}}(\textcolor{keyword}{const}\ QString\&\ time);}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00020}00020\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00021}00021\ \ \ \ \ QLabel*\ m\_heightLabel;}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00022}00022\ \ \ \ \ QLabel*\ m\_peersLabel;}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00023}00023\ \ \ \ \ QLabel*\ m\_wsIndicator;}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00024}00024\ \ \ \ \ QLabel*\ m\_syncLabel;}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00025}00025\ \ \ \ \ QLabel*\ m\_lastBlockLabel;}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00026}00026\ \};}
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{_status_bar_8h_source_l00028}00028\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

@@ -1,0 +1,236 @@
+\doxysection{p2p-\/test-\/harness.P2\+PTest\+Harness Class Reference}
+\hypertarget{classp2p-test-harness_1_1_p2_p_test_harness}{}\label{classp2p-test-harness_1_1_p2_p_test_harness}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_aa4624bafd8f6a5277859f9b216adde05}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, int num\+\_\+nodes=4, int base\+\_\+port=19000, str binary="{}zig-\/out/\+bin/\+\doxymbox{\hyperlink{namespaceomnibus}{omnibus}}-\/node"{})
+\item 
+None \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab2ba14484b597772bab6f119cc030625}{launch\+\_\+nodes}} (self)
+\item 
+None \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a446e28700e87847aedae3513913ffbc8}{check\+\_\+peer\+\_\+discovery}} (self)
+\item 
+None \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ade53e710550ae58618243869595da6c6}{check\+\_\+block\+\_\+propagation}} (self)
+\item 
+None \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a57ccf0708c45dd9f339ab38ed1124aea}{check\+\_\+tx\+\_\+relay}} (self)
+\item 
+None \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af71f6936c35acf7a02c3a961393eef30}{check\+\_\+consensus\+\_\+convergence}} (self)
+\item 
+None \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a83efecbb6cfebbb5098062cb8983509f}{shutdown}} (self)
+\item 
+Dict\+[str, Any]\+ \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a118df67338996a05211825655c4db43e}{run}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}{num\+\_\+nodes}} = num\+\_\+nodes
+\item 
+\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ad1afb40cacc90229ed321386c0f5343c}{base\+\_\+port}} = base\+\_\+port
+\item 
+\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a820347ba71fdabad70e03605dde6bc07}{binary}} = binary
+\item 
+list \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_aadb25015c00d92dc70e49612dac2c189}{procs}} = \+[$\,$]\+
+\item 
+dict \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a64a92c9655493c922420c4b4c21824d4}{results}} = \{"{}nodes"{}:\+ \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}{num\+\_\+nodes}}, "{}checks"{}:\+ \+[$\,$]\+\}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}{\+\_\+log}} (self, str check, bool ok, str detail)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00030}{30}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+
+
+\label{classp2p-test-harness_1_1_p2_p_test_harness_doc-constructors}
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_aa4624bafd8f6a5277859f9b216adde05}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_aa4624bafd8f6a5277859f9b216adde05} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{int }]{num\+\_\+nodes}{ = {\ttfamily 4}, }\item[{int }]{base\+\_\+port}{ = {\ttfamily 19000}, }\item[{str }]{binary}{ = {\ttfamily "{}zig-\/out/\+bin/\+\doxymbox{\hyperlink{namespaceomnibus}{omnibus}}-\/node"{}}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+
+
+\label{classp2p-test-harness_1_1_p2_p_test_harness_doc-func-members}
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!\_log@{\_log}}
+\index{\_log@{\_log}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{\_log()}{\_log()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e} 
+ None \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+\_\+log (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{check}{, }\item[{bool}]{ok}{, }\item[{str}]{detail}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_ade53e710550ae58618243869595da6c6}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!check\_block\_propagation@{check\_block\_propagation}}
+\index{check\_block\_propagation@{check\_block\_propagation}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{check\_block\_propagation()}{check\_block\_propagation()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_ade53e710550ae58618243869595da6c6} 
+ None \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+check\+\_\+block\+\_\+propagation (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_af71f6936c35acf7a02c3a961393eef30}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!check\_consensus\_convergence@{check\_consensus\_convergence}}
+\index{check\_consensus\_convergence@{check\_consensus\_convergence}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{check\_consensus\_convergence()}{check\_consensus\_convergence()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_af71f6936c35acf7a02c3a961393eef30} 
+ None \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+check\+\_\+consensus\+\_\+convergence (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00092}{92}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 4
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_a446e28700e87847aedae3513913ffbc8}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!check\_peer\_discovery@{check\_peer\_discovery}}
+\index{check\_peer\_discovery@{check\_peer\_discovery}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{check\_peer\_discovery()}{check\_peer\_discovery()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_a446e28700e87847aedae3513913ffbc8} 
+ None \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+check\+\_\+peer\+\_\+discovery (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00072}{72}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 6
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_a57ccf0708c45dd9f339ab38ed1124aea}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!check\_tx\_relay@{check\_tx\_relay}}
+\index{check\_tx\_relay@{check\_tx\_relay}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{check\_tx\_relay()}{check\_tx\_relay()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_a57ccf0708c45dd9f339ab38ed1124aea} 
+ None \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+check\+\_\+tx\+\_\+relay (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00086}{86}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_ab2ba14484b597772bab6f119cc030625}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!launch\_nodes@{launch\_nodes}}
+\index{launch\_nodes@{launch\_nodes}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{launch\_nodes()}{launch\_nodes()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_ab2ba14484b597772bab6f119cc030625} 
+ None \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+launch\+\_\+nodes (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 10
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_a118df67338996a05211825655c4db43e}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!run@{run}}
+\index{run@{run}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_a118df67338996a05211825655c4db43e} 
+ Dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+run (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00108}{108}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_a83efecbb6cfebbb5098062cb8983509f}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!shutdown@{shutdown}}
+\index{shutdown@{shutdown}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{shutdown()}{shutdown()}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_a83efecbb6cfebbb5098062cb8983509f} 
+ None \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+shutdown (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00097}{97}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14
+
+
+\label{classp2p-test-harness_1_1_p2_p_test_harness_doc-variable-members}
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_ad1afb40cacc90229ed321386c0f5343c}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!base\_port@{base\_port}}
+\index{base\_port@{base\_port}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{base\_port}{base\_port}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_ad1afb40cacc90229ed321386c0f5343c} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+base\+\_\+port = base\+\_\+port}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_a820347ba71fdabad70e03605dde6bc07}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!binary@{binary}}
+\index{binary@{binary}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{binary}{binary}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_a820347ba71fdabad70e03605dde6bc07} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+binary = binary}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!num\_nodes@{num\_nodes}}
+\index{num\_nodes@{num\_nodes}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{num\_nodes}{num\_nodes}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+num\+\_\+nodes = num\+\_\+nodes}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_aadb25015c00d92dc70e49612dac2c189}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!procs@{procs}}
+\index{procs@{procs}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{procs}{procs}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_aadb25015c00d92dc70e49612dac2c189} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+procs = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+\Hypertarget{classp2p-test-harness_1_1_p2_p_test_harness_a64a92c9655493c922420c4b4c21824d4}\index{p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}!results@{results}}
+\index{results@{results}!p2p-\/test-\/harness.P2PTestHarness@{p2p-\/test-\/harness.P2PTestHarness}}
+\doxysubsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily \label{classp2p-test-harness_1_1_p2_p_test_harness_a64a92c9655493c922420c4b4c21824d4} 
+dict \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/\doxymbox{\hyperlink{namespacetest}{test}}-\/harness.\+P2\+PTest\+Harness.\+results = \{"{}nodes"{}:\+ \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}{num\+\_\+nodes}}, "{}checks"{}:\+ \+[$\,$]\+\}}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-test-harness_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{p2p-test-harness_8py_source}{p2p-\/test-\/harness.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+tools/\+\+NETWORK/\+\doxymbox{\hyperlink{p2p-test-harness_8py}{p2p-\/test-\/harness.\+py}}\end{DoxyCompactItemize}

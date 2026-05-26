@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
-
+import { rpc } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOraclePriceEvent } from "../../types";
+import { MICRO_PER_USD, decimalsForUsd } from "../../utils/fmt";
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface ArbOpportunity {
@@ -19,27 +21,17 @@ interface ArbResponse {
   opportunities: ArbOpportunity[];
 }
 
-const POLL_MS = 2000;
 const MIN_SPREAD_PCT = 0.05;
 const TOP_N = 15;
 
 // ── Format helpers ────────────────────────────────────────────────────────
 
 function formatUsd(microUsd: number, decimals: number): string {
-  const dollars = microUsd / 1_000_000;
+  const dollars = microUsd / MICRO_PER_USD;
   return dollars.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
-}
-
-// Pick decimals based on price magnitude — bigger numbers get fewer decimals.
-function decimalsFor(microUsd: number): number {
-  const dollars = Math.abs(microUsd / 1_000_000);
-  if (dollars >= 1000) return 2;
-  if (dollars >= 1) return 2;
-  if (dollars >= 0.01) return 4;
-  return 4;
 }
 
 function formatPct(pct: number): string {
@@ -67,7 +59,6 @@ function spreadPctColor(pct: number): string {
 // ── Main component ────────────────────────────────────────────────────────
 
 export default function ArbitrageOpportunities() {
-  const rpc = useMemo(() => new OmniBusRpcClient(), []);
   const [opps, setOpps] = useState<ArbOpportunity[]>([]);
   const [now, setNow] = useState<number>(Date.now());
   const [backendReady, setBackendReady] = useState<boolean>(true);
@@ -81,8 +72,8 @@ export default function ArbitrageOpportunities() {
       try {
         // Run arb + FX in parallel — they share the same backend.
         const [arbResult, fxResult] = await Promise.all([
-          rpc.request_raw("omnibus_getarbitrage"),
-          rpc.request_raw("omnibus_getfxrate").catch(() => null),
+          rpc.getArbitrage(),
+          rpc.getFxRate(),
         ]);
         if (cancelled) return;
         const result = arbResult as ArbResponse | null;
@@ -118,13 +109,19 @@ export default function ArbitrageOpportunities() {
     };
 
     fetchArb();
-    const id = setInterval(fetchArb, POLL_MS);
+    // Arbitrage opportunities change when prices change — subscribe to oracle_price.
+    const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => {
+      void fetchArb();
+    });
+    // Slow fallback poll (30 s) for when WS is disconnected.
+    const id = setInterval(() => { void fetchArb(); }, 30_000);
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
-  }, [rpc]);
+  }, []);
 
   // Sort desc by spreadPct, top N.
   const sorted = useMemo(() => {
@@ -149,6 +146,32 @@ export default function ArbitrageOpportunities() {
           </span>
         )}
         <div className="flex-1 h-px bg-mempool-border" />
+        {sorted.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["pair","buy_at","buy_ask_usd","sell_at","sell_bid_usd","spread_usd","spread_pct"].join(","),
+                ...sorted.map((o) => [
+                  o.pair,
+                  o.buyAt,
+                  (o.buyAskMicroUsd / MICRO_PER_USD).toFixed(6),
+                  o.sellAt,
+                  (o.sellBidMicroUsd / MICRO_PER_USD).toFixed(6),
+                  (o.spreadMicroUsd / MICRO_PER_USD).toFixed(6),
+                  o.spreadPct.toFixed(4),
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-arb-opportunities.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <span className="text-xs text-mempool-text-dim font-mono">
           {sorted.length} shown
         </span>
@@ -183,9 +206,9 @@ export default function ArbitrageOpportunities() {
             </thead>
             <tbody>
               {sorted.map((o, idx) => {
-                const askDec = decimalsFor(o.buyAskMicroUsd);
-                const bidDec = decimalsFor(o.sellBidMicroUsd);
-                const spreadDec = decimalsFor(o.spreadMicroUsd);
+                const askDec = decimalsForUsd(o.buyAskMicroUsd);
+                const bidDec = decimalsForUsd(o.sellBidMicroUsd);
+                const spreadDec = decimalsForUsd(o.spreadMicroUsd);
                 const ageMs = Math.max(
                   now - o.buyTimestampMs,
                   now - o.sellTimestampMs,

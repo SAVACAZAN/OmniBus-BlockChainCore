@@ -1,0 +1,25 @@
+\doxysection{multi Namespace Reference}
+\hypertarget{namespacemulti}{}\label{namespacemulti}\index{multi@{multi}}
+
+
+-\/node-\/orchestrator  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/node-\/orchestrator 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Multi-Node Orchestrator
+=================================================
+Manages multiple local OmniBus nodes for development and testing.
+
+Starts N nodes (1 seed + N-1 miners) on sequential ports, monitors
+their health, and provides commands to stop all nodes cleanly.
+
+Usage:
+    python multi-node-orchestrator.py --count 3
+    python multi-node-orchestrator.py --count 5 --base-port 9000
+    python multi-node-orchestrator.py --stop
+\end{DoxyVerb}
+ 

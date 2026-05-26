@@ -1,0 +1,14 @@
+const result = rpc.sendTransaction(raw_tx) catch |err| {
+    switch (err) {
+        error.RPCConnectionFailed => {
+            std.debug.print("Cannot connect to bitcoind\n", .{});
+        },
+        error.InsufficientFunds => {
+            std.debug.print("Not enough funds\n", .{});
+        },
+        else => {
+            std.debug.print("Unknown error: {}\n", .{err});
+        },
+    }
+    return;
+};

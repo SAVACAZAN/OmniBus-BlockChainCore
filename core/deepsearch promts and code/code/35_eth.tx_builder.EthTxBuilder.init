@@ -1,0 +1,7 @@
+var erc20 = eth.erc20.Erc20TxBuilder.init(allocator, &eth_builder);
+
+// Transfer tokens
+const tx = try erc20.buildTransfer(nonce, token_contract, to, amount, gas_limit, fee);
+
+// Approve spending
+const approve = try erc20.buildApprove(nonce, token_contract, spender, amount, gas_limit, fee);

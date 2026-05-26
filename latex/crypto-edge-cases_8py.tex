@@ -1,0 +1,71 @@
+\doxysection{tools/\+\+EXPLOITS/\+crypto-\/edge-\/cases.py File Reference}
+\hypertarget{crypto-edge-cases_8py}{}\label{crypto-edge-cases_8py}\index{tools/EXPLOITS/crypto-\/edge-\/cases.py@{tools/EXPLOITS/crypto-\/edge-\/cases.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacecrypto-edge-cases}{crypto-\/edge-\/cases}}
+\item 
+namespace \doxymbox{\hyperlink{namespacecrypto}{crypto}}
+\begin{DoxyCompactList}\small\item\em -\/edge-\/cases \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-edge-cases_a54b6ddaf7ffa1fe8575da1c58ab597e2}{crypto-\/edge-\/cases.\+log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-edge-cases_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{crypto-\/edge-\/cases.\+log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-edge-cases_abf994b8269849d29e07697ea8a840f74}{crypto-\/edge-\/cases.\+log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacecrypto-edge-cases_adf0e2aa4d06b5ca38e44721821eca783}{crypto-\/edge-\/cases.\+log\+\_\+warn}} (str msg)
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_aee4e29814a91cace1e1ec73b7ae3fba1}{crypto-\/edge-\/cases.\+mod\+\_\+mul}} (int a, int b, int m=\doxymbox{\hyperlink{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}{P}})
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a925b4a20276d18dc37d01f4faf5f516e}{crypto-\/edge-\/cases.\+mod\+\_\+add}} (int a, int b, int m=\doxymbox{\hyperlink{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}{P}})
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a48e02cc239887b340a977f653460ac0a}{crypto-\/edge-\/cases.\+mod\+\_\+inv}} (int a, int m=\doxymbox{\hyperlink{namespacecrypto-edge-cases_a616362d91ac38edaa6634a91b1c5384c}{N}})
+\item 
+tuple\+[int, int, int]\+ \doxymbox{\hyperlink{namespacecrypto-edge-cases_a5e6a6646f80b725e25e4e67e452e74e9}{crypto-\/edge-\/cases.\+extended\+\_\+gcd}} (int a, int b)
+\item 
+\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacecrypto-edge-cases_ac111d60a5b9a56cc99c9f6b38862f684}{crypto-\/edge-\/cases.\+point\+\_\+add}} (\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None p1, \doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None p2)
+\item 
+\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacecrypto-edge-cases_a0ce69a2c8ac9046b25a0f72fb0fd9fce}{crypto-\/edge-\/cases.\+scalar\+\_\+mul}} (int k, \doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{Point}}\texorpdfstring{$\vert$}{|}None p=None)
+\item 
+dict\+[str, Any]\+\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacecrypto-edge-cases_a222a472b654b4b99dc71021c5020e31a}{crypto-\/edge-\/cases.\+sign\+\_\+raw}} (int private\+\_\+key, bytes message\+\_\+hash, int k)
+\item 
+bool \doxymbox{\hyperlink{namespacecrypto-edge-cases_a7cf8d5c9f857a6d8fb767cce717431ab}{crypto-\/edge-\/cases.\+verify\+\_\+low\+\_\+s}} (int s)
+\item 
+list\+[dict\+[str, Any]\+]\+ \doxymbox{\hyperlink{namespacecrypto-edge-cases_a9c397f903c00fb39246c0d851406126d}{crypto-\/edge-\/cases.\+run\+\_\+edge\+\_\+cases}} ()
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a7431cb90017e54fe695b23d4190db046}{crypto-\/edge-\/cases.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{namespacecrypto-edge-cases_a29140ae36cc6e5a17cb9ea5df2910cb6}{crypto-\/edge-\/cases.\+HAVE\+\_\+\+COINCURVE}} = True
+\item 
+bool \doxymbox{\hyperlink{namespacecrypto-edge-cases_a2c31b27af2b5e9d9b8987573f04ab7b5}{crypto-\/edge-\/cases.\+HAVE\+\_\+\+ECDSA}} = True
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a0dba0fe3390a13ce90440aef4d2b91e6}{crypto-\/edge-\/cases.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a0c1bb149e4c20b08fe852fa0686c77fd}{crypto-\/edge-\/cases.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a1c4b4525c15fddf3be42c53448efada4}{crypto-\/edge-\/cases.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a874cb8bf4dbfa266f1046d11244f0070}{crypto-\/edge-\/cases.\+CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacecrypto-edge-cases_a82b18b59e811910d5593725e7bef19e8}{crypto-\/edge-\/cases.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a912d2c264257adffee24bd95f936c364}{crypto-\/edge-\/cases.\+P}} = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a616362d91ac38edaa6634a91b1c5384c}{crypto-\/edge-\/cases.\+N}} = 0x\+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6\+AF48\+A03\+BBFD25\+E8\+CD0364141
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_af1d48b1a3a7a9a710699bf90163163d3}{crypto-\/edge-\/cases.\+A}} = 0
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a401828d9b12106fcfe0a8bc36a7cbc98}{crypto-\/edge-\/cases.\+B}} = 7
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a7c049a828fc9cc4781fcb8a1c4686413}{crypto-\/edge-\/cases.\+Gx}} = 0x79\+BE667\+EF9\+DCBBAC55\+A06295\+CE870\+B07029\+BFCDB2\+DCE28\+D959\+F2815\+B16\+F81798
+\item 
+int \doxymbox{\hyperlink{namespacecrypto-edge-cases_a4c607138ed13e6c090b0ab4233de012c}{crypto-\/edge-\/cases.\+Gy}} = 0x483\+ADA7726\+A3\+C4655\+DA4\+FBFC0\+E1108\+A8\+FD17\+B448\+A68554199\+C47\+D08\+FFB10\+D4\+B8
+\item 
+\doxymbox{\hyperlink{namespacecrypto-edge-cases_a39fcec8dbc419c7e65a5f93e2fbd07cd}{crypto-\/edge-\/cases.\+Point}} = namedtuple("{}Point"{}, \+["{}x"{}, "{}y"{}]\+)
+\end{DoxyCompactItemize}

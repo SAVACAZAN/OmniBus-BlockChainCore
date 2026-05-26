@@ -1,0 +1,326 @@
+\doxysection{blockchain\+\_\+vs\+\_\+comparison.\+py}
+\hypertarget{blockchain__vs__comparison_8py_source}{}\label{blockchain__vs__comparison_8py_source}\index{archived-\/4-\/eterniti/tools-\/python/COMPARISON/blockchain\_vs\_comparison.py@{archived-\/4-\/eterniti/tools-\/python/COMPARISON/blockchain\_vs\_comparison.py}}
+\doxymbox{\hyperlink{blockchain__vs__comparison_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00001}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00003}00003\ \textcolor{stringliteral}{blockchain\_vs\_comparison.py\ -\/\ OmniBus\ vs\ Major\ Blockchains}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00005}00005\ \textcolor{stringliteral}{Comparație\ detaliată\ între\ OmniBus\ și\ blockchain-\/uri\ majore:}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ Bitcoin,\ Ethereum,\ Solana,\ MultiversX\ (EGLD),\ Dogecoin}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ Feature\ matrix\ complet}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ Analiză\ tehnică\ detaliată}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Scorecard\ per\ blockchain}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00011}00011\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ python\ tools/COMPARISON/blockchain\_vs\_comparison.py\ \ \ \ \ \ \ \ \ \ \ \ \ \ \#\ Full\ comparison}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ python\ tools/COMPARISON/blockchain\_vs\_comparison.py\ -\/-\/chain\ eth\ \ \#\ Compare\ with\ Ethereum}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ python\ tools/COMPARISON/blockchain\_vs\_comparison.py\ -\/-\/json\ \ \ \ \ \ \ \#\ Export\ JSON}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ python\ tools/COMPARISON/blockchain\_vs\_comparison.py\ -\/-\/html\ \ \ \ \ \ \ \#\ Export\ HTML}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00016}00016\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00018}00018\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00019}00019\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00020}00020\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00021}00021\ \textcolor{keyword}{from}\ pathlib\ \textcolor{keyword}{import}\ Path}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00022}00022\ \textcolor{keyword}{from}\ dataclasses\ \textcolor{keyword}{import}\ dataclass,\ field}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00023}00023\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ List,\ Dict,\ Optional}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00024}00024\ \textcolor{keyword}{from}\ enum\ \textcolor{keyword}{import}\ Enum}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00026}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a124f1cde3229174f2640c5aa95965721}{00026}}\ ROOT\ =\ Path(\_\_file\_\_).parent.parent.parent}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00027}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a87746bb3dac4c3982bf323dc2e600321}{00027}}\ CORE\ =\ ROOT\ /\ \textcolor{stringliteral}{"{}core"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00029}\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_feature_status}{00029}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_feature_status}{FeatureStatus}}(Enum):}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00030}\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_feature_status_ae10d0dd7c84b88900579dbc7cff3a945}{00030}}\ \ \ \ \ IMPLEMENTED\ =\ \textcolor{stringliteral}{"{}[OK]\ IMPLEMENTED"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00031}\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_feature_status_a85a037407897358a0002f49989c2d9dc}{00031}}\ \ \ \ \ PARTIAL\ =\ \textcolor{stringliteral}{"{}[\string~]\ PARTIAL"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00032}\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_feature_status_aa75d3300a74ef400e550e758848a3e10}{00032}}\ \ \ \ \ MISSING\ =\ \textcolor{stringliteral}{"{}[X]\ MISSING"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00033}\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_feature_status_a941a64298f2a85b4fe7a3f0e6f6a64ab}{00033}}\ \ \ \ \ DIFFERENT\ =\ \textcolor{stringliteral}{"{}[<-\/>]\ DIFFERENT"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00035}00035\ \textcolor{preprocessor}{@dataclass}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00036}\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{00036}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00037}00037\ \ \ \ \ category:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00038}00038\ \ \ \ \ feature:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00039}00039\ \ \ \ \ bitcoin:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00040}00040\ \ \ \ \ ethereum:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00041}00041\ \ \ \ \ solana:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00042}00042\ \ \ \ \ egld:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00043}00043\ \ \ \ \ omnibus:\ str}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00044}\doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature_a02a1855a0a3310d6979beda81bd9367f}{00044}}\ \ \ \ \ notes:\ str\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00046}00046\ \textcolor{comment}{\#\ Features\ comparison\ matrix}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00047}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a1d2fef02449180e368a85d65da8c0d24}{00047}}\ FEATURES\ =\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00048}00048\ \ \ \ \ \textcolor{comment}{\#\ CONSENSUS}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00049}00049\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Consensus"{}},\ \textcolor{stringliteral}{"{}Algorithm"{}},\ \textcolor{stringliteral}{"{}Proof\ of\ Work\ (SHA256)"{}},\ \textcolor{stringliteral}{"{}Proof\ of\ Stake"{}},\ \textcolor{stringliteral}{"{}Proof\ of\ History\ +\ PoS"{}},\ \textcolor{stringliteral}{"{}SPoS\ (Secure\ PoS)"{}},\ \textcolor{stringliteral}{"{}Proof\ of\ Work\ (SHA256d)"{}},\ \textcolor{stringliteral}{"{}Bitcoin-\/compatible"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00050}00050\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Consensus"{}},\ \textcolor{stringliteral}{"{}Block\ Time"{}},\ \textcolor{stringliteral}{"{}10\ minutes"{}},\ \textcolor{stringliteral}{"{}12\ seconds"{}},\ \textcolor{stringliteral}{"{}400ms"{}},\ \textcolor{stringliteral}{"{}6\ seconds"{}},\ \textcolor{stringliteral}{"{}10\ seconds"{}},\ \textcolor{stringliteral}{"{}Faster\ than\ BTC"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00051}00051\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Consensus"{}},\ \textcolor{stringliteral}{"{}Finality"{}},\ \textcolor{stringliteral}{"{}Probabilistic\ (6\ confs)"{}},\ \textcolor{stringliteral}{"{}Probabilistic"{}},\ \textcolor{stringliteral}{"{}Fast\ finality"{}},\ \textcolor{stringliteral}{"{}Fast\ finality"{}},\ \textcolor{stringliteral}{"{}Probabilistic"{}},\ \textcolor{stringliteral}{"{}Similar\ to\ BTC"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00052}00052\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Consensus"{}},\ \textcolor{stringliteral}{"{}Sharding"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}[NO]\ No\ (L2\ only)"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}[OK]\ Adaptive\ State"{}},\ \textcolor{stringliteral}{"{}[OK]\ 7\ Shards\ native"{}},\ \textcolor{stringliteral}{"{}Better\ than\ EGLD"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00053}00053\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00054}00054\ \ \ \ \ \textcolor{comment}{\#\ CRYPTO}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00055}00055\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Cryptography"{}},\ \textcolor{stringliteral}{"{}Signing"{}},\ \textcolor{stringliteral}{"{}ECDSA\ (secp256k1)"{}},\ \textcolor{stringliteral}{"{}ECDSA,\ EdDSA"{}},\ \textcolor{stringliteral}{"{}EdDSA"{}},\ \textcolor{stringliteral}{"{}BLS"{}},\ \textcolor{stringliteral}{"{}[OK]\ ECDSA\ +\ Post-\/Quantum"{}},\ \textcolor{stringliteral}{"{}Future-\/proof"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00056}00056\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Cryptography"{}},\ \textcolor{stringliteral}{"{}Hash\ Function"{}},\ \textcolor{stringliteral}{"{}SHA-\/256"{}},\ \textcolor{stringliteral}{"{}Keccak-\/256"{}},\ \textcolor{stringliteral}{"{}SHA-\/256"{}},\ \textcolor{stringliteral}{"{}SHA-\/256"{}},\ \textcolor{stringliteral}{"{}SHA-\/256d\ (double)"{}},\ \textcolor{stringliteral}{"{}Bitcoin-\/compatible"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00057}00057\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Cryptography"{}},\ \textcolor{stringliteral}{"{}Quantum\ Safe"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}[OK]\ ML-\/DSA-\/87,\ Falcon"{}},\ \textcolor{stringliteral}{"{}Unique\ feature"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00058}00058\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Cryptography"{}},\ \textcolor{stringliteral}{"{}Address\ Types"{}},\ \textcolor{stringliteral}{"{}Legacy,\ SegWit,\ Taproot"{}},\ \textcolor{stringliteral}{"{}EOA,\ Contract"{}},\ \textcolor{stringliteral}{"{}Single\ format"{}},\ \textcolor{stringliteral}{"{}Hierarchical"{}},\ \textcolor{stringliteral}{"{}[OK]\ 5\ PQ\ domains"{}},\ \textcolor{stringliteral}{"{}Most\ flexible"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00059}00059\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00060}00060\ \ \ \ \ \textcolor{comment}{\#\ SCALING}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00061}00061\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Scaling"{}},\ \textcolor{stringliteral}{"{}TPS\ (theoretical)"{}},\ \textcolor{stringliteral}{"{}\string~7"{}},\ \textcolor{stringliteral}{"{}\string~15"{}},\ \textcolor{stringliteral}{"{}\string~65,000"{}},\ \textcolor{stringliteral}{"{}\string~15,000"{}},\ \textcolor{stringliteral}{"{}\string~10,000"{}},\ \textcolor{stringliteral}{"{}Good\ balance"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00062}00062\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Scaling"{}},\ \textcolor{stringliteral}{"{}Layer\ 2"{}},\ \textcolor{stringliteral}{"{}Lightning"{}},\ \textcolor{stringliteral}{"{}Rollups"{}},\ \textcolor{stringliteral}{"{}N/A"{}},\ \textcolor{stringliteral}{"{}Sovereign\ shards"{}},\ \textcolor{stringliteral}{"{}Payment\ channels"{}},\ \textcolor{stringliteral}{"{}Native\ sharding\ better"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00063}00063\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Scaling"{}},\ \textcolor{stringliteral}{"{}State\ Pruning"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}Partial"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}[OK]\ Yes"{}},\ \textcolor{stringliteral}{"{}[OK]\ Yes"{}},\ \textcolor{stringliteral}{"{}Efficient\ storage"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00064}00064\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00065}00065\ \ \ \ \ \textcolor{comment}{\#\ SMART\ CONTRACTS}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00066}00066\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Smart\ Contracts"{}},\ \textcolor{stringliteral}{"{}VM"{}},\ \textcolor{stringliteral}{"{}Limited\ (Script)"{}},\ \textcolor{stringliteral}{"{}EVM"{}},\ \textcolor{stringliteral}{"{}SVM\ (eBPF)"{}},\ \textcolor{stringliteral}{"{}WASM"{}},\ \textcolor{stringliteral}{"{}Zig\ native"{}},\ \textcolor{stringliteral}{"{}High\ performance"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00067}00067\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Smart\ Contracts"{}},\ \textcolor{stringliteral}{"{}Language"{}},\ \textcolor{stringliteral}{"{}Script"{}},\ \textcolor{stringliteral}{"{}Solidity,\ Vyper"{}},\ \textcolor{stringliteral}{"{}Rust,\ C"{}},\ \textcolor{stringliteral}{"{}Rust,\ C++,\ C"{}},\ \textcolor{stringliteral}{"{}Zig"{}},\ \textcolor{stringliteral}{"{}Systems\ language"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00068}00068\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Smart\ Contracts"{}},\ \textcolor{stringliteral}{"{}Gas\ Model"{}},\ \textcolor{stringliteral}{"{}Fee\ per\ byte"{}},\ \textcolor{stringliteral}{"{}Gas\ +\ EIP-\/1559"{}},\ \textcolor{stringliteral}{"{}Lamports"{}},\ \textcolor{stringliteral}{"{}Gas"{}},\ \textcolor{stringliteral}{"{}SAT\ per\ operation"{}},\ \textcolor{stringliteral}{"{}Similar\ to\ BTC"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00069}00069\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00070}00070\ \ \ \ \ \textcolor{comment}{\#\ ECONOMICS}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00071}00071\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Economics"{}},\ \textcolor{stringliteral}{"{}Max\ Supply"{}},\ \textcolor{stringliteral}{"{}21M\ BTC"{}},\ \textcolor{stringliteral}{"{}Unlimited"{}},\ \textcolor{stringliteral}{"{}Unlimited"{}},\ \textcolor{stringliteral}{"{}Limited"{}},\ \textcolor{stringliteral}{"{}[OK]\ 21M\ OMNI"{}},\ \textcolor{stringliteral}{"{}Bitcoin\ model"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00072}00072\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Economics"{}},\ \textcolor{stringliteral}{"{}Block\ Reward"{}},\ \textcolor{stringliteral}{"{}Halving\ every\ 4y"{}},\ \textcolor{stringliteral}{"{}Dynamic\ (PoS)"{}},\ \textcolor{stringliteral}{"{}Inflation-\/based"{}},\ \textcolor{stringliteral}{"{}Fixed\ +\ fees"{}},\ \textcolor{stringliteral}{"{}[OK]\ 50\ OMNI,\ halving"{}},\ \textcolor{stringliteral}{"{}Bitcoin\ model"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00073}00073\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Economics"{}},\ \textcolor{stringliteral}{"{}Special\ Features"{}},\ \textcolor{stringliteral}{"{}Store\ of\ value"{}},\ \textcolor{stringliteral}{"{}DeFi,\ NFTs"{}},\ \textcolor{stringliteral}{"{}High\ throughput"{}},\ \textcolor{stringliteral}{"{}Metaverse"{}},\ \textcolor{stringliteral}{"{}[OK]\ UBI,\ Vault,\ Bread"{}},\ \textcolor{stringliteral}{"{}Social\ features"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00074}00074\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00075}00075\ \ \ \ \ \textcolor{comment}{\#\ NETWORK}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00076}00076\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Network"{}},\ \textcolor{stringliteral}{"{}P2P\ Protocol"{}},\ \textcolor{stringliteral}{"{}Custom"{}},\ \textcolor{stringliteral}{"{}devp2p"{}},\ \textcolor{stringliteral}{"{}Gossip"{}},\ \textcolor{stringliteral}{"{}Custom"{}},\ \textcolor{stringliteral}{"{}[OK]\ Kademlia\ DHT"{}},\ \textcolor{stringliteral}{"{}Modern\ P2P"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00077}00077\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Network"{}},\ \textcolor{stringliteral}{"{}Light\ Client"{}},\ \textcolor{stringliteral}{"{}Neutrino"{}},\ \textcolor{stringliteral}{"{}Limited"{}},\ \textcolor{stringliteral}{"{}[OK]\ Good"{}},\ \textcolor{stringliteral}{"{}[OK]\ Good"{}},\ \textcolor{stringliteral}{"{}[OK]\ SPV\ +\ fast\ sync"{}},\ \textcolor{stringliteral}{"{}Full\ featured"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00078}00078\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00079}00079\ \ \ \ \ \textcolor{comment}{\#\ GOVERNANCE}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00080}00080\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Governance"{}},\ \textcolor{stringliteral}{"{}On-\/chain"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}Limited"{}},\ \textcolor{stringliteral}{"{}[NO]\ No"{}},\ \textcolor{stringliteral}{"{}[OK]\ Yes"{}},\ \textcolor{stringliteral}{"{}[OK]\ Built-\/in"{}},\ \textcolor{stringliteral}{"{}Advanced"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00081}00081\ \ \ \ \ \doxymbox{\hyperlink{classblockchain__vs__comparison_1_1_comparison_feature}{ComparisonFeature}}(\textcolor{stringliteral}{"{}Governance"{}},\ \textcolor{stringliteral}{"{}Upgrade\ Mechanism"{}},\ \textcolor{stringliteral}{"{}Soft/Hard\ forks"{}},\ \textcolor{stringliteral}{"{}EIPs"{}},\ \textcolor{stringliteral}{"{}Validators"{}},\ \textcolor{stringliteral}{"{}[OK]\ Built-\/in"{}},\ \textcolor{stringliteral}{"{}[OK]\ Spark\ invariants"{}},\ \textcolor{stringliteral}{"{}Formal\ verification"{}}),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00082}00082\ ]}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00084}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a06cfec35805992d38971c2cdf52d6fe4}{00084}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a06cfec35805992d38971c2cdf52d6fe4}{analyze\_module\_coverage}}():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00085}00085\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Analyze\ which\ modules\ implement\ which\ features."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00086}00086\ \ \ \ \ core\_files\ =\ list(CORE.glob(\textcolor{stringliteral}{"{}*.zig"{}}))\ \textcolor{keywordflow}{if}\ CORE.exists()\ \textcolor{keywordflow}{else}\ []}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00087}00087\ \ \ \ \ modules\ =\ [f.stem\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ core\_files]}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00088}00088\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00089}00089\ \ \ \ \ coverage\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}crypto"{}}:\ [\textcolor{stringliteral}{"{}crypto"{}},\ \textcolor{stringliteral}{"{}secp256k1"{}},\ \textcolor{stringliteral}{"{}pq\_crypto"{}},\ \textcolor{stringliteral}{"{}ripemd160"{}},\ \textcolor{stringliteral}{"{}schnorr"{}},\ \textcolor{stringliteral}{"{}bls\_signatures"{}}],}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}consensus"{}}:\ [\textcolor{stringliteral}{"{}consensus"{}},\ \textcolor{stringliteral}{"{}finality"{}},\ \textcolor{stringliteral}{"{}governance"{}},\ \textcolor{stringliteral}{"{}staking"{}}],}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}network"{}}:\ [\textcolor{stringliteral}{"{}p2p"{}},\ \textcolor{stringliteral}{"{}network"{}},\ \textcolor{stringliteral}{"{}sync"{}},\ \textcolor{stringliteral}{"{}kademlia\_dht"{}},\ \textcolor{stringliteral}{"{}bootstrap"{}}],}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}storage"{}}:\ [\textcolor{stringliteral}{"{}storage"{}},\ \textcolor{stringliteral}{"{}state\_trie"{}},\ \textcolor{stringliteral}{"{}database"{}}],}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}economic"{}}:\ [\textcolor{stringliteral}{"{}bread\_ledger"{}},\ \textcolor{stringliteral}{"{}ubi\_distributor"{}},\ \textcolor{stringliteral}{"{}vault\_engine"{}},\ \textcolor{stringliteral}{"{}domain\_minter"{}}],}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}scaling"{}}:\ [\textcolor{stringliteral}{"{}shard\_coordinator"{}},\ \textcolor{stringliteral}{"{}metachain"{}},\ \textcolor{stringliteral}{"{}sub\_block"{}},\ \textcolor{stringliteral}{"{}compact\_transaction"{}}],}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00096}00096\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00097}00097\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00098}00098\ \ \ \ \ result\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00099}00099\ \ \ \ \ \textcolor{keywordflow}{for}\ category,\ expected\ \textcolor{keywordflow}{in}\ coverage.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ found\ =\ [m\ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ expected\ \textcolor{keywordflow}{if}\ m\ \textcolor{keywordflow}{in}\ modules]}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ result[category]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected"{}}:\ len(expected),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}found"{}}:\ len(found),}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}coverage"{}}:\ len(found)\ /\ len(expected)\ *\ 100\ \textcolor{keywordflow}{if}\ expected\ \textcolor{keywordflow}{else}\ 0,}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}modules"{}}:\ found}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00107}00107\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{return}\ result}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00109}00109\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00110}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_aa802d89700cbe9e091594716a43bcaba}{00110}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_aa802d89700cbe9e091594716a43bcaba}{print\_comparison}}():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00111}00111\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ detailed\ comparison."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00112}00112\ \ \ \ \ SEP\ =\ \textcolor{stringliteral}{"{}="{}}\ *\ 100}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00113}00113\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00114}00114\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{SEP\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00115}00115\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ OMNIBUS\ vs\ BITCOIN\ vs\ ETHEREUM\ vs\ SOLANA\ vs\ EGLD\ vs\ DOGECOIN"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00116}00116\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{SEP\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00117}00117\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00118}00118\ \ \ \ \ current\_category\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{for}\ feat\ \textcolor{keywordflow}{in}\ FEATURES:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ feat.category\ !=\ current\_category:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ current\_category\ =\ feat.category}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{'-\/'\ *\ 100\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [+]\ \{current\_category\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'-\/'\ *\ 100\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{feat.feature\}:"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Bitcoin:\ \ \ \{feat.bitcoin\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Ethereum:\ \ \{feat.ethereum\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Solana:\ \ \ \ \{feat.solana\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ EGLD:\ \ \ \ \ \ \{feat.egld\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ OmniBus:\ \ \ \{feat.omnibus\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ feat.notes:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Notes:\ \ \ \ \ \{feat.notes\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00135}00135\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00136}00136\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{SEP\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00138}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a6a0db648a8115fa2ae2f7909371b3c38}{00138}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a6a0db648a8115fa2ae2f7909371b3c38}{print\_module\_coverage}}():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00139}00139\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ module\ coverage\ analysis."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00140}00140\ \ \ \ \ coverage\ =\ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a06cfec35805992d38971c2cdf52d6fe4}{analyze\_module\_coverage}}()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00141}00141\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00142}00142\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ \textcolor{stringliteral}{"{}="{}}\ *\ 80)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00143}00143\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ MODULE\ COVERAGE\ ANALYSIS"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00144}00144\ \ \ \ \ print(\textcolor{stringliteral}{"{}="{}}\ *\ 80\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00145}00145\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00146}00146\ \ \ \ \ \textcolor{keywordflow}{for}\ category,\ data\ \textcolor{keywordflow}{in}\ coverage.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ pct\ =\ data[\textcolor{stringliteral}{"{}coverage"{}}]}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ status\ =\ \textcolor{stringliteral}{"{}[OK]"{}}\ \textcolor{keywordflow}{if}\ pct\ >=\ 80\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}[\string~]"{}}\ \textcolor{keywordflow}{if}\ pct\ >=\ 50\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}[X]"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{status\}\ \{category.upper():<15\}\ \{data['found']\}/\{data['expected']\}\ modules\ (\{pct:.0f\}\%)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \ Modules:\ \{',\ '.join(data['modules'])\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ print()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00153}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a313e53925ea23d52bad85a0833e524a9}{00153}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a313e53925ea23d52bad85a0833e524a9}{print\_scorecard}}():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00154}00154\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Print\ final\ scorecard."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00155}00155\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ \textcolor{stringliteral}{"{}="{}}\ *\ 80)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00156}00156\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ BLOCKCHAIN\ SCORECARD"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00157}00157\ \ \ \ \ print(\textcolor{stringliteral}{"{}="{}}\ *\ 80\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00158}00158\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00159}00159\ \ \ \ \ scores\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Bitcoin"{}}:\ \{\textcolor{stringliteral}{"{}tech"{}}:\ 7,\ \textcolor{stringliteral}{"{}adoption"{}}:\ 10,\ \textcolor{stringliteral}{"{}innovation"{}}:\ 6,\ \textcolor{stringliteral}{"{}security"{}}:\ 10,\ \textcolor{stringliteral}{"{}speed"{}}:\ 4,\ \textcolor{stringliteral}{"{}avg"{}}:\ 7.4\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Ethereum"{}}:\ \{\textcolor{stringliteral}{"{}tech"{}}:\ 8,\ \textcolor{stringliteral}{"{}adoption"{}}:\ 9,\ \textcolor{stringliteral}{"{}innovation"{}}:\ 9,\ \textcolor{stringliteral}{"{}security"{}}:\ 8,\ \textcolor{stringliteral}{"{}speed"{}}:\ 5,\ \textcolor{stringliteral}{"{}avg"{}}:\ 7.8\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Solana"{}}:\ \{\textcolor{stringliteral}{"{}tech"{}}:\ 8,\ \textcolor{stringliteral}{"{}adoption"{}}:\ 7,\ \textcolor{stringliteral}{"{}innovation"{}}:\ 8,\ \textcolor{stringliteral}{"{}security"{}}:\ 6,\ \textcolor{stringliteral}{"{}speed"{}}:\ 10,\ \textcolor{stringliteral}{"{}avg"{}}:\ 7.8\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}EGLD"{}}:\ \{\textcolor{stringliteral}{"{}tech"{}}:\ 8,\ \textcolor{stringliteral}{"{}adoption"{}}:\ 6,\ \textcolor{stringliteral}{"{}innovation"{}}:\ 8,\ \textcolor{stringliteral}{"{}security"{}}:\ 8,\ \textcolor{stringliteral}{"{}speed"{}}:\ 9,\ \textcolor{stringliteral}{"{}avg"{}}:\ 7.8\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}OmniBus"{}}:\ \{\textcolor{stringliteral}{"{}tech"{}}:\ 9,\ \textcolor{stringliteral}{"{}adoption"{}}:\ 3,\ \textcolor{stringliteral}{"{}innovation"{}}:\ 10,\ \textcolor{stringliteral}{"{}security"{}}:\ 9,\ \textcolor{stringliteral}{"{}speed"{}}:\ 8,\ \textcolor{stringliteral}{"{}avg"{}}:\ 7.8\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00165}00165\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00166}00166\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00167}00167\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{'Chain':<12\}\ \{'Tech':>6\}\ \{'Adopt':>6\}\ \{'Innov':>6\}\ \{'Sec':>6\}\ \{'Speed':>6\}\ \{'AVG':>6\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00168}00168\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ "{}}\ +\ \textcolor{stringliteral}{"{}-\/"{}}\ *\ 56)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00169}00169\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00170}00170\ \ \ \ \ \textcolor{keywordflow}{for}\ chain,\ s\ \textcolor{keywordflow}{in}\ scores.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{chain:<12\}\ \{s['tech']:>6\}\ \{s['adoption']:>6\}\ \{s['innovation']:>6\}\ \{s['security']:>6\}\ \{s['speed']:>6\}\ \{s['avg']:>6.1f\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00172}00172\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00173}00173\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n\ \ OmniBus\ strengths:"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00174}00174\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [+]\ Post-\/Quantum\ cryptography\ (unique)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00175}00175\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [+]\ Native\ sharding\ with\ 7\ shards"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00176}00176\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [+]\ UBI\ and\ economic\ features\ built-\/in"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00177}00177\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [+]\ Zig\ for\ high-\/performance\ contracts"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00178}00178\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [+]\ Formal\ verification\ (Spark\ invariants)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00179}00179\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00180}00180\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n\ \ OmniBus\ areas\ for\ improvement:"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00181}00181\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [-\/]\ Network\ effect\ (new\ project)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00182}00182\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [-\/]\ Ecosystem\ maturity"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00183}00183\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [-\/]\ Exchange\ listings"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00184}00184\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00185}00185\ \ \ \ \ \textcolor{comment}{\#\ Feature\ coverage\ scores\ (from\ detailed\ 87-\/feature\ analysis)}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00186}00186\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ \textcolor{stringliteral}{"{}="{}}\ *\ 80)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00187}00187\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ FEATURE\ COVERAGE\ (87\ features\ analyzed)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00188}00188\ \ \ \ \ print(\textcolor{stringliteral}{"{}="{}}\ *\ 80\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00190}00190\ \ \ \ \ coverage\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vs\ Bitcoin"{}}:\ \ \ \ \ \{\textcolor{stringliteral}{"{}covered"{}}:\ 66,\ \textcolor{stringliteral}{"{}total"{}}:\ 70,\ \textcolor{stringliteral}{"{}pct"{}}:\ 94.3\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vs\ Ethereum"{}}:\ \ \ \ \{\textcolor{stringliteral}{"{}covered"{}}:\ 75,\ \textcolor{stringliteral}{"{}total"{}}:\ 82,\ \textcolor{stringliteral}{"{}pct"{}}:\ 91.5\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vs\ Solana"{}}:\ \ \ \ \ \ \{\textcolor{stringliteral}{"{}covered"{}}:\ 67,\ \textcolor{stringliteral}{"{}total"{}}:\ 70,\ \textcolor{stringliteral}{"{}pct"{}}:\ 95.7\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vs\ MultiversX"{}}:\ \ \{\textcolor{stringliteral}{"{}covered"{}}:\ 67,\ \textcolor{stringliteral}{"{}total"{}}:\ 69,\ \textcolor{stringliteral}{"{}pct"{}}:\ 97.1\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}vs\ Dogecoin"{}}:\ \ \ \ \{\textcolor{stringliteral}{"{}covered"{}}:\ 56,\ \textcolor{stringliteral}{"{}total"{}}:\ 57,\ \textcolor{stringliteral}{"{}pct"{}}:\ 98.2\},}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00196}00196\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00198}00198\ \ \ \ \ \textcolor{keywordflow}{for}\ chain,\ d\ \textcolor{keywordflow}{in}\ coverage.items():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ bar\_len\ =\ int(d[\textcolor{stringliteral}{"{}pct"{}}]\ /\ 2)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ bar\ =\ \textcolor{stringliteral}{"{}\#"{}}\ *\ bar\_len\ +\ \textcolor{stringliteral}{"{}."{}}\ *\ (50\ -\/\ bar\_len)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{chain:<16\}\ \{d['pct']:>5.1f\}\%\ [\{bar\}]\ (\{d['covered']\}/\{d['total']\})"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00203}00203\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Overall\ Score:\ 92.0\%\ (80/87\ fully\ covered)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00204}00204\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ Implemented:\ 70\ |\ Different\ (by\ design):\ 10\ |\ Missing:\ 0\ |\ Partial:\ 0"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00206}00206\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n\ \ UNIQUE\ TO\ OMNIBUS\ (no\ other\ blockchain\ has):"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00207}00207\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [**]\ Post-\/Quantum\ Crypto\ —\ 5\ NIST\ FIPS\ algorithms\ (ML-\/DSA-\/87,\ Falcon-\/512,\ etc)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00208}00208\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [**]\ Universal\ Basic\ Income\ —\ 1\ OMNI/day\ built-\/in\ at\ protocol\ level"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00209}00209\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [**]\ Physical\ Redemption\ —\ Bread\ Ledger\ (1\ OMNI\ =\ 1\ bread\ worldwide)"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00210}00210\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ \ \ [**]\ 7\ Address\ Types\ per\ User\ —\ 5\ PQ\ +\ SegWit\ +\ ETH\ bridge\ simultaneous"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00211}00211\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00212}00212\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Module\ coverage:"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00213}00213\ \ \ \ \ \textcolor{comment}{\#\ Count\ actual\ modules}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00214}00214\ \ \ \ \ zig\_count\ =\ len(list(CORE.glob(\textcolor{stringliteral}{"{}*.zig"{}})))\ \textcolor{keywordflow}{if}\ CORE.exists()\ \textcolor{keywordflow}{else}\ 0}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00215}00215\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Zig\ modules:\ \{zig\_count\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00216}00216\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Lines\ of\ code:\ \string~17,000"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00217}00217\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Inline\ tests:\ \string~600"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00218}00218\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ Deep\ audit:\ 0\ Critical,\ 0\ High,\ 0\ Medium"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00219}00219\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00220}00220\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ \textcolor{stringliteral}{"{}="{}}\ *\ 80\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00222}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_adce1fae1ba161a3ed76de52e5498c393}{00222}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_adce1fae1ba161a3ed76de52e5498c393}{export\_json}}(path:\ Path):}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00223}00223\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Export\ to\ JSON."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00224}00224\ \ \ \ \ data\ =\ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}features"{}}:\ [}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}category"{}}:\ f.category,}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}feature"{}}:\ f.feature,}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bitcoin"{}}:\ f.bitcoin,}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ethereum"{}}:\ f.ethereum,}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}solana"{}}:\ f.solana,}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}egld"{}}:\ f.egld,}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}omnibus"{}}:\ f.omnibus,}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}notes"{}}:\ f.notes}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ FEATURES}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ ],}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}module\_coverage"{}}:\ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a06cfec35805992d38971c2cdf52d6fe4}{analyze\_module\_coverage}}()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00239}00239\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00240}00240\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00241}00241\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{'w'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ json.dump(data,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00243}00243\ \ \ \ \ print(f\textcolor{stringliteral}{"{}Exported\ to:\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00245}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_ae0fa700c867785ceccdeea1e9db5ebd8}{00245}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_ae0fa700c867785ceccdeea1e9db5ebd8}{export\_html}}(path:\ Path):}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00246}00246\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Export\ to\ HTML."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00247}00247\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00248}00248\ \ \ \ \ rows\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00249}00249\ \ \ \ \ current\_category\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00250}00250\ \ \ \ \ \textcolor{keywordflow}{for}\ feat\ \textcolor{keywordflow}{in}\ FEATURES:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ feat.category\ !=\ current\_category:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ current\_category\ =\ feat.category}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ rows\ +=\ f\textcolor{stringliteral}{'<tr\ class="{}category"{}><td\ colspan="{}6"{}>\{current\_category\}</td></tr>\(\backslash\)n'}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ rows\ +=\ f\textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00256}00256\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ <tr>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00257}00257\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{feat.feature\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00258}00258\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{feat.bitcoin\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00259}00259\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{feat.ethereum\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00260}00260\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{feat.solana\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00261}00261\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td>\{feat.egld\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00262}00262\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ <td\ class="{}omnibus"{}>\{feat.omnibus\}</td>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00263}00263\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ </tr>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00264}00264\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00265}00265\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00266}00266\ \ \ \ \ html\ =\ f\textcolor{stringliteral}{"{}"{}"{}<!DOCTYPE\ html>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00267}00267\ \textcolor{stringliteral}{<html><head>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00268}00268\ \textcolor{stringliteral}{<meta\ charset="{}utf-\/8"{}>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00269}00269\ \textcolor{stringliteral}{<title>OmniBus\ Blockchain\ Comparison</title>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00270}00270\ \textcolor{stringliteral}{<style>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00271}00271\ \textcolor{stringliteral}{body\ \{\{\ font-\/family:\ 'Segoe\ UI',\ sans-\/serif;\ background:\ \#1a1a2e;\ color:\ \#e0e0e0;\ padding:\ 20px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00272}00272\ \textcolor{stringliteral}{h1\ \{\{\ color:\ \#74c0fc;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00273}00273\ \textcolor{stringliteral}{table\ \{\{\ border-\/collapse:\ collapse;\ width:\ 100\%;\ font-\/size:\ 13px;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00274}00274\ \textcolor{stringliteral}{th\ \{\{\ background:\ \#0f3460;\ color:\ \#74c0fc;\ padding:\ 10px;\ text-\/align:\ left;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00275}00275\ \textcolor{stringliteral}{td\ \{\{\ padding:\ 8px;\ border-\/bottom:\ 1px\ solid\ \#2d3561;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00276}00276\ \textcolor{stringliteral}{tr:hover\ \{\{\ background:\ rgba(116,192,252,0.1);\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00277}00277\ \textcolor{stringliteral}{.category\ \{\{\ background:\ \#16213e;\ font-\/weight:\ bold;\ text-\/transform:\ uppercase;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00278}00278\ \textcolor{stringliteral}{.omnibus\ \{\{\ color:\ \#63e6be;\ font-\/weight:\ bold;\ \}\}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00279}00279\ \textcolor{stringliteral}{</style>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00280}00280\ \textcolor{stringliteral}{</head><body>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00281}00281\ \textcolor{stringliteral}{<h1>🚀\ OmniBus\ vs\ Major\ Blockchains</h1>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00282}00282\ \textcolor{stringliteral}{<table>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00283}00283\ \textcolor{stringliteral}{<thead>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00284}00284\ \textcolor{stringliteral}{<tr><th>Feature</th><th>Bitcoin</th><th>Ethereum</th><th>Solana</th><th>EGLD</th><th>OmniBus</th></tr>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00285}00285\ \textcolor{stringliteral}{</thead>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00286}00286\ \textcolor{stringliteral}{<tbody>\{rows\}</tbody>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00287}00287\ \textcolor{stringliteral}{</table>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00288}00288\ \textcolor{stringliteral}{<p\ style="{}margin-\/top:\ 30px;\ color:\ \#888;"{}>Generated\ by\ OmniBus\ Blockchain\ Comparison\ Tool</p>}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00289}00289\ \textcolor{stringliteral}{</body></html>"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00290}00290\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00291}00291\ \ \ \ \ \textcolor{keyword}{with}\ open(path,\ \textcolor{stringliteral}{'w'},\ encoding=\textcolor{stringliteral}{'utf-\/8'})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00292}00292\ \ \ \ \ \ \ \ \ f.write(html)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00293}00293\ \ \ \ \ print(f\textcolor{stringliteral}{"{}Exported\ to:\ \{path\}"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00295}\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a51af30a60f9f02777c6396b8247e356f}{00295}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00296}00296\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}OmniBus\ Blockchain\ Comparison"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00297}00297\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ metavar=\textcolor{stringliteral}{"{}FILE"{}},\ help=\textcolor{stringliteral}{"{}Export\ JSON"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00298}00298\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/html"{}},\ metavar=\textcolor{stringliteral}{"{}FILE"{}},\ help=\textcolor{stringliteral}{"{}Export\ HTML"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00299}00299\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/coverage"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}Show\ module\ coverage"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00300}00300\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00301}00301\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00302}00302\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ \textcolor{stringliteral}{"{}="{}}\ *\ 80)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00303}00303\ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ OmniBus\ Blockchain\ Comparison\ Tool"{}})}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00304}00304\ \ \ \ \ print(\textcolor{stringliteral}{"{}="{}}\ *\ 80)}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00305}00305\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00306}00306\ \ \ \ \ \textcolor{keywordflow}{if}\ args.coverage:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a6a0db648a8115fa2ae2f7909371b3c38}{print\_module\_coverage}}()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00308}00308\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_aa802d89700cbe9e091594716a43bcaba}{print\_comparison}}()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00310}00310\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a6a0db648a8115fa2ae2f7909371b3c38}{print\_module\_coverage}}()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00311}00311\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a313e53925ea23d52bad85a0833e524a9}{print\_scorecard}}()}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00312}00312\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00313}00313\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00314}00314\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_adce1fae1ba161a3ed76de52e5498c393}{export\_json}}(Path(args.json))}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00315}00315\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00316}00316\ \ \ \ \ \textcolor{keywordflow}{if}\ args.html:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_ae0fa700c867785ceccdeea1e9db5ebd8}{export\_html}}(Path(args.html))}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00318}00318\ }
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00319}00319\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{blockchain__vs__comparison_8py_source_l00320}00320\ \ \ \ \ \doxymbox{\hyperlink{namespaceblockchain__vs__comparison_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

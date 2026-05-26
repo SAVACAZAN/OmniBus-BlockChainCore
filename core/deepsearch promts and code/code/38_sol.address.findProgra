@@ -1,0 +1,4 @@
+var builder = sol.tx_builder.TxBuilder.init(allocator, fee_payer);
+try builder.addInstruction(instruction);
+builder.setRecentBlockhash(blockhash);
+const tx = try builder.buildSigned(private_key);

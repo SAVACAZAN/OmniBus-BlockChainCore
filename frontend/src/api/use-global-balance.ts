@@ -23,11 +23,11 @@
  */
 
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "./rpc-client";
+import { rpc } from "./rpc-client";
 import { useWallet } from "./use-wallet";
 import { useActiveSlot } from "./use-active-slot";
+import { SAT_PER_OMNI } from "../utils/fmt";
 
-const rpc = new OmniBusRpcClient();
 const POLL_MS = 8_000;
 
 export type StakeLockEntry = {
@@ -113,18 +113,14 @@ async function refreshOnce(address: string): Promise<void> {
     //      block landed mid-fetch — caller saw "wallet=0 staked=212" for a
     //      single tick which the UI rendered as a glaring inconsistency.
     const summary = (await rpc
-      .request_raw("getwalletsummary", [{ address }])
+      .getWalletSummary(address)
       .catch(() => null)) as WalletSummaryRpc | null;
 
     if (!summary) {
       // Fall through to legacy fan-out only if the new RPC isn't reachable.
       // Old nodes (pre 2026-05-13) don't ship getwalletsummary.
-      const balRaw = await rpc
-        .request_raw("getbalance", [address])
-        .catch(() => null);
-      const wallet_sat = typeof balRaw === "number"
-        ? balRaw
-        : Number((balRaw as { balance?: number } | null)?.balance ?? 0);
+      const balRaw = await rpc.getAddressBalance(address).catch(() => null);
+      const wallet_sat = balRaw?.balance ?? 0;
       emit({
         address,
         wallet_sat,
@@ -242,5 +238,5 @@ export function refreshGlobalBalance(): void {
 
 /** Format SAT → "1.2345" OMNI string (4 decimals). */
 export function formatOmni(sat: number): string {
-  return (sat / 1e9).toFixed(4);
+  return (sat / SAT_PER_OMNI).toFixed(4);
 }

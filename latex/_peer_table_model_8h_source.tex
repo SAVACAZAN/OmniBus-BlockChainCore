@@ -1,0 +1,33 @@
+\doxysection{Peer\+Table\+Model.\+h}
+\hypertarget{_peer_table_model_8h_source}{}\label{_peer_table_model_8h_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/models/PeerTableModel.h@{archived-\/4-\/eterniti/gui-\/qt/src/models/PeerTableModel.h}}
+\doxymbox{\hyperlink{_peer_table_model_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00001}00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QAbstractTableModel>}}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <QList>}}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_types_8h}{core/Types.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00007}00007\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00009}\doxymbox{\hyperlink{classomni_1_1_peer_table_model}{00009}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classomni_1_1_peer_table_model_a66549e22124730b549f42abb7455034d}{PeerTableModel}}\ :\ \textcolor{keyword}{public}\ QAbstractTableModel\ \{}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00010}00010\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00011}00011\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00012}\doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a92094904634f3480cc7b8a4ac396e0c5}{00012}}\ \ \ \ \ \textcolor{keyword}{enum}\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17}{Column}}\ \{\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a09da19135d97632d88421c9c63d747e6}{ColId}},\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a1e81bee68dc8ccfee6dac696d5c3c96b}{ColHost}},\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a0c7d8675518a45abe358cbf5e55db49f}{ColPort}},\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17a92094904634f3480cc7b8a4ac396e0c5}{ColAlive}},\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_af6ba0339f928ca6814ba0fa040af5a17abf3bd2d7aa9bf0a82df40f32d1ae92b9}{ColCount}}\ \};}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00014}00014\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_a66549e22124730b549f42abb7455034d}{PeerTableModel}}(QObject*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00016}00016\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_ac914d8710422252afbb1d74d331937f8}{rowCount}}(\textcolor{keyword}{const}\ QModelIndex\&\ parent\ =\ \{\})\ \textcolor{keyword}{const}\ \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00017}00017\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_a92d4e4dfa0d56360db069297968e7b86}{columnCount}}(\textcolor{keyword}{const}\ QModelIndex\&\ parent\ =\ \{\})\ \textcolor{keyword}{const}\ \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00018}00018\ \ \ \ \ QVariant\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_a60e96f66ed18956c6110ea3511184d4e}{data}}(\textcolor{keyword}{const}\ QModelIndex\&\ index,\ \textcolor{keywordtype}{int}\ role\ =\ Qt::DisplayRole)\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00019}00019\ \ \ \ \ QVariant\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_ac63e8efdd60b4dc48a50535dd39527de}{headerData}}(\textcolor{keywordtype}{int}\ section,\ Qt::Orientation\ orientation,\ \textcolor{keywordtype}{int}\ role\ =\ Qt::DisplayRole)\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_peer_table_model_aec151f4c548c4c2ff05e5af2c6b95be4}{setPeers}}(\textcolor{keyword}{const}\ QList<PeerInfo>\&\ peers);}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00023}00023\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00024}00024\ \ \ \ \ QList<PeerInfo>\ m\_peers;}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00025}00025\ \};}
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{_peer_table_model_8h_source_l00027}00027\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

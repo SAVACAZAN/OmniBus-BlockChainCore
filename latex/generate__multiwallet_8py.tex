@@ -1,0 +1,103 @@
+\doxysection{scripts/\+generate\+\_\+multiwallet.py File Reference}
+\hypertarget{generate__multiwallet_8py}{}\label{generate__multiwallet_8py}\index{scripts/generate\_multiwallet.py@{scripts/generate\_multiwallet.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacegenerate__multiwallet}{generate\+\_\+multiwallet}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a573c5180f78317b57ba96e0047db748c}{generate\+\_\+multiwallet.\+\_\+bech32\+\_\+polymod}} (values)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_aea9b69761a954d20c2b19e52109ecb9c}{generate\+\_\+multiwallet.\+\_\+bech32\+\_\+hrp\+\_\+expand}} (hrp)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_aa3e4e5034648673341bd248bf5c22a5f}{generate\+\_\+multiwallet.\+\_\+bech32\+\_\+create\+\_\+checksum}} (hrp, data, spec)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_afecdcbbbaed13384f356d1c8a285b534}{generate\+\_\+multiwallet.\+\_\+convertbits}} (data, frombits, tobits, pad=True)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a9cc432056d6c4d479cafaa5e3be6a9d2}{generate\+\_\+multiwallet.\+bech32\+\_\+encode}} (hrp, witver, witprog)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a5131aff6356a52dd3837c3c38b38dc73}{generate\+\_\+multiwallet.\+\_\+b58encode}} (bytes data)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__multiwallet_acb100d43e1ce1f93d11efb2bb2ddecb3}{generate\+\_\+multiwallet.\+\_\+checksum}} (bytes d)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__multiwallet_ad76d5a49ab295544aaaf16a4826a4f94}{generate\+\_\+multiwallet.\+\_\+hash160}} (bytes d)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a9b4b03d290c4b6c37173ba69b50d0adb}{generate\+\_\+multiwallet.\+\_\+wif\+\_\+encode}} (bytes privkey, int version=0x80, bool compressed=True)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__multiwallet_a5e3b26742b9f7a597c26ca57549bf36b}{generate\+\_\+multiwallet.\+\_\+mnemonic\+\_\+to\+\_\+seed}} (str mnemonic, str passphrase="{}"{})
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a61b8fdb9aed25cbbd18f2c46b10ee288}{generate\+\_\+multiwallet.\+\_\+generate\+\_\+mnemonic\+\_\+12}} ()
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a1cc33c49a8dd8dff42c2b57163521bcc}{generate\+\_\+multiwallet.\+\_\+seed\+\_\+to\+\_\+keypair}} (bytes seed, int coin\+\_\+type, int purpose=44, int index=0)
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a8dc092e45ba686693ebd54b2510a86e9}{generate\+\_\+multiwallet.\+\_\+serialize\+\_\+xkey}} (bytes version\+\_\+bytes, int depth, bytes fingerprint, int child\+\_\+index, bytes chain\+\_\+code, bytes key\+\_\+data)
+\item 
+bytes \doxymbox{\hyperlink{namespacegenerate__multiwallet_a5efe9601cfd07c54a7e4d2ef6a56196d}{generate\+\_\+multiwallet.\+\_\+master\+\_\+fingerprint}} (bytes seed)
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__multiwallet_add70a5ded55df3c3a02019fdcea9b844}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+omni\+\_\+addresses}} (bytes seed)
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__multiwallet_a44b906fd362cd95b8bd33a9d01f74c6d}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+btc\+\_\+addresses}} (bytes seed)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a56046bca00e1251ebee451f02f88915d}{generate\+\_\+multiwallet.\+\_\+btc\+\_\+addr\+\_\+legacy}} (priv, pub, path, chain, index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_adf2d9b626e9657c6007e983d6a276602}{generate\+\_\+multiwallet.\+\_\+btc\+\_\+addr\+\_\+segwit\+\_\+p2sh}} (priv, pub, path, chain, index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a5a9c089a1be2176ba67b4a3e8038e2d8}{generate\+\_\+multiwallet.\+\_\+btc\+\_\+addr\+\_\+native\+\_\+segwit}} (priv, pub, path, chain, index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_ac4c412a32e9bf675336a05ec8ab5c0b6}{generate\+\_\+multiwallet.\+\_\+btc\+\_\+addr\+\_\+taproot}} (priv, pub, path, chain, index)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_afc311463bc0c4eb08adee8d837e0ad2c}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+account\+\_\+xkeys}} (seed, purpose, coin\+\_\+type=0, account=0)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_af679bec7918559a5b6c514738f132d3c}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+btc\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a74b484a6ddacaeb6804711fffc2b4878}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+omni\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a9b3a12a7151474840f0172252c42e26b}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+single\+\_\+eth}} (bytes seed, int index=0)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a965eabe6725d6d9968080d5aa81a1a23}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+single\+\_\+egld}} (bytes seed, int index=0)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a42f0155330622af7fbc9b85327758923}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+single\+\_\+sol}} (bytes seed, int index=0)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a21931ac565bef5e5504af3d038dee992}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+eth\+\_\+address}} (seed)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a5782da25aa991db35ccf46a57d2e5835}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+egld\+\_\+address}} (seed)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_adcbf4c082c96348df526bb533015621d}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+sol\+\_\+address}} (seed)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a1259b3436cac4ac341dfe128bb0ea43f}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+eth\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_ae9d580923c82b507f7eb2ea94ec81a5e}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+egld\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a5e51f7e257c3865a8ea57acffd970b1b}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+sol\+\_\+accounts}} (bytes seed, address\+\_\+indices=None)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_ad57a4683f8a0437b9ca9c9846fb69256}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+secp\+\_\+chain}} (seed, coin\+\_\+type, purpose, index, version\+\_\+byte, hrp=None, addr\+\_\+format="{}base58"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a2acea5f5bbfd4c6808a2063867808964}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+ed25519\+\_\+chain}} (seed, coin\+\_\+type, index, hrp=None, addr\+\_\+format="{}base58"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a0e68fa3f15fa715dd7fb39afde3e6f29}{generate\+\_\+multiwallet.\+\_\+make\+\_\+secp\+\_\+accounts}} (seed, coin\+\_\+type, version\+\_\+byte, name, address\+\_\+indices, purpose=44, hrp=None, addr\+\_\+format="{}base58"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_aba0ae521caab4c20cc4862c055b2e3f9}{generate\+\_\+multiwallet.\+\_\+make\+\_\+ed25519\+\_\+accounts}} (seed, coin\+\_\+type, name, address\+\_\+indices, hrp=None, addr\+\_\+format="{}base58"{})
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a60016de67f604a245bf43a05f56042c2}{generate\+\_\+multiwallet.\+\_\+derive\+\_\+ltc\+\_\+accounts}} (seed, address\+\_\+indices=None)
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_a3b8eaed0dd525e735fc618ee154e2aba}{generate\+\_\+multiwallet.\+generate\+\_\+multiwallet}} (str mnemonic=None, str passphrase="{}"{}, list address\+\_\+indices=None)
+\item 
+\doxymbox{\hyperlink{namespacegenerate__multiwallet_a51af30a60f9f02777c6396b8247e356f}{generate\+\_\+multiwallet.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a609a45ebd3363b286a8dd1b4bd0953a7}{generate\+\_\+multiwallet.\+CHARSET}} = "{}qpzry9x8gf2tvdw0s3jn54khce6mua7l"{}
+\item 
+int \doxymbox{\hyperlink{namespacegenerate__multiwallet_aff0657a5c9b2a2cdfa588c7f4b8d2bf0}{generate\+\_\+multiwallet.\+BECH32\+\_\+\+CONST}} = 1
+\item 
+int \doxymbox{\hyperlink{namespacegenerate__multiwallet_a936688b6cc06072d0a733119e1217f53}{generate\+\_\+multiwallet.\+BECH32\+M\+\_\+\+CONST}} = 0x2bc830a3
+\item 
+list \doxymbox{\hyperlink{namespacegenerate__multiwallet_a8ee191e7924ca2c4868e7e0b2c30f058}{generate\+\_\+multiwallet.\+GEN}} = \+[0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]\+
+\item 
+str \doxymbox{\hyperlink{namespacegenerate__multiwallet_a3832beee66470c5eb5f75e0dddbc2855}{generate\+\_\+multiwallet.\+\_\+\+B58}} = "{}123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"{}
+\item 
+dict \doxymbox{\hyperlink{namespacegenerate__multiwallet_aef4c4aaf21a5baf4939a4d46d5a52a7b}{generate\+\_\+multiwallet.\+\_\+\+XKEY\+\_\+\+VERSIONS}}
+\end{DoxyCompactItemize}

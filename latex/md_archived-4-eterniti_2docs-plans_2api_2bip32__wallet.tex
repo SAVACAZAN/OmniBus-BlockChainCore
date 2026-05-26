@@ -1,0 +1,414 @@
+\chapter{Module:\+ {\ttfamily bip32\+\_\+wallet} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet}{}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet}\index{Module: $<$tt$>$bip32\_wallet$<$/tt$>$@{Module: $<$tt$>$bip32\_wallet$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md836}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md836}%
+
+
+\begin{quote}
+BIP-\/32 HD wallet derivation — HMAC-\/\+SHA512 master key generation from seed, child key derivation (normal and hardened), BIP-\/44 path support for 5 PQ domains. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+bip32\+\_\+wallet.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 399 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 12 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 3 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 8
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md838}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md838}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md839}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md839}
+
+\begin{DoxyItemize}
+\item \`{}\+BIP32\+Wallet\`{}{\ttfamily BIP32\+Wallet}
+\end{DoxyItemize}— BIP-\/32 Hierarchical Deterministic Wallet HMAC-\/\+SHA512 real + secp256k1 real pentr...
+\begin{DoxyItemize}
+\item \`{}\+PQDomain\+Derivation\`{}{\ttfamily PQDomain\+Derivation}
+\end{DoxyItemize}— Manager pentru cele 5 domenii Post-\/\+Quantum Omni\+Bus
+\begin{DoxyItemize}
+\item \`{}\+Domain\`{}{\ttfamily Domain}
+\end{DoxyItemize}— Data structure for domain. Fields include:\+ name, algorithm, prefix, coin\+\_\+type, s...\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md840}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md840}
+
+\begin{DoxyItemize}
+\item 1 constants defined1 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md841}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md841}
+
+\begin{DoxyItemize}
+\item \`{}init\+From\+Mnemonic()\`{}{\ttfamily init\+From\+Mnemonic()}
+\end{DoxyItemize}— Init din mnemonic — BIP-\/39 COMPLET PBKDF2-\/\+HMAC-\/\+SHA512(password=mnemoni...
+\begin{DoxyItemize}
+\item \`{}init\+From\+Mnemonic\+Passphrase()\`{}{\ttfamily init\+From\+Mnemonic\+Passphrase()}
+\end{DoxyItemize}— BIP-\/39 cu passphrase optionala
+\begin{DoxyItemize}
+\item \`{}init\+From\+Seed()\`{}{\ttfamily init\+From\+Seed()}
+\end{DoxyItemize}— Init din seed raw 64 bytes (output BIP-\/39 PBKDF2) BIP-\/32 master:\+ IL\texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}I...
+\begin{DoxyItemize}
+\item \`{}derive\+Child\+Key()\`{}{\ttfamily derive\+Child\+Key()}
+\end{DoxyItemize}— Deriva cheie la m/\+44\textquotesingle{}/\+0\textquotesingle{}/\+0\textquotesingle{}/\+0/\+index
+\begin{DoxyItemize}
+\item \`{}derive\+Child\+Key\+For\+Path()\`{}{\ttfamily derive\+Child\+Key\+For\+Path()}
+\end{DoxyItemize}— Deriva cheie la m/\+purpose\textquotesingle{}/\+coin\+\_\+type\textquotesingle{}/\+0\textquotesingle{}/\+0/\+index (BIP-\/44)
+\begin{DoxyItemize}
+\item \`{}derive\+Public\+Key()\`{}{\ttfamily derive\+Public\+Key()}
+\end{DoxyItemize}— Genereaza compressed public key din cheie derivata Acum REAL:\+ secp256k...
+\begin{DoxyItemize}
+\item \`{}derive\+Address()\`{}{\ttfamily derive\+Address()}
+\end{DoxyItemize}— Genereaza adresa din cheie derivata — Base58\+Check(0x4F \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} hash160)
+\begin{DoxyItemize}
+\item \`{}derive\+Address\+For\+Domain()\`{}{\ttfamily derive\+Address\+For\+Domain()}
+\end{DoxyItemize}— Genereaza adresa pentru domeniu PQ — Base58\+Check(0x4F \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} hash160)
+\begin{DoxyItemize}
+\item \`{}base58\+Check\+Encode()\`{}{\ttfamily base58\+Check\+Encode()}
+\end{DoxyItemize}— Base58\+Check(version\+\_\+byte \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} hash160) — identic cu Bitcoin/\+\+Omni\+Bus Pyth...
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}derive\+All\+Addresses()\`{}{\ttfamily derive\+All\+Addresses()}
+\end{DoxyItemize}— Performs the derive all addresses operation on the bip32\+\_\+wallet module...
+\begin{DoxyItemize}
+\item \`{}get\+Domain()\`{}{\ttfamily get\+Domain()}
+\end{DoxyItemize}— Returns the domain for the given index.
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md843}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md843}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md844}{}\doxysubsection{\texorpdfstring{{\ttfamily BIP32\+Wallet}}{{\ttfamily BIP32\+Wallet}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md844}
+BIP-\/32 Hierarchical Deterministic Wallet HMAC-\/\+SHA512 real + secp256k1 real pentru compressed pubkey
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily master\+\_\+seed}  &{\ttfamily \+[64]\+u8}  &Master\+\_\+seed  \\
+{\ttfamily master\+\_\+key}  &{\ttfamily \+[32]\+u8}  &Master\+\_\+key  \\
+{\ttfamily master\+\_\+chain\+\_\+code}  &{\ttfamily \+[32]\+u8}  &Master\+\_\+chain\+\_\+code  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 10}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md846}{}\doxysubsection{\texorpdfstring{{\ttfamily PQDomain\+Derivation}}{{\ttfamily PQDomain\+Derivation}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md846}
+Manager pentru cele 5 domenii Post-\/\+Quantum Omni\+Bus
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacewallet}{wallet}}  &{\ttfamily BIP32\+Wallet}  &Wallet  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 272}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md848}{}\doxysubsection{\texorpdfstring{{\ttfamily Domain}}{{\ttfamily Domain}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md848}
+Data structure for domain. Fields include:\+ name, algorithm, prefix, coin\+\_\+type, security\+\_\+level.
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily name}  &{\ttfamily \+[]\+const u8}  &Name  \\
+{\ttfamily algorithm}  &{\ttfamily \+[]\+const u8}  &Algorithm  \\
+{\ttfamily prefix}  &{\ttfamily \+[]\+const u8}  &Prefix  \\
+{\ttfamily coin\+\_\+type}  &{\ttfamily u32}  &Coin\+\_\+type  \\
+{\ttfamily security\+\_\+level}  &{\ttfamily u32}  &Security\+\_\+level  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 275}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md850}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md850}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily DOMAINS}  &{\ttfamily \+[\+\_\+]\+Domain\{}  &D o m a i n s  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md852}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md852}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md853}{}\doxysubsection{\texorpdfstring{{\ttfamily init\+From\+Mnemonic()}}{{\ttfamily init\+From\+Mnemonic()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md853}
+Init din mnemonic — BIP-\/39 COMPLET PBKDF2-\/\+HMAC-\/\+SHA512(password=mnemonic, salt="{}mnemonic"{}+passphrase, c=2048, dk\+Len=64) Identic cu toate implementarile BIP-\/39 standard (Bitcoin, Ethereum, etc.)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ initFromMnemonic(mnemonic:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !BIP32Wallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mnemonic}  &{\ttfamily \+[]\+const u8}  &Mnemonic  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+BIP32\+Wallet}
+
+{\itshape Defined at line 21}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md855}{}\doxysubsection{\texorpdfstring{{\ttfamily init\+From\+Mnemonic\+Passphrase()}}{{\ttfamily init\+From\+Mnemonic\+Passphrase()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md855}
+BIP-\/39 cu passphrase optionala
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ initFromMnemonicPassphrase(mnemonic:\ []const\ u8,\ passphrase:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ !BIP32Wallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily mnemonic}  &{\ttfamily \+[]\+const u8}  &Mnemonic  \\
+{\ttfamily passphrase}  &{\ttfamily \+[]\+const u8}  &Passphrase  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+BIP32\+Wallet}
+
+{\itshape Defined at line 26}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md857}{}\doxysubsection{\texorpdfstring{{\ttfamily init\+From\+Seed()}}{{\ttfamily init\+From\+Seed()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md857}
+Init din seed raw 64 bytes (output BIP-\/39 PBKDF2) BIP-\/32 master:\+ IL\texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|}\+IR = HMAC-\/\+SHA512("{}\+Bitcoin seed"{}, seed)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ initFromSeed(seed:\ [64]u8,\ allocator:\ std.mem.Allocator)\ !BIP32Wallet\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily seed}  &{\ttfamily \+[64]\+u8}  &Seed  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+BIP32\+Wallet}
+
+{\itshape Defined at line 49}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md859}{}\doxysubsection{\texorpdfstring{{\ttfamily derive\+Child\+Key()}}{{\ttfamily derive\+Child\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md859}
+Deriva cheie la m/\+44\textquotesingle{}/\+0\textquotesingle{}/\+0\textquotesingle{}/\+0/\+index
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deriveChildKey(self:\ *const\ BIP32Wallet,\ index:\ u32)\ ![32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const BIP32\+Wallet}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[32]\+u8}
+
+{\itshape Defined at line 67}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md861}{}\doxysubsection{\texorpdfstring{{\ttfamily derive\+Child\+Key\+For\+Path()}}{{\ttfamily derive\+Child\+Key\+For\+Path()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md861}
+Deriva cheie la m/\+purpose\textquotesingle{}/\+coin\+\_\+type\textquotesingle{}/\+0\textquotesingle{}/\+0/\+index (BIP-\/44)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deriveChildKeyForPath(self:\ *const\ BIP32Wallet,\ purpose:\ u32,\ coin\_type:\ u32,\ index:\ u32)\ ![32]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const BIP32\+Wallet}  &The instance  \\
+{\ttfamily purpose}  &{\ttfamily u32}  &Purpose  \\
+{\ttfamily coin\+\_\+type}  &{\ttfamily u32}  &Coin\+\_\+type  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[32]\+u8}
+
+{\itshape Defined at line 72}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md863}{}\doxysubsection{\texorpdfstring{{\ttfamily derive\+Public\+Key()}}{{\ttfamily derive\+Public\+Key()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md863}
+Genereaza compressed public key din cheie derivata Acum REAL:\+ secp256k1 point multiply
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ derivePublicKey(self:\ *const\ BIP32Wallet,\ index:\ u32)\ ![33]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const BIP32\+Wallet}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[33]\+u8}
+
+{\itshape Defined at line 184}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md865}{}\doxysubsection{\texorpdfstring{{\ttfamily derive\+Address()}}{{\ttfamily derive\+Address()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md865}
+Genereaza adresa din cheie derivata — Base58\+Check(0x4F \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} hash160)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deriveAddress(self:\ *const\ BIP32Wallet,\ index:\ u32,\ prefix:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const BIP32\+Wallet}  &The instance  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+{\ttfamily prefix}  &{\ttfamily \+[]\+const u8}  &Prefix  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 190}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md867}{}\doxysubsection{\texorpdfstring{{\ttfamily derive\+Address\+For\+Domain()}}{{\ttfamily derive\+Address\+For\+Domain()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md867}
+Genereaza adresa pentru domeniu PQ — Base58\+Check(0x4F \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} hash160)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deriveAddressForDomain(self:\ *const\ BIP32Wallet,\ coin\_type:\ u32,\ index:\ u32,\ prefix:\ []const\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const BIP32\+Wallet}  &The instance  \\
+{\ttfamily coin\+\_\+type}  &{\ttfamily u32}  &Coin\+\_\+type  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+{\ttfamily prefix}  &{\ttfamily \+[]\+const u8}  &Prefix  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 199}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md869}{}\doxysubsection{\texorpdfstring{{\ttfamily base58\+Check\+Encode()}}{{\ttfamily base58\+Check\+Encode()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md869}
+Base58\+Check(version\+\_\+byte \texorpdfstring{$\vert$}{|}\texorpdfstring{$\vert$}{|} hash160) — identic cu Bitcoin/\+\+Omni\+Bus Python Output:\+ Base58 string alocat cu allocator (caller trebuie sa elibereze)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ base58CheckEncode(hash160:\ [20]u8,\ version:\ u8,\ allocator:\ std.mem.Allocator)\ ![]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily hash160}  &{\ttfamily \+[20]\+u8}  &Hash160  \\
+{\ttfamily version}  &{\ttfamily u8}  &Version  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[]\+u8}
+
+{\itshape Defined at line 214}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md871}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md871}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init(wallet:\ BIP32Wallet)\ PQDomainDerivation\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily \doxylink{namespacewallet}{wallet}}  &{\ttfamily BIP32\+Wallet}  &Wallet  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily PQDomain\+Derivation}
+
+{\itshape Defined at line 291}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md873}{}\doxysubsection{\texorpdfstring{{\ttfamily derive\+All\+Addresses()}}{{\ttfamily derive\+All\+Addresses()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md873}
+Performs the derive all addresses operation on the bip32\+\_\+wallet module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ deriveAllAddresses(self:\ *const\ PQDomainDerivation,\ allocator:\ std.mem.Allocator)\ ![5][]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const PQDomain\+Derivation}  &The instance  \\
+{\ttfamily allocator}  &{\ttfamily std.\+mem.\+Allocator}  &Allocator  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !\+[5]\+\+[]\+u8}
+
+{\itshape Defined at line 295}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md875}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Domain()}}{{\ttfamily get\+Domain()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2bip32__wallet_autotoc_md875}
+Returns the domain for the given index.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getDomain(index:\ u32)\ ?Domain\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily index}  &{\ttfamily u32}  &Index  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?Domain}
+
+{\itshape Defined at line 303}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

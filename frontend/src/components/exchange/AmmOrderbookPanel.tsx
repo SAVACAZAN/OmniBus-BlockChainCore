@@ -19,7 +19,7 @@
  * Tick spacing: fee 500 (0.05%) → 10 | fee 3000 (0.3%) → 60 | fee 10000 (1%) → 200
  */
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 // ── Pool catalogue ────────────────────────────────────────────────────────────
 
@@ -283,7 +283,6 @@ function buildV2Levels(res: V2Reserves, pool: PoolDef): Level[] {
       : Math.pow(10, pool.token0Dec - pool.token1Dec);
     const targetRaw = pool.showToken0Price ? targetPrice / decAdj : 1 / (targetPrice / decAdj);
     const newR1 = Math.sqrt(k * targetRaw);
-    const newR0 = k / newR1;
     const delta1 = (r1 - newR1) / dec1; // token1 flowing out (positive = bid)
     bidQtys.push(Math.abs(delta1));
   }
@@ -365,11 +364,14 @@ function tickToPrice(tick: number, pool: PoolDef): number {
   return pool.showToken0Price ? p1in0 : 1 / p1in0;
 }
 
+const TICK_SPACING: Record<number, number> = {
+  500:   10,
+  3000:  60,
+  10000: 200,
+};
+
 function tickSpacing(fee: number): number {
-  if (fee === 500)   return 10;
-  if (fee === 3000)  return 60;
-  if (fee === 10000) return 200;
-  return 10;
+  return TICK_SPACING[fee] ?? 10;
 }
 
 // sqrtPrice from tick: sqrt(1.0001^tick) as a plain float
@@ -570,16 +572,16 @@ export function AmmOrderbookPanel() {
 
   useEffect(() => {
     setPrice(null); setLevels([]); setError(null); setEthUsd(null); setIsV2(false);
-    load();
+    void load();
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(load, 15000);
+    timerRef.current = setInterval(() => { void load(); }, 15000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [load]);
 
   useEffect(() => { setPoolIdx(0); }, [chainIdx]);
 
-  const asks = levels.filter(l => l.side === "ask").sort((a, b) => a.price - b.price);
-  const bids = levels.filter(l => l.side === "bid").sort((a, b) => b.price - a.price);
+  const asks = useMemo(() => levels.filter(l => l.side === "ask").sort((a, b) => a.price - b.price), [levels]);
+  const bids = useMemo(() => levels.filter(l => l.side === "bid").sort((a, b) => b.price - a.price), [levels]);
 
   // showToken0Price → display token0 price in token1 units, label = "token0/token1"
   // otherwise      → display token1 price in token0 units, label = "token1/token0"
@@ -613,6 +615,36 @@ export function AmmOrderbookPanel() {
             <span className="text-[9px] text-mempool-text-dim font-mono">
               {updatedAt.toLocaleTimeString()}
             </span>
+          )}
+          {levels.length > 0 && pool && (
+            <button
+              onClick={() => {
+                const poolLabel = pool.label.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+                const rows = [
+                  ["side","price","qty0","qty1","liq_pct","tick_lo","tick_hi"].join(","),
+                  ...[...levels].sort((a, b) => a.side === b.side
+                    ? (a.side === "ask" ? a.price - b.price : b.price - a.price)
+                    : a.side === "ask" ? -1 : 1
+                  ).map((l) => [
+                    l.side,
+                    l.price.toFixed(8),
+                    l.qty0.toFixed(8),
+                    l.qty1.toFixed(8),
+                    l.liqPct.toFixed(4),
+                    l.tickLo,
+                    l.tickHi,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = `omnibus-amm-${poolLabel}.csv`;
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-1 text-[10px] rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+            >
+              ⬇ CSV
+            </button>
           )}
           <button
             onClick={load}
@@ -728,12 +760,12 @@ export function AmmOrderbookPanel() {
               <div className="text-[10px] text-mempool-text-dim text-center py-2">no ask ticks sampled</div>
             ) : (
               <div className="max-h-52 overflow-y-auto space-y-px">
-                {[...asks].reverse().map((l, i) => {
+                {[...asks].reverse().map((l) => {
                   const usd = toUsd(l.price);
                   // Ask: token0 is being sold (e.g. LCX or WBTC); qty1 is also there but tiny
                   const mainQty = l.qty0 > 0 ? fmtQty(l.qty0, pool!.token0Symbol) : fmtQty(l.qty1, pool!.token1Symbol);
                   return (
-                    <div key={`a${i}`} className={`relative grid gap-1 text-[10px] font-mono py-0.5 px-1 rounded overflow-hidden ${needsEthConv ? "grid-cols-[1fr_58px_90px_36px]" : "grid-cols-[1fr_90px_36px]"}`}>
+                    <div key={`a${l.price}`} className={`relative grid gap-1 text-[10px] font-mono py-0.5 px-1 rounded overflow-hidden ${needsEthConv ? "grid-cols-[1fr_58px_90px_36px]" : "grid-cols-[1fr_90px_36px]"}`}>
                       <div className="absolute inset-y-0 right-0 bg-orange-500/10" style={{ width: `${l.liqPct}%` }} />
                       <span className="text-orange-400 relative z-10">{pricePrefix(pool!)}{fmtPrice(l.price, pool!)}{priceSuffix(pool!)}</span>
                       {needsEthConv && <span className="text-yellow-300/70 relative z-10 text-right">${usd !== null ? usd.toFixed(4) : "…"}</span>}
@@ -775,12 +807,12 @@ export function AmmOrderbookPanel() {
               <div className="text-[10px] text-mempool-text-dim text-center py-2">no bid ticks sampled</div>
             ) : (
               <div className="max-h-52 overflow-y-auto space-y-px">
-                {bids.map((l, i) => {
+                {bids.map((l) => {
                   const usd = toUsd(l.price);
                   // Bid: token1 (WETH) is the liquidity on bid side
                   const mainQty = l.qty1 > 0 ? fmtQty(l.qty1, pool!.token1Symbol) : fmtQty(l.qty0, pool!.token0Symbol);
                   return (
-                    <div key={`b${i}`} className={`relative grid gap-1 text-[10px] font-mono py-0.5 px-1 rounded overflow-hidden ${needsEthConv ? "grid-cols-[1fr_58px_90px_36px]" : "grid-cols-[1fr_90px_36px]"}`}>
+                    <div key={`b${l.price}`} className={`relative grid gap-1 text-[10px] font-mono py-0.5 px-1 rounded overflow-hidden ${needsEthConv ? "grid-cols-[1fr_58px_90px_36px]" : "grid-cols-[1fr_90px_36px]"}`}>
                       <div className="absolute inset-y-0 right-0 bg-green-500/10" style={{ width: `${l.liqPct}%` }} />
                       <span className="text-green-400 relative z-10">{pricePrefix(pool!)}{fmtPrice(l.price, pool!)}{priceSuffix(pool!)}</span>
                       {needsEthConv && <span className="text-yellow-300/70 relative z-10 text-right">${usd !== null ? usd.toFixed(4) : "…"}</span>}

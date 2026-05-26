@@ -1,0 +1,171 @@
+\doxysection{tx-\/flood-\/stress.Stress\+Results Class Reference}
+\hypertarget{classtx-flood-stress_1_1_stress_results}{}\label{classtx-flood-stress_1_1_stress_results}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9ce074816a85340c1277640cfc6b49e8}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\item 
+\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9abf4245437d8a28f52ceb6cda7a3254}{record}} (self, str method, float latency, bool success)
+\item 
+int \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_af0180c97ed52165e85e3678670040263}{total}} (self)
+\item 
+float \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a5faa7bb3810d78b2e0633d9f496d2e61}{rps}} (self)
+\item 
+float \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a9b51a06409ef910b8961a3911b1d7f49}{percentile}} (self, float p)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_ad20d10e1dbf8e61142457d2ceccd5870}{lock}} = threading.\+Lock()
+\item 
+list \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a917632971f746fc75bfacbd453fe0345}{latencies}} = \+[$\,$]\+
+\item 
+int \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a19c47133f1fa05e15676c9f5713fd6f1}{errors}} = 0
+\item 
+int \doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a869f63a335ce4a5984d1689802259b4c}{successes}} = 0
+\item 
+\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_a541304f4813f610037980e8791955767}{by\+\_\+method}} = defaultdict(lambda:\+ \{"{}ok"{}:\+ 0, "{}err"{}:\+ 0, "{}latencies"{}:\+ \+[$\,$]\+\})
+\item 
+\doxymbox{\hyperlink{classtx-flood-stress_1_1_stress_results_af456aa9ba7950edf2e3799123457d24f}{start\+\_\+time}} = time.\+time()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+
+
+\label{classtx-flood-stress_1_1_stress_results_doc-constructors}
+\Hypertarget{classtx-flood-stress_1_1_stress_results_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classtx-flood-stress_1_1_stress_results_a9ce074816a85340c1277640cfc6b49e8}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_a9ce074816a85340c1277640cfc6b49e8} 
+\doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00048}{48}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+
+
+\label{classtx-flood-stress_1_1_stress_results_doc-func-members}
+\Hypertarget{classtx-flood-stress_1_1_stress_results_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classtx-flood-stress_1_1_stress_results_a9b51a06409ef910b8961a3911b1d7f49}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!percentile@{percentile}}
+\index{percentile@{percentile}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{percentile()}{percentile()}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_a9b51a06409ef910b8961a3911b1d7f49} 
+ float \doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+percentile (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{float}]{p}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00074}{74}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+\Hypertarget{classtx-flood-stress_1_1_stress_results_a9abf4245437d8a28f52ceb6cda7a3254}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!record@{record}}
+\index{record@{record}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{record()}{record()}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_a9abf4245437d8a28f52ceb6cda7a3254} 
+\doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+record (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{method}{, }\item[{float}]{latency}{, }\item[{bool}]{success}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00056}{56}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+\Hypertarget{classtx-flood-stress_1_1_stress_results_a5faa7bb3810d78b2e0633d9f496d2e61}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!rps@{rps}}
+\index{rps@{rps}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{rps()}{rps()}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_a5faa7bb3810d78b2e0633d9f496d2e61} 
+ float \doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+rps (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00070}{70}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+\Hypertarget{classtx-flood-stress_1_1_stress_results_af0180c97ed52165e85e3678670040263}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!total@{total}}
+\index{total@{total}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{total()}{total()}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_af0180c97ed52165e85e3678670040263} 
+ int \doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+total (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00067}{67}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+
+
+\label{classtx-flood-stress_1_1_stress_results_doc-variable-members}
+\Hypertarget{classtx-flood-stress_1_1_stress_results_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classtx-flood-stress_1_1_stress_results_a541304f4813f610037980e8791955767}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!by\_method@{by\_method}}
+\index{by\_method@{by\_method}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{by\_method}{by\_method}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_a541304f4813f610037980e8791955767} 
+\doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+by\+\_\+method = defaultdict(lambda:\+ \{"{}ok"{}:\+ 0, "{}err"{}:\+ 0, "{}latencies"{}:\+ \+[$\,$]\+\})}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+\Hypertarget{classtx-flood-stress_1_1_stress_results_a19c47133f1fa05e15676c9f5713fd6f1}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!errors@{errors}}
+\index{errors@{errors}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{errors}{errors}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_a19c47133f1fa05e15676c9f5713fd6f1} 
+int \doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+errors = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+\Hypertarget{classtx-flood-stress_1_1_stress_results_a917632971f746fc75bfacbd453fe0345}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!latencies@{latencies}}
+\index{latencies@{latencies}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{latencies}{latencies}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_a917632971f746fc75bfacbd453fe0345} 
+list \doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+latencies = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+\Hypertarget{classtx-flood-stress_1_1_stress_results_ad20d10e1dbf8e61142457d2ceccd5870}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!lock@{lock}}
+\index{lock@{lock}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{lock}{lock}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_ad20d10e1dbf8e61142457d2ceccd5870} 
+\doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+lock = threading.\+Lock()}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+\Hypertarget{classtx-flood-stress_1_1_stress_results_af456aa9ba7950edf2e3799123457d24f}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!start\_time@{start\_time}}
+\index{start\_time@{start\_time}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{start\_time}{start\_time}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_af456aa9ba7950edf2e3799123457d24f} 
+\doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+start\+\_\+time = time.\+time()}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+\Hypertarget{classtx-flood-stress_1_1_stress_results_a869f63a335ce4a5984d1689802259b4c}\index{tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}!successes@{successes}}
+\index{successes@{successes}!tx-\/flood-\/stress.StressResults@{tx-\/flood-\/stress.StressResults}}
+\doxysubsubsection{\texorpdfstring{successes}{successes}}
+{\footnotesize\ttfamily \label{classtx-flood-stress_1_1_stress_results_a869f63a335ce4a5984d1689802259b4c} 
+int \doxymbox{\hyperlink{namespacetx}{tx}}-\/flood-\/stress.\+Stress\+Results.\+successes = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{tx-flood-stress_8py_source_l00052}{52}} of file \doxymbox{\hyperlink{tx-flood-stress_8py_source}{tx-\/flood-\/stress.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+tools/\+\+PERFORMANCE/\+\doxymbox{\hyperlink{tx-flood-stress_8py}{tx-\/flood-\/stress.\+py}}\end{DoxyCompactItemize}

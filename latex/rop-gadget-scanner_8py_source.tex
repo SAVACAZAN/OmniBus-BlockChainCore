@@ -1,0 +1,400 @@
+\doxysection{rop-\/gadget-\/scanner.py}
+\hypertarget{rop-gadget-scanner_8py_source}{}\label{rop-gadget-scanner_8py_source}\index{tools/EXPLOITS/rop-\/gadget-\/scanner.py@{tools/EXPLOITS/rop-\/gadget-\/scanner.py}}
+\doxymbox{\hyperlink{rop-gadget-scanner_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00001}\doxymbox{\hyperlink{namespacerop-gadget-scanner}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00002}\doxymbox{\hyperlink{namespacerop}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00003}00003\ \textcolor{stringliteral}{rop-\/gadget-\/scanner.py\ —\ OmniBus\ BlockChainCore\ ROP\ Gadget\ Scanner}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00005}00005\ \textcolor{stringliteral}{Scan\ compiled\ binaries\ for\ Return-\/Oriented\ Programming\ (ROP)\ gadgets:}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ ret\ (0xC3)\ sequences}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ pop\ reg\ +\ ret\ combinations}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ syscall\ +\ ret}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ Stack\ pivots,\ write-\/what-\/where,\ arbitrary\ call\ gadgets}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00010}00010\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00011}00011\ \textcolor{stringliteral}{Pure\ Python\ binary\ analysis,\ no\ external\ dependencies\ required.}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00012}00012\ \textcolor{stringliteral}{Compares\ gadget\ counts\ against\ typical\ hardened/unhardened\ thresholds.}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00013}00013\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00015}00015\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00016}00016\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00017}00017\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00018}00018\ \textcolor{keyword}{import}\ struct}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00019}00019\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00020}00020\ \textcolor{keyword}{from}\ collections\ \textcolor{keyword}{import}\ defaultdict}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00021}00021\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00023}\doxymbox{\hyperlink{namespacerop-gadget-scanner_ab0e06b1b4c1b67743a48b4c5d8a315a3}{00023}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00024}\doxymbox{\hyperlink{namespacerop-gadget-scanner_a9be81b9ae183d7644bd28a5c8dcd9cc2}{00024}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00025}\doxymbox{\hyperlink{namespacerop-gadget-scanner_a0436fa15a87b80c67f9f05180ada899f}{00025}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00026}\doxymbox{\hyperlink{namespacerop-gadget-scanner_a04bd645fa514d10b0791e2703b131712}{00026}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00027}\doxymbox{\hyperlink{namespacerop-gadget-scanner_aa761fca7172952adb98de2f262e1c96d}{00027}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00028}\doxymbox{\hyperlink{namespacerop-gadget-scanner_a7b5c7002196dd02973c50a77b596d765}{00028}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00030}\doxymbox{\hyperlink{namespacerop-gadget-scanner_aa8ffc130239727e2713c94d6cd098721}{00030}}\ SCRIPT\_DIR\ =\ os.path.dirname(os.path.abspath(\_\_file\_\_))}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00031}\doxymbox{\hyperlink{namespacerop-gadget-scanner_af3b7f1de1887be35870fdd6e33028cb9}{00031}}\ DEFAULT\_BINARY\ =\ os.path.normpath(os.path.join(SCRIPT\_DIR,\ \textcolor{stringliteral}{"{}.."{}},\ \textcolor{stringliteral}{"{}.."{}},\ \textcolor{stringliteral}{"{}zig-\/out"{}},\ \textcolor{stringliteral}{"{}bin"{}},\ \textcolor{stringliteral}{"{}omnibus-\/node.exe"{}}))}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00034}\doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00034}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00035}00035\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00038}\doxymbox{\hyperlink{namespacerop-gadget-scanner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00038}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerop-gadget-scanner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00039}00039\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00042}\doxymbox{\hyperlink{namespacerop-gadget-scanner_abf994b8269849d29e07697ea8a840f74}{00042}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerop-gadget-scanner_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00043}00043\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00046}\doxymbox{\hyperlink{namespacerop-gadget-scanner_adf0e2aa4d06b5ca38e44721821eca783}{00046}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerop-gadget-scanner_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00047}00047\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00050}00050\ \textcolor{comment}{\#\ x86-\/64\ instruction\ patterns\ for\ ROP\ gadget\ detection}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00051}00051\ \textcolor{comment}{\#\ Format:\ (name,\ byte\_pattern,\ max\_preceding\_bytes,\ category)}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00052}\doxymbox{\hyperlink{namespacerop-gadget-scanner_aa8cd254952a74d6a84f3509db4704455}{00052}}\ RET\_BYTE\ =\ 0xC3}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00053}\doxymbox{\hyperlink{namespacerop-gadget-scanner_ab4c48170820618ae414ccb8256d54109}{00053}}\ RETF\_BYTE\ =\ 0xCB}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00054}\doxymbox{\hyperlink{namespacerop-gadget-scanner_ad9dcf7470fe7aaeb3bb2cbc5575411bf}{00054}}\ SYSCALL\_BYTES\ =\ bytes([0x0F,\ 0x05])}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00055}\doxymbox{\hyperlink{namespacerop-gadget-scanner_ad067c9839e96d8863d876f62445803a4}{00055}}\ INT80\_BYTES\ =\ bytes([0xCD,\ 0x80])}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00057}00057\ \textcolor{comment}{\#\ x86-\/64\ register\ encoding\ in\ ModR/M\ byte\ for\ pop\ instructions}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00058}00058\ \textcolor{comment}{\#\ pop\ rax=0x58,\ pop\ rcx=0x59,\ pop\ rdx=0x5A,\ pop\ rbx=0x5B}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00059}00059\ \textcolor{comment}{\#\ pop\ rsp=0x5C,\ pop\ rbp=0x5D,\ pop\ rsi=0x5E,\ pop\ rdi=0x5F}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00060}\doxymbox{\hyperlink{namespacerop-gadget-scanner_aab55622ae0a722ada881ffc134002fc8}{00060}}\ POP\_OPCODES\ =\ \{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00061}00061\ \ \ \ \ 0x58:\ \textcolor{stringliteral}{"{}pop\ rax"{}},\ 0x59:\ \textcolor{stringliteral}{"{}pop\ rcx"{}},\ 0x5A:\ \textcolor{stringliteral}{"{}pop\ rdx"{}},\ 0x5B:\ \textcolor{stringliteral}{"{}pop\ rbx"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00062}00062\ \ \ \ \ 0x5C:\ \textcolor{stringliteral}{"{}pop\ rsp"{}},\ 0x5D:\ \textcolor{stringliteral}{"{}pop\ rbp"{}},\ 0x5E:\ \textcolor{stringliteral}{"{}pop\ rsi"{}},\ 0x5F:\ \textcolor{stringliteral}{"{}pop\ rdi"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00063}00063\ \}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00065}00065\ \textcolor{comment}{\#\ REX.W\ prefix\ +\ pop\ for\ r8-\/r15}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00066}\doxymbox{\hyperlink{namespacerop-gadget-scanner_afc2d5a6c44f0f9a6f84831d8cc94ee11}{00066}}\ REX\_W\ =\ 0x41\ \ \textcolor{comment}{\#\ REX.B\ prefix\ for\ extended\ registers}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00067}\doxymbox{\hyperlink{namespacerop-gadget-scanner_a32edaa67ac4cbdc777f5df8e2efd1c1c}{00067}}\ POP\_R8\_R15\ =\ \{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00068}00068\ \ \ \ \ 0x58:\ \textcolor{stringliteral}{"{}pop\ r8"{}},\ 0x59:\ \textcolor{stringliteral}{"{}pop\ r9"{}},\ 0x5A:\ \textcolor{stringliteral}{"{}pop\ r10"{}},\ 0x5B:\ \textcolor{stringliteral}{"{}pop\ r11"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00069}00069\ \ \ \ \ 0x5C:\ \textcolor{stringliteral}{"{}pop\ r12"{}},\ 0x5D:\ \textcolor{stringliteral}{"{}pop\ r13"{}},\ 0x5E:\ \textcolor{stringliteral}{"{}pop\ r14"{}},\ 0x5F:\ \textcolor{stringliteral}{"{}pop\ r15"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00070}00070\ \}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00073}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner}{00073}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner}{GadgetScanner}}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00074}00074\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Scan\ binary\ data\ for\ ROP\ gadgets."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00076}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a1b1a0318d16d85e07cd3d4dd06b9b58e}{00076}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a1b1a0318d16d85e07cd3d4dd06b9b58e}{\_\_init\_\_}}(self,\ data:\ bytes,\ base\_addr:\ int\ =\ 0x400000):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00077}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{00077}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}}\ =\ data}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00078}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aa77d2cff1a5b85302509c449b57a8b48}{00078}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aa77d2cff1a5b85302509c449b57a8b48}{base\_addr}}\ =\ base\_addr}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00079}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{00079}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}:\ dict[str,\ list]\ =\ defaultdict(list)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00080}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{00080}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}:\ dict[str,\ int]\ =\ defaultdict(int)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00082}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a82a693344f05f423be877aacf8efd88a}{00082}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a82a693344f05f423be877aacf8efd88a}{find\_text\_section}}(self)\ -\/>\ tuple[int,\ int]:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ .text\ section\ offset\ and\ size\ in\ PE\ binary."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}}[:2]\ !=\ b\textcolor{stringliteral}{"{}MZ"{}}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0,\ len(self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ pe\_offset\ =\ struct.unpack\_from(\textcolor{stringliteral}{"{}<I"{}},\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}},\ 0x3C)[0]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}}[pe\_offset:pe\_offset\ +\ 4]\ !=\ b\textcolor{stringliteral}{"{}PE\(\backslash\)x00\(\backslash\)x00"{}}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0,\ len(self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ num\_sections\ =\ struct.unpack\_from(\textcolor{stringliteral}{"{}<H"{}},\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}},\ pe\_offset\ +\ 6)[0]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ opt\_header\_size\ =\ struct.unpack\_from(\textcolor{stringliteral}{"{}<H"{}},\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}},\ pe\_offset\ +\ 20)[0]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ section\_table\ =\ pe\_offset\ +\ 24\ +\ opt\_header\_size}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(num\_sections):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sec\_offset\ =\ section\_table\ +\ i\ *\ 40}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ name\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}}[sec\_offset:sec\_offset\ +\ 8].rstrip(b\textcolor{stringliteral}{"{}\(\backslash\)x00"{}}).decode(\textcolor{stringliteral}{"{}ascii"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ virt\_size\ =\ struct.unpack\_from(\textcolor{stringliteral}{"{}<I"{}},\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}},\ sec\_offset\ +\ 8)[0]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ raw\_offset\ =\ struct.unpack\_from(\textcolor{stringliteral}{"{}<I"{}},\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}},\ sec\_offset\ +\ 20)[0]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ raw\_size\ =\ struct.unpack\_from(\textcolor{stringliteral}{"{}<I"{}},\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}},\ sec\_offset\ +\ 16)[0]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chars\ =\ struct.unpack\_from(\textcolor{stringliteral}{"{}<I"{}},\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}},\ sec\_offset\ +\ 36)[0]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ IMAGE\_SCN\_CNT\_CODE\ =\ 0x20,\ IMAGE\_SCN\_MEM\_EXECUTE\ =\ 0x20000000}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ chars\ \&\ 0x20000020:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ raw\_offset,\ raw\_size}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0,\ len(self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ (struct.error,\ IndexError):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0,\ len(self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00112}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a8eea04fee560296b73c5dd5579e4c1b0}{00112}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a8eea04fee560296b73c5dd5579e4c1b0}{scan\_ret\_gadgets}}(self,\ text\_start:\ int,\ text\_size:\ int,\ max\_lookback:\ int\ =\ 10):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ all\ ret-\/terminated\ gadgets."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ text\_end\ =\ text\_start\ +\ text\_size}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ data\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(text\_start,\ min(text\_end,\ len(data))):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ data[i]\ !=\ RET\_BYTE:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}total\_ret"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ addr\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aa77d2cff1a5b85302509c449b57a8b48}{base\_addr}}\ +\ i}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ preceding\ bytes\ for\ gadget\ patterns}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ lookback\ \textcolor{keywordflow}{in}\ range(1,\ min(max\_lookback\ +\ 1,\ i\ -\/\ text\_start\ +\ 1)):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ start\ =\ i\ -\/\ lookback}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Single\ pop\ +\ ret}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lookback\ ==\ 1\ \textcolor{keywordflow}{and}\ data[start]\ \textcolor{keywordflow}{in}\ POP\_OPCODES:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reg\_name\ =\ POP\_OPCODES[data[start]]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}pop\_ret"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{addr\ -\/\ lookback:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ f\textcolor{stringliteral}{"{}\{reg\_name\};\ ret"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[start:i\ +\ 1].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}pop\_ret"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ REX\ +\ pop\ +\ ret\ (r8-\/r15)}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lookback\ ==\ 2\ \textcolor{keywordflow}{and}\ data[start]\ ==\ REX\_W\ \textcolor{keywordflow}{and}\ data[start\ +\ 1]\ \textcolor{keywordflow}{in}\ POP\_R8\_R15:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reg\_name\ =\ POP\_R8\_R15[data[start\ +\ 1]]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}pop\_ret"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{addr\ -\/\ lookback:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ f\textcolor{stringliteral}{"{}\{reg\_name\};\ ret"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[start:i\ +\ 1].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}pop\_ret"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Double\ pop\ +\ ret}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lookback\ ==\ 2\ \textcolor{keywordflow}{and}\ data[start]\ \textcolor{keywordflow}{in}\ POP\_OPCODES\ \textcolor{keywordflow}{and}\ data[start\ +\ 1]\ \textcolor{keywordflow}{in}\ POP\_OPCODES:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ g\ =\ f\textcolor{stringliteral}{"{}\{POP\_OPCODES[data[start]]\};\ \{POP\_OPCODES[data[start+1]]\};\ ret"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}multi\_pop\_ret"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{addr\ -\/\ lookback:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ g,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[start:i\ +\ 1].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}multi\_pop\_ret"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Stack\ pivot:\ xchg\ rsp,\ reg\ +\ ret\ or\ mov\ rsp,\ reg\ +\ ret}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ xchg\ eax,\ esp\ =\ 0x94}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lookback\ >=\ 1\ \textcolor{keywordflow}{and}\ data[start]\ ==\ 0x94:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}stack\_pivot"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{addr\ -\/\ lookback:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ \textcolor{stringliteral}{"{}xchg\ eax,\ esp;\ ret"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[start:i\ +\ 1].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}stack\_pivot"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ leave;\ ret\ (stack\ pivot\ via\ saved\ rbp)}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lookback\ ==\ 1\ \textcolor{keywordflow}{and}\ data[start]\ ==\ 0xC9:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}stack\_pivot"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{addr\ -\/\ lookback:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ \textcolor{stringliteral}{"{}leave;\ ret"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[start:i\ +\ 1].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}stack\_pivot"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ mov\ [reg],\ reg\ +\ ret\ patterns\ (write-\/what-\/where)}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ mov\ [rdi],\ rsi\ =\ 0x48\ 0x89\ 0x37}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lookback\ >=\ 3\ \textcolor{keywordflow}{and}\ data[start]\ ==\ 0x48\ \textcolor{keywordflow}{and}\ data[start\ +\ 1]\ ==\ 0x89:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ modrm\ =\ data[start\ +\ 2]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mod\ =\ (modrm\ >>\ 6)\ \&\ 3}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ mod\ ==\ 0:\ \ \textcolor{comment}{\#\ [reg]\ indirect}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}write\_what\_where"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{addr\ -\/\ lookback:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ f\textcolor{stringliteral}{"{}mov\ [reg],\ reg;\ ...;\ ret"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[start:i\ +\ 1].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}write\_what\_where"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ call\ reg\ +\ ret\ (arbitrary\ call)}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ call\ rax\ =\ 0xFF\ 0xD0,\ call\ rcx\ =\ 0xFF\ 0xD1,\ etc.}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lookback\ >=\ 2\ \textcolor{keywordflow}{and}\ data[start]\ ==\ 0xFF\ \textcolor{keywordflow}{and}\ (data[start\ +\ 1]\ \&\ 0xF8)\ ==\ 0xD0:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reg\_idx\ =\ data[start\ +\ 1]\ \&\ 0x07}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ regs\ =\ [\textcolor{stringliteral}{"{}rax"{}},\ \textcolor{stringliteral}{"{}rcx"{}},\ \textcolor{stringliteral}{"{}rdx"{}},\ \textcolor{stringliteral}{"{}rbx"{}},\ \textcolor{stringliteral}{"{}rsp"{}},\ \textcolor{stringliteral}{"{}rbp"{}},\ \textcolor{stringliteral}{"{}rsi"{}},\ \textcolor{stringliteral}{"{}rdi"{}}]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}arbitrary\_call"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{addr\ -\/\ lookback:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ f\textcolor{stringliteral}{"{}call\ \{regs[reg\_idx]\};\ ...;\ ret"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[start:i\ +\ 1].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}arbitrary\_call"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00201}00201\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ jmp\ reg\ (not\ ret-\/terminated\ but\ useful)}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ data[start]\ ==\ 0xFF\ \textcolor{keywordflow}{and}\ (data[start\ +\ 1]\ \&\ 0xF8)\ ==\ 0xE0:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reg\_idx\ =\ data[start\ +\ 1]\ \&\ 0x07}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ regs\ =\ [\textcolor{stringliteral}{"{}rax"{}},\ \textcolor{stringliteral}{"{}rcx"{}},\ \textcolor{stringliteral}{"{}rdx"{}},\ \textcolor{stringliteral}{"{}rbx"{}},\ \textcolor{stringliteral}{"{}rsp"{}},\ \textcolor{stringliteral}{"{}rbp"{}},\ \textcolor{stringliteral}{"{}rsi"{}},\ \textcolor{stringliteral}{"{}rdi"{}}]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}jmp\_reg"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{addr\ -\/\ lookback:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ f\textcolor{stringliteral}{"{}jmp\ \{regs[reg\_idx]\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[start:start\ +\ 2].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}jmp\_reg"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00213}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a4e54ae09d62480d43696a2b2ef1574a1}{00213}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a4e54ae09d62480d43696a2b2ef1574a1}{scan\_syscall\_gadgets}}(self,\ text\_start:\ int,\ text\_size:\ int):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Find\ syscall;\ ret\ and\ int\ 0x80;\ ret\ gadgets."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00215}00215\ \ \ \ \ \ \ \ \ text\_end\ =\ text\_start\ +\ text\_size}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ data\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_ada3497723c09d476db175813ec03016b}{data}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(text\_start,\ min(text\_end\ -\/\ 1,\ len(data)\ -\/\ 1)):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ syscall;\ ret}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ data[i:i\ +\ 2]\ ==\ SYSCALL\_BYTES:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}syscall"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ i\ +\ 2\ <\ len(data)\ \textcolor{keywordflow}{and}\ data[i\ +\ 2]\ ==\ RET\_BYTE:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}syscall\_ret"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{self.base\_addr\ +\ i:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ \textcolor{stringliteral}{"{}syscall;\ ret"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[i:i\ +\ 3].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}syscall\_ret"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ int\ 0x80;\ ret}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ data[i:i\ +\ 2]\ ==\ INT80\_BYTES:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}int80"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ i\ +\ 2\ <\ len(data)\ \textcolor{keywordflow}{and}\ data[i\ +\ 2]\ ==\ RET\_BYTE:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aeb71b6be08720ed78f5d683c48c8283e}{gadgets}}[\textcolor{stringliteral}{"{}int80\_ret"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addr"{}}:\ f\textcolor{stringliteral}{"{}0x\{self.base\_addr\ +\ i:x\}"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadget"{}}:\ \textcolor{stringliteral}{"{}int\ 0x80;\ ret"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bytes"{}}:\ data[i:i\ +\ 3].hex(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}[\textcolor{stringliteral}{"{}int80\_ret"{}}]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00241}\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aa62fa68127f6735b3549667901f602aa}{00241}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_aa62fa68127f6735b3549667901f602aa}{assess\_risk}}(self)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00242}00242\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Compare\ gadget\ counts\ against\ hardened/unhardened\ thresholds."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00243}00243\ \ \ \ \ \ \ \ \ total\ =\ sum(self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}.values())}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ pop\_ret\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}.get(\textcolor{stringliteral}{"{}pop\_ret"{}},\ 0)\ +\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}.get(\textcolor{stringliteral}{"{}multi\_pop\_ret"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ pivots\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}.get(\textcolor{stringliteral}{"{}stack\_pivot"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00246}00246\ \ \ \ \ \ \ \ \ www\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}.get(\textcolor{stringliteral}{"{}write\_what\_where"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00247}00247\ \ \ \ \ \ \ \ \ calls\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}.get(\textcolor{stringliteral}{"{}arbitrary\_call"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00248}00248\ \ \ \ \ \ \ \ \ syscalls\ =\ self.\doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner_a9e2edcb22bfff5077f672c254f848103}{stats}}.get(\textcolor{stringliteral}{"{}syscall\_ret"{}},\ 0)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00250}00250\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Thresholds\ based\ on\ typical\ binary\ analysis}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00251}00251\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Hardened\ binary\ (CFI\ +\ CET):\ <50\ useful\ gadgets}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Normal\ binary:\ 100-\/500\ gadgets}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Unhardened:\ 500+\ gadgets}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ risk\ =\ \textcolor{stringliteral}{"{}LOW"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ notes\ =\ []}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ pop\_ret\ >\ 200:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ \ \ \ \ risk\ =\ \textcolor{stringliteral}{"{}HIGH"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ notes.append(f\textcolor{stringliteral}{"{}\{pop\_ret\}\ pop+ret\ gadgets\ —\ sufficient\ for\ ROP\ chain\ construction"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ pop\_ret\ >\ 50:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ risk\ =\ \textcolor{stringliteral}{"{}MEDIUM"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00262}00262\ \ \ \ \ \ \ \ \ \ \ \ \ notes.append(f\textcolor{stringliteral}{"{}\{pop\_ret\}\ pop+ret\ gadgets\ —\ limited\ ROP\ potential"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ notes.append(f\textcolor{stringliteral}{"{}\{pop\_ret\}\ pop+ret\ gadgets\ —\ minimal\ ROP\ surface"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00265}00265\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ pivots\ >\ 10:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ risk\ =\ max(risk,\ \textcolor{stringliteral}{"{}MEDIUM"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ notes.append(f\textcolor{stringliteral}{"{}\{pivots\}\ stack\ pivots\ found\ —\ enables\ stack\ migration\ attacks"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00269}00269\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ www\ >\ 5:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ risk\ =\ max(risk,\ \textcolor{stringliteral}{"{}MEDIUM"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ notes.append(f\textcolor{stringliteral}{"{}\{www\}\ write-\/what-\/where\ gadgets\ —\ enables\ arbitrary\ writes"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ syscalls\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ \ \ \ \ risk\ =\ \textcolor{stringliteral}{"{}HIGH"{}}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ notes.append(f\textcolor{stringliteral}{"{}\{syscalls\}\ syscall+ret\ gadgets\ —\ enables\ direct\ system\ call\ chains"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ calls\ >\ 20:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \ \ \ \ risk\ =\ max(risk,\ \textcolor{stringliteral}{"{}MEDIUM"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ notes.append(f\textcolor{stringliteral}{"{}\{calls\}\ arbitrary\ call\ gadgets"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Zig-\/specific\ note}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ notes.append(\textcolor{stringliteral}{"{}Zig\ binaries\ have\ bounds\ checking\ +\ safe\ memory\ model,\ reducing\ exploitability"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00281}00281\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00282}00282\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}risk\_level"{}}:\ risk,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}total\_gadgets"{}}:\ total,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}usable\_pop\_ret"{}}:\ pop\_ret,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stack\_pivots"{}}:\ pivots,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}write\_what\_where"{}}:\ www,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}arbitrary\_calls"{}}:\ calls,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}syscall\_ret"{}}:\ syscalls,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}notes"{}}:\ notes,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00294}\doxymbox{\hyperlink{namespacerop-gadget-scanner_a7431cb90017e54fe695b23d4190db046}{00294}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacerop-gadget-scanner_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00295}00295\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00296}00296\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ ROP\ Gadget\ Scanner\ —\ find\ ROP\ gadgets\ in\ compiled\ binaries"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00297}00297\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00298}00298\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/binary"{}},\ \textcolor{stringliteral}{"{}-\/b"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00300}00300\ \ \ \ \ \ \ \ \ default=DEFAULT\_BINARY,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ help=f\textcolor{stringliteral}{"{}Path\ to\ binary\ (default:\ \{DEFAULT\_BINARY\})"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00302}00302\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00303}00303\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/max-\/lookback"{}},\ type=int,\ default=10,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Max\ bytes\ to\ look\ back\ from\ ret\ for\ gadgets\ (default:\ 10)"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00306}00306\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00307}00307\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/show-\/gadgets"{}},\ \textcolor{stringliteral}{"{}-\/g"{}},\ type=int,\ default=5,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00309}00309\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Show\ top\ N\ gadgets\ per\ category\ (default:\ 5,\ 0=none)"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00310}00310\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00311}00311\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00312}00312\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/json"{}},\ \textcolor{stringliteral}{"{}-\/j"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00313}00313\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Output\ full\ results\ as\ JSON"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00314}00314\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00315}00315\ \ \ \ \ parser.add\_argument(}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/output"{}},\ \textcolor{stringliteral}{"{}-\/o"{}},\ default=\textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ help=\textcolor{stringliteral}{"{}Save\ JSON\ report\ to\ file"{}},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00318}00318\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00319}00319\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00320}00320\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00321}00321\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00322}00322\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ OmniBus\ ROP\ Gadget\ Scanner\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00323}00323\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00325}00325\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isfile(args.binary):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00326}00326\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerop-gadget-scanner_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(f\textcolor{stringliteral}{"{}Binary\ not\ found:\ \{args.binary\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Build\ first\ with:\ zig\ build"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00329}00329\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00330}00330\ \ \ \ \ \doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Loading\ binary:\ \{args.binary\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00331}00331\ \ \ \ \ \textcolor{keyword}{with}\ open(args.binary,\ \textcolor{stringliteral}{"{}rb"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00332}00332\ \ \ \ \ \ \ \ \ data\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00333}00333\ \ \ \ \ \doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Binary\ size:\ \{len(data)\}\ bytes\ (\{len(data)\ /\ (1024*1024):.1f\}\ MB)"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00335}00335\ \ \ \ \ scanner\ =\ \doxymbox{\hyperlink{classrop-gadget-scanner_1_1_gadget_scanner}{GadgetScanner}}(data)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00336}00336\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00337}00337\ \ \ \ \ \textcolor{comment}{\#\ Find\ .text\ section}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00338}00338\ \ \ \ \ text\_start,\ text\_size\ =\ scanner.find\_text\_section()}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00339}00339\ \ \ \ \ \doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}.text\ section:\ offset=0x\{text\_start:x\},\ size=\{text\_size\}\ bytes\ (\{text\_size/1024:.0f\}\ KB)"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00340}00340\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00341}00341\ \ \ \ \ \textcolor{comment}{\#\ Scan}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00342}00342\ \ \ \ \ \doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Scanning\ for\ ROP\ gadgets\ (this\ may\ take\ a\ moment)..."{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00343}00343\ \ \ \ \ scanner.scan\_ret\_gadgets(text\_start,\ text\_size,\ args.max\_lookback)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00344}00344\ \ \ \ \ scanner.scan\_syscall\_gadgets(text\_start,\ text\_size)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00345}00345\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00346}00346\ \ \ \ \ \textcolor{comment}{\#\ Display\ results}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00347}00347\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}Gadget\ Statistics:\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00348}00348\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{'Category':<25s\}\ \{'Count':>8s\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00349}00349\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{'-\/'*25\}\ \{'-\/'*8\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00350}00350\ \ \ \ \ \textcolor{keywordflow}{for}\ category\ \textcolor{keywordflow}{in}\ sorted(scanner.stats.keys()):}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00351}00351\ \ \ \ \ \ \ \ \ count\ =\ scanner.stats[category]}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00352}00352\ \ \ \ \ \ \ \ \ color\ =\ RED\ \textcolor{keywordflow}{if}\ count\ >\ 100\ \textcolor{keywordflow}{else}\ (YELLOW\ \textcolor{keywordflow}{if}\ count\ >\ 10\ \textcolor{keywordflow}{else}\ GREEN)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00353}00353\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{category:<25s\}\ \{color\}\{count:>8d\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00354}00354\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00355}00355\ \ \ \ \ \textcolor{comment}{\#\ Show\ sample\ gadgets}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00356}00356\ \ \ \ \ \textcolor{keywordflow}{if}\ args.show\_gadgets\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00357}00357\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ category,\ gadgets\ \textcolor{keywordflow}{in}\ scanner.gadgets.items():}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00358}00358\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ gadgets:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00359}00359\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\ \ [\{category\}]\ (\{len(gadgets)\}\ total,\ showing\ \{min(args.show\_gadgets,\ len(gadgets))\}):\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00360}00360\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ g\ \textcolor{keywordflow}{in}\ gadgets[:args.show\_gadgets]:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00361}00361\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ \{CYAN\}\{g['addr']\}\{RESET\}:\ \{g['gadget']\}\ \ [\{g['bytes']\}]"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00362}00362\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00363}00363\ \ \ \ \ \textcolor{comment}{\#\ Risk\ assessment}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00364}00364\ \ \ \ \ assessment\ =\ scanner.assess\_risk()}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00365}00365\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{BOLD\}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00366}00366\ \ \ \ \ risk\_color\ =\ RED\ \textcolor{keywordflow}{if}\ assessment[\textcolor{stringliteral}{"{}risk\_level"{}}]\ ==\ \textcolor{stringliteral}{"{}HIGH"{}}\ \textcolor{keywordflow}{else}\ (YELLOW\ \textcolor{keywordflow}{if}\ assessment[\textcolor{stringliteral}{"{}risk\_level"{}}]\ ==\ \textcolor{stringliteral}{"{}MEDIUM"{}}\ \textcolor{keywordflow}{else}\ GREEN)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00367}00367\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\ \ ROP\ Risk\ Level:\ \{risk\_color\}\{assessment['risk\_level']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00368}00368\ \ \ \ \ \textcolor{keywordflow}{for}\ note\ \textcolor{keywordflow}{in}\ assessment[\textcolor{stringliteral}{"{}notes"{}}]:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00369}00369\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ -\/\ \{note\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00370}00370\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{BOLD\}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00371}00371\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00372}00372\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00373}00373\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}timestamp"{}}:\ datetime.now(tz=timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00374}00374\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}binary"{}}:\ args.binary,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00375}00375\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}binary\_size"{}}:\ len(data),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00376}00376\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}text\_section"{}}:\ \{\textcolor{stringliteral}{"{}offset"{}}:\ text\_start,\ \textcolor{stringliteral}{"{}size"{}}:\ text\_size\},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00377}00377\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stats"{}}:\ dict(scanner.stats),}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00378}00378\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}assessment"{}}:\ assessment,}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00379}00379\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}gadgets\_sample"{}}:\ \{k:\ v[:10]\ \textcolor{keywordflow}{for}\ k,\ v\ \textcolor{keywordflow}{in}\ scanner.gadgets.items()\},}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00380}00380\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00381}00381\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00382}00382\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00383}00383\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00385}00385\ \ \ \ \ \textcolor{keywordflow}{if}\ args.output:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00386}00386\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00387}00387\ \ \ \ \ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00388}00388\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacerop-gadget-scanner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Report\ saved\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00389}00389\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00390}00390\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00391}00391\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00392}00392\ }
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00393}00393\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{rop-gadget-scanner_8py_source_l00394}00394\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacerop-gadget-scanner_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

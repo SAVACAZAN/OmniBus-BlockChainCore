@@ -1,0 +1,95 @@
+\doxysection{fork-\/detector.py}
+\hypertarget{fork-detector_8py_source}{}\label{fork-detector_8py_source}\index{tools/CONSENSUS/fork-\/detector.py@{tools/CONSENSUS/fork-\/detector.py}}
+\doxymbox{\hyperlink{fork-detector_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00001}\doxymbox{\hyperlink{namespacefork-detector}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00002}\doxymbox{\hyperlink{namespacefork}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Fork\ Detector}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00005}00005\ \textcolor{stringliteral}{Detects\ chain\ forks\ from\ block\ headers\ and\ calculates\ reorg\ depth.}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00006}00006\ \textcolor{stringliteral}{Outputs:\ fork-\/report.json}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00011}00011\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00012}00012\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List,\ Optional,\ Set,\ Tuple}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00014}\doxymbox{\hyperlink{namespacefork-detector_a2900152da80248e1c362c98933751e24}{00014}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00015}\doxymbox{\hyperlink{namespacefork-detector_a74143f6ad9fe6928d8b544763fdb9a1b}{00015}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00016}\doxymbox{\hyperlink{namespacefork-detector_af4f36d7ed9b96b966a85342a2ad5c11a}{00016}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00017}\doxymbox{\hyperlink{namespacefork-detector_a79e86a0deac26632cf4cda06a4a53542}{00017}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00020}\doxymbox{\hyperlink{namespacefork-detector_acd59877dca2a9957888013a6f06aab6d}{00020}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefork-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00021}00021\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00024}\doxymbox{\hyperlink{namespacefork-detector_a50bc03b7156c78447306fd9254a9c7d5}{00024}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefork-detector_a50bc03b7156c78447306fd9254a9c7d5}{detect\_forks}}(headers:\ List[Dict[str,\ Any]])\ -\/>\ List[Dict[str,\ Any]]:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00025}00025\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Given\ a\ list\ of\ headers\ with\ \{hash,\ prev\_hash,\ height\},\ detect\ forks."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00026}00026\ \ \ \ \ by\_height:\ Dict[int,\ List[str]]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00027}00027\ \ \ \ \ hash\_to\_header:\ Dict[str,\ Dict[str,\ Any]]\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00028}00028\ \ \ \ \ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ headers:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ height\ =\ h[\textcolor{stringliteral}{"{}height"{}}]}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ bh\ =\ h[\textcolor{stringliteral}{"{}hash"{}}]}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ by\_height.setdefault(height,\ []).append(bh)}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ hash\_to\_header[bh]\ =\ h}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00034}00034\ \ \ \ \ forks:\ List[Dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00035}00035\ \ \ \ \ \textcolor{keywordflow}{for}\ height,\ hashes\ \textcolor{keywordflow}{in}\ by\_height.items():}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(hashes)\ >\ 1:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Find\ common\ ancestor}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ ancestors:\ List[Set[str]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ bh\ \textcolor{keywordflow}{in}\ hashes:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chain\ =\ set()}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cur\ =\ bh}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ cur\ \textcolor{keywordflow}{in}\ hash\_to\_header:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chain.add(cur)}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cur\ =\ hash\_to\_header[cur].get(\textcolor{stringliteral}{"{}prev\_hash"{}},\ \textcolor{stringliteral}{"{}"{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ancestors.append(chain)}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ common\ =\ set.intersection(*ancestors)\ \textcolor{keywordflow}{if}\ ancestors\ \textcolor{keywordflow}{else}\ set()}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ common\_ancestor\ =\ max(}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (hash\_to\_header[h][\textcolor{stringliteral}{"{}height"{}}]\ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ common\ \textcolor{keywordflow}{if}\ h\ \textcolor{keywordflow}{in}\ hash\_to\_header),}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ default=-\/1,}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ reorg\_depth\ =\ height\ -\/\ common\_ancestor\ \textcolor{keywordflow}{if}\ common\_ancestor\ >=\ 0\ \textcolor{keywordflow}{else}\ height}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ forks.append(\{}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}height"{}}:\ height,}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ competing\_heads"{}}:\ hashes,}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}common\_ancestor\_height"{}}:\ common\_ancestor,}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}reorg\_depth"{}}:\ reorg\_depth,}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{return}\ forks}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00061}\doxymbox{\hyperlink{namespacefork-detector_a7431cb90017e54fe695b23d4190db046}{00061}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacefork-detector_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00062}00062\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Detect\ blockchain\ forks"{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00063}00063\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/input"{}},\ required=\textcolor{keyword}{True},\ help=\textcolor{stringliteral}{"{}JSON\ file\ with\ block\ headers\ list"{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00064}00064\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}fork-\/report.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00065}00065\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00067}00067\ \ \ \ \ \textcolor{keyword}{with}\ open(args.input,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ data\ =\ json.load(f)}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00069}00069\ \ \ \ \ headers\ =\ data.get(\textcolor{stringliteral}{"{}headers"{}},\ [])}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00071}00071\ \ \ \ \ \doxymbox{\hyperlink{namespacefork-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Fork\ Detector\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00072}00072\ \ \ \ \ forks\ =\ \doxymbox{\hyperlink{namespacefork-detector_a50bc03b7156c78447306fd9254a9c7d5}{detect\_forks}}(headers)}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00074}00074\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ forks:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacefork-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}No\ forks\ detected."{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacefork-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ f\textcolor{stringliteral}{"{}Detected\ \{len(forks)\}\ fork(s):"{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ fk\ \textcolor{keywordflow}{in}\ forks:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacefork-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}\ \ Height\ \{fk['height']\}:\ heads=\{fk['\ competing\_heads']\},\ reorg\_depth=\{fk['reorg\_depth']\}"{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00081}00081\ \ \ \ \ report\ =\ \{\textcolor{stringliteral}{"{}headers\_analyzed"{}}:\ len(headers),\ \textcolor{stringliteral}{"{}forks"{}}:\ forks\}}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00082}00082\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00084}00084\ \ \ \ \ \doxymbox{\hyperlink{namespacefork-detector_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nReport\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00088}00088\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{fork-detector_8py_source_l00089}00089\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacefork-detector_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

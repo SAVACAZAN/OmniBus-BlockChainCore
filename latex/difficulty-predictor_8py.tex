@@ -1,0 +1,39 @@
+\doxysection{tools/\+\+AI/\+difficulty-\/predictor.py File Reference}
+\hypertarget{difficulty-predictor_8py}{}\label{difficulty-predictor_8py}\index{tools/AI/difficulty-\/predictor.py@{tools/AI/difficulty-\/predictor.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacedifficulty-predictor}{difficulty-\/predictor}}
+\item 
+namespace \doxymbox{\hyperlink{namespacedifficulty}{difficulty}}
+\begin{DoxyCompactList}\small\item\em -\/predictor \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacedifficulty-predictor_acd59877dca2a9957888013a6f06aab6d}{difficulty-\/predictor.\+cprint}} (str color, str msg)
+\item 
+List\+[Dict\+[str, float]\+]\+ \doxymbox{\hyperlink{namespacedifficulty-predictor_afef49b43ec2a88a19c3b495be4b01dec}{difficulty-\/predictor.\+generate\+\_\+synthetic\+\_\+series}} (int length=2000)
+\item 
+tuple \doxymbox{\hyperlink{namespacedifficulty-predictor_aae51516a3c59a71e483e574adb5e5972}{difficulty-\/predictor.\+prepare\+\_\+sequences}} (List\+[Dict\+[str, float]\+]\+ series, int seq\+\_\+len=10)
+\item 
+Any \doxymbox{\hyperlink{namespacedifficulty-predictor_ae36ec5687a77df666b87e3e4cd36e5f2}{difficulty-\/predictor.\+train\+\_\+lstm}} (List\+[List\+[float]\+]\+ X, List\+[float]\+ y)
+\item 
+float \doxymbox{\hyperlink{namespacedifficulty-predictor_acc076f4d58c3b732d96eccb2eb290037}{difficulty-\/predictor.\+predict\+\_\+next}} (Any model, List\+[float]\+ last\+\_\+seq)
+\item 
+int \doxymbox{\hyperlink{namespacedifficulty-predictor_a7431cb90017e54fe695b23d4190db046}{difficulty-\/predictor.\+main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacedifficulty-predictor_a384a070ec508bac3f0fbd8414605a91b}{difficulty-\/predictor.\+GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedifficulty-predictor_accf8bb14d0d232aa4577cee239507ef1}{difficulty-\/predictor.\+RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedifficulty-predictor_a2a0e085994a1fa200acb540ec86330c7}{difficulty-\/predictor.\+YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacedifficulty-predictor_a717669a221eed1a3cbb473c49b1db43d}{difficulty-\/predictor.\+RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+\doxymbox{\hyperlink{namespacedifficulty-predictor_a3018cc57ae582744d9197a24952cf531}{difficulty-\/predictor.\+lstm}} = nn.\+LSTM(input\+\_\+size, hidden\+\_\+size, num\+\_\+layers, batch\+\_\+first=True)
+\item 
+\doxymbox{\hyperlink{namespacedifficulty-predictor_a7d8f29123983e92b81496c7c33a6ec7f}{difficulty-\/predictor.\+fc}} = nn.\+Linear(hidden\+\_\+size, 1)
+\end{DoxyCompactItemize}

@@ -1,0 +1,394 @@
+\chapter{Module:\+ {\ttfamily spark\+\_\+invariants} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants}{}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants}\index{Module: $<$tt$>$spark\_invariants$<$/tt$>$@{Module: $<$tt$>$spark\_invariants$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md2995}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md2995}%
+
+
+\begin{quote}
+Formal verification — 17 Ada/\+\+SPARK-\/style compile-\/time invariants for critical blockchain properties. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+spark\+\_\+invariants.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 297 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 13 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 17
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md2997}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md2997}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md2998}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md2998}
+
+\begin{DoxyItemize}
+\item \`{}\+Supply\+Guard\`{}{\ttfamily Supply\+Guard}
+\end{DoxyItemize}— Supply\+Guard — tracker atomic al supply-\/ului emis Orice emisie de OMNI trece prin...
+\begin{DoxyItemize}
+\item \`{}\+Temporal\+Guard\`{}{\ttfamily Temporal\+Guard}
+\end{DoxyItemize}— Verifică că un timestamp e în ordine (monoton crescător)\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md2999}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md2999}
+
+\begin{DoxyItemize}
+\item 7 constants defined7 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3000}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3000}
+
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}emit()\`{}{\ttfamily emit()}
+\end{DoxyItemize}— Emit reward pentru un bloc — GARANTAT că nu depășește MAX\+\_\+\+SUPPLY\+\_\+\+SAT E...
+\begin{DoxyItemize}
+\item \`{}assert\+Valid()\`{}{\ttfamily assert\+Valid()}
+\end{DoxyItemize}— Verifică că supply-\/ul curent e valid (runtime check) Returneaza error ...
+\begin{DoxyItemize}
+\item \`{}remaining()\`{}{\ttfamily remaining()}
+\end{DoxyItemize}— Performs the remaining operation on the spark\+\_\+invariants module.
+\begin{DoxyItemize}
+\item \`{}emitted\+Percent()\`{}{\ttfamily emitted\+Percent()}
+\end{DoxyItemize}— Performs the emitted percent operation on the spark\+\_\+invariants module.
+\begin{DoxyItemize}
+\item \`{}get\+Block\+Reward()\`{}{\ttfamily get\+Block\+Reward()}
+\end{DoxyItemize}— Calculează reward-\/ul pentru blocul la height dat INVARIANT:\+ get\+Block\+Re...
+\begin{DoxyItemize}
+\item \`{}assert\+Reward\+Monotone()\`{}{\ttfamily assert\+Reward\+Monotone()}
+\end{DoxyItemize}— Verifică invariantul monoton:\+ reward(h) \texorpdfstring{$>$}{>}= reward(h+1) Returneaza erro...
+\begin{DoxyItemize}
+\item \`{}total\+Emitted\+Up\+To()\`{}{\ttfamily total\+Emitted\+Up\+To()}
+\end{DoxyItemize}— Calculează suma totală de recompense de la bloc 0 la bloc {\ttfamily height}
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}check\+Timestamp()\`{}{\ttfamily check\+Timestamp()}
+\end{DoxyItemize}— Validează că noul timestamp e strict mai mare decât precedentul INVARI...
+\begin{DoxyItemize}
+\item \`{}check\+Micro\+Block\+Interval()\`{}{\ttfamily check\+Micro\+Block\+Interval()}
+\end{DoxyItemize}— Verifică că un micro-\/bloc e la intervalul corect (0.\+1s)
+\begin{DoxyItemize}
+\item \`{}checked\+Sub()\`{}{\ttfamily checked\+Sub()}
+\end{DoxyItemize}— Verifică că o operație de scădere nu produce underflow Echivalent Ada:\+...
+\begin{DoxyItemize}
+\item \`{}checked\+Add()\`{}{\ttfamily checked\+Add()}
+\end{DoxyItemize}— Verifică că o operație de adunare nu produce overflow sau supply viola...
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3002}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3002}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3003}{}\doxysubsection{\texorpdfstring{{\ttfamily Supply\+Guard}}{{\ttfamily Supply\+Guard}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3003}
+Supply\+Guard — tracker atomic al supply-\/ului emis Orice emisie de OMNI trece prin acest guard Dacă ar depăși MAX\+\_\+\+SUPPLY\+\_\+\+SAT → @panic (echivalent Ada:\+ Contract\+\_\+\+Failure)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily emitted\+\_\+sat}  &{\ttfamily u64}  &Emitted\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 76}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3005}{}\doxysubsection{\texorpdfstring{{\ttfamily Temporal\+Guard}}{{\ttfamily Temporal\+Guard}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3005}
+Verifică că un timestamp e în ordine (monoton crescător)
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily last\+\_\+timestamp\+\_\+ms}  &{\ttfamily i64}  &Last\+\_\+timestamp\+\_\+ms  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 154}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3007}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3007}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily MAX\+\_\+\+SUPPLY\+\_\+\+SAT}  &{\ttfamily u64 = 21\+\_\+000\+\_\+000 \texorpdfstring{$\ast$}{*} 1\+\_\+000\+\_\+000\+\_\+000}  &M a x\+\_\+ s u p p l y\+\_\+ s a t  \\
+{\ttfamily INITIAL\+\_\+\+REWARD\+\_\+\+SAT}  &{\ttfamily u64 = 83\+\_\+333\+\_\+333}  &I n i t i a l\+\_\+ r e w a r d\+\_\+ s a t  \\
+{\ttfamily HALVING\+\_\+\+INTERVAL}  &{\ttfamily u64 = 126\+\_\+144\+\_\+000}  &H a l v i n g\+\_\+ i n t e r v a l  \\
+{\ttfamily MAX\+\_\+\+HALVINGS}  &{\ttfamily u64 = 64}  &M a x\+\_\+ h a l v i n g s  \\
+{\ttfamily BLOCK\+\_\+\+TIME\+\_\+\+MS}  &{\ttfamily u64 = 1\+\_\+000}  &B l o c k\+\_\+ t i m e\+\_\+ m s  \\
+{\ttfamily MICRO\+\_\+\+BLOCK\+\_\+\+TIME\+\_\+\+MS}  &{\ttfamily u64 = 100}  &M i c r o\+\_\+ b l o c k\+\_\+ t i m e\+\_\+ m s  \\
+{\ttfamily MICRO\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+KEY}  &{\ttfamily u64 = BLOCK\+\_\+\+TIME\+\_\+\+MS /\+ MICRO\+\_\+\+BLOCK\+\_\+\+TIME\+\_\+\+MS}  &M i c r o\+\_\+ b l o c k s\+\_\+ p e r\+\_\+ k e y  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3009}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3009}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3010}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3010}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ SupplyGuard\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Supply\+Guard}
+
+{\itshape Defined at line 79}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3012}{}\doxysubsection{\texorpdfstring{{\ttfamily emit()}}{{\ttfamily emit()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3012}
+Emit reward pentru un bloc — GARANTAT că nu depășește MAX\+\_\+\+SUPPLY\+\_\+\+SAT Echivalent Ada Spark:\+ procedure Emit with Pre =\texorpdfstring{$>$}{>} Emitted + Amount \texorpdfstring{$<$}{<}= Max\+\_\+\+Supply, Post =\texorpdfstring{$>$}{>} Emitted = Emitted\textquotesingle{}Old + Amount;
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ emit(self:\ *SupplyGuard,\ amount\_sat:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Supply\+Guard}  &The instance  \\
+{\ttfamily amount\+\_\+sat}  &{\ttfamily u64}  &Amount\+\_\+sat  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 87}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3014}{}\doxysubsection{\texorpdfstring{{\ttfamily assert\+Valid()}}{{\ttfamily assert\+Valid()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3014}
+Verifică că supply-\/ul curent e valid (runtime check) Returneaza error in loc de @panic pentru graceful handling
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ assertValid(self:\ *const\ SupplyGuard)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Supply\+Guard}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 97}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3016}{}\doxysubsection{\texorpdfstring{{\ttfamily remaining()}}{{\ttfamily remaining()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3016}
+Performs the remaining operation on the spark\+\_\+invariants module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ remaining(self:\ *const\ SupplyGuard)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Supply\+Guard}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 103}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3018}{}\doxysubsection{\texorpdfstring{{\ttfamily emitted\+Percent()}}{{\ttfamily emitted\+Percent()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3018}
+Performs the emitted percent operation on the spark\+\_\+invariants module.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ emittedPercent(self:\ *const\ SupplyGuard)\ f64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Supply\+Guard}  &The instance  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily f64}
+
+{\itshape Defined at line 107}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3020}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Block\+Reward()}}{{\ttfamily get\+Block\+Reward()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3020}
+Calculează reward-\/ul pentru blocul la height dat INVARIANT:\+ get\+Block\+Reward(h1) \texorpdfstring{$>$}{>}= get\+Block\+Reward(h2) dacă h1 \texorpdfstring{$<$}{<} h2 Echivalent Ada:\+ function Block\+\_\+\+Reward (Height :\+ Block\+\_\+\+Height) return Satoshi with Post =\texorpdfstring{$>$}{>} Block\+\_\+\+Reward\textquotesingle{}Result \texorpdfstring{$<$}{<}= Initial\+\_\+\+Reward;
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getBlockReward(height:\ u64)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 119}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3022}{}\doxysubsection{\texorpdfstring{{\ttfamily assert\+Reward\+Monotone()}}{{\ttfamily assert\+Reward\+Monotone()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3022}
+Verifică invariantul monoton:\+ reward(h) \texorpdfstring{$>$}{>}= reward(h+1) Returneaza error in loc de @panic pentru recoverable handling
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ assertRewardMonotone(height:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 131}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3024}{}\doxysubsection{\texorpdfstring{{\ttfamily total\+Emitted\+Up\+To()}}{{\ttfamily total\+Emitted\+Up\+To()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3024}
+Calculează suma totală de recompense de la bloc 0 la bloc {\ttfamily height}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ totalEmittedUpTo(height:\ u64)\ u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily height}  &{\ttfamily u64}  &Height  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily u64}
+
+{\itshape Defined at line 140}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3026}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3026}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ TemporalGuard\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Temporal\+Guard}
+
+{\itshape Defined at line 157}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3028}{}\doxysubsection{\texorpdfstring{{\ttfamily check\+Timestamp()}}{{\ttfamily check\+Timestamp()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3028}
+Validează că noul timestamp e strict mai mare decât precedentul INVARIANT:\+ timestamp\+[n]\+ \texorpdfstring{$>$}{>} timestamp\+[n-\/1]\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkTimestamp(self:\ *TemporalGuard,\ ts\_ms:\ i64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Temporal\+Guard}  &The instance  \\
+{\ttfamily ts\+\_\+ms}  &{\ttfamily i64}  &Ts\+\_\+ms  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 163}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3030}{}\doxysubsection{\texorpdfstring{{\ttfamily check\+Micro\+Block\+Interval()}}{{\ttfamily check\+Micro\+Block\+Interval()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3030}
+Verifică că un micro-\/bloc e la intervalul corect (0.\+1s)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkMicroBlockInterval(self:\ *const\ TemporalGuard,\ ts\_ms:\ i64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Temporal\+Guard}  &The instance  \\
+{\ttfamily ts\+\_\+ms}  &{\ttfamily i64}  &Ts\+\_\+ms  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 172}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3032}{}\doxysubsection{\texorpdfstring{{\ttfamily checked\+Sub()}}{{\ttfamily checked\+Sub()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3032}
+Verifică că o operație de scădere nu produce underflow Echivalent Ada:\+ pragma Assert (Balance \texorpdfstring{$>$}{>}= Amount);
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkedSub(balance:\ u64,\ amount:\ u64)\ !u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily balance}  &{\ttfamily u64}  &Balance  \\
+{\ttfamily amount}  &{\ttfamily u64}  &Amount  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u64}
+
+{\itshape Defined at line 183}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3034}{}\doxysubsection{\texorpdfstring{{\ttfamily checked\+Add()}}{{\ttfamily checked\+Add()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2spark__invariants_autotoc_md3034}
+Verifică că o operație de adunare nu produce overflow sau supply violation
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ checkedAdd(a:\ u64,\ b:\ u64)\ !u64\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily a}  &{\ttfamily u64}  &A  \\
+{\ttfamily b}  &{\ttfamily u64}  &B  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !u64}
+
+{\itshape Defined at line 189}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

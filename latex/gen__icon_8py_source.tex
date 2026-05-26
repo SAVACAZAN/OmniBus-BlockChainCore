@@ -1,0 +1,134 @@
+\doxysection{gen\+\_\+icon.\+py}
+\hypertarget{gen__icon_8py_source}{}\label{gen__icon_8py_source}\index{tools/MYTHOS/app/src-\/tauri/icons/gen\_icon.py@{tools/MYTHOS/app/src-\/tauri/icons/gen\_icon.py}}
+\doxymbox{\hyperlink{gen__icon_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00001}\doxymbox{\hyperlink{namespacegen__icon}{00001}}\ \textcolor{keyword}{from}\ PIL\ \textcolor{keyword}{import}\ Image,\ ImageDraw,\ ImageFont}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00002}00002\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00004}\doxymbox{\hyperlink{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}{00004}}\ SIZE\ =\ 256}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00005}\doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{00005}}\ CENTER\ =\ SIZE\ //\ 2}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00006}\doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{00006}}\ RADIUS\ =\ 110}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00007}\doxymbox{\hyperlink{namespacegen__icon_aa92cc615379216fcbbda241e5898ddf5}{00007}}\ RING\_WIDTH\ =\ 10}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00009}00009\ \textcolor{comment}{\#\ Base\ dark\ circle}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00010}\doxymbox{\hyperlink{namespacegen__icon_adeb35ba5a7dc0c5c4f9a861335fd7abc}{00010}}\ img\ =\ Image.new(\textcolor{stringliteral}{'RGBA'},\ (SIZE,\ SIZE),\ (0,\ 0,\ 0,\ 0))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00011}\doxymbox{\hyperlink{namespacegen__icon_a4558e7db6ea76e465b1e4f03e44fdcbe}{00011}}\ draw\ =\ ImageDraw.Draw(img)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00013}\doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{00013}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{hexagon\_points}}(cx,\ cy,\ r,\ rotation=0):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00014}00014\ \ \ \ \ points\ =\ []}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00015}00015\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(6):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00016}00016\ \ \ \ \ \ \ \ \ angle\ =\ math.radians(60\ *\ i\ -\/\ 30\ +\ rotation)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00017}00017\ \ \ \ \ \ \ \ \ points.append((cx\ +\ r\ *\ math.cos(angle),\ cy\ +\ r\ *\ math.sin(angle)))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00018}00018\ \ \ \ \ \textcolor{keywordflow}{return}\ points}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00020}\doxymbox{\hyperlink{namespacegen__icon_a317b59b55647817ea50aa12edbe376ea}{00020}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacegen__icon_a317b59b55647817ea50aa12edbe376ea}{draw\_gradient\_ring}}(d,\ cx,\ cy,\ r,\ width,\ color1,\ color2,\ steps=120):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00021}00021\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(steps):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00022}00022\ \ \ \ \ \ \ \ \ angle1\ =\ 2\ *\ math.pi\ *\ i\ /\ steps}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00023}00023\ \ \ \ \ \ \ \ \ angle2\ =\ 2\ *\ math.pi\ *\ (i\ +\ 1)\ /\ steps}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00024}00024\ \ \ \ \ \ \ \ \ ratio\ =\ i\ /\ steps}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00025}00025\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Interpolate\ color}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00026}00026\ \ \ \ \ \ \ \ \ c\ =\ tuple(int(color1[j]\ +\ (color2[j]\ -\/\ color1[j])\ *\ ratio)\ \textcolor{keywordflow}{for}\ j\ \textcolor{keywordflow}{in}\ range(3))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00027}00027\ \ \ \ \ \ \ \ \ x1\ =\ cx\ +\ (r\ -\/\ width/2)\ *\ math.cos(angle1)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ y1\ =\ cy\ +\ (r\ -\/\ width/2)\ *\ math.sin(angle1)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ x2\ =\ cx\ +\ (r\ +\ width/2)\ *\ math.cos(angle1)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ y2\ =\ cy\ +\ (r\ +\ width/2)\ *\ math.sin(angle1)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ x3\ =\ cx\ +\ (r\ +\ width/2)\ *\ math.cos(angle2)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ y3\ =\ cy\ +\ (r\ +\ width/2)\ *\ math.sin(angle2)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ x4\ =\ cx\ +\ (r\ -\/\ width/2)\ *\ math.cos(angle2)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ y4\ =\ cy\ +\ (r\ -\/\ width/2)\ *\ math.sin(angle2)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ d.polygon([(x1,y1),(x2,y2),(x3,y3),(x4,y4)],\ fill=c)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00037}00037\ \textcolor{comment}{\#\ Background\ dark\ circle}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00038}00038\ \textcolor{keywordflow}{for}\ y\ \textcolor{keywordflow}{in}\ range(SIZE):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00039}00039\ \ \ \ \ \textcolor{keywordflow}{for}\ x\ \textcolor{keywordflow}{in}\ range(SIZE):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00040}\doxymbox{\hyperlink{namespacegen__icon_a02d469d49b9227e7e4b1b019a7f74ee0}{00040}}\ \ \ \ \ \ \ \ \ dx,\ dy\ =\ x\ -\/\ CENTER,\ y\ -\/\ CENTER}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00041}\doxymbox{\hyperlink{namespacegen__icon_ac2534c00f10c40f0f96c40c8d772a17d}{00041}}\ \ \ \ \ \ \ \ \ dist\ =\ math.sqrt(dx*dx\ +\ dy*dy)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ dist\ <=\ RADIUS\ +\ 12:}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00043}\doxymbox{\hyperlink{namespacegen__icon_a40cd3d1fd53b2c1ee3ea0abd5ed36225}{00043}}\ \ \ \ \ \ \ \ \ \ \ \ \ alpha\ =\ 255}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ dist\ >\ RADIUS:}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ alpha\ =\ int(255\ *\ max(0,\ 1\ -\/\ (dist\ -\/\ RADIUS)\ /\ 12))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ img.putpixel((x,\ y),\ (10,\ 14,\ 23,\ alpha))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00048}00048\ \textcolor{comment}{\#\ Hexagon\ subtle}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00049}\doxymbox{\hyperlink{namespacegen__icon_a14a6b8463c6f38e217d994d2d40d4ccf}{00049}}\ hex\_r\ =\ RADIUS\ -\/\ 16}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00050}\doxymbox{\hyperlink{namespacegen__icon_a336ff7c87166cf02971d0d29210b706a}{00050}}\ hex\_points\ =\ \doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{hexagon\_points}}(CENTER,\ CENTER,\ hex\_r)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00051}\doxymbox{\hyperlink{namespacegen__icon_abee871caf8cb85cdc6fe79d24e1a98a7}{00051}}\ draw.line(hex\_points\ +\ [hex\_points[0]],\ fill=(139,\ 92,\ 246,\ 40),\ width=2)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00053}00053\ \textcolor{comment}{\#\ Inner\ hexagon\ (more\ subtle)}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00054}\doxymbox{\hyperlink{namespacegen__icon_a0c6126de2d8a2c3d2c33e51f52f75329}{00054}}\ hex\_points2\ =\ \doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{hexagon\_points}}(CENTER,\ CENTER,\ hex\_r\ *\ 0.6)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00055}00055\ draw.line(hex\_points2\ +\ [hex\_points2[0]],\ fill=(6,\ 182,\ 212,\ 30),\ width=1)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00057}00057\ \textcolor{comment}{\#\ Gradient\ ring\ purple\ -\/>\ cyan}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00058}00058\ \doxymbox{\hyperlink{namespacegen__icon_a317b59b55647817ea50aa12edbe376ea}{draw\_gradient\_ring}}(draw,\ CENTER,\ CENTER,\ RADIUS\ -\/\ 6,\ RING\_WIDTH,\ (139,\ 92,\ 246),\ (6,\ 182,\ 212))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00060}00060\ \textcolor{comment}{\#\ Green\ arc\ for\ 97\%}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00061}\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{00061}}\ arc\_radius\ =\ RADIUS\ -\/\ 22}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00062}\doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{00062}}\ arc\_width\ =\ 6}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00063}\doxymbox{\hyperlink{namespacegen__icon_a2bda9e21a2b8785f3946f0e1050bc2e4}{00063}}\ arc\_start\ =\ math.radians(-\/90)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00064}\doxymbox{\hyperlink{namespacegen__icon_ad9d51c8a18e707b9cb70fc85f99506a4}{00064}}\ arc\_end\ =\ math.radians(-\/90\ +\ 360\ *\ 0.97)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00065}\doxymbox{\hyperlink{namespacegen__icon_a42b62e5226a6bb003e56bccc2ee907d6}{00065}}\ steps\ =\ int(360\ *\ 0.97\ *\ 2)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00066}00066\ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(steps):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00067}\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{00067}}\ \ \ \ \ angle\ =\ arc\_start\ +\ (arc\_end\ -\/\ arc\_start)\ *\ i\ /\ steps}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00068}\doxymbox{\hyperlink{namespacegen__icon_a5d9f89240615ea9927f5ba191dae25eb}{00068}}\ \ \ \ \ x1\ =\ CENTER\ +\ (arc\_radius\ -\/\ arc\_width/2)\ *\ math.cos(angle)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00069}\doxymbox{\hyperlink{namespacegen__icon_aefc1b11b182405fdaba954a729ce7bd5}{00069}}\ \ \ \ \ y1\ =\ CENTER\ +\ (arc\_radius\ -\/\ arc\_width/2)\ *\ math.sin(angle)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00070}\doxymbox{\hyperlink{namespacegen__icon_a46a6559d5c741a982966f1d7ae7d51c8}{00070}}\ \ \ \ \ x2\ =\ CENTER\ +\ (arc\_radius\ +\ arc\_width/2)\ *\ math.cos(angle)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00071}\doxymbox{\hyperlink{namespacegen__icon_a3e826bc0e8cf736014a3135ab6df2261}{00071}}\ \ \ \ \ y2\ =\ CENTER\ +\ (arc\_radius\ +\ arc\_width/2)\ *\ math.sin(angle)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00072}00072\ \ \ \ \ draw.line([(x1,y1),(x2,y2)],\ fill=(16,\ 185,\ 129),\ width=2)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00074}00074\ \textcolor{comment}{\#\ 3\ colored\ nodes\ on\ the\ ring}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00075}\doxymbox{\hyperlink{namespacegen__icon_a28c6ff905cdba7b7ec2ec0a72f727d5e}{00075}}\ node\_positions\ =\ [0.25,\ 0.55,\ 0.85]\ \ \textcolor{comment}{\#\ around\ the\ circle}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00076}\doxymbox{\hyperlink{namespacegen__icon_a21267d13527acab5be7f8f75c72235a5}{00076}}\ node\_colors\ =\ [(16,\ 185,\ 129),\ (139,\ 92,\ 246),\ (6,\ 182,\ 212)]}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00077}00077\ \textcolor{keywordflow}{for}\ pos,\ color\ \textcolor{keywordflow}{in}\ zip(node\_positions,\ node\_colors):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00078}00078\ \ \ \ \ angle\ =\ 2\ *\ math.pi\ *\ pos\ -\/\ math.pi/2}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00079}\doxymbox{\hyperlink{namespacegen__icon_a7bdf61046c35ca992882ae001d8a6043}{00079}}\ \ \ \ \ nx\ =\ CENTER\ +\ (RADIUS\ -\/\ 6)\ *\ math.cos(angle)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00080}\doxymbox{\hyperlink{namespacegen__icon_afe76fae97874af74d4ba9d0dbbfa05d3}{00080}}\ \ \ \ \ ny\ =\ CENTER\ +\ (RADIUS\ -\/\ 6)\ *\ math.sin(angle)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00081}\doxymbox{\hyperlink{namespacegen__icon_a24fbc554e270ea0bc2f7a059b73b36d3}{00081}}\ \ \ \ \ r\ =\ 7}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00082}00082\ \ \ \ \ draw.ellipse([(nx-\/r,\ ny-\/r),\ (nx+r,\ ny+r)],\ fill=color)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00083}00083\ \ \ \ \ \textcolor{comment}{\#\ glow}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00084}00084\ \ \ \ \ \textcolor{keywordflow}{for}\ gr\ \textcolor{keywordflow}{in}\ range(r+1,\ r+4):}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ alpha\ =\ int(80\ *\ (1\ -\/\ (gr\ -\/\ r)\ /\ 4))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ draw.ellipse([(nx-\/gr,\ ny-\/gr),\ (nx+gr,\ ny+gr)],\ fill=(*color,\ alpha))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00088}00088\ \textcolor{comment}{\#\ Letter\ M\ purple\ bold}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00089}00089\ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00090}\doxymbox{\hyperlink{namespacegen__icon_a6008e437f480f64b4379abe591609a34}{00090}}\ \ \ \ \ font\ =\ ImageFont.truetype(\textcolor{stringliteral}{"{}C:/Windows/Fonts/segoeui.ttf"{}},\ 100)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00091}00091\ \textcolor{keywordflow}{except}:}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00092}00092\ \ \ \ \ font\ =\ ImageFont.load\_default()}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00094}\doxymbox{\hyperlink{namespacegen__icon_ab4ee788da2043cffeff6a0b1fdf610a0}{00094}}\ text\ =\ \textcolor{stringliteral}{"{}M"{}}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00095}\doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{00095}}\ bbox\ =\ draw.textbbox((0,\ 0),\ text,\ font=font)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00096}\doxymbox{\hyperlink{namespacegen__icon_a291416d8bc3f0e30baf80b341d39d52a}{00096}}\ tw\ =\ bbox[2]\ -\/\ bbox[0]}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00097}\doxymbox{\hyperlink{namespacegen__icon_afb84c852be91fa6bf91debfbc661c662}{00097}}\ th\ =\ bbox[3]\ -\/\ bbox[1]}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00098}\doxymbox{\hyperlink{namespacegen__icon_a61104bf7a447aa6406ea1c55e969d70c}{00098}}\ tx\ =\ CENTER\ -\/\ tw\ //\ 2}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00099}\doxymbox{\hyperlink{namespacegen__icon_ae01dc875851dbaf47cc125b4348b7bf6}{00099}}\ ty\ =\ CENTER\ -\/\ th\ //\ 2\ -\/\ 8}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00101}00101\ \textcolor{comment}{\#\ M\ glow}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00102}\doxymbox{\hyperlink{namespacegen__icon_a00599e9abf0e72ecc1b83922538db63e}{00102}}\ glow\_color\ =\ (139,\ 92,\ 246)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00103}00103\ \textcolor{keywordflow}{for}\ offset\ \textcolor{keywordflow}{in}\ [(0,0),\ (-\/1,-\/1),\ (1,1),\ (-\/1,1),\ (1,-\/1),\ (0,-\/2),\ (0,2),\ (-\/2,0),\ (2,0)]:}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00104}00104\ \ \ \ \ draw.text((tx+offset[0],\ ty+offset[1]),\ text,\ font=font,\ fill=(*glow\_color,\ 60))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00105}00105\ draw.text((tx,\ ty),\ text,\ font=font,\ fill=(139,\ 92,\ 246,\ 255))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00107}00107\ \textcolor{comment}{\#\ Save\ outputs}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00108}\doxymbox{\hyperlink{namespacegen__icon_a949b46204453a1b0d7ecd85015b8e579}{00108}}\ base\ =\ \textcolor{stringliteral}{r'C:\(\backslash\)Kits\ work\(\backslash\)limaje\ de\ programare\(\backslash\)OmniBus\ aweb3\ +\ OmniBus\ BlockChain\(\backslash\)OmniBus-\/BlockChainCore\(\backslash\)tools\(\backslash\)MYTHOS\(\backslash\)app\(\backslash\)src-\/tauri\(\backslash\)icons'}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00109}00109\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00110}00110\ \textcolor{comment}{\#\ Multi-\/size\ ICO}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00111}\doxymbox{\hyperlink{namespacegen__icon_a08182a019c251205ca6204f5419d0887}{00111}}\ ico\_sizes\ =\ [(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)]}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00112}\doxymbox{\hyperlink{namespacegen__icon_a2a8b06ae6623b783ec19f80c3128e599}{00112}}\ ico\_imgs\ =\ []}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00113}00113\ \textcolor{keywordflow}{for}\ w,\ h\ \textcolor{keywordflow}{in}\ ico\_sizes:}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00114}00114\ \ \ \ \ ico\_imgs.append(img.resize((w,h),\ Image.LANCZOS))}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00115}\doxymbox{\hyperlink{namespacegen__icon_aeba80ce6290490c29647f612dae51642}{00115}}\ ico\_imgs[0].save(f\textcolor{stringliteral}{'\{base\}\(\backslash\)\(\backslash\)icon.ico'},\ format=\textcolor{stringliteral}{'ICO'},\ sizes=ico\_sizes)}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00117}00117\ \textcolor{comment}{\#\ PNGs\ for\ tauri\ bundle}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00118}00118\ img.resize((32,32),\ Image.LANCZOS).save(f\textcolor{stringliteral}{'\{base\}\(\backslash\)\(\backslash\)32x32.png'})}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00119}00119\ img.resize((128,128),\ Image.LANCZOS).save(f\textcolor{stringliteral}{'\{base\}\(\backslash\)\(\backslash\)128x128.png'})}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00120}00120\ img.resize((256,256),\ Image.LANCZOS).save(f\textcolor{stringliteral}{'\{base\}\(\backslash\)\(\backslash\)128x128@2x.png'})}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00121}00121\ img.save(f\textcolor{stringliteral}{'\{base\}\(\backslash\)\(\backslash\)icon.png'})}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00123}00123\ \textcolor{comment}{\#\ Simple\ icns\ placeholder\ (PNG\ renamed)}}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00124}00124\ img.resize((512,512),\ Image.LANCZOS).save(f\textcolor{stringliteral}{'\{base\}\(\backslash\)\(\backslash\)icon.icns'})}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00126}00126\ print(\textcolor{stringliteral}{'Icons\ generated\ successfully!'})}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00127}00127\ print(f\textcolor{stringliteral}{'\ \ ICO:\ \{base\}\(\backslash\)\(\backslash\)icon.ico\ (16,32,48,64,128,256)'})}
+\DoxyCodeLine{\Hypertarget{gen__icon_8py_source_l00128}00128\ print(f\textcolor{stringliteral}{'\ \ PNG:\ 32x32,\ 128x128,\ 128x128@2x,\ icon.png'})}
+
+\end{DoxyCode}

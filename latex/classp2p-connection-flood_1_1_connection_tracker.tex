@@ -1,0 +1,203 @@
+\doxysection{p2p-\/connection-\/flood.Connection\+Tracker Class Reference}
+\hypertarget{classp2p-connection-flood_1_1_connection_tracker}{}\label{classp2p-connection-flood_1_1_connection_tracker}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_a7d9f130c382df144122a7f3e916a59af}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\item 
+\doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_a22ccb55f007a47ade694654bb508cae4}{record\+\_\+connect}} (self, sock, float connect\+\_\+time\+\_\+ms)
+\item 
+\doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_a2ca25856b50cf4876c61845083beaa06}{record\+\_\+reject}} (self)
+\item 
+\doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_aa48c556554d0bda7877497d3f91cca8b}{record\+\_\+error}} (self)
+\item 
+\doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_aa5b4111bf3777e4c5b3c1944912db684}{record\+\_\+timeout}} (self)
+\item 
+\doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_abf010e2cdb79ef8596081b90a5ced45a}{close\+\_\+all}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_a702dc0fa7fb7a737c1a276c1128d2112}{lock}} = threading.\+Lock()
+\item 
+int \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_a76c013c7952622ed5fd58ae20a576d70}{connected}} = 0
+\item 
+int \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_a9d7844af1348ffc56840f3dcd35635f5}{rejected}} = 0
+\item 
+int \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_aae8f4fd0d5b48d4eea4a626d00d7bdbd}{errors}} = 0
+\item 
+int \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_a1c0d42e6fde3c6b145559345653c4a13}{timeouts}} = 0
+\item 
+list \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_af099f095befafba28e8a1d20aa33d325}{sockets}} = \+[$\,$]\+
+\item 
+list \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_a389af69c02abbadeb6bcd9267a727070}{connect\+\_\+times}} = \+[$\,$]\+
+\item 
+int \doxymbox{\hyperlink{classp2p-connection-flood_1_1_connection_tracker_af264aad8c83e55f589f7013d84f07f23}{first\+\_\+reject\+\_\+at}} = None
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+
+
+\label{classp2p-connection-flood_1_1_connection_tracker_doc-constructors}
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_a7d9f130c382df144122a7f3e916a59af}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_a7d9f130c382df144122a7f3e916a59af} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+
+
+\label{classp2p-connection-flood_1_1_connection_tracker_doc-func-members}
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_abf010e2cdb79ef8596081b90a5ced45a}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!close\_all@{close\_all}}
+\index{close\_all@{close\_all}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{close\_all()}{close\_all()}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_abf010e2cdb79ef8596081b90a5ced45a} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+close\+\_\+all (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00067}{67}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_a22ccb55f007a47ade694654bb508cae4}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!record\_connect@{record\_connect}}
+\index{record\_connect@{record\_connect}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{record\_connect()}{record\_connect()}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_a22ccb55f007a47ade694654bb508cae4} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+record\+\_\+connect (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{sock}{, }\item[{float}]{connect\+\_\+time\+\_\+ms}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_aa48c556554d0bda7877497d3f91cca8b}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!record\_error@{record\_error}}
+\index{record\_error@{record\_error}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{record\_error()}{record\_error()}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_aa48c556554d0bda7877497d3f91cca8b} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+record\+\_\+error (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00059}{59}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_a2ca25856b50cf4876c61845083beaa06}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!record\_reject@{record\_reject}}
+\index{record\_reject@{record\_reject}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{record\_reject()}{record\_reject()}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_a2ca25856b50cf4876c61845083beaa06} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+record\+\_\+reject (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_aa5b4111bf3777e4c5b3c1944912db684}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!record\_timeout@{record\_timeout}}
+\index{record\_timeout@{record\_timeout}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{record\_timeout()}{record\_timeout()}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_aa5b4111bf3777e4c5b3c1944912db684} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+record\+\_\+timeout (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00063}{63}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+
+
+\label{classp2p-connection-flood_1_1_connection_tracker_doc-variable-members}
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_a389af69c02abbadeb6bcd9267a727070}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!connect\_times@{connect\_times}}
+\index{connect\_times@{connect\_times}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{connect\_times}{connect\_times}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_a389af69c02abbadeb6bcd9267a727070} 
+list \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+connect\+\_\+times = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_a76c013c7952622ed5fd58ae20a576d70}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!connected@{connected}}
+\index{connected@{connected}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{connected}{connected}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_a76c013c7952622ed5fd58ae20a576d70} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+connected = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_aae8f4fd0d5b48d4eea4a626d00d7bdbd}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!errors@{errors}}
+\index{errors@{errors}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{errors}{errors}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_aae8f4fd0d5b48d4eea4a626d00d7bdbd} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+errors = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_af264aad8c83e55f589f7013d84f07f23}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!first\_reject\_at@{first\_reject\_at}}
+\index{first\_reject\_at@{first\_reject\_at}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{first\_reject\_at}{first\_reject\_at}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_af264aad8c83e55f589f7013d84f07f23} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+first\+\_\+reject\+\_\+at = None}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_a702dc0fa7fb7a737c1a276c1128d2112}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!lock@{lock}}
+\index{lock@{lock}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{lock}{lock}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_a702dc0fa7fb7a737c1a276c1128d2112} 
+\doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+lock = threading.\+Lock()}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_a9d7844af1348ffc56840f3dcd35635f5}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!rejected@{rejected}}
+\index{rejected@{rejected}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{rejected}{rejected}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_a9d7844af1348ffc56840f3dcd35635f5} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+rejected = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_af099f095befafba28e8a1d20aa33d325}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!sockets@{sockets}}
+\index{sockets@{sockets}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{sockets}{sockets}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_af099f095befafba28e8a1d20aa33d325} 
+list \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+sockets = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+\Hypertarget{classp2p-connection-flood_1_1_connection_tracker_a1c0d42e6fde3c6b145559345653c4a13}\index{p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}!timeouts@{timeouts}}
+\index{timeouts@{timeouts}!p2p-\/connection-\/flood.ConnectionTracker@{p2p-\/connection-\/flood.ConnectionTracker}}
+\doxysubsubsection{\texorpdfstring{timeouts}{timeouts}}
+{\footnotesize\ttfamily \label{classp2p-connection-flood_1_1_connection_tracker_a1c0d42e6fde3c6b145559345653c4a13} 
+int \doxymbox{\hyperlink{namespacep2p}{p2p}}-\/connection-\/flood.\+Connection\+Tracker.\+timeouts = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{p2p-connection-flood_8py_source_l00042}{42}} of file \doxymbox{\hyperlink{p2p-connection-flood_8py_source}{p2p-\/connection-\/flood.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+tools/\+\+PERFORMANCE/\+\doxymbox{\hyperlink{p2p-connection-flood_8py}{p2p-\/connection-\/flood.\+py}}\end{DoxyCompactItemize}

@@ -1,0 +1,561 @@
+\chapter{Omni\+Bus Layer 2 -\/ Starter Kit Complet }
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r}{}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r}\index{OmniBus Layer 2 -\/ Starter Kit Complet@{OmniBus Layer 2 -\/ Starter Kit Complet}}
+\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11386}%
+\Hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11386}%
+
+
+Acest doc conține toate fișierele și codul pe care trebuie să le folosești pentru a construi propriul Layer 2 pe OP Stack.
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11388}{}\doxysection{\texorpdfstring{🚀 PASUL 1:\+ Smart Contracts (Solidity)}{🚀 PASUL 1:\+ Smart Contracts (Solidity)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11388}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11389}{}\doxysubsection{\texorpdfstring{1.\+1 Price\+Feed.\+sol -\/ Oracle Contract}{1.\+1 Price\+Feed.\+sol -\/ Oracle Contract}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11389}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ SPDX-\/License-\/Identifier:\ MIT}
+\DoxyCodeLine{pragma\ solidity\ \string^0.8.20;}
+\DoxyCodeLine{}
+\DoxyCodeLine{contract\ PriceFeed\ \{}
+\DoxyCodeLine{\ \ \ \ struct\ PriceData\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ price;\ \ \ \ \ \ \ \ \ \ //\ Prețul\ în\ wei\ (ex:\ 2502\ *\ 10\string^8)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ timestamp;\ \ \ \ \ \ //\ Cand\ s-\/a\ updatat}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ string\ source;\ \ \ \ \ \ \ \ \ \ //\ Sursa:\ "{}LCX"{},\ "{}Coinbase"{},\ "{}Kraken"{}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ mapping(bytes32\ =>\ PriceData)\ public\ prices;\ \ //\ symbol\ =>\ PriceData}
+\DoxyCodeLine{\ \ \ \ mapping(bytes32\ =>\ PriceData[])\ public\ priceHistory;\ \ //\ Istoric}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ address\ public\ oracleAdmin;}
+\DoxyCodeLine{\ \ \ \ uint256\ public\ updateFee\ =\ 0;\ \ //\ Taxa\ pentru\ update\ (0\ pe\ propriul\ L2)}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ event\ PriceUpdated(bytes32\ indexed\ symbol,\ uint256\ price,\ uint256\ timestamp);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ constructor()\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ oracleAdmin\ =\ msg.sender;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Admin\ update\ preț}
+\DoxyCodeLine{\ \ \ \ function\ updatePrice(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ string\ memory\ \_symbol,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ \_price,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ string\ memory\ \_source}
+\DoxyCodeLine{\ \ \ \ )\ external\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(msg.sender\ ==\ oracleAdmin,\ "{}Only\ oracle\ can\ update"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ bytes32\ symbolHash\ =\ keccak256(abi.encodePacked(\_symbol));}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ PriceData\ memory\ newData\ =\ PriceData(\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ price:\ \_price,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ timestamp:\ block.timestamp,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ source:\ \_source}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ prices[symbolHash]\ =\ newData;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ priceHistory[symbolHash].push(newData);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ emit\ PriceUpdated(symbolHash,\ \_price,\ block.timestamp);}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Citeste\ ultimul\ preț}
+\DoxyCodeLine{\ \ \ \ function\ getLatestPrice(string\ memory\ \_symbol)\ public\ view\ returns\ (uint256)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ bytes32\ symbolHash\ =\ keccak256(abi.encodePacked(\_symbol));}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ PriceData\ memory\ data\ =\ prices[symbolHash];}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Verifica\ ca\ prețul\ nu\ e\ mai\ vechi\ de\ 1\ oră}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(data.timestamp\ >\ block.timestamp\ -\/\ 1\ hours,\ "{}Price\ expired"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ data.price;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Citeste\ prețul\ +\ timestamp}
+\DoxyCodeLine{\ \ \ \ function\ getPriceWithTime(string\ memory\ \_symbol)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ public\ view\ returns\ (uint256,\ uint256)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ bytes32\ symbolHash\ =\ keccak256(abi.encodePacked(\_symbol));}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ PriceData\ memory\ data\ =\ prices[symbolHash];}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ (data.price,\ data.timestamp);}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Schimba\ admin}
+\DoxyCodeLine{\ \ \ \ function\ setAdmin(address\ \_newAdmin)\ external\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(msg.sender\ ==\ oracleAdmin,\ "{}Only\ admin"{});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ oracleAdmin\ =\ \_newAdmin;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11390}{}\doxysubsection{\texorpdfstring{1.\+2 Omnibus\+Token.\+sol -\/ Token Nativ}{1.\+2 Omnibus\+Token.\+sol -\/ Token Nativ}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11390}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ SPDX-\/License-\/Identifier:\ MIT}
+\DoxyCodeLine{pragma\ solidity\ \string^0.8.20;}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ "{}@openzeppelin/contracts/token/ERC20/ERC20.sol"{};}
+\DoxyCodeLine{import\ "{}@openzeppelin/contracts/access/Ownable.sol"{};}
+\DoxyCodeLine{}
+\DoxyCodeLine{contract\ OmnibusToken\ is\ ERC20,\ Ownable\ \{}
+\DoxyCodeLine{\ \ \ \ //\ Staking}
+\DoxyCodeLine{\ \ \ \ mapping(address\ =>\ uint256)\ public\ stakedBalance;}
+\DoxyCodeLine{\ \ \ \ mapping(address\ =>\ uint256)\ public\ stakingTime;}
+\DoxyCodeLine{\ \ \ \ uint256\ public\ stakingRewardRate\ =\ 5;\ \ //\ 5\%\ APY}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ constructor()\ ERC20("{}OmniBus\ Layer2"{},\ "{}OMNIB"{})\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \_mint(msg.sender,\ 1\_000\_000\ *\ 10\ **\ 18);\ \ //\ 1M\ tokens\ la\ creator}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Stake\ tokens}
+\DoxyCodeLine{\ \ \ \ function\ stake(uint256\ \_amount)\ external\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(\_amount\ >\ 0,\ "{}Amount\ must\ be\ >\ 0"{});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(balanceOf(msg.sender)\ >=\ \_amount,\ "{}Insufficient\ balance"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \_transfer(msg.sender,\ address(this),\ \_amount);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ stakedBalance[msg.sender]\ +=\ \_amount;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ stakingTime[msg.sender]\ =\ block.timestamp;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Unstake\ +\ rewards}
+\DoxyCodeLine{\ \ \ \ function\ unstake(uint256\ \_amount)\ external\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(\_amount\ >\ 0,\ "{}Amount\ must\ be\ >\ 0"{});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(stakedBalance[msg.sender]\ >=\ \_amount,\ "{}Insufficient\ staked\ balance"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Calculeaza\ rewards}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ stakingDuration\ =\ block.timestamp\ -\/\ stakingTime[msg.sender];}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ rewards\ =\ (\_amount\ *\ stakingRewardRate\ *\ stakingDuration)\ /\ (100\ *\ 365\ days);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ stakedBalance[msg.sender]\ -\/=\ \_amount;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \_transfer(address(this),\ msg.sender,\ \_amount\ +\ rewards);}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Mint\ noi\ tokeni\ (governance/recompense)}
+\DoxyCodeLine{\ \ \ \ function\ mint(address\ \_to,\ uint256\ \_amount)\ external\ onlyOwner\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \_mint(\_to,\ \_amount);}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Burn\ tokens}
+\DoxyCodeLine{\ \ \ \ function\ burn(uint256\ \_amount)\ external\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \_burn(msg.sender,\ \_amount);}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11391}{}\doxysubsection{\texorpdfstring{1.\+3 Simple\+DEX.\+sol -\/ Exchange cu Prețuri din Oracle}{1.\+3 Simple\+DEX.\+sol -\/ Exchange cu Prețuri din Oracle}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11391}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ SPDX-\/License-\/Identifier:\ MIT}
+\DoxyCodeLine{pragma\ solidity\ \string^0.8.20;}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ "{}./PriceFeed.sol"{};}
+\DoxyCodeLine{import\ "{}@openzeppelin/contracts/token/ERC20/IERC20.sol"{};}
+\DoxyCodeLine{}
+\DoxyCodeLine{contract\ SimpleDEX\ \{}
+\DoxyCodeLine{\ \ \ \ PriceFeed\ public\ oracle;}
+\DoxyCodeLine{\ \ \ \ IERC20\ public\ tokenA;}
+\DoxyCodeLine{\ \ \ \ IERC20\ public\ tokenB;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ uint256\ public\ reserveA;}
+\DoxyCodeLine{\ \ \ \ uint256\ public\ reserveB;}
+\DoxyCodeLine{\ \ \ \ uint256\ public\ feePercentage\ =\ 25;\ \ //\ 0.25\%}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ event\ Swap(address\ indexed\ user,\ uint256\ amountIn,\ uint256\ amountOut);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ constructor(address\ \_oracle,\ address\ \_tokenA,\ address\ \_tokenB)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ oracle\ =\ PriceFeed(\_oracle);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ tokenA\ =\ IERC20(\_tokenA);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ tokenB\ =\ IERC20(\_tokenB);}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ Swap\ folosind\ Oracle\ pentru\ determinare\ preț}
+\DoxyCodeLine{\ \ \ \ function\ swapAtoB(uint256\ \_amountA)\ external\ returns\ (uint256)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Citeste\ prețurile\ din\ Oracle}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ priceA\ =\ oracle.getLatestPrice("{}ETH/USD"{});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ priceB\ =\ oracle.getLatestPrice("{}USDC/USD"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Calculeaza\ output:\ (amountIn\ *\ priceIn)\ /\ priceOut}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ amountB\ =\ (\_amountA\ *\ priceA)\ /\ priceB;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Scade\ taxa}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ fee\ =\ (amountB\ *\ feePercentage)\ /\ 10000;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ amountBAfterFee\ =\ amountB\ -\/\ fee;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ //\ Transfer\ tokens}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(tokenA.transferFrom(msg.sender,\ address(this),\ \_amountA),\ "{}TransferFrom\ failed"{});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ require(tokenB.transfer(msg.sender,\ amountBAfterFee),\ "{}Transfer\ failed"{});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ reserveA\ +=\ \_amountA;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ reserveB\ -\/=\ amountBAfterFee;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ emit\ Swap(msg.sender,\ \_amountA,\ amountBAfterFee);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ amountBAfterFee;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ //\ View:\ estimare\ output}
+\DoxyCodeLine{\ \ \ \ function\ getSwapAmount(uint256\ \_amountIn,\ string\ memory\ \_symbolIn,\ string\ memory\ \_symbolOut)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ external\ view\ returns\ (uint256)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ priceIn\ =\ oracle.getLatestPrice(\_symbolIn);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ uint256\ priceOut\ =\ oracle.getLatestPrice(\_symbolOut);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ (\_amountIn\ *\ priceIn)\ /\ priceOut;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11393}{}\doxysection{\texorpdfstring{🖥️ PASUL 2:\+ Oracle Service (Node.\+js)}{🖥️ PASUL 2:\+ Oracle Service (Node.\+js)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11393}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11394}{}\doxysubsection{\texorpdfstring{2.\+1 aggregator.\+js -\/ Citeste API-\/uri și actualizează preț}{2.\+1 aggregator.\+js -\/ Citeste API-\/uri și actualizează preț}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11394}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{const\ axios\ =\ require('axios');}
+\DoxyCodeLine{const\ \{\ ethers\ \}\ =\ require('ethers');}
+\DoxyCodeLine{require('dotenv').config();}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Configurații\ exchange}
+\DoxyCodeLine{const\ EXCHANGES\ =\ \{}
+\DoxyCodeLine{\ \ coinbase:\ \{}
+\DoxyCodeLine{\ \ \ \ url:\ 'https://api.exchange.coinbase.com',}
+\DoxyCodeLine{\ \ \ \ products:\ ['BTC-\/USD',\ 'ETH-\/USD'],}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ kraken:\ \{}
+\DoxyCodeLine{\ \ \ \ url:\ 'https://api.kraken.com/0/public',}
+\DoxyCodeLine{\ \ \ \ pairs:\ ['XBTUSDT',\ 'ETHUSDT'],}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ lcx:\ \{}
+\DoxyCodeLine{\ \ \ \ url:\ 'https://api.exchange.lcx.com',}
+\DoxyCodeLine{\ \ \ \ pairs:\ ['BTC/USD',\ 'ETH/USD'],}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Citeste\ preț\ Coinbase}
+\DoxyCodeLine{async\ function\ getPriceFromCoinbase(product)\ \{}
+\DoxyCodeLine{\ \ try\ \{}
+\DoxyCodeLine{\ \ \ \ const\ response\ =\ await\ axios.get(`\$\{EXCHANGES.coinbase.url\}/products/\$\{product\}/ticker`);}
+\DoxyCodeLine{\ \ \ \ return\ parseFloat(response.data.price);}
+\DoxyCodeLine{\ \ \}\ catch\ (error)\ \{}
+\DoxyCodeLine{\ \ \ \ console.error(`❌\ Coinbase\ error:\ \$\{error.message\}`);}
+\DoxyCodeLine{\ \ \ \ return\ null;}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Citeste\ preț\ Kraken}
+\DoxyCodeLine{async\ function\ getPriceFromKraken(pair)\ \{}
+\DoxyCodeLine{\ \ try\ \{}
+\DoxyCodeLine{\ \ \ \ const\ response\ =\ await\ axios.get(`\$\{EXCHANGES.kraken.url\}/Ticker`,\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ params:\ \{\ pair\ \},}
+\DoxyCodeLine{\ \ \ \ \});}
+\DoxyCodeLine{\ \ \ \ const\ tickerData\ =\ Object.values(response.data.result)[0];}
+\DoxyCodeLine{\ \ \ \ return\ parseFloat(tickerData.c[0]);\ \ //\ Close\ price}
+\DoxyCodeLine{\ \ \}\ catch\ (error)\ \{}
+\DoxyCodeLine{\ \ \ \ console.error(`❌\ Kraken\ error:\ \$\{error.message\}`);}
+\DoxyCodeLine{\ \ \ \ return\ null;}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Citeste\ preț\ LCX}
+\DoxyCodeLine{async\ function\ getPriceFromLCX(symbol)\ \{}
+\DoxyCodeLine{\ \ try\ \{}
+\DoxyCodeLine{\ \ \ \ const\ response\ =\ await\ axios.get(`\$\{EXCHANGES.lcx.url\}/ticker/\$\{symbol\}`);}
+\DoxyCodeLine{\ \ \ \ return\ parseFloat(response.data.price);}
+\DoxyCodeLine{\ \ \}\ catch\ (error)\ \{}
+\DoxyCodeLine{\ \ \ \ console.error(`❌\ LCX\ error:\ \$\{error.message\}`);}
+\DoxyCodeLine{\ \ \ \ return\ null;}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Agregrează\ prețuri\ (median)}
+\DoxyCodeLine{async\ function\ aggregatePrices(symbol)\ \{}
+\DoxyCodeLine{\ \ const\ prices\ =\ [];}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ cbPrice\ =\ await\ getPriceFromCoinbase(symbol);}
+\DoxyCodeLine{\ \ if\ (cbPrice)\ prices.push(cbPrice);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ krPrice\ =\ await\ getPriceFromKraken(symbol);}
+\DoxyCodeLine{\ \ if\ (krPrice)\ prices.push(krPrice);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ lcxPrice\ =\ await\ getPriceFromLCX(symbol);}
+\DoxyCodeLine{\ \ if\ (lcxPrice)\ prices.push(lcxPrice);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ if\ (prices.length\ ===\ 0)\ throw\ new\ Error(`No\ prices\ found\ for\ \$\{symbol\}`);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ Median}
+\DoxyCodeLine{\ \ prices.sort((a,\ b)\ =>\ a\ -\/\ b);}
+\DoxyCodeLine{\ \ const\ median\ =\ prices[Math.floor(prices.length\ /\ 2)];}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ return\ \{}
+\DoxyCodeLine{\ \ \ \ symbol,}
+\DoxyCodeLine{\ \ \ \ price:\ median,}
+\DoxyCodeLine{\ \ \ \ sources:\ prices.length,}
+\DoxyCodeLine{\ \ \ \ timestamp:\ new\ Date().toISOString(),}
+\DoxyCodeLine{\ \ \};}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Trimite\ pe\ L2\ via\ Smart\ Contract}
+\DoxyCodeLine{async\ function\ updatePriceOnL2(symbol,\ price)\ \{}
+\DoxyCodeLine{\ \ const\ provider\ =\ new\ ethers.JsonRpcProvider(process.env.L2\_RPC\_URL);}
+\DoxyCodeLine{\ \ const\ signer\ =\ new\ ethers.Wallet(process.env.ORACLE\_PRIVATE\_KEY,\ provider);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ priceFeedABI\ =\ [}
+\DoxyCodeLine{\ \ \ \ 'function\ updatePrice(string\ memory\ \_symbol,\ uint256\ \_price,\ string\ memory\ \_source)\ external',}
+\DoxyCodeLine{\ \ ];}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ contract\ =\ new\ ethers.Contract(}
+\DoxyCodeLine{\ \ \ \ process.env.PRICE\_FEED\_ADDRESS,}
+\DoxyCodeLine{\ \ \ \ priceFeedABI,}
+\DoxyCodeLine{\ \ \ \ signer}
+\DoxyCodeLine{\ \ );}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ try\ \{}
+\DoxyCodeLine{\ \ \ \ const\ tx\ =\ await\ contract.updatePrice(symbol,\ ethers.parseEther(price.toString()),\ 'aggregated');}
+\DoxyCodeLine{\ \ \ \ await\ tx.wait();}
+\DoxyCodeLine{\ \ \ \ console.log(`✅\ Updated\ \$\{symbol\}:\ \$\$\{price\}\ (tx:\ \$\{tx.hash\})`);}
+\DoxyCodeLine{\ \ \ \ return\ true;}
+\DoxyCodeLine{\ \ \}\ catch\ (error)\ \{}
+\DoxyCodeLine{\ \ \ \ console.error(`❌\ L2\ update\ error:\ \$\{error.message\}`);}
+\DoxyCodeLine{\ \ \ \ return\ false;}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Main\ loop}
+\DoxyCodeLine{async\ function\ runOracle()\ \{}
+\DoxyCodeLine{\ \ console.log('🚀\ OmniBus\ Oracle\ Started');}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ symbols\ =\ ['BTC/USD',\ 'ETH/USD'];}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ setInterval(async\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ \ \ for\ (const\ symbol\ of\ symbols)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ try\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ aggregated\ =\ await\ aggregatePrices(symbol);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ console.log(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \`{}📊\ \$\{aggregated.symbol\}:\ \$\$\{aggregated.price\}\ (\$\{aggregated.sources\}\ sources)`}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ await\ updatePriceOnL2(symbol,\ aggregated.price);}
+\DoxyCodeLine{\ \ \ \ \ \ \}\ catch\ (error)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ console.error(`❌\ Error\ processing\ \$\{symbol\}:\ \$\{error.message\}`);}
+\DoxyCodeLine{\ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \},\ 10000);\ \ //\ Actualizează\ la\ 10\ secunde}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{runOracle();}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11395}{}\doxysubsection{\texorpdfstring{2.\+2 .env.\+example}{2.\+2 .env.\+example}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11395}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ L2\ Configuration}
+\DoxyCodeLine{L2\_RPC\_URL=http://localhost:8545}
+\DoxyCodeLine{PRICE\_FEED\_ADDRESS=0x...\ \ \#\ Adresa\ contractului\ PriceFeed\ pe\ L2}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Oracle\ Wallet}
+\DoxyCodeLine{ORACLE\_PRIVATE\_KEY=0x...\ \ \#\ Private\ key-\/ul\ care\ actualizează\ prețurile}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Exchange\ APIs}
+\DoxyCodeLine{COINBASE\_API\_KEY=...}
+\DoxyCodeLine{KRAKEN\_API\_KEY=...}
+\DoxyCodeLine{LCX\_API\_KEY=...}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Monitoring}
+\DoxyCodeLine{SLACK\_WEBHOOK=...}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11396}{}\doxysubsection{\texorpdfstring{2.\+3 package.\+json}{2.\+3 package.\+json}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11396}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}name"{}:\ "{}omnibus-\/oracle"{},}
+\DoxyCodeLine{\ \ "{}version"{}:\ "{}1.0.0"{},}
+\DoxyCodeLine{\ \ "{}scripts"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}start"{}:\ "{}node\ src/aggregator.js"{},}
+\DoxyCodeLine{\ \ \ \ "{}test"{}:\ "{}jest"{}}
+\DoxyCodeLine{\ \ \},}
+\DoxyCodeLine{\ \ "{}dependencies"{}:\ \{}
+\DoxyCodeLine{\ \ \ \ "{}axios"{}:\ "{}\string^1.6.0"{},}
+\DoxyCodeLine{\ \ \ \ "{}ethers"{}:\ "{}\string^6.9.0"{},}
+\DoxyCodeLine{\ \ \ \ "{}dotenv"{}:\ "{}\string^16.3.1"{}}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11398}{}\doxysection{\texorpdfstring{🎨 PASUL 3:\+ Frontend (React)}{🎨 PASUL 3:\+ Frontend (React)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11398}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11399}{}\doxysubsection{\texorpdfstring{3.\+1 pages/\+index.\+tsx -\/ Dashboard}{3.\+1 pages/\+index.\+tsx -\/ Dashboard}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11399}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ React,\ \{\ useEffect,\ useState\ \}\ from\ 'react';}
+\DoxyCodeLine{import\ \{\ useContractRead\ \}\ from\ 'wagmi';}
+\DoxyCodeLine{import\ PriceChart\ from\ '@/components/PriceChart';}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ Dashboard:\ React.FC\ =\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ const\ [prices,\ setPrices]\ =\ useState<Record<string,\ number>>(\{\});}
+\DoxyCodeLine{\ \ const\ [loading,\ setLoading]\ =\ useState(true);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ useEffect(()\ =>\ \{}
+\DoxyCodeLine{\ \ \ \ //\ Citeste\ prețuri\ din\ contract\ la\ fiecare\ 5\ secunde}
+\DoxyCodeLine{\ \ \ \ const\ interval\ =\ setInterval(async\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ try\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ response\ =\ await\ fetch('/api/prices');}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ data\ =\ await\ response.json();}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ setPrices(data);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ setLoading(false);}
+\DoxyCodeLine{\ \ \ \ \ \ \}\ catch\ (error)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ console.error('Error\ fetching\ prices:',\ error);}
+\DoxyCodeLine{\ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \},\ 5000);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ return\ ()\ =>\ clearInterval(interval);}
+\DoxyCodeLine{\ \ \},\ []);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ return\ (}
+\DoxyCodeLine{\ \ \ \ <div\ className="{}p-\/8\ bg-\/gradient-\/to-\/br\ from-\/blue-\/50\ to-\/indigo-\/100\ min-\/h-\/screen"{}>}
+\DoxyCodeLine{\ \ \ \ \ \ <h1\ className="{}text-\/4xl\ font-\/bold\ text-\/indigo-\/900\ mb-\/8"{}>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ 🚀\ OmniBus\ L2\ Dashboard}
+\DoxyCodeLine{\ \ \ \ \ \ </h1>}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \{loading\ ?\ (}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ <p>Loading\ prices...</p>}
+\DoxyCodeLine{\ \ \ \ \ \ )\ :\ (}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ <div\ className="{}grid\ grid-\/cols-\/1\ md:grid-\/cols-\/2\ gap-\/6"{}>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \{Object.entries(prices).map(([symbol,\ price])\ =>\ (}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ <div}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ key=\{symbol\}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ className="{}bg-\/white\ rounded-\/lg\ shadow-\/lg\ p-\/6"{}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ >}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ <h2\ className="{}text-\/xl\ font-\/semibold\ text-\/gray-\/800"{}>\{symbol\}</h2>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ <p\ className="{}text-\/3xl\ font-\/bold\ text-\/green-\/600"{}>\$\{price.toFixed(2)\}</p>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ <PriceChart\ symbol=\{symbol\}\ />}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ </div>}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ ))\}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ </div>}
+\DoxyCodeLine{\ \ \ \ \ \ )\}}
+\DoxyCodeLine{\ \ \ \ </div>}
+\DoxyCodeLine{\ \ );}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ default\ Dashboard;}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11400}{}\doxysubsection{\texorpdfstring{3.\+2 hooks/\+use\+Prices.\+ts}{3.\+2 hooks/\+use\+Prices.\+ts}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11400}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ useContractRead\ \}\ from\ 'wagmi';}
+\DoxyCodeLine{import\ PriceFeedABI\ from\ '@/abi/PriceFeed.json';}
+\DoxyCodeLine{}
+\DoxyCodeLine{export\ function\ usePrices(symbols:\ string[])\ \{}
+\DoxyCodeLine{\ \ const\ [prices,\ setPrices]\ =\ React.useState<Record<string,\ number>>(\{\});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ React.useEffect(()\ =>\ \{}
+\DoxyCodeLine{\ \ \ \ const\ fetchPrices\ =\ async\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ for\ (const\ symbol\ of\ symbols)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ const\ \{\ data\ \}\ =\ useContractRead(\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ address:\ process.env.NEXT\_PUBLIC\_PRICE\_FEED\_ADDRESS,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ abi:\ PriceFeedABI,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ functionName:\ 'getLatestPrice',}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ args:\ [symbol],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (data)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ setPrices((prev)\ =>\ (\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ...prev,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ [symbol]:\ parseFloat(data),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \}));}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ fetchPrices();}
+\DoxyCodeLine{\ \ \ \ const\ interval\ =\ setInterval(fetchPrices,\ 5000);}
+\DoxyCodeLine{\ \ \ \ return\ ()\ =>\ clearInterval(interval);}
+\DoxyCodeLine{\ \ \},\ [symbols]);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ return\ prices;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11402}{}\doxysection{\texorpdfstring{🏃 QUICK START -\/ 5 Minute Setup}{🏃 QUICK START -\/ 5 Minute Setup}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11402}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11403}{}\doxysubsection{\texorpdfstring{1️⃣ Setup Folder \& Files}{1️⃣ Setup Folder \& Files}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11403}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{mkdir\ -\/p\ OmniBus-\/OptimismLayer2/\{smart-\/contracts,oracle-\/service,frontend\}}
+\DoxyCodeLine{cd\ OmniBus-\/OptimismLayer2}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11404}{}\doxysubsection{\texorpdfstring{2️⃣ Smart Contracts (Foundry)}{2️⃣ Smart Contracts (Foundry)}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11404}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ smart-\/contracts}
+\DoxyCodeLine{forge\ init\ .\ -\/-\/no-\/git}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Copiază\ PriceFeed.sol,\ OmnibusToken.sol,\ SimpleDEX.sol\ în\ contracts/}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Deploy\ (local)}
+\DoxyCodeLine{forge\ create\ contracts/PriceFeed.sol\ -\/-\/rpc-\/url\ http://localhost:8545\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/-\/private-\/key\ \$PRIVATE\_KEY}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11405}{}\doxysubsection{\texorpdfstring{3️⃣ Oracle Service}{3️⃣ Oracle Service}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11405}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ ../oracle-\/service}
+\DoxyCodeLine{npm\ init\ -\/y}
+\DoxyCodeLine{npm\ install\ axios\ ethers\ dotenv}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Copiază\ aggregator.js}
+\DoxyCodeLine{node\ src/aggregator.js}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11406}{}\doxysubsection{\texorpdfstring{4️⃣ Frontend}{4️⃣ Frontend}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11406}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ ../frontend}
+\DoxyCodeLine{npx\ create-\/next-\/app@latest\ .\ -\/-\/typescript}
+\DoxyCodeLine{}
+\DoxyCodeLine{npm\ install\ wagmi\ viem\ @rainbow-\/me/rainbowkit\ axios}
+\DoxyCodeLine{npm\ run\ dev}
+
+\end{DoxyCode}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11407}{}\doxysubsection{\texorpdfstring{5️⃣ Test}{5️⃣ Test}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11407}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\ Terminal\ 1:\ Oracle}
+\DoxyCodeLine{npm\ run\ start}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Terminal\ 2:\ Frontend}
+\DoxyCodeLine{npm\ run\ dev}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ Terminal\ 3:\ Monitor}
+\DoxyCodeLine{curl\ http://localhost:8545\ -\/X\ POST\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ application/json"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/d\ '\{"{}jsonrpc"{}:"{}2.0"{},"{}method"{}:"{}eth\_call"{},"{}params"{}:[],"{}id"{}:1\}'}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11409}{}\doxysection{\texorpdfstring{✅ Verificare Completed}{✅ Verificare Completed}}\label{md_wiki-omnibus_2_o_m_n_i_b_u_s___l2___s_t_a_r_t_e_r_autotoc_md11409}
+
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Price\+Feed.\+sol deployed pe L2
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Omnibus\+Token.\+sol distributed la users
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Oracle service citind de la 3 exchange-\/uri
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Frontend afișând prețuri live
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item[\DoxyUnchecked] Simple\+DEX permitând swaps cu Oracle prices
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+
+
+{\bfseries{Status}}:\+ 🟢 Ready to Deploy! 

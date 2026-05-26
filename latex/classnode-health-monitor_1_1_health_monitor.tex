@@ -1,0 +1,174 @@
+\doxysection{node-\/health-\/monitor.Health\+Monitor Class Reference}
+\hypertarget{classnode-health-monitor_1_1_health_monitor}{}\label{classnode-health-monitor_1_1_health_monitor}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a7e94a4926eab4908e5bdfff1b4bd1c53}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, str host, int port, int interval=30, int stuck\+\_\+threshold=3)
+\item 
+dict \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a06cf3f38dea79be92767913e82ab01ca}{check\+\_\+health}} (self)
+\item 
+None \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a6f4205bd08434ba2f8f39b852b49e2ea}{run}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a05400e6b97943a336c8ddabcca17a521}{url}} = f"{}http:\+/\+/\+\{host\}:\+\{port\}"{}
+\item 
+\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a57511b60ce5ef5b6a2ed7ad6a1403cb6}{interval}} = interval
+\item 
+\doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a73809a20527195caabfb490bec335d30}{stuck\+\_\+threshold}} = stuck\+\_\+threshold
+\item 
+int\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_aa27ab60e0cd20a726b1ec78238d4b2bd}{last\+\_\+block\+\_\+height}} = None
+\item 
+int \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}{same\+\_\+height\+\_\+count}} = 0
+\item 
+int \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_afcfcc195bf8f1ae3a853878bba3714ef}{consecutive\+\_\+failures}} = 0
+\item 
+int \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a645f725e2512d0e390b467db1593e1a9}{total\+\_\+checks}} = 0
+\item 
+int \doxymbox{\hyperlink{classnode-health-monitor_1_1_health_monitor_a3ea22e2aacad2108e1d52f39dfa5a5c0}{total\+\_\+ok}} = 0
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+
+
+\label{classnode-health-monitor_1_1_health_monitor_doc-constructors}
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a7e94a4926eab4908e5bdfff1b4bd1c53}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a7e94a4926eab4908e5bdfff1b4bd1c53} 
+\doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{str}]{host}{, }\item[{int}]{port}{, }\item[{int }]{interval}{ = {\ttfamily 30}, }\item[{int }]{stuck\+\_\+threshold}{ = {\ttfamily 3}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00052}{52}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+
+
+\label{classnode-health-monitor_1_1_health_monitor_doc-func-members}
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a06cf3f38dea79be92767913e82ab01ca}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!check\_health@{check\_health}}
+\index{check\_health@{check\_health}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{check\_health()}{check\_health()}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a06cf3f38dea79be92767913e82ab01ca} 
+ dict \doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+check\+\_\+health (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Returns {"ok": bool, "block_height": int|None, "error": str|None}\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00063}{63}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a6f4205bd08434ba2f8f39b852b49e2ea}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!run@{run}}
+\index{run@{run}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a6f4205bd08434ba2f8f39b852b49e2ea} 
+ None \doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+run (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+
+
+\label{classnode-health-monitor_1_1_health_monitor_doc-variable-members}
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_afcfcc195bf8f1ae3a853878bba3714ef}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!consecutive\_failures@{consecutive\_failures}}
+\index{consecutive\_failures@{consecutive\_failures}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{consecutive\_failures}{consecutive\_failures}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_afcfcc195bf8f1ae3a853878bba3714ef} 
+int \doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+consecutive\+\_\+failures = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00059}{59}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a57511b60ce5ef5b6a2ed7ad6a1403cb6}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!interval@{interval}}
+\index{interval@{interval}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{interval}{interval}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a57511b60ce5ef5b6a2ed7ad6a1403cb6} 
+\doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+interval = interval}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_aa27ab60e0cd20a726b1ec78238d4b2bd}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!last\_block\_height@{last\_block\_height}}
+\index{last\_block\_height@{last\_block\_height}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{last\_block\_height}{last\_block\_height}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_aa27ab60e0cd20a726b1ec78238d4b2bd} 
+int \texorpdfstring{$\vert$}{|} None \doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+last\+\_\+block\+\_\+height = None}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00057}{57}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!same\_height\_count@{same\_height\_count}}
+\index{same\_height\_count@{same\_height\_count}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{same\_height\_count}{same\_height\_count}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a624aec38a8154b9974b7b1a7f44aca09} 
+int \doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+same\+\_\+height\+\_\+count = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00058}{58}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a73809a20527195caabfb490bec335d30}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!stuck\_threshold@{stuck\_threshold}}
+\index{stuck\_threshold@{stuck\_threshold}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{stuck\_threshold}{stuck\_threshold}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a73809a20527195caabfb490bec335d30} 
+\doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+stuck\+\_\+threshold = stuck\+\_\+threshold}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00055}{55}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a645f725e2512d0e390b467db1593e1a9}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!total\_checks@{total\_checks}}
+\index{total\_checks@{total\_checks}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{total\_checks}{total\_checks}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a645f725e2512d0e390b467db1593e1a9} 
+int \doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+total\+\_\+checks = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00060}{60}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a3ea22e2aacad2108e1d52f39dfa5a5c0}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!total\_ok@{total\_ok}}
+\index{total\_ok@{total\_ok}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{total\_ok}{total\_ok}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a3ea22e2aacad2108e1d52f39dfa5a5c0} 
+int \doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+total\+\_\+ok = 0}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00061}{61}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+\Hypertarget{classnode-health-monitor_1_1_health_monitor_a05400e6b97943a336c8ddabcca17a521}\index{node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}!url@{url}}
+\index{url@{url}!node-\/health-\/monitor.HealthMonitor@{node-\/health-\/monitor.HealthMonitor}}
+\doxysubsubsection{\texorpdfstring{url}{url}}
+{\footnotesize\ttfamily \label{classnode-health-monitor_1_1_health_monitor_a05400e6b97943a336c8ddabcca17a521} 
+str \doxymbox{\hyperlink{namespacenode}{node}}-\/health-\/monitor.\+Health\+Monitor.\+url = f"{}http:\+/\+/\+\{host\}:\+\{port\}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{node-health-monitor_8py_source_l00053}{53}} of file \doxymbox{\hyperlink{node-health-monitor_8py_source}{node-\/health-\/monitor.\+py}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+scripts/\+devops/\+\doxymbox{\hyperlink{node-health-monitor_8py}{node-\/health-\/monitor.\+py}}\end{DoxyCompactItemize}

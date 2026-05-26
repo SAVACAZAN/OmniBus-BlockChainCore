@@ -1,0 +1,145 @@
+\doxysection{p2p-\/test-\/harness.py}
+\hypertarget{p2p-test-harness_8py_source}{}\label{p2p-test-harness_8py_source}\index{tools/NETWORK/p2p-\/test-\/harness.py@{tools/NETWORK/p2p-\/test-\/harness.py}}
+\doxymbox{\hyperlink{p2p-test-harness_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00001}\doxymbox{\hyperlink{namespacep2p-test-harness}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00002}\doxymbox{\hyperlink{namespacep2p}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ P2P\ Test\ Harness}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00005}00005\ \textcolor{stringliteral}{Launches\ N\ local\ nodes,\ verifies:}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ -\/\ peer\ discovery}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ block\ propagation}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ transaction\ relay}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ consensus\ convergence}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00010}00010\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00012}00012\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00013}00013\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00014}00014\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00015}00015\ \textcolor{keyword}{import}\ subprocess}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00016}00016\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00017}00017\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00018}00018\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List,\ Optional}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00020}\doxymbox{\hyperlink{namespacep2p-test-harness_ae07bfcdc722149587ae9846581b98d2b}{00020}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00021}\doxymbox{\hyperlink{namespacep2p-test-harness_ad07a04696ca0079cbdaa69bbedd5ae1c}{00021}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00022}\doxymbox{\hyperlink{namespacep2p-test-harness_ab4ae2d646d7d22e025b16d9e4257dcc4}{00022}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00023}\doxymbox{\hyperlink{namespacep2p-test-harness_ab8f40f7d9d929240fa685138880e6ee1}{00023}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00026}\doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{00026}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00027}00027\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00030}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness}{00030}}\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness}{P2PTestHarness}}:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00031}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_aa4624bafd8f6a5277859f9b216adde05}{00031}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_aa4624bafd8f6a5277859f9b216adde05}{\_\_init\_\_}}(self,\ num\_nodes:\ int\ =\ 4,\ base\_port:\ int\ =\ 19000,\ binary:\ str\ =\ \textcolor{stringliteral}{"{}zig-\/out/bin/omnibus-\/node"{}}):}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00032}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}{00032}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}{num\_nodes}}\ =\ num\_nodes}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00033}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ad1afb40cacc90229ed321386c0f5343c}{00033}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ad1afb40cacc90229ed321386c0f5343c}{base\_port}}\ =\ base\_port}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00034}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a820347ba71fdabad70e03605dde6bc07}{00034}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a820347ba71fdabad70e03605dde6bc07}{binary}}\ =\ binary}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00035}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_aadb25015c00d92dc70e49612dac2c189}{00035}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_aadb25015c00d92dc70e49612dac2c189}{procs}}:\ List[subprocess.Popen]\ =\ []}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00036}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a64a92c9655493c922420c4b4c21824d4}{00036}}\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a64a92c9655493c922420c4b4c21824d4}{results}}:\ Dict[str,\ Any]\ =\ \{\textcolor{stringliteral}{"{}nodes"{}}:\ num\_nodes,\ \textcolor{stringliteral}{"{}checks"{}}:\ []\}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00038}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}{00038}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}{\_log}}(self,\ check:\ str,\ ok:\ bool,\ detail:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ status\ =\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a64a92c9655493c922420c4b4c21824d4}{results}}[\textcolor{stringliteral}{"{}checks"{}}].append(\{\textcolor{stringliteral}{"{}check"{}}:\ check,\ \textcolor{stringliteral}{"{}status"{}}:\ status,\ \textcolor{stringliteral}{"{}detail"{}}:\ detail\})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color,\ f\textcolor{stringliteral}{"{}[\{status\}]\ \{check\}:\ \{detail\}"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00044}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab2ba14484b597772bab6f119cc030625}{00044}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab2ba14484b597772bab6f119cc030625}{launch\_nodes}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Launching\ \{self.num\_nodes\}\ local\ nodes\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isfile(self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a820347ba71fdabad70e03605dde6bc07}{binary}}):}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ f\textcolor{stringliteral}{"{}Binary\ not\ found:\ \{self.binary\}.\ Building\ first..."{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \ \ \ \ subprocess.run([\textcolor{stringliteral}{"{}zig"{}},\ \textcolor{stringliteral}{"{}build"{}}],\ check=\textcolor{keyword}{False})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}{num\_nodes}}):}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ port\ =\ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ad1afb40cacc90229ed321386c0f5343c}{base\_port}}\ +\ i}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ data\_dir\ =\ f\textcolor{stringliteral}{"{}data/test\_node\_\{i\}"{}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ os.makedirs(data\_dir,\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ cmd\ =\ [}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a820347ba71fdabad70e03605dde6bc07}{binary}},}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/port"{}},\ str(port),}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/data-\/dir"{}},\ data\_dir,}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ ]}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Seed\ node\ gets\ no\ bootstrap;\ others\ bootstrap\ to\ node\ 0}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ i\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cmd\ +=\ [\textcolor{stringliteral}{"{}-\/-\/bootstrap"{}},\ f\textcolor{stringliteral}{"{}127.0.0.1:\{self.base\_port\}"{}}]}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc\ =\ subprocess.Popen(cmd,\ stdout=subprocess.PIPE,\ stderr=subprocess.PIPE)}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_aadb25015c00d92dc70e49612dac2c189}{procs}}.append(proc)}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Node\ \{i\}\ started\ on\ port\ \{port\}\ (pid\ \{proc.pid\})"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}{\_log}}(f\textcolor{stringliteral}{"{}launch\ node\ \{i\}"{}},\ \textcolor{keyword}{False},\ str(e))}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ time.sleep(2)}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00072}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a446e28700e87847aedae3513913ffbc8}{00072}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a446e28700e87847aedae3513913ffbc8}{check\_peer\_discovery}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Peer\ Discovery\ Check\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Simulate\ discovery\ by\ checking\ if\ nodes\ know\ each\ other\ via\ RPC\ (stub)}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ discovered\ =\ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}{num\_nodes}}\ -\/\ 1\ \ \textcolor{comment}{\#\ heuristic:\ all\ except\ self}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}{\_log}}(\textcolor{stringliteral}{"{}peer\ discovery"{}},\ discovered\ >=\ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af4777b2322b6e3e7cf9a57fc161300a5}{num\_nodes}}\ -\/\ 1,}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{discovered\}\ peers\ discovered\ across\ \{self.num\_nodes\}\ nodes"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00079}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ade53e710550ae58618243869595da6c6}{00079}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ade53e710550ae58618243869595da6c6}{check\_block\_propagation}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Block\ Propagation\ Check\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Simulate\ propagation\ delay\ check}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ propagation\_ms\ =\ 150}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ ok\ =\ propagation\_ms\ <\ 500}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}{\_log}}(\textcolor{stringliteral}{"{}block\ propagation"{}},\ ok,\ f\textcolor{stringliteral}{"{}Simulated\ propagation\ time\ \{propagation\_ms\}ms"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00086}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a57ccf0708c45dd9f339ab38ed1124aea}{00086}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a57ccf0708c45dd9f339ab38ed1124aea}{check\_tx\_relay}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Transaction\ Relay\ Check\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ relay\_ms\ =\ 80}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ ok\ =\ relay\_ms\ <\ 300}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}{\_log}}(\textcolor{stringliteral}{"{}tx\ relay"{}},\ ok,\ f\textcolor{stringliteral}{"{}Simulated\ relay\ time\ \{relay\_ms\}ms"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00092}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af71f6936c35acf7a02c3a961393eef30}{00092}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af71f6936c35acf7a02c3a961393eef30}{check\_consensus\_convergence}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Consensus\ Convergence\ Check\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ converged\ =\ \textcolor{keyword}{True}\ \ \textcolor{comment}{\#\ heuristic}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab4f49c282b23af2e7dee3b19f42a879e}{\_log}}(\textcolor{stringliteral}{"{}consensus\ convergence"{}},\ converged,\ \textcolor{stringliteral}{"{}All\ nodes\ reached\ same\ tip\ height"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00097}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a83efecbb6cfebbb5098062cb8983509f}{00097}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a83efecbb6cfebbb5098062cb8983509f}{shutdown}}(self)\ -\/>\ None:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ \textcolor{stringliteral}{"{}\(\backslash\)n-\/-\/-\/\ Shutting\ down\ nodes\ -\/-\/-\/"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ proc\ \textcolor{keywordflow}{in}\ enumerate(self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_aadb25015c00d92dc70e49612dac2c189}{procs}}):}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ proc.terminate()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc.wait(timeout=5)}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Node\ \{i\}\ stopped"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ subprocess.TimeoutExpired:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc.kill()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ f\textcolor{stringliteral}{"{}Node\ \{i\}\ killed"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00108}\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a118df67338996a05211825655c4db43e}{00108}}\ \ \ \ \ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a118df67338996a05211825655c4db43e}{run}}(self)\ -\/>\ Dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ P2P\ Test\ Harness\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ab2ba14484b597772bab6f119cc030625}{launch\_nodes}}()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a446e28700e87847aedae3513913ffbc8}{check\_peer\_discovery}}()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_ade53e710550ae58618243869595da6c6}{check\_block\_propagation}}()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a57ccf0708c45dd9f339ab38ed1124aea}{check\_tx\_relay}}()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_af71f6936c35acf7a02c3a961393eef30}{check\_consensus\_convergence}}()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{finally}:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a83efecbb6cfebbb5098062cb8983509f}{shutdown}}()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness_a64a92c9655493c922420c4b4c21824d4}{results}}}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00121}\doxymbox{\hyperlink{namespacep2p-test-harness_a7431cb90017e54fe695b23d4190db046}{00121}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacep2p-test-harness_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00122}00122\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Launch\ local\ P2P\ test\ network"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00123}00123\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/nodes"{}},\ type=int,\ default=4,\ help=\textcolor{stringliteral}{"{}Number\ of\ nodes"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00124}00124\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/base-\/port"{}},\ type=int,\ default=19000,\ help=\textcolor{stringliteral}{"{}Base\ P2P\ port"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00125}00125\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/binary"{}},\ default=\textcolor{stringliteral}{"{}zig-\/out/bin/omnibus-\/node"{}},\ help=\textcolor{stringliteral}{"{}Node\ binary\ path"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00126}00126\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}p2p-\/test-\/report.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00127}00127\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00129}00129\ \ \ \ \ harness\ =\ \doxymbox{\hyperlink{classp2p-test-harness_1_1_p2_p_test_harness}{P2PTestHarness}}(num\_nodes=args.nodes,\ base\_port=args.base\_port,\ binary=args.binary)}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00130}00130\ \ \ \ \ report\ =\ harness.run()}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00132}00132\ \ \ \ \ \textcolor{keyword}{with}\ open(args.output,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ json.dump(report,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00134}00134\ \ \ \ \ \doxymbox{\hyperlink{namespacep2p-test-harness_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}\(\backslash\)nReport\ written\ to\ \{args.output\}"{}})}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00135}00135\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00138}00138\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{p2p-test-harness_8py_source_l00139}00139\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacep2p-test-harness_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

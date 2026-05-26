@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { signIdentitySetPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
 
-const rpc = new OmniBusRpcClient();
 
 type Visibility = "public" | "private" | "ens_only";
+
+const VISIBILITY_OPTIONS: Visibility[] = ["public", "ens_only", "private"];
 
 /**
  * Public identity panel.
@@ -38,15 +39,17 @@ export function IdentityPanel() {
       return;
     }
     let cancelled = false;
-    rpc.identityGet(u.address).then((cur) => {
-      if (cancelled) return;
-      if (cur) {
-        setNickname(cur.nickname || "");
-        setEns(cur.ens || "");
-        setVisibility(cur.visibility);
-      }
-      setLoaded(true);
-    });
+    rpc.identityGet(u.address)
+      .then((cur) => {
+        if (cancelled) return;
+        if (cur) {
+          setNickname(cur.nickname || "");
+          setEns(cur.ens || "");
+          setVisibility(cur.visibility);
+        }
+        setLoaded(true);
+      })
+      .catch(() => { if (!cancelled) setLoaded(true); });
     return () => { cancelled = true; };
   }, [u?.address]);
 
@@ -157,7 +160,7 @@ export function IdentityPanel() {
           Visibility
         </label>
         <div className="grid grid-cols-3 gap-1 text-[11px]">
-          {(["public", "ens_only", "private"] as Visibility[]).map((v) => (
+          {VISIBILITY_OPTIONS.map((v) => (
             <button
               key={v}
               onClick={() => setVisibility(v)}

@@ -15,7 +15,7 @@
  *     correlate with the daily TX log below it.
  *   - Sortable columns + CSV export. CSV is built client-side from the same
  *     in-memory rows the table renders so they're always identical.
- *   - All amounts are SAT on the wire; `fmtOmni` divides by 1e9 for display.
+ *   - All amounts are SAT on the wire; `fmtOmni` divides by SAT_PER_OMNI for display.
  *   - No `any` for known shapes. Only `unknown` when narrowing RPC responses
  *     because `request_raw` returns `unknown` by design.
  */
@@ -28,12 +28,11 @@ import {
   AlertTriangle,
   ArrowUpDown,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { SAT_PER_OMNI, fmtOmni, fmtInt } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
 
-const SAT_PER_OMNI = 1_000_000_000;
 
 // ── Types matching backend `getdailyactivity` response ───────────────────
 
@@ -84,15 +83,8 @@ type SortKey =
   | "stakeChange";
 type SortDir = "asc" | "desc";
 
-const omniFmt = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 4,
-});
-const intFmt = new Intl.NumberFormat("en-US");
-
-function fmtOmni(sat: number): string {
-  return omniFmt.format(sat / SAT_PER_OMNI);
-}
+const REP_CUPS = ["love", "food", "rent", "vacation"] as const;
+type RepCup = typeof REP_CUPS[number];
 
 /** Convert tip block timestamp + day-window math to a real ISO date string. */
 function dayDate(d: DailyEntry, resp: DailyActivityResp | null): string {
@@ -145,11 +137,11 @@ export function DailyAuditPage() {
       // (address_tx_index vs reputation manager) so there's no benefit to
       // serializing.
       const [dailyRaw, repRaw] = await Promise.all([
-        rpc.request_raw("getdailyactivity", [{ address: effectiveAddress, days }]),
-        rpc.request_raw("getreputation", [effectiveAddress]),
+        rpc.getDailyActivity(effectiveAddress, days),
+        rpc.getReputation(effectiveAddress),
       ]);
       const daily = dailyRaw as DailyActivityResp | null;
-      const reputation = repRaw as ReputationResp | null;
+      const reputation = repRaw as unknown as ReputationResp | null;
       setResp(daily);
       setRep(reputation);
     } catch (e) {
@@ -271,7 +263,7 @@ export function DailyAuditPage() {
         </h2>
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-[10px] sm:text-xs text-mempool-text-dim font-mono whitespace-nowrap">
-          {resp ? `tip ${intFmt.format(resp.tipHeight)}` : ""}
+          {resp ? `tip ${fmtInt(resp.tipHeight)}` : ""}
         </span>
       </div>
 
@@ -321,7 +313,7 @@ export function DailyAuditPage() {
       {/* Reputation snapshot — current cups (LOVE/FOOD/RENT/VACATION) */}
       {rep && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-          {(["love", "food", "rent", "vacation"] as const).map((k) => (
+          {REP_CUPS.map((k) => (
             <div key={k} className="bg-mempool-bg border border-mempool-border rounded p-2.5">
               <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">{k}</div>
               <div className="text-sm font-mono text-mempool-text mt-0.5">{rep.cups[k]}</div>
@@ -333,7 +325,7 @@ export function DailyAuditPage() {
       {/* Window totals — chain-derived, recomputed each render */}
       {resp && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-3">
-          <SummaryCell label="TX (window)" value={intFmt.format(totals.txCount)} />
+          <SummaryCell label="TX (window)" value={fmtInt(totals.txCount)} />
           <SummaryCell label="Sent" value={`${fmtOmni(totals.sent)} OMNI`} />
           <SummaryCell label="Received" value={`${fmtOmni(totals.received)} OMNI`} accent="text-mempool-green" />
           <SummaryCell label="Mining" value={`${fmtOmni(totals.miningReward)} OMNI`} accent="text-mempool-green" />
@@ -380,9 +372,9 @@ export function DailyAuditPage() {
                 <tr key={d.dayIndex} className="border-t border-mempool-border/40">
                   <td className="py-2 px-2 text-mempool-text">{dayDate(d, resp)}</td>
                   <td className="py-2 px-2 text-right text-mempool-text-dim">
-                    {intFmt.format(d.blockStart)}–{intFmt.format(d.blockEnd)}
+                    {fmtInt(d.blockStart)}–{fmtInt(d.blockEnd)}
                   </td>
-                  <td className="py-2 px-2 text-right text-mempool-text">{intFmt.format(d.txCount)}</td>
+                  <td className="py-2 px-2 text-right text-mempool-text">{fmtInt(d.txCount)}</td>
                   <td className="py-2 px-2 text-right text-mempool-text">{fmtOmni(d.sent)}</td>
                   <td className="py-2 px-2 text-right text-mempool-green">{fmtOmni(d.received)}</td>
                   <td className="py-2 px-2 text-right text-mempool-green">{fmtOmni(d.miningReward)}</td>

@@ -1,0 +1,31 @@
+\chapter{ECMAScript Modules }
+\hypertarget{md_frontend_2node__modules_2date-fns_2docs_2esm}{}\label{md_frontend_2node__modules_2date-fns_2docs_2esm}\index{ECMAScript Modules@{ECMAScript Modules}}
+\label{md_frontend_2node__modules_2date-fns_2docs_2esm_autotoc_md6328}%
+\Hypertarget{md_frontend_2node__modules_2date-fns_2docs_2esm_autotoc_md6328}%
+
+
+{\bfseries{date-\/fns}} v2.\+x provides support for \href{http://www.ecma-international.org/ecma-262/6.0/\#sec-modules}{\texttt{ECMAScript Modules}} that enables tree-\/shaking for bundlers, like \href{http://rollupjs.org}{\texttt{rollup.\+js}} and \href{https://webpack.js.org}{\texttt{webpack}}.
+
+If you have tree-\/shaking enabled in your bundler, just import functions normally:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ format,\ parse\ \}\ from\ 'date-\/fns'}
+\DoxyCodeLine{import\ \{\ enUS,\ eo\ \}\ from\ 'date-\/fns/locale'}
+\DoxyCodeLine{import\ \{\ addDays,\ addHours\ \}\ from\ 'date-\/fns/fp'}
+
+\end{DoxyCode}
+
+
+In Type\+Script, now you can import individual functions in more idiomatic way:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{//\ Before}
+\DoxyCodeLine{import\ *\ as\ format\ from\ 'date-\/fns/format'}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Now}
+\DoxyCodeLine{import\ format\ from\ 'date-\/fns/format'}
+
+\end{DoxyCode}
+ 

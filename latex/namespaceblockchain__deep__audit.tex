@@ -1,0 +1,337 @@
+\doxysection{blockchain\+\_\+deep\+\_\+audit Namespace Reference}
+\hypertarget{namespaceblockchain__deep__audit}{}\label{namespaceblockchain__deep__audit}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_c_w_e}{CWE}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_risk_level}{Risk\+Level}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_function_info}{Function\+Info}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_security_finding}{Security\+Finding}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}
+\item 
+class \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_function_info}{Function\+Info}}]\+ \doxymbox{\hyperlink{namespaceblockchain__deep__audit_af6cc2f4b55439305945916a008dd04a8}{extract\+\_\+functions}} (str code, str module\+\_\+name)
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_security_finding}{Security\+Finding}}]\+ \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a1de12ce5c239673dcd19cb043b851f7d}{security\+\_\+scan}} (str code, str module\+\_\+name)
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+ \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a9055f7af3e1aac63cfdbfdc78dfd56cc}{find\+\_\+duplicates}} (Dict\+[str, str]\+ all\+\_\+code, int block\+\_\+size=8)
+\item 
+float \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a27c454b52ab690b332e51d2a2322e7a7}{calc\+\_\+maintainability}} (int lines, float complexity, float comment\+\_\+ratio)
+\item 
+List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_security_finding}{Security\+Finding}}]\+ \doxymbox{\hyperlink{namespaceblockchain__deep__audit_ab7c80f3bdf257e7b1407ced7e2bf765a}{check\+\_\+layer\+\_\+violations}} (str module\+\_\+name, List\+[str]\+ imports)
+\item 
+\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}} \doxymbox{\hyperlink{namespaceblockchain__deep__audit_afe1c75fc6f25357295fda654b7d3abfd}{deep\+\_\+analyze}} (Path module\+\_\+path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__deep__audit_ac3c512b801f0fc82f5a3f8948494772f}{print\+\_\+deep\+\_\+report}} (List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}}]\+ results, List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+ duplicates, bool security\+\_\+only=False, bool complexity\+\_\+only=False)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__deep__audit_aed0cd3b63b12b438cce309a53ea53d50}{export\+\_\+json}} (List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}}]\+ results, List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+ duplicates, Path path)
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__deep__audit_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a9d73b1f2f3176776d0abd6e69c8959d1}{CORE}} = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}core"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5a6fa708ef8934939aaa7cde4af46e5a}{TEST}} = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}test"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a41351784bbfce61fd6d896c6957f0059}{AGENT}} = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}agent"{}
+\item 
+list \doxymbox{\hyperlink{namespaceblockchain__deep__audit_ad651b0b1894ac12606d68258197371c2}{SECURITY\+\_\+\+RULES}}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a6beae8c36199f51c362be979a94119e1}{LAYER\+\_\+\+ORDER}}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_aea91940e759d9847f1fddca1df0f9cb7}{G}} = "{}\textbackslash{}033\+[94m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceblockchain__deep__audit_aba487c77af7f6ca171b5620871bfe646}{C}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+dict \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a671de7ccb1823ce010b3312076f00525}{RISK\+\_\+\+COLORS}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}blockchain_deep_audit.py - Deep Code Quality & Security Audit v1.0
+
+Analiza profunda a codului blockchain:
+  - Complexitate ciclomatica per functie
+  - Functii prea mari (>50 linii)
+  - Cod duplicat (6-line block hashing)
+  - Security patterns: unsafe ops, hardcoded keys, allocator leaks
+  - CWE mapping (buffer overflow, TOCTOU, integer overflow)
+  - Module quality scoring (maintainability index)
+  - Architecture: layer violation detection
+
+Usage:
+  python tools/blockchain_deep_audit.py                     # Full deep audit
+  python tools/blockchain_deep_audit.py --module wallet     # Single module
+  python tools/blockchain_deep_audit.py --json report.json  # Export JSON
+  python tools/blockchain_deep_audit.py --security-only     # Security checks only
+  python tools/blockchain_deep_audit.py --complexity        # Complexity report only
+\end{DoxyVerb}
+ 
+
+\label{namespaceblockchain__deep__audit_doc-func-members}
+\Hypertarget{namespaceblockchain__deep__audit_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceblockchain__deep__audit_a27c454b52ab690b332e51d2a2322e7a7}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!calc\_maintainability@{calc\_maintainability}}
+\index{calc\_maintainability@{calc\_maintainability}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{calc\_maintainability()}{calc\_maintainability()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a27c454b52ab690b332e51d2a2322e7a7} 
+ float calc\+\_\+maintainability (\begin{DoxyParamCaption}\item[{int}]{lines}{, }\item[{float}]{complexity}{, }\item[{float}]{comment\+\_\+ratio}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Calculate Maintainability Index (0-100).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00310}{310}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespaceblockchain__deep__audit_ab7c80f3bdf257e7b1407ced7e2bf765a}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!check\_layer\_violations@{check\_layer\_violations}}
+\index{check\_layer\_violations@{check\_layer\_violations}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{check\_layer\_violations()}{check\_layer\_violations()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_ab7c80f3bdf257e7b1407ced7e2bf765a} 
+ List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_security_finding}{Security\+Finding}}]\+ check\+\_\+layer\+\_\+violations (\begin{DoxyParamCaption}\item[{str}]{module\+\_\+name}{, }\item[{List\+[str]\+}]{imports}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Check if a module imports from a higher layer (violation).\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00349}{349}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceblockchain__deep__audit_afe1c75fc6f25357295fda654b7d3abfd}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!deep\_analyze@{deep\_analyze}}
+\index{deep\_analyze@{deep\_analyze}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{deep\_analyze()}{deep\_analyze()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_afe1c75fc6f25357295fda654b7d3abfd} 
+ \doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}} deep\+\_\+analyze (\begin{DoxyParamCaption}\item[{Path}]{module\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Perform deep analysis on a single module.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00372}{372}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 2
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceblockchain__deep__audit_aed0cd3b63b12b438cce309a53ea53d50}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!export\_json@{export\_json}}
+\index{export\_json@{export\_json}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{export\_json()}{export\_json()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_aed0cd3b63b12b438cce309a53ea53d50} 
+export\+\_\+json (\begin{DoxyParamCaption}\item[{List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}}]\+}]{results}{, }\item[{List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+}]{duplicates}{, }\item[{Path}]{path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00540}{540}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceblockchain__deep__audit_af6cc2f4b55439305945916a008dd04a8}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!extract\_functions@{extract\_functions}}
+\index{extract\_functions@{extract\_functions}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{extract\_functions()}{extract\_functions()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_af6cc2f4b55439305945916a008dd04a8} 
+ List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_function_info}{Function\+Info}}]\+ extract\+\_\+functions (\begin{DoxyParamCaption}\item[{str}]{code}{, }\item[{str}]{module\+\_\+name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Extract all function definitions with metrics.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00114}{114}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 5
+\Hypertarget{namespaceblockchain__deep__audit_a9055f7af3e1aac63cfdbfdc78dfd56cc}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!find\_duplicates@{find\_duplicates}}
+\index{find\_duplicates@{find\_duplicates}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{find\_duplicates()}{find\_duplicates()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a9055f7af3e1aac63cfdbfdc78dfd56cc} 
+ List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+ find\+\_\+duplicates (\begin{DoxyParamCaption}\item[{Dict\+[str, str]\+}]{all\+\_\+code}{, }\item[{int }]{block\+\_\+size}{ = {\ttfamily 8}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Find duplicate code blocks across modules.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00281}{281}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceblockchain__deep__audit_a51af30a60f9f02777c6396b8247e356f}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!main@{main}}
+\index{main@{main}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00590}{590}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 7
+Here is the caller graph for this function:\+
+% FIG 8
+\Hypertarget{namespaceblockchain__deep__audit_ac3c512b801f0fc82f5a3f8948494772f}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!print\_deep\_report@{print\_deep\_report}}
+\index{print\_deep\_report@{print\_deep\_report}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{print\_deep\_report()}{print\_deep\_report()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_ac3c512b801f0fc82f5a3f8948494772f} 
+print\+\_\+deep\+\_\+report (\begin{DoxyParamCaption}\item[{List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_module_deep_result}{Module\+Deep\+Result}}]\+}]{results}{, }\item[{List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_duplicate_block}{Duplicate\+Block}}]\+}]{duplicates}{, }\item[{bool }]{security\+\_\+only}{ = {\ttfamily False}, }\item[{bool }]{complexity\+\_\+only}{ = {\ttfamily False}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00438}{438}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespaceblockchain__deep__audit_a1de12ce5c239673dcd19cb043b851f7d}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!security\_scan@{security\_scan}}
+\index{security\_scan@{security\_scan}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{security\_scan()}{security\_scan()}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a1de12ce5c239673dcd19cb043b851f7d} 
+ List\+[\doxymbox{\hyperlink{classblockchain__deep__audit_1_1_security_finding}{Security\+Finding}}]\+ security\+\_\+scan (\begin{DoxyParamCaption}\item[{str}]{code}{, }\item[{str}]{module\+\_\+name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run all security rules against module code.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00264}{264}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+
+
+\label{namespaceblockchain__deep__audit_doc-var-members}
+\Hypertarget{namespaceblockchain__deep__audit_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceblockchain__deep__audit_a41351784bbfce61fd6d896c6957f0059}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!AGENT@{AGENT}}
+\index{AGENT@{AGENT}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{AGENT}{AGENT}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a41351784bbfce61fd6d896c6957f0059} 
+str blockchain\+\_\+deep\+\_\+audit.\+AGENT = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}agent"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__deep__audit_aba487c77af7f6ca171b5620871bfe646}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!C@{C}}
+\index{C@{C}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{C}{C}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_aba487c77af7f6ca171b5620871bfe646} 
+str blockchain\+\_\+deep\+\_\+audit.\+C = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00427}{427}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__deep__audit_a9d73b1f2f3176776d0abd6e69c8959d1}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!CORE@{CORE}}
+\index{CORE@{CORE}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{CORE}{CORE}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a9d73b1f2f3176776d0abd6e69c8959d1} 
+str blockchain\+\_\+deep\+\_\+audit.\+CORE = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}core"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__deep__audit_aea91940e759d9847f1fddca1df0f9cb7}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!G@{G}}
+\index{G@{G}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{G}{G}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_aea91940e759d9847f1fddca1df0f9cb7} 
+str blockchain\+\_\+deep\+\_\+audit.\+G = "{}\textbackslash{}033\+[94m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00426}{426}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__deep__audit_a6beae8c36199f51c362be979a94119e1}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!LAYER\_ORDER@{LAYER\_ORDER}}
+\index{LAYER\_ORDER@{LAYER\_ORDER}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{LAYER\_ORDER}{LAYER\_ORDER}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a6beae8c36199f51c362be979a94119e1} 
+dict blockchain\+\_\+deep\+\_\+audit.\+LAYER\+\_\+\+ORDER}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Layer\ 0\ -\/\ Crypto\ (no\ deps)}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}crypto"{}}:\ 0,\ \textcolor{stringliteral}{"{}secp256k1"{}}:\ 0,\ \textcolor{stringliteral}{"{}ripemd160"{}}:\ 0,\ \textcolor{stringliteral}{"{}pq\_crypto"{}}:\ 0,\ \textcolor{stringliteral}{"{}key\_encryption"{}}:\ 0,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}schnorr"{}}:\ 0,\ \textcolor{stringliteral}{"{}multisig"{}}:\ 0,}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Layer\ 1\ -\/\ Basic\ types\ +\ codec}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}transaction"{}}:\ 1,\ \textcolor{stringliteral}{"{}block"{}}:\ 1,\ \textcolor{stringliteral}{"{}bip32\_wallet"{}}:\ 1,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}compact\_transaction"{}}:\ 1,\ \textcolor{stringliteral}{"{}witness\_data"{}}:\ 1,\ \textcolor{stringliteral}{"{}hex\_utils"{}}:\ 1,}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Layer\ 2\ -\/\ Core\ chain\ +\ sharding\ primitives}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}blockchain"{}}:\ 2,\ \textcolor{stringliteral}{"{}blockchain\_v2"{}}:\ 2,\ \textcolor{stringliteral}{"{}genesis"{}}:\ 2,\ \textcolor{stringliteral}{"{}consensus"{}}:\ 2,\ \textcolor{stringliteral}{"{}binary\_codec"{}}:\ 2,\ \textcolor{stringliteral}{"{}spark\_invariants"{}}:\ 2,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}mempool"{}}:\ 2,\ \textcolor{stringliteral}{"{}wallet"{}}:\ 2,\ \textcolor{stringliteral}{"{}sub\_block"{}}:\ 2,\ \textcolor{stringliteral}{"{}finality"{}}:\ 2,\ \textcolor{stringliteral}{"{}governance"{}}:\ 2,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}shard\_config"{}}:\ 2,\ \textcolor{stringliteral}{"{}prune\_config"{}}:\ 2,\ \textcolor{stringliteral}{"{}archive\_manager"{}}:\ 2,}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Layer\ 3\ -\/\ Network}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}p2p"{}}:\ 3,\ \textcolor{stringliteral}{"{}sync"{}}:\ 3,\ \textcolor{stringliteral}{"{}bootstrap"{}}:\ 3,\ \textcolor{stringliteral}{"{}network"{}}:\ 3,}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Layer\ 4\ -\/\ Storage}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}database"{}}:\ 4,\ \textcolor{stringliteral}{"{}storage"{}}:\ 4,\ \textcolor{stringliteral}{"{}state\_trie"{}}:\ 4,}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Layer\ 5\ -\/\ Node\ +\ features}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}node\_launcher"{}}:\ 5,\ \textcolor{stringliteral}{"{}cli"{}}:\ 5,\ \textcolor{stringliteral}{"{}rpc\_server"{}}:\ 5,\ \textcolor{stringliteral}{"{}ws\_server"{}}:\ 5,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}mining\_pool"{}}:\ 5,\ \textcolor{stringliteral}{"{}light\_client"{}}:\ 5,\ \textcolor{stringliteral}{"{}light\_miner"{}}:\ 5,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}shard\_coordinator"{}}:\ 5,\ \textcolor{stringliteral}{"{}metachain"{}}:\ 5,}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Layer\ 6\ -\/\ Economic}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}bread\_ledger"{}}:\ 6,\ \textcolor{stringliteral}{"{}domain\_minter"{}}:\ 6,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}ubi\_distributor"{}}:\ 6,\ \textcolor{stringliteral}{"{}payment\_channel"{}}:\ 6,\ \textcolor{stringliteral}{"{}bridge\_relay"{}}:\ 6,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}oracle"{}}:\ 6,\ \textcolor{stringliteral}{"{}omni\_brain"{}}:\ 6,}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{\#\ Layer\ 7\ -\/\ Entry}}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}main"{}}:\ 7,\ \textcolor{stringliteral}{"{}e2e\_mining"{}}:\ 7,\ \textcolor{stringliteral}{"{}miner\_genesis"{}}:\ 7,}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00322}{322}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__deep__audit_a671de7ccb1823ce010b3312076f00525}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!RISK\_COLORS@{RISK\_COLORS}}
+\index{RISK\_COLORS@{RISK\_COLORS}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{RISK\_COLORS}{RISK\_COLORS}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a671de7ccb1823ce010b3312076f00525} 
+dict blockchain\+\_\+deep\+\_\+audit.\+RISK\+\_\+\+COLORS}
+
+{\bfseries Initial value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ RiskLevel.CRITICAL:\ R\ +\ BOLD,}
+\DoxyCodeLine{\ \ \ \ RiskLevel.HIGH:\ R,}
+\DoxyCodeLine{\ \ \ \ RiskLevel.MEDIUM:\ Y,}
+\DoxyCodeLine{\ \ \ \ RiskLevel.LOW:\ B,}
+\DoxyCodeLine{\ \ \ \ RiskLevel.INFO:\ DIM,}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00429}{429}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a} 
+blockchain\+\_\+deep\+\_\+audit.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__deep__audit_ad651b0b1894ac12606d68258197371c2}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!SECURITY\_RULES@{SECURITY\_RULES}}
+\index{SECURITY\_RULES@{SECURITY\_RULES}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{SECURITY\_RULES}{SECURITY\_RULES}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_ad651b0b1894ac12606d68258197371c2} 
+list blockchain\+\_\+deep\+\_\+audit.\+SECURITY\+\_\+\+RULES}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00193}{193}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+
+\Hypertarget{namespaceblockchain__deep__audit_a5a6fa708ef8934939aaa7cde4af46e5a}\index{blockchain\_deep\_audit@{blockchain\_deep\_audit}!TEST@{TEST}}
+\index{TEST@{TEST}!blockchain\_deep\_audit@{blockchain\_deep\_audit}}
+\doxysubsubsection{\texorpdfstring{TEST}{TEST}}
+{\footnotesize\ttfamily \label{namespaceblockchain__deep__audit_a5a6fa708ef8934939aaa7cde4af46e5a} 
+str blockchain\+\_\+deep\+\_\+audit.\+TEST = \doxymbox{\hyperlink{namespaceblockchain__deep__audit_a5cbe62b0f567c2bab4f9c2b5d0378e9a}{ROOT}} /\+ "{}test"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{blockchain__deep__audit_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{blockchain__deep__audit_8py_source}{blockchain\+\_\+deep\+\_\+audit.\+py}}.
+

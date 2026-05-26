@@ -1,0 +1,30 @@
+\doxysection{module Namespace Reference}
+\hypertarget{namespacemodule}{}\label{namespacemodule}\index{module@{module}}
+
+
+-\/complexity-\/analyzer  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/complexity-\/analyzer 
+
+\begin{DoxyVerb}OmniBus BlockChainCore — Module Complexity Analyzer
+====================================================
+Analyzes all core/*.zig source files and computes complexity metrics:
+
+  - Lines of code (total / non-blank / non-comment)
+  - Function count (fn keyword)
+  - Test block count (test "..." blocks)
+  - Import count (@import statements)
+  - Complexity score (weighted formula)
+
+Outputs a ranked table and optional JSON export.
+
+Usage:
+    python module-complexity-analyzer.py
+    python module-complexity-analyzer.py --source-dir ../../core
+    python module-complexity-analyzer.py --json-output complexity.json --top 20
+\end{DoxyVerb}
+ 

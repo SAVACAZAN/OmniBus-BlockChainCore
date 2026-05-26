@@ -1,0 +1,243 @@
+\doxysection{consensus-\/attack-\/sim.py}
+\hypertarget{consensus-attack-sim_8py_source}{}\label{consensus-attack-sim_8py_source}\index{tools/EXPLOITS/consensus-\/attack-\/sim.py@{tools/EXPLOITS/consensus-\/attack-\/sim.py}}
+\doxymbox{\hyperlink{consensus-attack-sim_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00001}\doxymbox{\hyperlink{namespaceconsensus-attack-sim}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00002}\doxymbox{\hyperlink{namespaceconsensus}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00003}00003\ \textcolor{stringliteral}{consensus-\/attack-\/sim.py}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00005}00005\ \textcolor{stringliteral}{Simulate\ and\ estimate\ feasibility\ of\ consensus\ attacks\ against\ a}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00006}00006\ \textcolor{stringliteral}{BlockChainCore-\/style\ network:}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ -\/\ 51\%\ attack\ (hashrate\ requirement)}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ -\/\ selfish\ mining\ simulation}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ -\/\ eclipse\ attack\ (isolation\ cost)}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ -\/\ long-\/range\ attack}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ nothing-\/at-\/stake\ (PoS\ scenario)}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00012}00012\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00013}00013\ \textcolor{stringliteral}{Outputs:\ attack-\/feasibility.json\ with\ cost\ estimates.}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00014}00014\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00016}00016\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00017}00017\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00018}00018\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00020}00020\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00022}00022\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00023}00023\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00025}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a14f30d3b65d103465398defdd35d794d}{00025}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00026}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_acf6670f0d20c6f202469e7b5a4263e07}{00026}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00027}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_acbfabc1526ce0f38fe356936162302db}{00027}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00028}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_aabbdbef89ba9f113b9a9c79c9d4c5df1}{00028}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00029}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a2aa1b510c9f6b1007f2f11485e4df32c}{00029}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00032}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00032}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00033}00033\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00036}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00036}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00037}00037\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00040}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_abf994b8269849d29e07697ea8a840f74}{00040}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00041}00041\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00044}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_adf0e2aa4d06b5ca38e44721821eca783}{00044}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00045}00045\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00048}00048\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00049}00049\ \textcolor{comment}{\#\ Simulation\ parameters}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00050}00050\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00051}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_ad5dd5f6952bdd8cbb8cf4095b383f2e5}{00051}}\ BLOCK\_TIME\_SEC\ =\ 10.0}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00052}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a08329e879cdf0667c29574733945e318}{00052}}\ BLOCK\_REWARD\ =\ 50.0\ \ \textcolor{comment}{\#\ OMNI\ per\ block}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00053}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_aa20f97b4370626f407f80e18cc19a171}{00053}}\ HASHRATE\_NETWORK\_GHPS\ =\ 1\_000\_000\ \ \textcolor{comment}{\#\ 1\ EH/s\ =\ 1e6\ GH/s}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00054}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_ae01eaf17374b7240dcbca3b40c334d71}{00054}}\ COST\_PER\_GHPS\_HOUR\ =\ 0.05\ \ \textcolor{comment}{\#\ USD}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00055}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a1c56f113cc1cd6bf67e4ba552a71fb14}{00055}}\ COST\_ECLIPSE\_NODE\_RENT\ =\ 500.0\ \ \textcolor{comment}{\#\ USD\ per\ malicious\ peer}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00056}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a020e12a1b20671ed04e016e7236ae7fb}{00056}}\ COST\_STAKE\_PER\_OMNI\ =\ 1.0\ \ \textcolor{comment}{\#\ USD\ for\ PoS\ simulation}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00059}00059\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00060}00060\ \textcolor{comment}{\#\ Attack\ models}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00061}00061\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00062}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a361c5f0bd145fe720a509d70f35b6843}{00062}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a361c5f0bd145fe720a509d70f35b6843}{simulate\_51\_attack}}(network\_ghps:\ float,\ attacker\_fraction:\ float,\ duration\_hours:\ float)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00063}00063\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Estimate\ 51\%\ attack\ feasibility."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00064}00064\ \ \ \ \ attacker\_ghps\ =\ network\_ghps\ *\ attacker\_fraction}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00065}00065\ \ \ \ \ cost\ =\ attacker\_ghps\ *\ COST\_PER\_GHPS\_HOUR\ *\ duration\_hours}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00066}00066\ \ \ \ \ expected\_blocks\ =\ (duration\_hours\ *\ 3600.0\ /\ BLOCK\_TIME\_SEC)\ *\ attacker\_fraction}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00067}00067\ \ \ \ \ revenue\ =\ expected\_blocks\ *\ BLOCK\_REWARD\ *\ COST\_STAKE\_PER\_OMNI}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}51\_percent"{}},}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attacker\_fraction"{}}:\ attacker\_fraction,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}duration\_hours"{}}:\ duration\_hours,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attacker\_ghps"{}}:\ attacker\_ghps,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}estimated\_cost\_usd"{}}:\ round(cost,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_blocks"{}}:\ round(expected\_blocks,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}revenue\_usd"{}}:\ round(revenue,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}profitable"{}}:\ revenue\ >\ cost,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00077}00077\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00080}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_ac3fbd109327474770036b21820e83367}{00080}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_ac3fbd109327474770036b21820e83367}{simulate\_selfish\_mining}}(network\_ghps:\ float,\ attacker\_fraction:\ float,\ rounds:\ int\ =\ 1000)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00081}00081\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Simple\ selfish\ mining\ simulation\ (Eyal\ \&\ Sirer\ model\ approximation)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00082}00082\ \ \ \ \ alpha\ =\ attacker\_fraction}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00083}00083\ \ \ \ \ gamma\ =\ 0.5\ \ \textcolor{comment}{\#\ propagation\ factor}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00084}00084\ \ \ \ \ \textcolor{comment}{\#\ Revenue\ approximation\ from\ the\ paper}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{if}\ alpha\ <\ 0.5:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ revenue\_ratio\ =\ (alpha\ *\ (1\ -\/\ alpha)\ **\ 2\ *\ (4\ *\ alpha\ +\ gamma\ *\ (1\ -\/\ 2\ *\ alpha))\ -\/\ alpha\ **\ 3)\ /\ (}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ 1\ -\/\ alpha\ *\ (1\ +\ (2\ -\/\ alpha)\ *\ alpha)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ revenue\_ratio\ =\ alpha}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00092}00092\ \ \ \ \ \textcolor{comment}{\#\ Monte-\/Carlo\ style\ simple\ block\ race}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00093}00093\ \ \ \ \ attacker\_wins\ =\ 0}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00094}00094\ \ \ \ \ honest\_wins\ =\ 0}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00095}00095\ \ \ \ \ lead\ =\ 0}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00096}00096\ \ \ \ \ \textcolor{keywordflow}{for}\ \_\ \textcolor{keywordflow}{in}\ range(rounds):}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ random.random()\ <\ alpha:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ lead\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lead\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ honest\_wins\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lead\ -\/=\ 1}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ lead\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ attacker\_wins\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00106}00106\ \ \ \ \ total\ =\ attacker\_wins\ +\ honest\_wins\ \textcolor{keywordflow}{or}\ 1}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00107}00107\ \ \ \ \ simulated\_ratio\ =\ attacker\_wins\ /\ total}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00109}00109\ \ \ \ \ cost\ =\ network\_ghps\ *\ alpha\ *\ COST\_PER\_GHPS\_HOUR\ *\ 24\ \ \textcolor{comment}{\#\ 24h\ baseline}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00110}00110\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}selfish\_mining"{}},}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attacker\_fraction"{}}:\ alpha,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rounds\_simulated"{}}:\ rounds,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}theoretical\_revenue\_ratio"{}}:\ round(revenue\_ratio,\ 4),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}simulated\_revenue\_ratio"{}}:\ round(simulated\_ratio,\ 4),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}estimated\_cost\_24h\_usd"{}}:\ round(cost,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00117}00117\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00120}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_ae7e6f74fc99ab26bbf8de7de3250a715}{00120}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_ae7e6f74fc99ab26bbf8de7de3250a715}{simulate\_eclipse\_attack}}(num\_peers:\ int\ =\ 8,\ malicious\_peers:\ int\ =\ 8)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00121}00121\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Estimate\ eclipse\ attack\ cost."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00122}00122\ \ \ \ \ \textcolor{comment}{\#\ If\ attacker\ controls\ all\ outbound\ peer\ slots}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00123}00123\ \ \ \ \ success\_probability\ =\ 1.0\ \textcolor{keywordflow}{if}\ malicious\_peers\ >=\ num\_peers\ \textcolor{keywordflow}{else}\ (}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ math.comb(malicious\_peers,\ min(num\_peers,\ malicious\_peers))\ /}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ max(math.comb(1000,\ num\_peers),\ 1)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00126}00126\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00127}00127\ \ \ \ \ cost\ =\ malicious\_peers\ *\ COST\_ECLIPSE\_NODE\_RENT}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00128}00128\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}eclipse"{}},}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}target\_outbound\_peers"{}}:\ num\_peers,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}malicious\_peers"{}}:\ malicious\_peers,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}success\_probability"{}}:\ round(min(success\_probability,\ 1.0),\ 6),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}estimated\_cost\_usd"{}}:\ round(cost,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00134}00134\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00137}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a209dc44027a98c0ee9c77f93325b7b12}{00137}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a209dc44027a98c0ee9c77f93325b7b12}{simulate\_long\_range\_attack}}(stake\_fraction:\ float,\ history\_days:\ int)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00138}00138\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}PoS\ long-\/range:\ attacker\ with\ historical\ stake\ fraction\ rewinds\ chain."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00139}00139\ \ \ \ \ cost\ =\ stake\_fraction\ *\ 1\_000\_000\ *\ COST\_STAKE\_PER\_OMNI\ \ \textcolor{comment}{\#\ assume\ 1M\ OMNI\ total\ stake}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00140}00140\ \ \ \ \ blocks\_to\_rewrite\ =\ int(history\_days\ *\ 24\ *\ 3600\ /\ BLOCK\_TIME\_SEC)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}long\_range"{}},}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}stake\_fraction"{}}:\ stake\_fraction,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}history\_days"{}}:\ history\_days,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00145}00145\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}blocks\_to\_rewrite"{}}:\ blocks\_to\_rewrite,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}estimated\_cost\_usd"{}}:\ round(cost,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}feasible"{}}:\ stake\_fraction\ >\ 0.3,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00148}00148\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00151}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_aee6430161293cdddff3c68a7a5a0a3d3}{00151}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_aee6430161293cdddff3c68a7a5a0a3d3}{simulate\_nothing\_at\_stake}}(validators:\ int,\ attacker\_validators:\ int,\ forks:\ int\ =\ 10)\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00152}00152\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Simulate\ nothing-\/at-\/stake:\ attacker\ stakes\ on\ multiple\ forks."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00153}00153\ \ \ \ \ \textcolor{keywordflow}{if}\ validators\ <=\ 0:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00154}00154\ \ \ \ \ \ \ \ \ validators\ =\ 100}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00155}00155\ \ \ \ \ attacker\_fraction\ =\ attacker\_validators\ /\ validators}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00156}00156\ \ \ \ \ \textcolor{comment}{\#\ Expected\ reward\ per\ fork}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00157}00157\ \ \ \ \ reward\_per\_fork\ =\ BLOCK\_REWARD\ *\ attacker\_fraction}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00158}00158\ \ \ \ \ total\_reward\ =\ reward\_per\_fork\ *\ forks}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00159}00159\ \ \ \ \ \textcolor{comment}{\#\ Cost\ is\ negligible\ because\ same\ stake\ is\ reused}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00160}00160\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attack"{}}:\ \textcolor{stringliteral}{"{}nothing\_at\_stake"{}},}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}validators"{}}:\ validators,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attacker\_validators"{}}:\ attacker\_validators,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00164}00164\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}forks\_bet\_on"{}}:\ forks,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}attacker\_fraction"{}}:\ round(attacker\_fraction,\ 4),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00166}00166\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}expected\_reward\_usd"{}}:\ round(total\_reward\ *\ COST\_STAKE\_PER\_OMNI,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cost\_usd"{}}:\ 0.0,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}exploit\_value"{}}:\ round(total\_reward\ *\ COST\_STAKE\_PER\_OMNI,\ 2),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00169}00169\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00172}00172\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00173}00173\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00174}00174\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00175}\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a7431cb90017e54fe695b23d4190db046}{00175}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00176}00176\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Simulate\ consensus\ attacks."{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00177}00177\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/network-\/ghps"{}},\ type=float,\ default=HASHRATE\_NETWORK\_GHPS,\ help=\textcolor{stringliteral}{"{}Network\ hashrate\ in\ GH/s"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00178}00178\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/block-\/reward"{}},\ type=float,\ default=BLOCK\_REWARD,\ help=\textcolor{stringliteral}{"{}Block\ reward\ in\ OMNI"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00179}00179\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}tools/EXPLOITS/attack-\/feasibility.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00180}00180\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00182}00182\ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Running\ consensus\ attack\ simulations\ …"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00184}00184\ \ \ \ \ results\ =\ []}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00186}00186\ \ \ \ \ \textcolor{comment}{\#\ 51\%\ at\ various\ fractions}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00187}00187\ \ \ \ \ \textcolor{keywordflow}{for}\ frac\ \textcolor{keywordflow}{in}\ [0.3,\ 0.4,\ 0.51,\ 0.6]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00188}00188\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a361c5f0bd145fe720a509d70f35b6843}{simulate\_51\_attack}}(args.network\_ghps,\ frac,\ duration\_hours=24)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00189}00189\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00190}00190\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}51\%\ @\ \{frac\}:\ cost=\$\{r['estimated\_cost\_usd']\},\ profitable=\{r['profitable']\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00192}00192\ \ \ \ \ \textcolor{comment}{\#\ Selfish\ mining}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00193}00193\ \ \ \ \ \textcolor{keywordflow}{for}\ frac\ \textcolor{keywordflow}{in}\ [0.25,\ 0.33,\ 0.4]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00194}00194\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ac3fbd109327474770036b21820e83367}{simulate\_selfish\_mining}}(args.network\_ghps,\ frac)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00195}00195\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00196}00196\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Selfish\ mining\ @\ \{frac\}:\ theoretical\_ratio=\{r['theoretical\_revenue\_ratio']\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00198}00198\ \ \ \ \ \textcolor{comment}{\#\ Eclipse}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00199}00199\ \ \ \ \ \textcolor{keywordflow}{for}\ mal\ \textcolor{keywordflow}{in}\ [4,\ 8,\ 12]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00200}00200\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_ae7e6f74fc99ab26bbf8de7de3250a715}{simulate\_eclipse\_attack}}(num\_peers=8,\ malicious\_peers=mal)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00201}00201\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00202}00202\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Eclipse\ with\ \{mal\}\ peers:\ success\_prob=\{r['success\_probability']\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00204}00204\ \ \ \ \ \textcolor{comment}{\#\ Long-\/range}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00205}00205\ \ \ \ \ \textcolor{keywordflow}{for}\ stake\ \textcolor{keywordflow}{in}\ [0.2,\ 0.4,\ 0.6]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00206}00206\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a209dc44027a98c0ee9c77f93325b7b12}{simulate\_long\_range\_attack}}(stake,\ history\_days=30)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00207}00207\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00208}00208\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Long-\/range\ @\ \{stake\}\ stake:\ feasible=\{r['feasible']\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00210}00210\ \ \ \ \ \textcolor{comment}{\#\ Nothing-\/at-\/stake}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{for}\ att\ \textcolor{keywordflow}{in}\ [10,\ 30,\ 51]:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ r\ =\ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_aee6430161293cdddff3c68a7a5a0a3d3}{simulate\_nothing\_at\_stake}}(100,\ att)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ results.append(r)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(f\textcolor{stringliteral}{"{}Nothing-\/at-\/stake\ @\ \{att\}/100:\ reward=\$\{r['expected\_reward\_usd']\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00216}00216\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}parameters"{}}:\ \{}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}network\_ghps"{}}:\ args.network\_ghps,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}block\_reward"{}}:\ args.block\_reward,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}block\_time\_sec"{}}:\ BLOCK\_TIME\_SEC,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}cost\_per\_ghps\_hour"{}}:\ COST\_PER\_GHPS\_HOUR,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \},}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}simulations"{}}:\ results,}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00225}00225\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00227}00227\ \ \ \ \ out\_path\ =\ os.path.abspath(args.output)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00228}00228\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00229}00229\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00232}00232\ \ \ \ \ \doxymbox{\hyperlink{namespaceconsensus-attack-sim_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(f\textcolor{stringliteral}{"{}Attack\ feasibility\ report\ written\ to\ \{out\_path\}"{}})}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00233}00233\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00236}00236\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{consensus-attack-sim_8py_source_l00237}00237\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespaceconsensus-attack-sim_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

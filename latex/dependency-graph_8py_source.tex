@@ -1,0 +1,97 @@
+\doxysection{dependency-\/graph.py}
+\hypertarget{dependency-graph_8py_source}{}\label{dependency-graph_8py_source}\index{tools/DEBUG/dependency-\/graph.py@{tools/DEBUG/dependency-\/graph.py}}
+\doxymbox{\hyperlink{dependency-graph_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00001}\doxymbox{\hyperlink{namespacedependency-graph}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ Dependency\ Graph\ Generator}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00005}00005\ \textcolor{stringliteral}{Generates\ dependency\ graph\ between\ core/*.zig\ modules.}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00006}00006\ \textcolor{stringliteral}{Outputs:\ dependency-\/graph.json\ +\ optional\ .dot\ for\ Graphviz.}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00009}00009\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00010}00010\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00011}00011\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00012}00012\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00013}00013\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00014}00014\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any,\ Dict,\ List,\ Set,\ Tuple}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00016}\doxymbox{\hyperlink{namespacedependency-graph_a4202d6354b7ce2d352d4d48f9ec0c273}{00016}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00017}\doxymbox{\hyperlink{namespacedependency-graph_a1234c4dd999fdb09b160d0758db2e2f5}{00017}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00018}\doxymbox{\hyperlink{namespacedependency-graph_a98fb544981e0409fb74c0efec9558e00}{00018}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00019}\doxymbox{\hyperlink{namespacedependency-graph_adf42658217aa5f4ca5b6504db8ccd5a4}{00019}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00022}\doxymbox{\hyperlink{namespacedependency-graph_acd59877dca2a9957888013a6f06aab6d}{00022}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedependency-graph_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00023}00023\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00026}\doxymbox{\hyperlink{namespacedependency-graph_a23695d1a2163cae1b5fa4799193d5497}{00026}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedependency-graph_a23695d1a2163cae1b5fa4799193d5497}{extract\_imports}}(filepath:\ str)\ -\/>\ List[str]:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00027}00027\ \ \ \ \ imports\ =\ []}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00028}00028\ \ \ \ \ \textcolor{keyword}{with}\ open(filepath,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}ignore"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ content\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00030}00030\ \ \ \ \ \textcolor{comment}{\#\ Match\ @import("{}core/module.zig"{})\ or\ @import("{}module.zig"{})}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00031}00031\ \ \ \ \ \textcolor{keywordflow}{for}\ m\ \textcolor{keywordflow}{in}\ re.finditer(\textcolor{stringliteral}{r'@import\(\backslash\)("{}([\string^"{}]+)"{}\(\backslash\))'},\ content):}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ imp\ =\ m.group(1)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ base\ =\ os.path.basename(imp)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ base.endswith(\textcolor{stringliteral}{"{}.zig"{}}):}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \ \ \ \ imports.append(base)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{return}\ imports}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00039}\doxymbox{\hyperlink{namespacedependency-graph_a7ac13b5d0cad8d1da31ef6a809c87ec8}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedependency-graph_a7ac13b5d0cad8d1da31ef6a809c87ec8}{build\_graph}}(core\_dir:\ str)\ -\/>\ Tuple[List[str],\ List[Dict[str,\ str]]]:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00040}00040\ \ \ \ \ files\ =\ sorted([f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ os.listdir(core\_dir)\ \textcolor{keywordflow}{if}\ f.endswith(\textcolor{stringliteral}{"{}.zig"{}})])}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00041}00041\ \ \ \ \ nodes\ =\ [f\ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ files]}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00042}00042\ \ \ \ \ edges:\ List[Dict[str,\ str]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00043}00043\ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ files:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ fpath\ =\ os.path.join(core\_dir,\ f)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ imports\ =\ \doxymbox{\hyperlink{namespacedependency-graph_a23695d1a2163cae1b5fa4799193d5497}{extract\_imports}}(fpath)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ imp\ \textcolor{keywordflow}{in}\ imports:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ imp\ \textcolor{keywordflow}{in}\ files\ \textcolor{keywordflow}{and}\ imp\ !=\ f:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ edges.append(\{\textcolor{stringliteral}{"{}source"{}}:\ f,\ \textcolor{stringliteral}{"{}target"{}}:\ imp\})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{return}\ nodes,\ edges}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00052}\doxymbox{\hyperlink{namespacedependency-graph_acbb082035ce429cf0e40ce887af1da9d}{00052}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedependency-graph_acbb082035ce429cf0e40ce887af1da9d}{generate\_dot}}(nodes:\ List[str],\ edges:\ List[Dict[str,\ str]])\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00053}00053\ \ \ \ \ lines\ =\ [\textcolor{stringliteral}{"{}digraph\ OmniBusDeps\ \{"{}}]}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00054}00054\ \ \ \ \ lines.append(\textcolor{stringliteral}{'\ \ rankdir=LR;'})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00055}00055\ \ \ \ \ lines.append(\textcolor{stringliteral}{'\ \ node\ [shape=box,\ style=filled,\ fillcolor="{}\#1f2833"{},\ fontcolor="{}\#66fcf1"{}];'})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{for}\ n\ \textcolor{keywordflow}{in}\ nodes:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{'\ \ "{}\{n\}"{}\ ;'})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{for}\ e\ \textcolor{keywordflow}{in}\ edges:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ lines.append(f\textcolor{stringliteral}{'\ \ "{}\{e["{}source"{}]\}"{}\ -\/>\ "{}\{e["{}target"{}]\}"{}\ [color="{}\#45a29e"{}];'})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00060}00060\ \ \ \ \ lines.append(\textcolor{stringliteral}{"{}\}"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}.join(lines)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00064}\doxymbox{\hyperlink{namespacedependency-graph_a7431cb90017e54fe695b23d4190db046}{00064}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacedependency-graph_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00065}00065\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Generate\ dependency\ graph\ for\ core/*.zig"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00066}00066\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/core-\/dir"{}},\ default=\textcolor{stringliteral}{"{}core"{}},\ help=\textcolor{stringliteral}{"{}Path\ to\ core/\ directory"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00067}00067\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ default=\textcolor{stringliteral}{"{}dependency-\/graph.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ JSON\ path"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00068}00068\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/dot"{}},\ help=\textcolor{stringliteral}{"{}Output\ Graphviz\ .dot\ path"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00069}00069\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00071}00071\ \ \ \ \ \doxymbox{\hyperlink{namespacedependency-graph_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ Dependency\ Graph\ Generator\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00072}00072\ \ \ \ \ nodes,\ edges\ =\ \doxymbox{\hyperlink{namespacedependency-graph_a7ac13b5d0cad8d1da31ef6a809c87ec8}{build\_graph}}(args.core\_dir)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00073}00073\ \ \ \ \ \doxymbox{\hyperlink{namespacedependency-graph_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Nodes:\ \{len(nodes)\},\ Edges:\ \{len(edges)\}"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00075}00075\ \ \ \ \ graph\ =\ \{\textcolor{stringliteral}{"{}nodes"{}}:\ nodes,\ \textcolor{stringliteral}{"{}edges"{}}:\ edges\}}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00076}00076\ \ \ \ \ \textcolor{keyword}{with}\ open(args.json,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ json.dump(graph,\ f,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00078}00078\ \ \ \ \ \doxymbox{\hyperlink{namespacedependency-graph_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}JSON\ written\ to\ \{args.json\}"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{if}\ args.dot:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ dot\ =\ \doxymbox{\hyperlink{namespacedependency-graph_acbb082035ce429cf0e40ce887af1da9d}{generate\_dot}}(nodes,\ edges)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{keyword}{with}\ open(args.dot,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ f.write(dot)}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedependency-graph_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}DOT\ written\ to\ \{args.dot\}"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacedependency-graph_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Render\ with:\ dot\ -\/Tpng\ \{args.dot\}\ -\/o\ deps.png"{}})}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00090}00090\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{dependency-graph_8py_source_l00091}00091\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacedependency-graph_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

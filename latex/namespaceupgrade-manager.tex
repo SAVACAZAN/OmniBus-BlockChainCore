@@ -1,0 +1,341 @@
+\doxysection{upgrade-\/manager Namespace Reference}
+\hypertarget{namespaceupgrade-manager}{}\label{namespaceupgrade-manager}\index{upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Path \doxymbox{\hyperlink{namespaceupgrade-manager_ac8e5f0a7730f8396cce2214741332182}{find\+\_\+project\+\_\+root}} ()
+\item 
+Path\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}{find\+\_\+binary}} (Path project\+\_\+root)
+\item 
+dict \doxymbox{\hyperlink{namespaceupgrade-manager_abc244bb6dcf2df537e22eb49b77ca234}{get\+\_\+binary\+\_\+info}} (Path binary)
+\item 
+bool \doxymbox{\hyperlink{namespaceupgrade-manager_a22db53cb880e41e686955799ad2067c0}{backup\+\_\+files}} (Path project\+\_\+root, Path backup\+\_\+dir)
+\item 
+int\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespaceupgrade-manager_acc631af2a1d14379ebda4e618dc5e1d6}{stop\+\_\+node}} (Path project\+\_\+root)
+\item 
+bool \doxymbox{\hyperlink{namespaceupgrade-manager_ac338524c54c9ea6b986910db5c06914c}{rebuild}} (Path project\+\_\+root)
+\item 
+bool \doxymbox{\hyperlink{namespaceupgrade-manager_a030debd8a0bb80848c143f73fbcec848}{verify\+\_\+binary}} (Path project\+\_\+root)
+\item 
+\doxymbox{\hyperlink{namespaceupgrade-manager_a08b591374d4578c62de0b9ba7163a004}{rollback}} (Path project\+\_\+root, Path backup\+\_\+dir)
+\item 
+\doxymbox{\hyperlink{namespaceupgrade-manager_afb5f1d609191b31a07f9e33453673029}{restart\+\_\+node}} (Path project\+\_\+root, str mode="{}seed"{})
+\item 
+\doxymbox{\hyperlink{namespaceupgrade-manager_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a362da12483c395498ff597666d9c7b40}{BOLD}} = "{}\textbackslash{}033\+[1m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a6c365c291dc54557a5e7dbea2274fc9c}{DIM}} = "{}\textbackslash{}033\+[2m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a828f9c589679b89d0bb3f62ec4765296}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a92ec9821ad91d95f702c9315b563dbef}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a895bf5d10cce6670100cace2f232ae1e}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a1737dffdfb0c1581bece6f8c9895b52c}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a81aaa93fe635abeb23d09a072a8be1ce}{MAGENTA}} = "{}\textbackslash{}033\+[95m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a2805a0715151f0eaf0138bf0cf47043e}{WHITE}} = "{}\textbackslash{}033\+[97m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a602fd87ec2209a5009721fb894aa8fa9}{BG\+\_\+\+RED}} = "{}\textbackslash{}033\+[41m"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a30ce1bab084bd9f5ddf43f90fedee2f8}{OK}} = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a92ec9821ad91d95f702c9315b563dbef}{GREEN}}\}\+[OK]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a1b8d28a734c20e1a8217c13cae51584a}{FAIL}} = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a828f9c589679b89d0bb3f62ec4765296}{RED}}\}\+[FAIL]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a4d6c7d9ee9fd876c08a7c401b5223311}{WARN}} = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a895bf5d10cce6670100cace2f232ae1e}{YELLOW}}\}\+[WARN]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}
+\item 
+str \doxymbox{\hyperlink{namespaceupgrade-manager_a5a37a040f390fad011fabd91c6535a8e}{STEP}} = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a1737dffdfb0c1581bece6f8c9895b52c}{CYAN}}\}$>$$>$$>$\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespaceupgrade-manager_doc-func-members}
+\Hypertarget{namespaceupgrade-manager_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceupgrade-manager_a22db53cb880e41e686955799ad2067c0}\index{upgrade-\/manager@{upgrade-\/manager}!backup\_files@{backup\_files}}
+\index{backup\_files@{backup\_files}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{backup\_files()}{backup\_files()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a22db53cb880e41e686955799ad2067c0} 
+ bool backup\+\_\+files (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{, }\item[{Path}]{backup\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Backup chain data, config, and current binary.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+\Hypertarget{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c}\index{upgrade-\/manager@{upgrade-\/manager}!find\_binary@{find\_binary}}
+\index{find\_binary@{find\_binary}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{find\_binary()}{find\_binary()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a45b82bfaa7597f587cfc620dc1a0a73c} 
+ Path \texorpdfstring{$\vert$}{|} None find\+\_\+binary (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00058}{58}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespaceupgrade-manager_ac8e5f0a7730f8396cce2214741332182}\index{upgrade-\/manager@{upgrade-\/manager}!find\_project\_root@{find\_project\_root}}
+\index{find\_project\_root@{find\_project\_root}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{find\_project\_root()}{find\_project\_root()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_ac8e5f0a7730f8396cce2214741332182} 
+ Path find\+\_\+project\+\_\+root (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 3
+\Hypertarget{namespaceupgrade-manager_abc244bb6dcf2df537e22eb49b77ca234}\index{upgrade-\/manager@{upgrade-\/manager}!get\_binary\_info@{get\_binary\_info}}
+\index{get\_binary\_info@{get\_binary\_info}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{get\_binary\_info()}{get\_binary\_info()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_abc244bb6dcf2df537e22eb49b77ca234} 
+ dict get\+\_\+binary\+\_\+info (\begin{DoxyParamCaption}\item[{Path}]{binary}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get binary size and modification time.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00066}{66}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespaceupgrade-manager_a51af30a60f9f02777c6396b8247e356f}\index{upgrade-\/manager@{upgrade-\/manager}!main@{main}}
+\index{main@{main}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00249}{249}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespaceupgrade-manager_ac338524c54c9ea6b986910db5c06914c}\index{upgrade-\/manager@{upgrade-\/manager}!rebuild@{rebuild}}
+\index{rebuild@{rebuild}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{rebuild()}{rebuild()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_ac338524c54c9ea6b986910db5c06914c} 
+ bool rebuild (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run zig build.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00172}{172}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespaceupgrade-manager_afb5f1d609191b31a07f9e33453673029}\index{upgrade-\/manager@{upgrade-\/manager}!restart\_node@{restart\_node}}
+\index{restart\_node@{restart\_node}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{restart\_node()}{restart\_node()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_afb5f1d609191b31a07f9e33453673029} 
+restart\+\_\+node (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{, }\item[{str }]{mode}{ = {\ttfamily "{}seed"{}}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Restart the node.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00229}{229}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespaceupgrade-manager_a08b591374d4578c62de0b9ba7163a004}\index{upgrade-\/manager@{upgrade-\/manager}!rollback@{rollback}}
+\index{rollback@{rollback}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{rollback()}{rollback()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a08b591374d4578c62de0b9ba7163a004} 
+rollback (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{, }\item[{Path}]{backup\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Restore binary from backup.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00215}{215}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespaceupgrade-manager_acc631af2a1d14379ebda4e618dc5e1d6}\index{upgrade-\/manager@{upgrade-\/manager}!stop\_node@{stop\_node}}
+\index{stop\_node@{stop\_node}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{stop\_node()}{stop\_node()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_acc631af2a1d14379ebda4e618dc5e1d6} 
+ int \texorpdfstring{$\vert$}{|} None stop\+\_\+node (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Attempt to stop running node. Returns PID if found.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00116}{116}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespaceupgrade-manager_a030debd8a0bb80848c143f73fbcec848}\index{upgrade-\/manager@{upgrade-\/manager}!verify\_binary@{verify\_binary}}
+\index{verify\_binary@{verify\_binary}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{verify\_binary()}{verify\_binary()}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a030debd8a0bb80848c143f73fbcec848} 
+ bool verify\+\_\+binary (\begin{DoxyParamCaption}\item[{Path}]{project\+\_\+root}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Verify the new binary exists.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00201}{201}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 12
+Here is the caller graph for this function:\+
+% FIG 13
+
+
+\label{namespaceupgrade-manager_doc-var-members}
+\Hypertarget{namespaceupgrade-manager_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespaceupgrade-manager_a602fd87ec2209a5009721fb894aa8fa9}\index{upgrade-\/manager@{upgrade-\/manager}!BG\_RED@{BG\_RED}}
+\index{BG\_RED@{BG\_RED}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{BG\_RED}{BG\_RED}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a602fd87ec2209a5009721fb894aa8fa9} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+BG\+\_\+\+RED = "{}\textbackslash{}033\+[41m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a362da12483c395498ff597666d9c7b40}\index{upgrade-\/manager@{upgrade-\/manager}!BOLD@{BOLD}}
+\index{BOLD@{BOLD}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{BOLD}{BOLD}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a362da12483c395498ff597666d9c7b40} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+BOLD = "{}\textbackslash{}033\+[1m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a1737dffdfb0c1581bece6f8c9895b52c}\index{upgrade-\/manager@{upgrade-\/manager}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a1737dffdfb0c1581bece6f8c9895b52c} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00038}{38}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a6c365c291dc54557a5e7dbea2274fc9c}\index{upgrade-\/manager@{upgrade-\/manager}!DIM@{DIM}}
+\index{DIM@{DIM}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{DIM}{DIM}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a6c365c291dc54557a5e7dbea2274fc9c} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+DIM = "{}\textbackslash{}033\+[2m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00034}{34}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a1b8d28a734c20e1a8217c13cae51584a}\index{upgrade-\/manager@{upgrade-\/manager}!FAIL@{FAIL}}
+\index{FAIL@{FAIL}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{FAIL}{FAIL}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a1b8d28a734c20e1a8217c13cae51584a} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+FAIL = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a828f9c589679b89d0bb3f62ec4765296}{RED}}\}\+[FAIL]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00044}{44}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a92ec9821ad91d95f702c9315b563dbef}\index{upgrade-\/manager@{upgrade-\/manager}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a92ec9821ad91d95f702c9315b563dbef} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00036}{36}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a81aaa93fe635abeb23d09a072a8be1ce}\index{upgrade-\/manager@{upgrade-\/manager}!MAGENTA@{MAGENTA}}
+\index{MAGENTA@{MAGENTA}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{MAGENTA}{MAGENTA}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a81aaa93fe635abeb23d09a072a8be1ce} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+MAGENTA = "{}\textbackslash{}033\+[95m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a30ce1bab084bd9f5ddf43f90fedee2f8}\index{upgrade-\/manager@{upgrade-\/manager}!OK@{OK}}
+\index{OK@{OK}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{OK}{OK}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a30ce1bab084bd9f5ddf43f90fedee2f8} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+OK = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a92ec9821ad91d95f702c9315b563dbef}{GREEN}}\}\+[OK]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a828f9c589679b89d0bb3f62ec4765296}\index{upgrade-\/manager@{upgrade-\/manager}!RED@{RED}}
+\index{RED@{RED}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a828f9c589679b89d0bb3f62ec4765296} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}\index{upgrade-\/manager@{upgrade-\/manager}!RESET@{RESET}}
+\index{RESET@{RESET}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00032}{32}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a5a37a040f390fad011fabd91c6535a8e}\index{upgrade-\/manager@{upgrade-\/manager}!STEP@{STEP}}
+\index{STEP@{STEP}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{STEP}{STEP}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a5a37a040f390fad011fabd91c6535a8e} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+STEP = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a1737dffdfb0c1581bece6f8c9895b52c}{CYAN}}\}$>$$>$$>$\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00046}{46}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a4d6c7d9ee9fd876c08a7c401b5223311}\index{upgrade-\/manager@{upgrade-\/manager}!WARN@{WARN}}
+\index{WARN@{WARN}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{WARN}{WARN}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a4d6c7d9ee9fd876c08a7c401b5223311} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+WARN = f"{}\{\doxymbox{\hyperlink{namespaceupgrade-manager_a895bf5d10cce6670100cace2f232ae1e}{YELLOW}}\}\+[WARN]\+\{\doxymbox{\hyperlink{namespaceupgrade-manager_acc5bdeb5d9ca8f860b5f78f5e9fcddf6}{RESET}}\}"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00045}{45}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a2805a0715151f0eaf0138bf0cf47043e}\index{upgrade-\/manager@{upgrade-\/manager}!WHITE@{WHITE}}
+\index{WHITE@{WHITE}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{WHITE}{WHITE}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a2805a0715151f0eaf0138bf0cf47043e} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+WHITE = "{}\textbackslash{}033\+[97m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+
+\Hypertarget{namespaceupgrade-manager_a895bf5d10cce6670100cace2f232ae1e}\index{upgrade-\/manager@{upgrade-\/manager}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!upgrade-\/manager@{upgrade-\/manager}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespaceupgrade-manager_a895bf5d10cce6670100cace2f232ae1e} 
+str \doxymbox{\hyperlink{namespaceupgrade}{upgrade}}-\/manager.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{upgrade-manager_8py_source_l00037}{37}} of file \doxymbox{\hyperlink{upgrade-manager_8py_source}{upgrade-\/manager.\+py}}.
+

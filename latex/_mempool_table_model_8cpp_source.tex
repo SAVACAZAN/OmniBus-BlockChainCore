@@ -1,0 +1,88 @@
+\doxysection{Mempool\+Table\+Model.\+cpp}
+\hypertarget{_mempool_table_model_8cpp_source}{}\label{_mempool_table_model_8cpp_source}\index{archived-\/4-\/eterniti/gui-\/qt/src/models/MempoolTableModel.cpp@{archived-\/4-\/eterniti/gui-\/qt/src/models/MempoolTableModel.cpp}}
+\doxymbox{\hyperlink{_mempool_table_model_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{_mempool_table_model_8h}{models/MempoolTableModel.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <QColor>}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <QFont>}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00005}00005\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceomni}{omni}}\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00007}\doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a493f7df3947fa5fcfe95c6e2a51493ef}{00007}}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a493f7df3947fa5fcfe95c6e2a51493ef}{MempoolTableModel::MempoolTableModel}}(QObject*\ parent)}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00008}00008\ \ \ \ \ :\ QAbstractTableModel(parent)}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00009}00009\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00010}00010\ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00012}\doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a6e2d528361cd428fb3d6185eeb95d32f}{00012}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a6e2d528361cd428fb3d6185eeb95d32f}{MempoolTableModel::rowCount}}(\textcolor{keyword}{const}\ QModelIndex\&)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00013}00013\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_txs.size();}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00014}00014\ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00016}\doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a07615ae836a8d0c8b34c8be15319b0f6}{00016}}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a07615ae836a8d0c8b34c8be15319b0f6}{MempoolTableModel::columnCount}}(\textcolor{keyword}{const}\ QModelIndex\&)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00017}00017\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada5097d856450e575100e56dd9fe397945}{ColCount}};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00018}00018\ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00020}\doxymbox{\hyperlink{classomni_1_1_mempool_table_model_ac96469416835b53d7c098dc789b612fa}{00020}}\ QVariant\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_ac96469416835b53d7c098dc789b612fa}{MempoolTableModel::data}}(\textcolor{keyword}{const}\ QModelIndex\&\ index,\ \textcolor{keywordtype}{int}\ role)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00021}00021\ \ \ \ \ \textcolor{keywordflow}{if}\ (!index.isValid()\ ||\ index.row()\ >=\ m\_txs.size())}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00022}00022\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00024}00024\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ \doxymbox{\hyperlink{namespacetx}{tx}}\ =\ m\_txs[index.row()];}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00026}00026\ \ \ \ \ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::DisplayRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00027}00027\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (index.column())\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00028}00028\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647adaec6bad707777458574fd9b00d0c2f7d9}{ColTxId}}:\ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacetx}{tx}}.txid.left(16)\ +\ \textcolor{stringliteral}{"{}..."{}};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00029}00029\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada8679ac9bb256e3e66022dd4be8ef221b}{ColFrom}}:\ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacetx}{tx}}.from.left(20)\ +\ \textcolor{stringliteral}{"{}..."{}};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00030}00030\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada3f7248292f5f5a2d069653c664de5629}{ColAmount}}:\ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespaceomni_a9fa8f3479255f75a26bc197c4fe5c003}{satToOmni}}(\doxymbox{\hyperlink{namespacetx}{tx}}.amountSat)\ +\ \textcolor{stringliteral}{"{}\ OMNI"{}};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00031}00031\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00032}00032\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00033}00033\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::ForegroundRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada3f7248292f5f5a2d069653c664de5629}{ColAmount}})\ \textcolor{keywordflow}{return}\ QColor(\textcolor{stringliteral}{"{}\#ff9500"{}});}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00035}00035\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00036}00036\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::FontRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647adaec6bad707777458574fd9b00d0c2f7d9}{ColTxId}}\ ||\ index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada8679ac9bb256e3e66022dd4be8ef221b}{ColFrom}})\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ QFont\ f;}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00039}00039\ \ \ \ \ \ \ \ \ \ \ \ \ f.setFamily(\textcolor{stringliteral}{"{}Consolas"{}});}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00040}00040\ \ \ \ \ \ \ \ \ \ \ \ \ f.setPointSize(10);}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ f;}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00042}00042\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00043}00043\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00044}00044\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (role\ ==\ Qt::ToolTipRole)\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647adaec6bad707777458574fd9b00d0c2f7d9}{ColTxId}})\ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacetx}{tx}}.txid;}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index.column()\ ==\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada8679ac9bb256e3e66022dd4be8ef221b}{ColFrom}})\ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespacetx}{tx}}.from;}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00047}00047\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00050}00050\ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00052}\doxymbox{\hyperlink{classomni_1_1_mempool_table_model_ae5cafa71be8efb671b0f3e0b2e7da860}{00052}}\ QVariant\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_ae5cafa71be8efb671b0f3e0b2e7da860}{MempoolTableModel::headerData}}(\textcolor{keywordtype}{int}\ section,\ Qt::Orientation\ orientation,\ \textcolor{keywordtype}{int}\ role)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00053}00053\ \ \ \ \ \textcolor{keywordflow}{if}\ (orientation\ !=\ Qt::Horizontal\ ||\ role\ !=\ Qt::DisplayRole)}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00054}00054\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{switch}\ (section)\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00057}00057\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647adaec6bad707777458574fd9b00d0c2f7d9}{ColTxId}}:\ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}TxID"{}};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada8679ac9bb256e3e66022dd4be8ef221b}{ColFrom}}:\ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}From"{}};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00059}00059\ \ \ \ \ \textcolor{keywordflow}{case}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_aa695b385b6fefe57d5ba877b9a0647ada3f7248292f5f5a2d069653c664de5629}{ColAmount}}:\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Amount"{}};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00060}00060\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\};}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00062}00062\ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00064}\doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a9d8fce8681e77c97d47d7c68fcfd4cf9}{00064}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a9d8fce8681e77c97d47d7c68fcfd4cf9}{MempoolTableModel::addPendingTx}}(\textcolor{keyword}{const}\ QString\&\ txid,\ \textcolor{keyword}{const}\ QString\&\ from,\ qint64\ amountSat)\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00065}00065\ \ \ \ \ beginInsertRows(\{\},\ 0,\ 0);}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00066}00066\ \ \ \ \ m\_txs.prepend(\{txid,\ from,\ amountSat\});}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00067}00067\ \ \ \ \ \textcolor{comment}{//\ Keep\ max\ 50\ entries}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_txs.size()\ >\ 50)\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00069}00069\ \ \ \ \ \ \ \ \ beginRemoveRows(\{\},\ 50,\ m\_txs.size()\ -\/\ 1);}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (m\_txs.size()\ >\ 50)\ m\_txs.removeLast();}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00071}00071\ \ \ \ \ \ \ \ \ endRemoveRows();}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00072}00072\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00073}00073\ \ \ \ \ endInsertRows();}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00074}00074\ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00076}\doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a7a24e3482b57507be83af78966323945}{00076}}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classomni_1_1_mempool_table_model_a7a24e3482b57507be83af78966323945}{MempoolTableModel::clear}}()\ \{}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00077}00077\ \ \ \ \ beginResetModel();}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00078}00078\ \ \ \ \ m\_txs.clear();}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00079}00079\ \ \ \ \ endResetModel();}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00080}00080\ \}}
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{_mempool_table_model_8cpp_source_l00082}00082\ \}\ \textcolor{comment}{//\ namespace\ omni}}
+
+\end{DoxyCode}

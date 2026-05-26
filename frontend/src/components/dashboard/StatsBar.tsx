@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import OmniBusRpcClient from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
+import { SAT_PER_OMNI } from "../../utils/fmt";
+
 
 interface StatCardProps {
   label: string;
   value: string | number;
-  sub?: string;
+  sub?: React.ReactNode;
   color?: string;
 }
 
@@ -31,20 +33,41 @@ function StatCard({ label, value, sub, color = "text-mempool-text", slotIndex }:
         <p className={`text-xl font-mono font-bold ${color}`}>
           {typeof value === "number" ? value.toLocaleString() : value}
         </p>
-        {sub && <p className="text-xs text-mempool-text-dim mt-1">{sub}</p>}
+        {sub && (
+          typeof sub === "string"
+            ? <p className="text-xs text-mempool-text-dim mt-1">{sub}</p>
+            : <div className="mt-1">{sub}</div>
+        )}
       </div>
     </div>
   );
 }
 
+function fmtBlockAge(ts: number | null): string {
+  if (!ts) return "—";
+  const secs = Math.floor(Date.now() / 1000 - ts);
+  if (secs < 0) return "now";
+  if (secs < 60) return `${secs}s ago`;
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}m ${s}s ago`;
+}
+
 export function StatsBar() {
   const { state } = useBlockchain();
+  const [, setTick] = useState(0);
   const [totalMined, setTotalMined] = useState<string | null>(null);
   // Optimistic mempool delta — increments on every `new_tx` WS event and
   // resets when the next block lands (mempool size is authoritative again).
   // Skips the 500ms WS throttle by using ws-bus directly so users see TX
   // arrival the instant the node accepts it.
   const [pendingDelta, setPendingDelta] = useState(0);
+
+  // 1s ticker so "Xs ago" on the Block Height card stays fresh.
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const off1 = wsSubscribe("new_tx", () => setPendingDelta((n) => n + 1));
@@ -56,9 +79,8 @@ export function StatsBar() {
   // it's a single sum loop). This is the canonical "Total Mined Network"
   // shown on the public explorer in place of any per-wallet balance.
   useEffect(() => {
-    const client = new OmniBusRpcClient();
     let cancelled = false;
-    client.request_raw("omnibus_gettotalmined", []).then((r) => {
+    rpc.getTotalMined().then((r) => {
       if (cancelled) return;
       if (r?.totalMinedOMNI) setTotalMined(r.totalMinedOMNI);
     }).catch(() => {});
@@ -66,8 +88,23 @@ export function StatsBar() {
   }, [state.blockCount]);
 
   const rewardPerBlock = state.networkInfo?.blockRewardSAT
-    ? (state.networkInfo.blockRewardSAT / 1e9).toFixed(8)
+    ? (state.networkInfo.blockRewardSAT / SAT_PER_OMNI).toFixed(8)
     : "0.00833333";
+
+  const minedProgressSub = useMemo(() => {
+    const omni = totalMined ? parseFloat(totalMined) : 0;
+    const pct = omni > 0 ? Math.min(100, (omni / 21_000_000) * 100) : 0;
+    return (
+      <div className="mt-1">
+        <div className="w-full h-1 bg-mempool-bg rounded-full overflow-hidden">
+          <div className="h-full bg-mempool-green rounded-full transition-all" style={{ width: `${pct}%` }} />
+        </div>
+        <p className="text-[9px] text-mempool-text-dim mt-0.5">
+          {pct < 0.001 ? "<0.001" : pct.toFixed(4)}% of 21M cap
+        </p>
+      </div>
+    );
+  }, [totalMined]);
 
   // Trim trailing zeros from "X.000000000" -> "X" or "X.123" (4 dp max).
   const formatOMNI = (raw: string | null) => {
@@ -82,7 +119,7 @@ export function StatsBar() {
       <StatCard
         label="Block Height"
         value={state.blockCount}
-        sub="1s block time"
+        sub={<span className="font-mono text-[10px] text-mempool-text-dim">{fmtBlockAge(state.lastBlockTimestamp)}</span>}
         color="text-mempool-blue"
         slotIndex={0}
       />
@@ -113,7 +150,7 @@ export function StatsBar() {
         label="Total Mined"
         slotIndex={3}
         value={`${formatOMNI(totalMined)} OMNI`}
-        sub="all blocks since genesis"
+        sub={minedProgressSub}
         color="text-mempool-green"
       />
       <StatCard

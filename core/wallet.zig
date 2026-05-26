@@ -92,6 +92,17 @@ pub const Wallet = struct {
     /// Last used timestamp (0 = never used)
     last_used: i64 = 0,
 
+    // ─── PQ deterministic signing material ──────────────────────────────
+    /// BIP-39/BIP-32 master seed (64 bytes from PBKDF2-HMAC-SHA512(mnemonic, passphrase)).
+    /// Used as IKM for HKDF-SHA512 PQ-seed derivation (`bip32_wallet.derivePQSeed`).
+    /// Zeroed when constructed via `fromPrivateKey` (no mnemonic available) — callers
+    /// that need deterministic PQ signing MUST use `fromMnemonic*`.
+    /// SECURITY: cleared in `deinit`.
+    master_seed: [64]u8 = [_]u8{0} ** 64,
+    /// True when `master_seed` is real (constructed from mnemonic).
+    /// False for `fromPrivateKey` / signing-only wallets.
+    has_master_seed: bool = false,
+
     pub const Address = struct {
         domain: []const u8,       // "omnibus.omni", "omnibus.love", etc.
         algorithm: []const u8,    // "Dilithium-5 + Kyber-768", etc.
@@ -393,6 +404,9 @@ pub const Wallet = struct {
             .tx_count = 0,
             // Metadata
             .created_at = std.time.timestamp(),
+            // PQ deterministic material (BIP-39 master seed for HKDF derivation)
+            .master_seed     = bip32.master_seed,
+            .has_master_seed = true,
         };
     }
 
@@ -407,8 +421,10 @@ pub const Wallet = struct {
         self.allocator.free(self.xpub);
         self.allocator.free(self.xprv);
         self.allocator.free(self.parent_fingerprint_hex);
-        // Sterge private key din memorie (securitate)
+        // Sterge private key + master seed din memorie (securitate)
         @memset(&self.private_key_bytes, 0);
+        @memset(&self.master_seed, 0);
+        self.has_master_seed = false;
         for (&self.addresses) |*addr| {
             self.allocator.free(addr.omni_address);
             self.allocator.free(addr.public_key_hex);
@@ -748,64 +764,159 @@ pub const PQSignResult = struct {
     success:   bool,
 };
 
+/// scheme_id canonical mapping (mirror of pq_crypto comments & isolated_wallet.Scheme):
+///   0x01 ML-DSA-87       (LOVE / VACATION-as-ML-DSA variant)
+///   0x02 Falcon-512      (FOOD)
+///   0x03 SLH-DSA-256s    (RENT-as-SLH variant / VACATION canonical)
+/// We follow `pq_crypto.algorithmForCoinType` as source of truth:
+///   778 LOVE → ML-DSA-87 (0x01)
+///   779 FOOD → Falcon-512 (0x02)
+///   780 RENT → ML-DSA-87 (0x01)
+///   781 VACATION → SLH-DSA-256s (0x03)
+const PQ_DOMAIN_SPECS = [_]struct {
+    name: []const u8,
+    algo_label: []const u8,
+    coin_type: u32,
+    scheme_id: u8,
+}{
+    .{ .name = "omnibus.omni",     .algo_label = "ML-DSA-87",    .coin_type = 777, .scheme_id = 0x01 },
+    .{ .name = "omnibus.love",     .algo_label = "ML-DSA-87",    .coin_type = 778, .scheme_id = 0x01 },
+    .{ .name = "omnibus.food",     .algo_label = "Falcon-512",   .coin_type = 779, .scheme_id = 0x02 },
+    .{ .name = "omnibus.rent",     .algo_label = "ML-DSA-87",    .coin_type = 780, .scheme_id = 0x01 },
+    .{ .name = "omnibus.vacation", .algo_label = "SLH-DSA-256s", .coin_type = 781, .scheme_id = 0x03 },
+};
+
 /// Semneaza `message` cu toate algoritmele PQ corespunzatoare celor 5 domenii.
-/// Genera keypair-uri PQ fresh pentru fiecare domeniu (nu se stocheaza in wallet).
+///
+/// FEATURE-FLAG GATED (`chain_config.PQ_DETERMINISTIC_SIGNING`):
+///   - false (default mainnet)  → legacy non-deterministic generateKeyPair() flow.
+///     PRESERVES backward compatibility with the broken-but-shipped behavior.
+///     Soulbound badges remain non-reproducible across restarts. Sign-then-discard.
+///   - true (testnet/regtest)   → derives seed via HKDF-SHA512 from `master_seed`
+///     bound to (coin_type, scheme_id, index=0). Same mnemonic → same PQ keys
+///     forever. THIS IS THE FIX.
+///
+/// Switching from `false` to `true` on a running mainnet is a HARD FORK
+/// (PQ pubkeys for every wallet shift). Migration via `pq_migrate_v1` TX
+/// (see `core/pq_migrate_consensus.zig`).
+///
 /// Caller-ul trebuie sa elibereze fiecare `signature` cu `allocator.free`.
 pub fn signWithAllPQDomains(
     self: *const Wallet,
     message: []const u8,
     allocator: std.mem.Allocator,
 ) ![5]PQSignResult {
-    _ = self;
+    const chain_config = @import("chain_config.zig");
     var results: [5]PQSignResult = undefined;
 
-    // 0: omnibus.omni — ML-DSA-87
-    {
-        const kp = try pq_mod.MlDsa87.generateKeyPair();
-        const sig = try kp.sign(message, allocator);
-        results[0] = .{
-            .domain = "omnibus.omni", .algorithm = "ML-DSA-87",
-            .signature = sig, .success = kp.verify(message, sig),
-        };
-    }
-    // 1: omnibus.love — ML-DSA-87 (coin 778)
-    {
-        const kp = try pq_mod.MlDsa87.generateKeyPair();
-        const sig = try kp.sign(message, allocator);
-        results[1] = .{
-            .domain = "omnibus.love", .algorithm = "ML-DSA-87",
-            .signature = sig, .success = kp.verify(message, sig),
-        };
-    }
-    // 2: omnibus.food — Falcon-512 (coin 779)
-    {
-        const kp = try pq_mod.Falcon512.generateKeyPair();
-        const sig = try kp.sign(message, allocator);
-        results[2] = .{
-            .domain = "omnibus.food", .algorithm = "Falcon-512",
-            .signature = sig, .success = kp.verify(message, sig),
-        };
-    }
-    // 3: omnibus.rent — ML-DSA-87 (coin 780)
-    {
-        const kp = try pq_mod.MlDsa87.generateKeyPair();
-        const sig = try kp.sign(message, allocator);
-        results[3] = .{
-            .domain = "omnibus.rent", .algorithm = "ML-DSA-87",
-            .signature = sig, .success = kp.verify(message, sig),
-        };
-    }
-    // 4: omnibus.vacation — SLH-DSA-256s (coin 781)
-    {
-        const kp = try pq_mod.SlhDsa256s.generateKeyPair();
-        const sig = try kp.sign(message, allocator);
-        results[4] = .{
-            .domain = "omnibus.vacation", .algorithm = "SLH-DSA-256s",
-            .signature = sig, .success = kp.verify(message, sig),
-        };
+    const deterministic = chain_config.PQ_DETERMINISTIC_SIGNING and self.has_master_seed;
+
+    inline for (PQ_DOMAIN_SPECS, 0..) |spec, i| {
+        switch (spec.scheme_id) {
+            0x01 => {
+                var kp: pq_mod.MlDsa87 = undefined;
+                if (deterministic) {
+                    const okm = bip32_mod.derivePQSeed(self.master_seed, spec.coin_type, spec.scheme_id, 0);
+                    var seed32: [32]u8 = undefined;
+                    @memcpy(&seed32, okm[0..32]);
+                    kp = try pq_mod.MlDsa87.generateKeyPairFromSeed(seed32);
+                } else {
+                    kp = try pq_mod.MlDsa87.generateKeyPair();
+                }
+                const sig = try kp.sign(message, allocator);
+                results[i] = .{
+                    .domain = spec.name, .algorithm = spec.algo_label,
+                    .signature = sig, .success = kp.verify(message, sig),
+                };
+            },
+            0x02 => {
+                var kp: pq_mod.Falcon512 = undefined;
+                if (deterministic) {
+                    const okm = bip32_mod.derivePQSeed(self.master_seed, spec.coin_type, spec.scheme_id, 0);
+                    var seed48: [48]u8 = undefined;
+                    @memcpy(seed48[0..48], okm[0..48]);
+                    kp = try pq_mod.Falcon512.generateKeyPairFromSeed(seed48);
+                } else {
+                    kp = try pq_mod.Falcon512.generateKeyPair();
+                }
+                const sig = try kp.sign(message, allocator);
+                results[i] = .{
+                    .domain = spec.name, .algorithm = spec.algo_label,
+                    .signature = sig, .success = kp.verify(message, sig),
+                };
+            },
+            0x03 => {
+                var kp: pq_mod.SlhDsa256s = undefined;
+                if (deterministic) {
+                    // SLH-DSA needs 3×32B seeds — slice okm0 (sk_seed + sk_prf)
+                    // and a second HKDF call (index=1) for pk_seed.
+                    const okm0 = bip32_mod.derivePQSeed(self.master_seed, spec.coin_type, spec.scheme_id, 0);
+                    const okm1 = bip32_mod.derivePQSeed(self.master_seed, spec.coin_type, spec.scheme_id, 1);
+                    var sk_seed: [32]u8 = undefined;
+                    var sk_prf:  [32]u8 = undefined;
+                    var pk_seed: [32]u8 = undefined;
+                    @memcpy(&sk_seed, okm0[0..32]);
+                    @memcpy(&sk_prf,  okm0[32..64]);
+                    @memcpy(&pk_seed, okm1[0..32]);
+                    kp = try pq_mod.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
+                } else {
+                    kp = try pq_mod.SlhDsa256s.generateKeyPair();
+                }
+                const sig = try kp.sign(message, allocator);
+                results[i] = .{
+                    .domain = spec.name, .algorithm = spec.algo_label,
+                    .signature = sig, .success = kp.verify(message, sig),
+                };
+            },
+            else => return error.UnsupportedSchemeId,
+        }
     }
 
     return results;
+}
+
+/// Returns the deterministic PQ public key for a given domain index (0..4).
+/// Caller frees the returned slice.
+/// Requires the wallet was built from a mnemonic (`has_master_seed == true`).
+/// Used by `pq_migrate_v1` TX builder to compute new_pubkey for migration.
+pub fn deterministicPQPubkey(
+    self: *const Wallet,
+    domain_index: usize,
+    allocator: std.mem.Allocator,
+) ![]u8 {
+    if (!self.has_master_seed) return error.NoMasterSeed;
+    if (domain_index >= PQ_DOMAIN_SPECS.len) return error.InvalidDomainIndex;
+    const spec = PQ_DOMAIN_SPECS[domain_index];
+
+    switch (spec.scheme_id) {
+        0x01 => {
+            const okm = bip32_mod.derivePQSeed(self.master_seed, spec.coin_type, spec.scheme_id, 0);
+            var seed32: [32]u8 = undefined;
+            @memcpy(&seed32, okm[0..32]);
+            const kp = try pq_mod.MlDsa87.generateKeyPairFromSeed(seed32);
+            return try allocator.dupe(u8, &kp.public_key);
+        },
+        0x02 => {
+            const okm = bip32_mod.derivePQSeed(self.master_seed, spec.coin_type, spec.scheme_id, 0);
+            var seed48: [48]u8 = undefined;
+            @memcpy(&seed48, okm[0..48]);
+            const kp = try pq_mod.Falcon512.generateKeyPairFromSeed(seed48);
+            return try allocator.dupe(u8, &kp.public_key);
+        },
+        0x03 => {
+            const okm0 = bip32_mod.derivePQSeed(self.master_seed, spec.coin_type, spec.scheme_id, 0);
+            const okm1 = bip32_mod.derivePQSeed(self.master_seed, spec.coin_type, spec.scheme_id, 1);
+            var sk_seed: [32]u8 = undefined;
+            var sk_prf:  [32]u8 = undefined;
+            var pk_seed: [32]u8 = undefined;
+            @memcpy(&sk_seed, okm0[0..32]);
+            @memcpy(&sk_prf,  okm0[32..64]);
+            @memcpy(&pk_seed, okm1[0..32]);
+            const kp = try pq_mod.SlhDsa256s.generateKeyPairFromSeed(sk_seed, sk_prf, pk_seed);
+            return try allocator.dupe(u8, &kp.public_key);
+        },
+        else => return error.UnsupportedSchemeId,
+    }
 }
 
 test "Test H — signWithAllPQDomains integrat in Wallet" {

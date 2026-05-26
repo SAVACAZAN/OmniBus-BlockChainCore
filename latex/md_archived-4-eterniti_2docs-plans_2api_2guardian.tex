@@ -1,0 +1,285 @@
+\chapter{Module:\+ {\ttfamily guardian} }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian}{}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian}\index{Module: $<$tt$>$guardian$<$/tt$>$@{Module: $<$tt$>$guardian$<$/tt$>$}}
+\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1658}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1658}%
+
+
+\begin{quote}
+Account guardians — social recovery, activation delay (20K blocks), guardian-\/approved operations for lost keys. \end{quote}
+
+
+{\bfseries{Source:\+}} {\ttfamily core/\+guardian.\+zig} \texorpdfstring{$\vert$}{|} {\bfseries{Lines:\+}} 249 \texorpdfstring{$\vert$}{|} {\bfseries{Functions:\+}} 8 \texorpdfstring{$\vert$}{|} {\bfseries{Structs:\+}} 2 \texorpdfstring{$\vert$}{|} {\bfseries{Tests:\+}} 7
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1660}{}\doxysection{\texorpdfstring{Contents}{Contents}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1660}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1661}{}\doxysubsection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1661}
+
+\begin{DoxyItemize}
+\item \`{}\+Guardian\+Record\`{}{\ttfamily Guardian\+Record}
+\end{DoxyItemize}— Guardian record for an account
+\begin{DoxyItemize}
+\item \`{}\+Guardian\+Engine\`{}{\ttfamily Guardian\+Engine}
+\end{DoxyItemize}— Guardian Engine\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1662}{}\doxysubsection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1662}
+
+\begin{DoxyItemize}
+\item 4 constants defined4 constants defined
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1663}{}\doxysubsection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1663}
+
+\begin{DoxyItemize}
+\item \`{}is\+Active()\`{}{\ttfamily is\+Active()}
+\end{DoxyItemize}— Checks whether the active condition is true.
+\begin{DoxyItemize}
+\item \`{}init()\`{}{\ttfamily init()}
+\end{DoxyItemize}— Initialize a new instance. Allocates required memory and sets default ...
+\begin{DoxyItemize}
+\item \`{}set\+Guardian()\`{}{\ttfamily set\+Guardian()}
+\end{DoxyItemize}— Set a guardian for an account (starts as pending)
+\begin{DoxyItemize}
+\item \`{}activate\+Guardian()\`{}{\ttfamily activate\+Guardian()}
+\end{DoxyItemize}— Activate a pending guardian (called when activation delay passes)
+\begin{DoxyItemize}
+\item \`{}remove\+Guardian()\`{}{\ttfamily remove\+Guardian()}
+\end{DoxyItemize}— Remove guardian (requires guardian co-\/signature)
+\begin{DoxyItemize}
+\item \`{}get\+Active\+Guardian()\`{}{\ttfamily get\+Active\+Guardian()}
+\end{DoxyItemize}— Get active guardian for account (null if none)
+\begin{DoxyItemize}
+\item \`{}requires\+Guardian()\`{}{\ttfamily requires\+Guardian()}
+\end{DoxyItemize}— Check if account requires guardian co-\/signature
+\begin{DoxyItemize}
+\item \`{}guarded\+Count()\`{}{\ttfamily guarded\+Count()}
+\end{DoxyItemize}— Count guarded accounts
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1665}{}\doxysection{\texorpdfstring{Structs}{Structs}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1665}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1666}{}\doxysubsection{\texorpdfstring{{\ttfamily Guardian\+Record}}{{\ttfamily Guardian\+Record}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1666}
+Guardian record for an account
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily account}  &{\ttfamily \+[32]\+u8}  &Account  \\
+{\ttfamily guardian\+\_\+pubkey}  &{\ttfamily \+[33]\+u8}  &Guardian\+\_\+pubkey  \\
+{\ttfamily set\+\_\+block}  &{\ttfamily u64}  &Set\+\_\+block  \\
+{\ttfamily active\+\_\+block}  &{\ttfamily u64}  &Active\+\_\+block  \\
+{\ttfamily status}  &{\ttfamily Guardian\+Status}  &Status  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 42}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1668}{}\doxysubsection{\texorpdfstring{{\ttfamily Guardian\+Engine}}{{\ttfamily Guardian\+Engine}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1668}
+Guardian Engine
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Field  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily records}  &{\ttfamily \+[MAX\+\_\+\+GUARDED\+\_\+\+ACCOUNTS]\+Guardian\+Record}  &Records  \\
+{\ttfamily record\+\_\+count}  &{\ttfamily usize}  &Record\+\_\+count  \\
+\end{DoxyTable}
+
+
+{\itshape Defined at line 60}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1670}{}\doxysection{\texorpdfstring{Constants}{Constants}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1670}
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Name  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Value  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily GUARDIAN\+\_\+\+ACTIVATION\+\_\+\+DELAY}  &{\ttfamily u64 = 20\+\_\+000}  &G u a r d i a n\+\_\+ a c t i v a t i o n\+\_\+ d e l a y  \\
+{\ttfamily MAX\+\_\+\+GUARDIANS}  &{\ttfamily usize = 3}  &M a x\+\_\+ g u a r d i a n s  \\
+{\ttfamily MAX\+\_\+\+GUARDED\+\_\+\+ACCOUNTS}  &{\ttfamily usize = 4096}  &M a x\+\_\+ g u a r d e d\+\_\+ a c c o u n t s  \\
+{\ttfamily Guardian\+Status}  &{\ttfamily enum(u8) \{}  &Guardian status  \\
+\end{DoxyTable}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1672}{}\doxysection{\texorpdfstring{Functions}{Functions}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1672}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1673}{}\doxysubsection{\texorpdfstring{{\ttfamily is\+Active()}}{{\ttfamily is\+Active()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1673}
+Checks whether the active condition is true.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ isActive(self:\ *const\ GuardianRecord,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Guardian\+Record}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 54}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1675}{}\doxysubsection{\texorpdfstring{{\ttfamily init()}}{{\ttfamily init()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1675}
+Initialize a new instance. Allocates required memory and sets default values.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ init()\ GuardianEngine\ \{}
+
+\end{DoxyCode}
+
+
+{\bfseries{Returns:\+}} {\ttfamily Guardian\+Engine}
+
+{\itshape Defined at line 64}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1677}{}\doxysubsection{\texorpdfstring{{\ttfamily set\+Guardian()}}{{\ttfamily set\+Guardian()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1677}
+Set a guardian for an account (starts as pending)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ setGuardian(self:\ *GuardianEngine,\ account:\ [32]u8,\ guardian\_pubkey:\ [33]u8,\ current\_block:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Guardian\+Engine}  &The instance  \\
+{\ttfamily account}  &{\ttfamily \+[32]\+u8}  &Account  \\
+{\ttfamily guardian\+\_\+pubkey}  &{\ttfamily \+[33]\+u8}  &Guardian\+\_\+pubkey  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 72}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1679}{}\doxysubsection{\texorpdfstring{{\ttfamily activate\+Guardian()}}{{\ttfamily activate\+Guardian()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1679}
+Activate a pending guardian (called when activation delay passes)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ activateGuardian(self:\ *GuardianEngine,\ account:\ [32]u8,\ current\_block:\ u64)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Guardian\+Engine}  &The instance  \\
+{\ttfamily account}  &{\ttfamily \+[32]\+u8}  &Account  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 88}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1681}{}\doxysubsection{\texorpdfstring{{\ttfamily remove\+Guardian()}}{{\ttfamily remove\+Guardian()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1681}
+Remove guardian (requires guardian co-\/signature)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ removeGuardian(self:\ *GuardianEngine,\ account:\ [32]u8)\ !void\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}\+Guardian\+Engine}  &The instance  \\
+{\ttfamily account}  &{\ttfamily \+[32]\+u8}  &Account  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily !void}
+
+{\itshape Defined at line 100}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1683}{}\doxysubsection{\texorpdfstring{{\ttfamily get\+Active\+Guardian()}}{{\ttfamily get\+Active\+Guardian()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1683}
+Get active guardian for account (null if none)
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ getActiveGuardian(self:\ *const\ GuardianEngine,\ account:\ [32]u8,\ current\_block:\ u64)\ ?[33]u8\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Guardian\+Engine}  &The instance  \\
+{\ttfamily account}  &{\ttfamily \+[32]\+u8}  &Account  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily ?\+[33]\+u8}
+
+{\itshape Defined at line 113}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1685}{}\doxysubsection{\texorpdfstring{{\ttfamily requires\+Guardian()}}{{\ttfamily requires\+Guardian()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1685}
+Check if account requires guardian co-\/signature
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ requiresGuardian(self:\ *const\ GuardianEngine,\ account:\ [32]u8,\ current\_block:\ u64)\ bool\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Guardian\+Engine}  &The instance  \\
+{\ttfamily account}  &{\ttfamily \+[32]\+u8}  &Account  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily bool}
+
+{\itshape Defined at line 123}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1687}{}\doxysubsection{\texorpdfstring{{\ttfamily guarded\+Count()}}{{\ttfamily guarded\+Count()}}}\label{md_archived-4-eterniti_2docs-plans_2api_2guardian_autotoc_md1687}
+Count guarded accounts
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{pub\ fn\ guardedCount(self:\ *const\ GuardianEngine,\ current\_block:\ u64)\ usize\ \{}
+
+\end{DoxyCode}
+
+
+
+\begin{DoxyTable}{3}{}{}{1}
+\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Parameter  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Type  &\SetCell{c,bg=\tableheadbgcolor,font=\bfseries}Description  \\
+{\ttfamily self}  &{\ttfamily \texorpdfstring{$\ast$}{*}const Guardian\+Engine}  &The instance  \\
+{\ttfamily current\+\_\+block}  &{\ttfamily u64}  &Current\+\_\+block  \\
+\end{DoxyTable}
+
+
+{\bfseries{Returns:\+}} {\ttfamily usize}
+
+{\itshape Defined at line 151}
+
+\DoxyHorRuler{0}
+
+
+\DoxyHorRuler{0}
+
+
+{\itshape Generated by Omni\+Bus Doc Generator v2.\+0 — 2026-\/03-\/31 11:\+17} 

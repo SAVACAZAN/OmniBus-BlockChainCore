@@ -1,0 +1,255 @@
+\doxysection{test-\/failure-\/learner Namespace Reference}
+\hypertarget{namespacetest-failure-learner}{}\label{namespacetest-failure-learner}\index{test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+None \doxymbox{\hyperlink{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\+\_\+info}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacetest-failure-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\+\_\+pass}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacetest-failure-learner_abf994b8269849d29e07697ea8a840f74}{log\+\_\+fail}} (str msg)
+\item 
+None \doxymbox{\hyperlink{namespacetest-failure-learner_adf0e2aa4d06b5ca38e44721821eca783}{log\+\_\+warn}} (str msg)
+\item 
+str \doxymbox{\hyperlink{namespacetest-failure-learner_af75e1ce2fb614a29a830e10ed79788eb}{run\+\_\+git}} (list\+[str]\+ args, str cwd)
+\item 
+list\+[dict\+[str, str]\+]\+ \doxymbox{\hyperlink{namespacetest-failure-learner_a67f49afe0b0c0885ad9a373539458c24}{get\+\_\+all\+\_\+commits}} (str cwd, int max\+\_\+commits=500)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacetest-failure-learner_a67825f85b5121d471419dc0f805e3a7e}{get\+\_\+changed\+\_\+files}} (str cwd, str commit\+\_\+hash)
+\item 
+list\+[str]\+ \doxymbox{\hyperlink{namespacetest-failure-learner_a6248a369c13cae0eeac0ac610b04d766}{extract\+\_\+test\+\_\+names}} (str message)
+\item 
+bool \doxymbox{\hyperlink{namespacetest-failure-learner_a6a6b1fc3c819007a709b49c652efa542}{is\+\_\+test\+\_\+failure\+\_\+commit}} (str message)
+\item 
+str\texorpdfstring{$\vert$}{|}None \doxymbox{\hyperlink{namespacetest-failure-learner_ae78e10fb4efc05ea312c7ed3c10d6334}{find\+\_\+preceding\+\_\+commit}} (str cwd, str commit\+\_\+hash)
+\item 
+dict\+[str, Any]\+ \doxymbox{\hyperlink{namespacetest-failure-learner_ac7cc810241d5cf8b7412ed5d0e64c828}{learn\+\_\+failures}} (str cwd, int max\+\_\+commits)
+\item 
+int \doxymbox{\hyperlink{namespacetest-failure-learner_a7431cb90017e54fe695b23d4190db046}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+str \doxymbox{\hyperlink{namespacetest-failure-learner_a3b039811786875635ec0c35ac4d61829}{GREEN}} = "{}\textbackslash{}033\+[92m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetest-failure-learner_ad7e8c921b22404f083d658e67d4bad09}{RED}} = "{}\textbackslash{}033\+[91m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetest-failure-learner_a0cd3d4101020c81a14a08baa0007cb3d}{YELLOW}} = "{}\textbackslash{}033\+[93m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetest-failure-learner_a896a3822fd55a0d8ec64185ee42f9254}{CYAN}} = "{}\textbackslash{}033\+[96m"{}
+\item 
+str \doxymbox{\hyperlink{namespacetest-failure-learner_a02719ca88ad123fefc34fada733de42f}{RESET}} = "{}\textbackslash{}033\+[0m"{}
+\end{DoxyCompactItemize}
+
+
+\label{namespacetest-failure-learner_doc-func-members}
+\Hypertarget{namespacetest-failure-learner_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacetest-failure-learner_a6248a369c13cae0eeac0ac610b04d766}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!extract\_test\_names@{extract\_test\_names}}
+\index{extract\_test\_names@{extract\_test\_names}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{extract\_test\_names()}{extract\_test\_names()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a6248a369c13cae0eeac0ac610b04d766} 
+ list\+[str]\+ extract\+\_\+test\+\_\+names (\begin{DoxyParamCaption}\item[{str}]{message}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Heuristic extraction of test names from commit messages.\end{DoxyVerb}
+ 
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00078}{78}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 0
+\Hypertarget{namespacetest-failure-learner_ae78e10fb4efc05ea312c7ed3c10d6334}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!find\_preceding\_commit@{find\_preceding\_commit}}
+\index{find\_preceding\_commit@{find\_preceding\_commit}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{find\_preceding\_commit()}{find\_preceding\_commit()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_ae78e10fb4efc05ea312c7ed3c10d6334} 
+ str \texorpdfstring{$\vert$}{|} None find\+\_\+preceding\+\_\+commit (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{str}]{commit\+\_\+hash}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00112}{112}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 1
+Here is the caller graph for this function:\+
+% FIG 2
+\Hypertarget{namespacetest-failure-learner_a67f49afe0b0c0885ad9a373539458c24}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!get\_all\_commits@{get\_all\_commits}}
+\index{get\_all\_commits@{get\_all\_commits}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{get\_all\_commits()}{get\_all\_commits()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a67f49afe0b0c0885ad9a373539458c24} 
+ list\+[dict\+[str, str]\+]\+ get\+\_\+all\+\_\+commits (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{int }]{max\+\_\+commits}{ = {\ttfamily 500}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00061}{61}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 3
+Here is the caller graph for this function:\+
+% FIG 4
+\Hypertarget{namespacetest-failure-learner_a67825f85b5121d471419dc0f805e3a7e}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!get\_changed\_files@{get\_changed\_files}}
+\index{get\_changed\_files@{get\_changed\_files}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{get\_changed\_files()}{get\_changed\_files()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a67825f85b5121d471419dc0f805e3a7e} 
+ list\+[str]\+ get\+\_\+changed\+\_\+files (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{str}]{commit\+\_\+hash}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00073}{73}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 5
+Here is the caller graph for this function:\+
+% FIG 6
+\Hypertarget{namespacetest-failure-learner_a6a6b1fc3c819007a709b49c652efa542}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!is\_test\_failure\_commit@{is\_test\_failure\_commit}}
+\index{is\_test\_failure\_commit@{is\_test\_failure\_commit}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{is\_test\_failure\_commit()}{is\_test\_failure\_commit()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a6a6b1fc3c819007a709b49c652efa542} 
+ bool is\+\_\+test\+\_\+failure\+\_\+commit (\begin{DoxyParamCaption}\item[{str}]{message}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00094}{94}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 7
+\Hypertarget{namespacetest-failure-learner_ac7cc810241d5cf8b7412ed5d0e64c828}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!learn\_failures@{learn\_failures}}
+\index{learn\_failures@{learn\_failures}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{learn\_failures()}{learn\_failures()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_ac7cc810241d5cf8b7412ed5d0e64c828} 
+ dict\+[str, Any]\+ learn\+\_\+failures (\begin{DoxyParamCaption}\item[{str}]{cwd}{, }\item[{int}]{max\+\_\+commits}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00121}{121}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 8
+Here is the caller graph for this function:\+
+% FIG 9
+\Hypertarget{namespacetest-failure-learner_abf994b8269849d29e07697ea8a840f74}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!log\_fail@{log\_fail}}
+\index{log\_fail@{log\_fail}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{log\_fail()}{log\_fail()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_abf994b8269849d29e07697ea8a840f74} 
+ None log\+\_\+fail (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00039}{39}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 10
+\Hypertarget{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!log\_info@{log\_info}}
+\index{log\_info@{log\_info}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{log\_info()}{log\_info()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a54b6ddaf7ffa1fe8575da1c58ab597e2} 
+ None log\+\_\+info (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00031}{31}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 11
+\Hypertarget{namespacetest-failure-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!log\_pass@{log\_pass}}
+\index{log\_pass@{log\_pass}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{log\_pass()}{log\_pass()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a47ec9bdd7fc087ec23b3c1fa5050c2d3} 
+ None log\+\_\+pass (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00035}{35}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 12
+\Hypertarget{namespacetest-failure-learner_adf0e2aa4d06b5ca38e44721821eca783}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!log\_warn@{log\_warn}}
+\index{log\_warn@{log\_warn}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{log\_warn()}{log\_warn()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_adf0e2aa4d06b5ca38e44721821eca783} 
+ None log\+\_\+warn (\begin{DoxyParamCaption}\item[{str}]{msg}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+\Hypertarget{namespacetest-failure-learner_a7431cb90017e54fe695b23d4190db046}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!main@{main}}
+\index{main@{main}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a7431cb90017e54fe695b23d4190db046} 
+ int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00199}{199}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 13
+Here is the caller graph for this function:\+
+% FIG 14
+\Hypertarget{namespacetest-failure-learner_af75e1ce2fb614a29a830e10ed79788eb}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!run\_git@{run\_git}}
+\index{run\_git@{run\_git}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{run\_git()}{run\_git()}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_af75e1ce2fb614a29a830e10ed79788eb} 
+ str run\+\_\+git (\begin{DoxyParamCaption}\item[{list\+[str]\+}]{args}{, }\item[{str}]{cwd}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00047}{47}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+Here is the caller graph for this function:\+
+% FIG 15
+
+
+\label{namespacetest-failure-learner_doc-var-members}
+\Hypertarget{namespacetest-failure-learner_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacetest-failure-learner_a896a3822fd55a0d8ec64185ee42f9254}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a896a3822fd55a0d8ec64185ee42f9254} 
+str \doxymbox{\hyperlink{namespacetest}{test}}-\/failure-\/learner.\+CYAN = "{}\textbackslash{}033\+[96m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00027}{27}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+\Hypertarget{namespacetest-failure-learner_a3b039811786875635ec0c35ac4d61829}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a3b039811786875635ec0c35ac4d61829} 
+str \doxymbox{\hyperlink{namespacetest}{test}}-\/failure-\/learner.\+GREEN = "{}\textbackslash{}033\+[92m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00024}{24}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+\Hypertarget{namespacetest-failure-learner_ad7e8c921b22404f083d658e67d4bad09}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!RED@{RED}}
+\index{RED@{RED}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_ad7e8c921b22404f083d658e67d4bad09} 
+str \doxymbox{\hyperlink{namespacetest}{test}}-\/failure-\/learner.\+RED = "{}\textbackslash{}033\+[91m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00025}{25}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+\Hypertarget{namespacetest-failure-learner_a02719ca88ad123fefc34fada733de42f}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!RESET@{RESET}}
+\index{RESET@{RESET}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a02719ca88ad123fefc34fada733de42f} 
+str \doxymbox{\hyperlink{namespacetest}{test}}-\/failure-\/learner.\+RESET = "{}\textbackslash{}033\+[0m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00028}{28}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+
+\Hypertarget{namespacetest-failure-learner_a0cd3d4101020c81a14a08baa0007cb3d}\index{test-\/failure-\/learner@{test-\/failure-\/learner}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!test-\/failure-\/learner@{test-\/failure-\/learner}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \label{namespacetest-failure-learner_a0cd3d4101020c81a14a08baa0007cb3d} 
+str \doxymbox{\hyperlink{namespacetest}{test}}-\/failure-\/learner.\+YELLOW = "{}\textbackslash{}033\+[93m"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{test-failure-learner_8py_source_l00026}{26}} of file \doxymbox{\hyperlink{test-failure-learner_8py_source}{test-\/failure-\/learner.\+py}}.
+

@@ -1,0 +1,117 @@
+\chapter{Plan Fix-\/uri Omni\+Bus Block\+Chain\+Core }
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i}{}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i}\index{Plan Fix-\/uri OmniBus BlockChainCore@{Plan Fix-\/uri OmniBus BlockChainCore}}
+\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3848}%
+\Hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3848}%
+
+
+{\bfseries{Data:\+}} 2026-\/03-\/30 \texorpdfstring{$\vert$}{|} {\bfseries{Branch:\+}} feat/\+frontend-\/mempool-\/miners-\/tx
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3850}{}\doxysection{\texorpdfstring{CRITICE (crash/\+data corruption)}{CRITICE (crash/\+data corruption)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3850}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3851}{}\doxysubsection{\texorpdfstring{F1. Segfault sub heavy load — RPC thread stack overflow}{F1. Segfault sub heavy load — RPC thread stack overflow}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3851}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} Node crashează după 1000+ TX-\/uri rapide (3x paralel)
+\item {\bfseries{Cauză:\+}} {\ttfamily handle\+Miner\+St} alocă \texorpdfstring{$\sim$}{\string~}80\+KB pe stack (Miner\+Entry array + Registered\+Miner copy + 32KB buffer) pe thread-\/uri cu 1MB stack
+\item {\bfseries{Fix:\+}} Mut arrays pe heap (allocator) sau procesez mining stats pe main thread cu mutex, nu pe fiecare RPC thread
+\item {\bfseries{Fișiere:\+}} {\ttfamily core/\+rpc\+\_\+server.\+zig} (handle\+Miner\+St, handle\+Conn\+Counted)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3852}{}\doxysubsection{\texorpdfstring{F2. Address derivation JS ≠ Zig (hex vs Base58)}{F2. Address derivation JS ≠ Zig (hex vs Base58)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3852}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} Adresele generate de Node.\+js ({\ttfamily ob\+\_\+omni\+\_\+5ddb63d7...} hex) nu corespund cu Zig ({\ttfamily ob\+\_\+omni\+\_\+\+Yy\+WLQndt...} Base58)
+\item {\bfseries{Cauză:\+}} JS face SHA256→hex, Zig face BIP32→secp256k1→\+RIPEMD160→\+Base58\+Check
+\item {\bfseries{Fix:\+}} Implementare Base58\+Check în JS identic cu Zig (sau:\+ Zig CLI tool {\ttfamily omnibus-\/node -\/-\/generate-\/wallet} care printează adresa și iese)
+\item {\bfseries{Fișiere:\+}} {\ttfamily scripts/\+start-\/simulated.\+js}, nou:\+ {\ttfamily core/\+cli.\+zig} (--generate-\/wallet flag)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3853}{}\doxysubsection{\texorpdfstring{F3. P2P inbound recv broken pe Windows}{F3. P2P inbound recv broken pe Windows}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3853}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} {\ttfamily error.\+Unexpected} pe {\ttfamily stream.\+read()} la conexiuni TCP inbound (accept)
+\item {\bfseries{Cauză:\+}} Zig std {\ttfamily Read\+File} nu merge pe socket-\/uri acceptate pe Windows — trebuie {\ttfamily ws2\+\_\+32.\+recv}
+\item {\bfseries{Fix:\+}} Același fix ca ws\+\_\+server.\+zig — funcții {\ttfamily ws\+Recv/\+ws\+Send} în p2p.\+zig
+\item {\bfseries{Fișiere:\+}} {\ttfamily core/\+p2p.\+zig} (handle\+Inbound\+Peer, recv, send)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3854}{}\doxysubsection{\texorpdfstring{F4. TX segfault la calculate\+Hash cu adrese trunchiate}{F4. TX segfault la calculate\+Hash cu adrese trunchiate}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3854}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} {\ttfamily Segmentation fault at \doxylink{namespaceaddress}{address}} la {\ttfamily transaction.\+calculate\+Hash → hasher.\+update(self.\+to\+\_\+address)}
+\item {\bfseries{Cauză:\+}} TX {\ttfamily to\+\_\+address} slice din Miner\+Pool poate fi invalid dacă adresa e \texorpdfstring{$<$}{<} 32 chars
+\item {\bfseries{Fix:\+}} Validare minimă lungime adresă (\texorpdfstring{$>$}{>}= 8 chars) la add\+Transaction + guard la Miner\+Pool
+\item {\bfseries{Fișiere:\+}} {\ttfamily core/\+blockchain.\+zig} (validate\+Transaction), {\ttfamily core/\+main.\+zig} (Miner\+Pool)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3856}{}\doxysection{\texorpdfstring{IMPORTANTE (funcționalitate lipsă)}{IMPORTANTE (funcționalitate lipsă)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3856}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3857}{}\doxysubsection{\texorpdfstring{F5. Blockchain nu persistă corect la restart cu difficulty diferit}{F5. Blockchain nu persistă corect la restart cu difficulty diferit}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3857}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} Node nu pornește dacă omnibus-\/chain.\+dat a fost creat cu difficulty 4 dar binara are difficulty 1
+\item {\bfseries{Cauză:\+}} Genesis hash diferit → validation fail
+\item {\bfseries{Fix:\+}} Stochează difficulty în DB header sau verifică doar structura, nu hash-\/ul exact
+\item {\bfseries{Fișiere:\+}} {\ttfamily core/\+database.\+zig}, {\ttfamily core/\+genesis.\+zig}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3858}{}\doxysubsection{\texorpdfstring{F6. Balance check greșit — TX-\/urile rapide se resping reciproc}{F6. Balance check greșit — TX-\/urile rapide se resping reciproc}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3858}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} Prima TX merge, următoarele pică cu "{}balance insufficient"{} chiar dacă balance e suficient
+\item {\bfseries{Cauză:\+}} {\ttfamily get\+Address\+Balance} citește din chain (confirmat), nu include pending TX-\/uri din mempool
+\item {\bfseries{Fix:\+}} Scade pending outgoing amounts din balance check la validate\+Transaction
+\item {\bfseries{Fișiere:\+}} {\ttfamily core/\+blockchain.\+zig} (validate\+Transaction, get\+Address\+Balance)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3859}{}\doxysubsection{\texorpdfstring{F7. Frontend se blochează sub load}{F7. Frontend se blochează sub load}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3859}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} UI freeze când blocuri vin la fiecare secundă cu WS events
+\item {\bfseries{Cauză:\+}} Prea multe re-\/renders, fiecare WS event declanșează dispatch → full component tree update
+\item {\bfseries{Fix:\+}} {\ttfamily React.\+memo} pe componente heavy, {\ttfamily use\+Memo} pe liste, virtualizare (window) pe Miner\+Table
+\item {\bfseries{Fișiere:\+}} {\ttfamily frontend/\+src/\+components/\+dashboard/\+\texorpdfstring{$\ast$}{*}.tsx}, {\ttfamily frontend/\+src/\+components/\+network/\+\+Miner\+Table.\+tsx}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3860}{}\doxysubsection{\texorpdfstring{F8. Mineri virtuali nu au wallet real (nu pot semna TX)}{F8. Mineri virtuali nu au wallet real (nu pot semna TX)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3860}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} Doar seed-\/ul poate trimite TX (singurul cu private key), minerii virtuali pot doar primi
+\item {\bfseries{Cauză:\+}} Minerii sunt doar adrese înregistrate, nu au wallet Zig cu private key
+\item {\bfseries{Fix:\+}} TX-\/uri între mineri:\+ fiecare miner virtual are key pair derivat din mnemonic, stocat în Miner\+Pool
+\item {\bfseries{Fișiere:\+}} {\ttfamily core/\+main.\+zig} (Miner\+Pool), {\ttfamily core/\+wallet.\+zig}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3862}{}\doxysection{\texorpdfstring{NICE-\/\+TO-\/\+HAVE (quality of life)}{NICE-\/\+TO-\/\+HAVE (quality of life)}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3862}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3863}{}\doxysubsection{\texorpdfstring{F9. Peers counter mereu 0}{F9. Peers counter mereu 0}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3863}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} Frontend arată Peers:\+ 0 chiar cu mineri conectați
+\item {\bfseries{Cauză:\+}} P2P inbound nu adaugă peers în lista (F3) + mineri virtuali nu sunt peers
+\item {\bfseries{Fix:\+}} Afișează registered miners ca "{}nodes"{} în loc de "{}peers"{} pentru simulare
+\item {\bfseries{Fișiere:\+}} {\ttfamily frontend/\+src/\+components/\+layout/\+\+Header.\+tsx}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3864}{}\doxysubsection{\texorpdfstring{F10. TX history pe frontend nu arată nimic}{F10. TX history pe frontend nu arată nimic}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3864}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} Tab Wallet → Transaction History gol
+\item {\bfseries{Cauză:\+}} {\ttfamily gettransactions} scanează doar chain blocks, nu mempool
+\item {\bfseries{Fix:\+}} Include pending TX-\/uri din mempool în response
+\item {\bfseries{Fișiere:\+}} {\ttfamily core/\+rpc\+\_\+server.\+zig} (handle\+Get\+Txs)
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3865}{}\doxysubsection{\texorpdfstring{F11. Block detail nu afișează TX-\/uri reale din bloc}{F11. Block detail nu afișează TX-\/uri reale din bloc}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3865}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} Click pe block → arată doar coinbase, nu user TXs
+\item {\bfseries{Cauză:\+}} {\ttfamily gettransactions} filtrează pe adresă, nu pe block height
+\item {\bfseries{Fix:\+}} Adaugă RPC {\ttfamily getblocktxs} care returnează TX-\/urile unui bloc specific
+\item {\bfseries{Fișiere:\+}} {\ttfamily core/\+rpc\+\_\+server.\+zig}, {\ttfamily frontend/\+src/\+components/\+blocks/\+\+Block\+Detail.\+tsx}
+\end{DoxyItemize}\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3866}{}\doxysubsection{\texorpdfstring{F12. Wiki sync tool nu detectează funcții noi}{F12. Wiki sync tool nu detectează funcții noi}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3866}
+
+\begin{DoxyItemize}
+\item {\bfseries{Simptom:\+}} {\ttfamily \doxylink{wiki__sync_8py}{wiki\+\_\+sync.\+py}} raportează funcții lipsă dar nu le fixează automat
+\item {\bfseries{Fix:\+}} Mode {\ttfamily -\/-\/auto-\/fix} care regenerează docs/\+api/\+\texorpdfstring{$\ast$}{*}.md din cod
+\item {\bfseries{Fișiere:\+}} {\ttfamily tools/\+\+SYNC/\+wiki\+\_\+sync.\+py}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3868}{}\doxysection{\texorpdfstring{Ordine recomandată}{Ordine recomandată}}\label{md_archived-4-eterniti_2docs-plans_2_p_l_a_n___f_i_x_u_r_i_autotoc_md3868}
+
+\begin{DoxyEnumerate}
+\item {\bfseries{F2}} (address derivation) — fără asta TX-\/urile la mineri sunt invalide
+\item {\bfseries{F3}} (P2P Windows fix) — fără asta nu avem rețea reală
+\item {\bfseries{F1}} (stack overflow) — fără asta node-\/ul pică sub load
+\item {\bfseries{F4}} (TX segfault) — legat de F2
+\item {\bfseries{F6}} (balance check) — TX-\/uri rapide
+\item {\bfseries{F5}} (DB persist) — restart fără pierdere date
+\item {\bfseries{F8}} (miner wallets) — TX-\/uri între mineri
+\item {\bfseries{F7}} (frontend perf) — UI fluid
+\item {\bfseries{F9-\/\+F12}} (nice-\/to-\/have) 
+\end{DoxyEnumerate}

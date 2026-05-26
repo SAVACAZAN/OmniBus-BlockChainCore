@@ -1,0 +1,558 @@
+\doxysection{gen\+\_\+icon Namespace Reference}
+\hypertarget{namespacegen__icon}{}\label{namespacegen__icon}\index{gen\_icon@{gen\_icon}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{hexagon\+\_\+points}} (cx, cy, r, rotation=0)
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a317b59b55647817ea50aa12edbe376ea}{draw\+\_\+gradient\+\_\+ring}} (d, cx, cy, r, width, color1, color2, steps=120)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}{SIZE}} = 256
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} = \doxymbox{\hyperlink{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}{SIZE}} /\+/\+ 2
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} = 110
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_aa92cc615379216fcbbda241e5898ddf5}{RING\+\_\+\+WIDTH}} = 10
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_adeb35ba5a7dc0c5c4f9a861335fd7abc}{img}} = Image.\+new(\textquotesingle{}RGBA\textquotesingle{}, (\doxymbox{\hyperlink{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}{SIZE}}, \doxymbox{\hyperlink{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}{SIZE}}), (0, 0, 0, 0))
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a4558e7db6ea76e465b1e4f03e44fdcbe}{draw}} = Image\+Draw.\+Draw(\doxymbox{\hyperlink{namespacegen__icon_adeb35ba5a7dc0c5c4f9a861335fd7abc}{img}})
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a02d469d49b9227e7e4b1b019a7f74ee0}{dx}}
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a51e7c2d5a5b4d8c6415b16d3e40832ff}{dy}}
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_ac2534c00f10c40f0f96c40c8d772a17d}{dist}} = math.\+sqrt(\doxymbox{\hyperlink{namespacegen__icon_a02d469d49b9227e7e4b1b019a7f74ee0}{dx}}\texorpdfstring{$\ast$}{*}\doxymbox{\hyperlink{namespacegen__icon_a02d469d49b9227e7e4b1b019a7f74ee0}{dx}} + \doxymbox{\hyperlink{namespacegen__icon_a51e7c2d5a5b4d8c6415b16d3e40832ff}{dy}}\texorpdfstring{$\ast$}{*}\doxymbox{\hyperlink{namespacegen__icon_a51e7c2d5a5b4d8c6415b16d3e40832ff}{dy}})
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a40cd3d1fd53b2c1ee3ea0abd5ed36225}{alpha}} = 255
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a14a6b8463c6f38e217d994d2d40d4ccf}{hex\+\_\+r}} = \doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} -\/ 16
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a336ff7c87166cf02971d0d29210b706a}{hex\+\_\+points}} = \doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{hexagon\+\_\+points}}(\doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}}, \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}}, \doxymbox{\hyperlink{namespacegen__icon_a14a6b8463c6f38e217d994d2d40d4ccf}{hex\+\_\+r}})
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_abee871caf8cb85cdc6fe79d24e1a98a7}{fill}}
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a7d4d9dcd760d3b42fbdffaed58788050}{width}}
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a0c6126de2d8a2c3d2c33e51f52f75329}{hex\+\_\+points2}} = \doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{hexagon\+\_\+points}}(\doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}}, \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}}, \doxymbox{\hyperlink{namespacegen__icon_a14a6b8463c6f38e217d994d2d40d4ccf}{hex\+\_\+r}} \texorpdfstring{$\ast$}{*} 0.\+6)
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} = \doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} -\/ 22
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}} = 6
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a2bda9e21a2b8785f3946f0e1050bc2e4}{arc\+\_\+start}} = math.\+radians(-\/90)
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_ad9d51c8a18e707b9cb70fc85f99506a4}{arc\+\_\+end}} = math.\+radians(-\/90 + 360 \texorpdfstring{$\ast$}{*} 0.\+97)
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a42b62e5226a6bb003e56bccc2ee907d6}{steps}} = int(360 \texorpdfstring{$\ast$}{*} 0.\+97 \texorpdfstring{$\ast$}{*} 2)
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}} = \doxymbox{\hyperlink{namespacegen__icon_a2bda9e21a2b8785f3946f0e1050bc2e4}{arc\+\_\+start}} + (\doxymbox{\hyperlink{namespacegen__icon_ad9d51c8a18e707b9cb70fc85f99506a4}{arc\+\_\+end}} -\/ \doxymbox{\hyperlink{namespacegen__icon_a2bda9e21a2b8785f3946f0e1050bc2e4}{arc\+\_\+start}}) \texorpdfstring{$\ast$}{*} i /\+ \doxymbox{\hyperlink{namespacegen__icon_a42b62e5226a6bb003e56bccc2ee907d6}{steps}}
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a5d9f89240615ea9927f5ba191dae25eb}{x1}} = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} -\/ \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}}/\+2) \texorpdfstring{$\ast$}{*} math.\+cos(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_aefc1b11b182405fdaba954a729ce7bd5}{y1}} = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} -\/ \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}}/\+2) \texorpdfstring{$\ast$}{*} math.\+sin(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a46a6559d5c741a982966f1d7ae7d51c8}{x2}} = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} + \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}}/\+2) \texorpdfstring{$\ast$}{*} math.\+cos(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a3e826bc0e8cf736014a3135ab6df2261}{y2}} = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} + \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}}/\+2) \texorpdfstring{$\ast$}{*} math.\+sin(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})
+\item 
+list \doxymbox{\hyperlink{namespacegen__icon_a28c6ff905cdba7b7ec2ec0a72f727d5e}{node\+\_\+positions}} = \+[0.\+25, 0.\+55, 0.\+85]\+
+\item 
+list \doxymbox{\hyperlink{namespacegen__icon_a21267d13527acab5be7f8f75c72235a5}{node\+\_\+colors}} = \+[(16, 185, 129), (139, 92, 246), (6, 182, 212)]\+
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a7bdf61046c35ca992882ae001d8a6043}{nx}} = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} -\/ 6) \texorpdfstring{$\ast$}{*} math.\+cos(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_afe76fae97874af74d4ba9d0dbbfa05d3}{ny}} = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} -\/ 6) \texorpdfstring{$\ast$}{*} math.\+sin(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a24fbc554e270ea0bc2f7a059b73b36d3}{r}} = 7
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a6008e437f480f64b4379abe591609a34}{font}} = Image\+Font.\+truetype("{}C:\+/\+Windows/\+Fonts/\+segoeui.\+ttf"{}, 100)
+\item 
+str \doxymbox{\hyperlink{namespacegen__icon_ab4ee788da2043cffeff6a0b1fdf610a0}{text}} = "{}M"{}
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}} = draw.\+textbbox((0, 0), \doxymbox{\hyperlink{namespacegen__icon_ab4ee788da2043cffeff6a0b1fdf610a0}{text}}, \doxymbox{\hyperlink{namespacegen__icon_a6008e437f480f64b4379abe591609a34}{font}}=\doxymbox{\hyperlink{namespacegen__icon_a6008e437f480f64b4379abe591609a34}{font}})
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a291416d8bc3f0e30baf80b341d39d52a}{tw}} = \doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}}\+[2]\+ -\/ \doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}}\+[0]\+
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_afb84c852be91fa6bf91debfbc661c662}{th}} = \doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}}\+[3]\+ -\/ \doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}}\+[1]\+
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_a61104bf7a447aa6406ea1c55e969d70c}{tx}} = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} -\/ \doxymbox{\hyperlink{namespacegen__icon_a291416d8bc3f0e30baf80b341d39d52a}{tw}} /\+/\+ 2
+\item 
+int \doxymbox{\hyperlink{namespacegen__icon_ae01dc875851dbaf47cc125b4348b7bf6}{ty}} = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} -\/ \doxymbox{\hyperlink{namespacegen__icon_afb84c852be91fa6bf91debfbc661c662}{th}} /\+/\+ 2 -\/ 8
+\item 
+tuple \doxymbox{\hyperlink{namespacegen__icon_a00599e9abf0e72ecc1b83922538db63e}{glow\+\_\+color}} = (139, 92, 246)
+\item 
+str \doxymbox{\hyperlink{namespacegen__icon_a949b46204453a1b0d7ecd85015b8e579}{base}} = \doxymbox{\hyperlink{namespacegen__icon_a24fbc554e270ea0bc2f7a059b73b36d3}{r}}\textquotesingle{}C:\+\textbackslash{}\+Kits work\textbackslash{}limaje de programare\textbackslash{}\+Omni\+Bus aweb3 + Omni\+Bus Block\+Chain\textbackslash{}\+Omni\+Bus-\/Block\+Chain\+Core\textbackslash{}tools\textbackslash{}\+MYTHOS\textbackslash{}app\textbackslash{}src-\/tauri\textbackslash{}icons\textquotesingle{}
+\item 
+list \doxymbox{\hyperlink{namespacegen__icon_a08182a019c251205ca6204f5419d0887}{ico\+\_\+sizes}} = \+[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)]\+
+\item 
+list \doxymbox{\hyperlink{namespacegen__icon_a2a8b06ae6623b783ec19f80c3128e599}{ico\+\_\+imgs}} = \+[$\,$]\+
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_aeba80ce6290490c29647f612dae51642}{format}}
+\item 
+\doxymbox{\hyperlink{namespacegen__icon_a062ece7ab4e0103d09e99dad1af52796}{sizes}}
+\end{DoxyCompactItemize}
+
+
+\label{namespacegen__icon_doc-func-members}
+\Hypertarget{namespacegen__icon_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacegen__icon_a317b59b55647817ea50aa12edbe376ea}\index{gen\_icon@{gen\_icon}!draw\_gradient\_ring@{draw\_gradient\_ring}}
+\index{draw\_gradient\_ring@{draw\_gradient\_ring}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{draw\_gradient\_ring()}{draw\_gradient\_ring()}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a317b59b55647817ea50aa12edbe376ea} 
+draw\+\_\+gradient\+\_\+ring (\begin{DoxyParamCaption}\item[{}]{d}{, }\item[{}]{cx}{, }\item[{}]{cy}{, }\item[{}]{r}{, }\item[{}]{width}{, }\item[{}]{color1}{, }\item[{}]{color2}{, }\item[{}]{steps}{ = {\ttfamily 120}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00020}{20}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}\index{gen\_icon@{gen\_icon}!hexagon\_points@{hexagon\_points}}
+\index{hexagon\_points@{hexagon\_points}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{hexagon\_points()}{hexagon\_points()}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef} 
+hexagon\+\_\+points (\begin{DoxyParamCaption}\item[{}]{cx}{, }\item[{}]{cy}{, }\item[{}]{r}{, }\item[{}]{rotation}{ = {\ttfamily 0}}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00013}{13}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+
+
+\label{namespacegen__icon_doc-var-members}
+\Hypertarget{namespacegen__icon_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacegen__icon_a40cd3d1fd53b2c1ee3ea0abd5ed36225}\index{gen\_icon@{gen\_icon}!alpha@{alpha}}
+\index{alpha@{alpha}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{alpha}{alpha}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a40cd3d1fd53b2c1ee3ea0abd5ed36225} 
+gen\+\_\+icon.\+alpha = 255}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00043}{43}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a63177970cacb40efba67ce501ea89210}\index{gen\_icon@{gen\_icon}!angle@{angle}}
+\index{angle@{angle}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{angle}{angle}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a63177970cacb40efba67ce501ea89210} 
+int angle = \doxymbox{\hyperlink{namespacegen__icon_a2bda9e21a2b8785f3946f0e1050bc2e4}{arc\+\_\+start}} + (\doxymbox{\hyperlink{namespacegen__icon_ad9d51c8a18e707b9cb70fc85f99506a4}{arc\+\_\+end}} -\/ \doxymbox{\hyperlink{namespacegen__icon_a2bda9e21a2b8785f3946f0e1050bc2e4}{arc\+\_\+start}}) \texorpdfstring{$\ast$}{*} i /\+ \doxymbox{\hyperlink{namespacegen__icon_a42b62e5226a6bb003e56bccc2ee907d6}{steps}}}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00067}{67}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_ad9d51c8a18e707b9cb70fc85f99506a4}\index{gen\_icon@{gen\_icon}!arc\_end@{arc\_end}}
+\index{arc\_end@{arc\_end}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{arc\_end}{arc\_end}}
+{\footnotesize\ttfamily \label{namespacegen__icon_ad9d51c8a18e707b9cb70fc85f99506a4} 
+gen\+\_\+icon.\+arc\+\_\+end = math.\+radians(-\/90 + 360 \texorpdfstring{$\ast$}{*} 0.\+97)}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00064}{64}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}\index{gen\_icon@{gen\_icon}!arc\_radius@{arc\_radius}}
+\index{arc\_radius@{arc\_radius}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{arc\_radius}{arc\_radius}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6} 
+int gen\+\_\+icon.\+arc\+\_\+radius = \doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} -\/ 22}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00061}{61}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a2bda9e21a2b8785f3946f0e1050bc2e4}\index{gen\_icon@{gen\_icon}!arc\_start@{arc\_start}}
+\index{arc\_start@{arc\_start}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{arc\_start}{arc\_start}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a2bda9e21a2b8785f3946f0e1050bc2e4} 
+gen\+\_\+icon.\+arc\+\_\+start = math.\+radians(-\/90)}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00063}{63}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}\index{gen\_icon@{gen\_icon}!arc\_width@{arc\_width}}
+\index{arc\_width@{arc\_width}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{arc\_width}{arc\_width}}
+{\footnotesize\ttfamily \label{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8} 
+int gen\+\_\+icon.\+arc\+\_\+width = 6}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00062}{62}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a949b46204453a1b0d7ecd85015b8e579}\index{gen\_icon@{gen\_icon}!base@{base}}
+\index{base@{base}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{base}{base}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a949b46204453a1b0d7ecd85015b8e579} 
+str gen\+\_\+icon.\+base = \doxymbox{\hyperlink{namespacegen__icon_a24fbc554e270ea0bc2f7a059b73b36d3}{r}}\textquotesingle{}C:\+\textbackslash{}\+Kits work\textbackslash{}limaje de programare\textbackslash{}\+Omni\+Bus aweb3 + Omni\+Bus Block\+Chain\textbackslash{}\+Omni\+Bus-\/Block\+Chain\+Core\textbackslash{}tools\textbackslash{}\+MYTHOS\textbackslash{}app\textbackslash{}src-\/tauri\textbackslash{}icons\textquotesingle{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00108}{108}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}\index{gen\_icon@{gen\_icon}!bbox@{bbox}}
+\index{bbox@{bbox}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{bbox}{bbox}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16} 
+gen\+\_\+icon.\+bbox = draw.\+textbbox((0, 0), \doxymbox{\hyperlink{namespacegen__icon_ab4ee788da2043cffeff6a0b1fdf610a0}{text}}, \doxymbox{\hyperlink{namespacegen__icon_a6008e437f480f64b4379abe591609a34}{font}}=\doxymbox{\hyperlink{namespacegen__icon_a6008e437f480f64b4379abe591609a34}{font}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00095}{95}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}\index{gen\_icon@{gen\_icon}!CENTER@{CENTER}}
+\index{CENTER@{CENTER}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{CENTER}{CENTER}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39} 
+int gen\+\_\+icon.\+CENTER = \doxymbox{\hyperlink{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}{SIZE}} /\+/\+ 2}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00005}{5}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_ac2534c00f10c40f0f96c40c8d772a17d}\index{gen\_icon@{gen\_icon}!dist@{dist}}
+\index{dist@{dist}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{dist}{dist}}
+{\footnotesize\ttfamily \label{namespacegen__icon_ac2534c00f10c40f0f96c40c8d772a17d} 
+gen\+\_\+icon.\+dist = math.\+sqrt(\doxymbox{\hyperlink{namespacegen__icon_a02d469d49b9227e7e4b1b019a7f74ee0}{dx}}\texorpdfstring{$\ast$}{*}\doxymbox{\hyperlink{namespacegen__icon_a02d469d49b9227e7e4b1b019a7f74ee0}{dx}} + \doxymbox{\hyperlink{namespacegen__icon_a51e7c2d5a5b4d8c6415b16d3e40832ff}{dy}}\texorpdfstring{$\ast$}{*}\doxymbox{\hyperlink{namespacegen__icon_a51e7c2d5a5b4d8c6415b16d3e40832ff}{dy}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00041}{41}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a4558e7db6ea76e465b1e4f03e44fdcbe}\index{gen\_icon@{gen\_icon}!draw@{draw}}
+\index{draw@{draw}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{draw}{draw}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a4558e7db6ea76e465b1e4f03e44fdcbe} 
+gen\+\_\+icon.\+draw = Image\+Draw.\+Draw(\doxymbox{\hyperlink{namespacegen__icon_adeb35ba5a7dc0c5c4f9a861335fd7abc}{img}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00011}{11}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a02d469d49b9227e7e4b1b019a7f74ee0}\index{gen\_icon@{gen\_icon}!dx@{dx}}
+\index{dx@{dx}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{dx}{dx}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a02d469d49b9227e7e4b1b019a7f74ee0} 
+gen\+\_\+icon.\+dx}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a51e7c2d5a5b4d8c6415b16d3e40832ff}\index{gen\_icon@{gen\_icon}!dy@{dy}}
+\index{dy@{dy}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{dy}{dy}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a51e7c2d5a5b4d8c6415b16d3e40832ff} 
+gen\+\_\+icon.\+dy}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00040}{40}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_abee871caf8cb85cdc6fe79d24e1a98a7}\index{gen\_icon@{gen\_icon}!fill@{fill}}
+\index{fill@{fill}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{fill}{fill}}
+{\footnotesize\ttfamily \label{namespacegen__icon_abee871caf8cb85cdc6fe79d24e1a98a7} 
+gen\+\_\+icon.\+fill}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a6008e437f480f64b4379abe591609a34}\index{gen\_icon@{gen\_icon}!font@{font}}
+\index{font@{font}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{font}{font}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a6008e437f480f64b4379abe591609a34} 
+gen\+\_\+icon.\+font = Image\+Font.\+truetype("{}C:\+/\+Windows/\+Fonts/\+segoeui.\+ttf"{}, 100)}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00090}{90}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_aeba80ce6290490c29647f612dae51642}\index{gen\_icon@{gen\_icon}!format@{format}}
+\index{format@{format}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{format}{format}}
+{\footnotesize\ttfamily \label{namespacegen__icon_aeba80ce6290490c29647f612dae51642} 
+gen\+\_\+icon.\+format}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00115}{115}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a00599e9abf0e72ecc1b83922538db63e}\index{gen\_icon@{gen\_icon}!glow\_color@{glow\_color}}
+\index{glow\_color@{glow\_color}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{glow\_color}{glow\_color}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a00599e9abf0e72ecc1b83922538db63e} 
+tuple gen\+\_\+icon.\+glow\+\_\+color = (139, 92, 246)}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00102}{102}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a336ff7c87166cf02971d0d29210b706a}\index{gen\_icon@{gen\_icon}!hex\_points@{hex\_points}}
+\index{hex\_points@{hex\_points}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{hex\_points}{hex\_points}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a336ff7c87166cf02971d0d29210b706a} 
+gen\+\_\+icon.\+hex\+\_\+points = \doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{hexagon\+\_\+points}}(\doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}}, \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}}, \doxymbox{\hyperlink{namespacegen__icon_a14a6b8463c6f38e217d994d2d40d4ccf}{hex\+\_\+r}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00050}{50}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a0c6126de2d8a2c3d2c33e51f52f75329}\index{gen\_icon@{gen\_icon}!hex\_points2@{hex\_points2}}
+\index{hex\_points2@{hex\_points2}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{hex\_points2}{hex\_points2}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a0c6126de2d8a2c3d2c33e51f52f75329} 
+gen\+\_\+icon.\+hex\+\_\+points2 = \doxymbox{\hyperlink{namespacegen__icon_a924fbf9b95e4f55238c2d8337ff1c6ef}{hexagon\+\_\+points}}(\doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}}, \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}}, \doxymbox{\hyperlink{namespacegen__icon_a14a6b8463c6f38e217d994d2d40d4ccf}{hex\+\_\+r}} \texorpdfstring{$\ast$}{*} 0.\+6)}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00054}{54}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a14a6b8463c6f38e217d994d2d40d4ccf}\index{gen\_icon@{gen\_icon}!hex\_r@{hex\_r}}
+\index{hex\_r@{hex\_r}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{hex\_r}{hex\_r}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a14a6b8463c6f38e217d994d2d40d4ccf} 
+int gen\+\_\+icon.\+hex\+\_\+r = \doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} -\/ 16}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00049}{49}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a2a8b06ae6623b783ec19f80c3128e599}\index{gen\_icon@{gen\_icon}!ico\_imgs@{ico\_imgs}}
+\index{ico\_imgs@{ico\_imgs}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{ico\_imgs}{ico\_imgs}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a2a8b06ae6623b783ec19f80c3128e599} 
+list gen\+\_\+icon.\+ico\+\_\+imgs = \+[$\,$]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00112}{112}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a08182a019c251205ca6204f5419d0887}\index{gen\_icon@{gen\_icon}!ico\_sizes@{ico\_sizes}}
+\index{ico\_sizes@{ico\_sizes}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{ico\_sizes}{ico\_sizes}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a08182a019c251205ca6204f5419d0887} 
+list gen\+\_\+icon.\+ico\+\_\+sizes = \+[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00111}{111}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_adeb35ba5a7dc0c5c4f9a861335fd7abc}\index{gen\_icon@{gen\_icon}!img@{img}}
+\index{img@{img}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{img}{img}}
+{\footnotesize\ttfamily \label{namespacegen__icon_adeb35ba5a7dc0c5c4f9a861335fd7abc} 
+gen\+\_\+icon.\+img = Image.\+new(\textquotesingle{}RGBA\textquotesingle{}, (\doxymbox{\hyperlink{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}{SIZE}}, \doxymbox{\hyperlink{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}{SIZE}}), (0, 0, 0, 0))}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00010}{10}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a21267d13527acab5be7f8f75c72235a5}\index{gen\_icon@{gen\_icon}!node\_colors@{node\_colors}}
+\index{node\_colors@{node\_colors}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{node\_colors}{node\_colors}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a21267d13527acab5be7f8f75c72235a5} 
+list gen\+\_\+icon.\+node\+\_\+colors = \+[(16, 185, 129), (139, 92, 246), (6, 182, 212)]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00076}{76}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a28c6ff905cdba7b7ec2ec0a72f727d5e}\index{gen\_icon@{gen\_icon}!node\_positions@{node\_positions}}
+\index{node\_positions@{node\_positions}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{node\_positions}{node\_positions}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a28c6ff905cdba7b7ec2ec0a72f727d5e} 
+list gen\+\_\+icon.\+node\+\_\+positions = \+[0.\+25, 0.\+55, 0.\+85]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00075}{75}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a7bdf61046c35ca992882ae001d8a6043}\index{gen\_icon@{gen\_icon}!nx@{nx}}
+\index{nx@{nx}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{nx}{nx}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a7bdf61046c35ca992882ae001d8a6043} 
+int gen\+\_\+icon.\+nx = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} -\/ 6) \texorpdfstring{$\ast$}{*} math.\+cos(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00079}{79}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_afe76fae97874af74d4ba9d0dbbfa05d3}\index{gen\_icon@{gen\_icon}!ny@{ny}}
+\index{ny@{ny}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{ny}{ny}}
+{\footnotesize\ttfamily \label{namespacegen__icon_afe76fae97874af74d4ba9d0dbbfa05d3} 
+int gen\+\_\+icon.\+ny = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}{RADIUS}} -\/ 6) \texorpdfstring{$\ast$}{*} math.\+sin(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00080}{80}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a24fbc554e270ea0bc2f7a059b73b36d3}\index{gen\_icon@{gen\_icon}!r@{r}}
+\index{r@{r}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{r}{r}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a24fbc554e270ea0bc2f7a059b73b36d3} 
+int gen\+\_\+icon.\+r = 7}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00081}{81}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51}\index{gen\_icon@{gen\_icon}!RADIUS@{RADIUS}}
+\index{RADIUS@{RADIUS}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{RADIUS}{RADIUS}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a97996b49d1e281e1d3a3376fde5b6f51} 
+int gen\+\_\+icon.\+RADIUS = 110}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00006}{6}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_aa92cc615379216fcbbda241e5898ddf5}\index{gen\_icon@{gen\_icon}!RING\_WIDTH@{RING\_WIDTH}}
+\index{RING\_WIDTH@{RING\_WIDTH}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{RING\_WIDTH}{RING\_WIDTH}}
+{\footnotesize\ttfamily \label{namespacegen__icon_aa92cc615379216fcbbda241e5898ddf5} 
+int gen\+\_\+icon.\+RING\+\_\+\+WIDTH = 10}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00007}{7}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0}\index{gen\_icon@{gen\_icon}!SIZE@{SIZE}}
+\index{SIZE@{SIZE}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{SIZE}{SIZE}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a4bff7192c96b759d1b00f847e0c5c2f0} 
+int gen\+\_\+icon.\+SIZE = 256}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00004}{4}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a062ece7ab4e0103d09e99dad1af52796}\index{gen\_icon@{gen\_icon}!sizes@{sizes}}
+\index{sizes@{sizes}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{sizes}{sizes}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a062ece7ab4e0103d09e99dad1af52796} 
+gen\+\_\+icon.\+sizes}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00115}{115}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a42b62e5226a6bb003e56bccc2ee907d6}\index{gen\_icon@{gen\_icon}!steps@{steps}}
+\index{steps@{steps}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{steps}{steps}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a42b62e5226a6bb003e56bccc2ee907d6} 
+gen\+\_\+icon.\+steps = int(360 \texorpdfstring{$\ast$}{*} 0.\+97 \texorpdfstring{$\ast$}{*} 2)}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00065}{65}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_ab4ee788da2043cffeff6a0b1fdf610a0}\index{gen\_icon@{gen\_icon}!text@{text}}
+\index{text@{text}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{text}{text}}
+{\footnotesize\ttfamily \label{namespacegen__icon_ab4ee788da2043cffeff6a0b1fdf610a0} 
+gen\+\_\+icon.\+text = "{}M"{}}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00094}{94}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_afb84c852be91fa6bf91debfbc661c662}\index{gen\_icon@{gen\_icon}!th@{th}}
+\index{th@{th}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{th}{th}}
+{\footnotesize\ttfamily \label{namespacegen__icon_afb84c852be91fa6bf91debfbc661c662} 
+gen\+\_\+icon.\+th = \doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}}\+[3]\+ -\/ \doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}}\+[1]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00097}{97}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a291416d8bc3f0e30baf80b341d39d52a}\index{gen\_icon@{gen\_icon}!tw@{tw}}
+\index{tw@{tw}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{tw}{tw}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a291416d8bc3f0e30baf80b341d39d52a} 
+gen\+\_\+icon.\+tw = \doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}}\+[2]\+ -\/ \doxymbox{\hyperlink{namespacegen__icon_a3210286893d30d0a40156f0c1400ee16}{bbox}}\+[0]\+}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00096}{96}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a61104bf7a447aa6406ea1c55e969d70c}\index{gen\_icon@{gen\_icon}!tx@{tx}}
+\index{tx@{tx}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{tx}{tx}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a61104bf7a447aa6406ea1c55e969d70c} 
+int gen\+\_\+icon.\+tx = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} -\/ \doxymbox{\hyperlink{namespacegen__icon_a291416d8bc3f0e30baf80b341d39d52a}{tw}} /\+/\+ 2}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00098}{98}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_ae01dc875851dbaf47cc125b4348b7bf6}\index{gen\_icon@{gen\_icon}!ty@{ty}}
+\index{ty@{ty}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{ty}{ty}}
+{\footnotesize\ttfamily \label{namespacegen__icon_ae01dc875851dbaf47cc125b4348b7bf6} 
+int gen\+\_\+icon.\+ty = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} -\/ \doxymbox{\hyperlink{namespacegen__icon_afb84c852be91fa6bf91debfbc661c662}{th}} /\+/\+ 2 -\/ 8}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00099}{99}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a7d4d9dcd760d3b42fbdffaed58788050}\index{gen\_icon@{gen\_icon}!width@{width}}
+\index{width@{width}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{width}{width}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a7d4d9dcd760d3b42fbdffaed58788050} 
+gen\+\_\+icon.\+width}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00051}{51}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a5d9f89240615ea9927f5ba191dae25eb}\index{gen\_icon@{gen\_icon}!x1@{x1}}
+\index{x1@{x1}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{x1}{x1}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a5d9f89240615ea9927f5ba191dae25eb} 
+int gen\+\_\+icon.\+x1 = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} -\/ \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}}/\+2) \texorpdfstring{$\ast$}{*} math.\+cos(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00068}{68}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a46a6559d5c741a982966f1d7ae7d51c8}\index{gen\_icon@{gen\_icon}!x2@{x2}}
+\index{x2@{x2}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{x2}{x2}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a46a6559d5c741a982966f1d7ae7d51c8} 
+int gen\+\_\+icon.\+x2 = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} + \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}}/\+2) \texorpdfstring{$\ast$}{*} math.\+cos(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00070}{70}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_aefc1b11b182405fdaba954a729ce7bd5}\index{gen\_icon@{gen\_icon}!y1@{y1}}
+\index{y1@{y1}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{y1}{y1}}
+{\footnotesize\ttfamily \label{namespacegen__icon_aefc1b11b182405fdaba954a729ce7bd5} 
+int gen\+\_\+icon.\+y1 = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} -\/ \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}}/\+2) \texorpdfstring{$\ast$}{*} math.\+sin(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00069}{69}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+
+\Hypertarget{namespacegen__icon_a3e826bc0e8cf736014a3135ab6df2261}\index{gen\_icon@{gen\_icon}!y2@{y2}}
+\index{y2@{y2}!gen\_icon@{gen\_icon}}
+\doxysubsubsection{\texorpdfstring{y2}{y2}}
+{\footnotesize\ttfamily \label{namespacegen__icon_a3e826bc0e8cf736014a3135ab6df2261} 
+int gen\+\_\+icon.\+y2 = \doxymbox{\hyperlink{namespacegen__icon_a1d6f69c7418afe2df2276d19fcebab39}{CENTER}} + (\doxymbox{\hyperlink{namespacegen__icon_a7662afb339abe8e2b3059782b8cc58a6}{arc\+\_\+radius}} + \doxymbox{\hyperlink{namespacegen__icon_ae999fda0b2d5bbb6ed35210c2c4592c8}{arc\+\_\+width}}/\+2) \texorpdfstring{$\ast$}{*} math.\+sin(\doxymbox{\hyperlink{namespacegen__icon_a63177970cacb40efba67ce501ea89210}{angle}})}
+
+
+
+Definition at line \doxymbox{\hyperlink{gen__icon_8py_source_l00071}{71}} of file \doxymbox{\hyperlink{gen__icon_8py_source}{gen\+\_\+icon.\+py}}.
+

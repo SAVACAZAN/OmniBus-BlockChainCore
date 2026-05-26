@@ -1,0 +1,142 @@
+\doxysection{test\+\_\+rest\+\_\+hmac.\+py}
+\hypertarget{test__rest__hmac_8py_source}{}\label{test__rest__hmac_8py_source}\doxymbox{\hyperlink{test__rest__hmac_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00001}\doxymbox{\hyperlink{namespacetest__rest__hmac}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00002}00002\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00003}00003\ \textcolor{stringliteral}{Test\ script\ for\ OmniBus\ Exchange\ REST\ API\ Phase\ 1\ (HMAC-\/SHA512\ auth).}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00005}00005\ \textcolor{stringliteral}{Usage:}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ \ \ python3\ test\_rest\_hmac.py\ http://localhost:8080/exchange/0}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00007}00007\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00008}00008\ \textcolor{stringliteral}{Requires:}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ \ \ pip\ install\ requests}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00010}00010\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00011}00011\ \textcolor{keyword}{import}\ sys,\ os,\ json,\ base64,\ hashlib,\ hmac,\ time,\ urllib.parse}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00013}00013\ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00014}00014\ \ \ \ \ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00015}00015\ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00016}00016\ \ \ \ \ print(\textcolor{stringliteral}{"{}pip\ install\ requests"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00017}00017\ \ \ \ \ sys.exit(1)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00019}\doxymbox{\hyperlink{namespacetest__rest__hmac_a900bb4c80653b779858000a412a13435}{00019}}\ API\_KEY\_ID\ =\ os.environ.get(\textcolor{stringliteral}{"{}OB\_API\_KEY"{}},\ \textcolor{stringliteral}{"{}obx\_1234567890abcdef12345678"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00020}\doxymbox{\hyperlink{namespacetest__rest__hmac_a27a33f19d28b5df91ff0e238c0be9742}{00020}}\ API\_SECRET\_B64\ =\ os.environ.get(\textcolor{stringliteral}{"{}OB\_API\_SECRET"{}},\ \textcolor{stringliteral}{"{}obs\_"{}}\ +\ \textcolor{stringliteral}{"{}a"{}}\ *\ 64)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00023}\doxymbox{\hyperlink{namespacetest__rest__hmac_aecb9d1e1c96328ca24aa0673567888c1}{00023}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__rest__hmac_aecb9d1e1c96328ca24aa0673567888c1}{kraken\_sign}}(uri\_path:\ str,\ post\_data:\ dict,\ secret\_b64:\ str)\ -\/>\ str:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00024}00024\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00025}00025\ \textcolor{stringliteral}{\ \ \ \ Kraken-\/style\ HMAC-\/SHA512\ signature.}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00026}00026\ \textcolor{stringliteral}{\ \ \ \ message\ =\ URI-\/PATH\ ||\ SHA256(post\_data\_encoded)}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00027}00027\ \textcolor{stringliteral}{\ \ \ \ signature\ =\ base64(\ HMAC-\/SHA512(message,\ secret\_raw)\ )}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00028}00028\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00029}00029\ \ \ \ \ \textcolor{comment}{\#\ The\ secret\ is\ stored\ as\ base64-\/encoded\ 32\ bytes.}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00030}00030\ \ \ \ \ secret\_raw\ =\ base64.b64decode(secret\_b64)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00032}00032\ \ \ \ \ \textcolor{comment}{\#\ Form-\/encode\ the\ post\ data\ (no\ spaces\ around\ =,\ \&)}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00033}00033\ \ \ \ \ encoded\ =\ urllib.parse.urlencode(post\_data)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00035}00035\ \ \ \ \ \textcolor{comment}{\#\ SHA256\ of\ the\ encoded\ post\ data}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00036}00036\ \ \ \ \ post\_hash\ =\ hashlib.sha256(encoded.encode(\textcolor{stringliteral}{"{}utf-\/8"{}})).digest()}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00038}00038\ \ \ \ \ \textcolor{comment}{\#\ message\ =\ URI\ path\ (raw)\ +\ SHA256\ hash\ (raw\ bytes)}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00039}00039\ \ \ \ \ message\ =\ uri\_path.encode(\textcolor{stringliteral}{"{}utf-\/8"{}})\ +\ post\_hash}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00041}00041\ \ \ \ \ \textcolor{comment}{\#\ HMAC-\/SHA512}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00042}00042\ \ \ \ \ sig\ =\ hmac.new(secret\_raw,\ message,\ hashlib.sha512).digest()}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00043}00043\ \ \ \ \ \textcolor{keywordflow}{return}\ base64.b64encode(sig).decode(\textcolor{stringliteral}{"{}ascii"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00046}\doxymbox{\hyperlink{namespacetest__rest__hmac_a03385f61a5d473360c981fc69d866a55}{00046}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__rest__hmac_a03385f61a5d473360c981fc69d866a55}{test\_public}}(base:\ str):}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00047}00047\ \ \ \ \ print(\textcolor{stringliteral}{"{}===\ Public\ endpoints\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00048}00048\ \ \ \ \ \textcolor{keywordflow}{for}\ ep\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}public/Time"{}},\ \textcolor{stringliteral}{"{}public/SystemStatus"{}},\ \textcolor{stringliteral}{"{}public/Assets"{}},\ \textcolor{stringliteral}{"{}public/AssetPairs"{}}]:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ url\ =\ f\textcolor{stringliteral}{"{}\{base\}/\{ep\}"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ r\ =\ requests.get(url,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ GET\ \{ep\}:\ \{r.status\_code\}\ \ len=\{len(r.text)\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ r.status\_code\ ==\ 200:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ -\/>\ \{json.dumps(r.json(),\ indent=2)[:200]\}..."{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ -\/>\ (non-\/json)\ \{r.text[:100]\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00058}00058\ \ \ \ \ \textcolor{comment}{\#\ Depth}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00059}00059\ \ \ \ \ url\ =\ f\textcolor{stringliteral}{"{}\{base\}/public/Depth?pair=OMNI/USDC\&count=5"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00060}00060\ \ \ \ \ r\ =\ requests.get(url,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00061}00061\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ GET\ public/Depth:\ \{r.status\_code\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00064}\doxymbox{\hyperlink{namespacetest__rest__hmac_a8e30d2b4bad2fada0efdddf83eb93b1e}{00064}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__rest__hmac_a8e30d2b4bad2fada0efdddf83eb93b1e}{test\_openapi}}(base:\ str):}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00065}00065\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n===\ OpenAPI\ +\ Swagger\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00066}00066\ \ \ \ \ url\ =\ f\textcolor{stringliteral}{"{}\{base\}/openapi.json"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00067}00067\ \ \ \ \ r\ =\ requests.get(url,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00068}00068\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ GET\ openapi.json:\ \{r.status\_code\}\ \ len=\{len(r.text)\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{if}\ r.status\_code\ ==\ 200:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ spec\ =\ r.json()}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ title=\{spec.get('info',\{\}).get('title')\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ paths=\{list(spec.get('paths',\{\}).keys())[:5]\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00074}00074\ \ \ \ \ url\ =\ f\textcolor{stringliteral}{"{}\{base\}/swagger-\/ui"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00075}00075\ \ \ \ \ r\ =\ requests.get(url,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00076}00076\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ GET\ swagger-\/ui:\ \{r.status\_code\}\ \ len=\{len(r.text)\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00079}\doxymbox{\hyperlink{namespacetest__rest__hmac_aff138f9ec0001f4ff02a94a80dcc4d4a}{00079}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__rest__hmac_aff138f9ec0001f4ff02a94a80dcc4d4a}{test\_private\_balance}}(base:\ str):}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00080}00080\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n===\ Private\ Balance\ (HMAC)\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}localhost"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ base\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}127.0.0.1"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ base:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ Skipping\ private\ test\ on\ non-\/localhost\ (needs\ real\ keys)"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00085}00085\ \ \ \ \ \textcolor{comment}{\#\ This\ needs\ a\ real\ API\ key\ on\ the\ server.}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00086}00086\ \ \ \ \ \textcolor{comment}{\#\ We\ show\ the\ signature\ computation\ even\ if\ the\ key\ doesn't\ exist.}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00087}00087\ \ \ \ \ nonce\ =\ str(int(time.time()\ *\ 1000))}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00088}00088\ \ \ \ \ post\ =\ \{\textcolor{stringliteral}{"{}nonce"{}}:\ nonce\}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00089}00089\ \ \ \ \ uri\_path\ =\ \textcolor{stringliteral}{"{}/exchange/0/private/Balance"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00090}00090\ \ \ \ \ sig\ =\ \doxymbox{\hyperlink{namespacetest__rest__hmac_aecb9d1e1c96328ca24aa0673567888c1}{kraken\_sign}}(uri\_path,\ post,\ API\_SECRET\_B64)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00092}00092\ \ \ \ \ headers\ =\ \{}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}API-\/Key"{}}:\ API\_KEY\_ID,}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}API-\/Sign"{}}:\ sig,}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00095}00095\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00096}00096\ \ \ \ \ url\ =\ f\textcolor{stringliteral}{"{}\{base\}/private/Balance"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00097}00097\ \ \ \ \ r\ =\ requests.post(url,\ data=post,\ headers=headers,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00098}00098\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ POST\ private/Balance:\ \{r.status\_code\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00099}00099\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ body:\ \{r.text[:300]\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00102}\doxymbox{\hyperlink{namespacetest__rest__hmac_a06259ef206eb13425de0486074e078e1}{00102}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacetest__rest__hmac_a06259ef206eb13425de0486074e078e1}{test\_private\_add\_order}}(base:\ str):}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00103}00103\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n===\ Private\ AddOrder\ (HMAC)\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}localhost"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ base\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}127.0.0.1"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ base:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\ \ Skipping\ private\ test\ on\ non-\/localhost"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00108}00108\ \ \ \ \ nonce\ =\ str(int(time.time()\ *\ 1000))}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00109}00109\ \ \ \ \ post\ =\ \{}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}nonce"{}}:\ nonce,}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}pair"{}}:\ \textcolor{stringliteral}{"{}OMNI/USDC"{}},}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}type"{}}:\ \textcolor{stringliteral}{"{}sell"{}},}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ordertype"{}}:\ \textcolor{stringliteral}{"{}limit"{}},}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}price"{}}:\ \textcolor{stringliteral}{"{}1500000"{}},}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}volume"{}}:\ \textcolor{stringliteral}{"{}100000000"{}},}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00116}00116\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00117}00117\ \ \ \ \ uri\_path\ =\ \textcolor{stringliteral}{"{}/exchange/0/private/AddOrder"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00118}00118\ \ \ \ \ sig\ =\ \doxymbox{\hyperlink{namespacetest__rest__hmac_aecb9d1e1c96328ca24aa0673567888c1}{kraken\_sign}}(uri\_path,\ post,\ API\_SECRET\_B64)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00120}00120\ \ \ \ \ headers\ =\ \{}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}API-\/Key"{}}:\ API\_KEY\_ID,}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}API-\/Sign"{}}:\ sig,}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00123}00123\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00124}00124\ \ \ \ \ url\ =\ f\textcolor{stringliteral}{"{}\{base\}/private/AddOrder"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00125}00125\ \ \ \ \ r\ =\ requests.post(url,\ data=post,\ headers=headers,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00126}00126\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ POST\ private/AddOrder:\ \{r.status\_code\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00127}00127\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \ \ body:\ \{r.text[:300]\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00130}00130\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00131}\doxymbox{\hyperlink{namespacetest__rest__hmac_a0188b947773456b2185de43e7d3d6385}{00131}}\ \ \ \ \ base\ =\ sys.argv[1]\ \textcolor{keywordflow}{if}\ len(sys.argv)\ >\ 1\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}http://localhost:8080/exchange/0"{}}}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00132}00132\ \ \ \ \ print(f\textcolor{stringliteral}{"{}Base\ URL:\ \{base\}"{}})}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00133}00133\ \ \ \ \ \doxymbox{\hyperlink{namespacetest__rest__hmac_a03385f61a5d473360c981fc69d866a55}{test\_public}}(base)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00134}00134\ \ \ \ \ \doxymbox{\hyperlink{namespacetest__rest__hmac_a8e30d2b4bad2fada0efdddf83eb93b1e}{test\_openapi}}(base)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00135}00135\ \ \ \ \ \doxymbox{\hyperlink{namespacetest__rest__hmac_aff138f9ec0001f4ff02a94a80dcc4d4a}{test\_private\_balance}}(base)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00136}00136\ \ \ \ \ \doxymbox{\hyperlink{namespacetest__rest__hmac_a06259ef206eb13425de0486074e078e1}{test\_private\_add\_order}}(base)}
+\DoxyCodeLine{\Hypertarget{test__rest__hmac_8py_source_l00137}00137\ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)nDone."{}})}
+
+\end{DoxyCode}

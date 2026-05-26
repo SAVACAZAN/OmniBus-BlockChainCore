@@ -1,0 +1,371 @@
+\doxysection{frontend/\+node\+\_\+modules/\+@noble/\+secp256k1 Directory Reference}
+\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab}{}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab}\index{frontend/node\_modules/"@noble/secp256k1 Directory Reference@{frontend/node\_modules/"@noble/secp256k1 Directory Reference}}
+Directory dependency graph for secp256k1:\+
+% FIG 0
+
+
+\doxysubsection{Detailed Description}
+\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4697}{}\doxysubsection{\texorpdfstring{noble-\/secp256k1}{noble-\/secp256k1}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4697}
+Fastest 4KB JS implementation of secp256k1 signatures \& ECDH.
+
+
+\begin{DoxyItemize}
+\item ✍️ \href{https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm}{\texttt{ECDSA}} signatures compliant with \href{https://www.rfc-editor.org/rfc/rfc6979}{\texttt{RFC6979}}
+\item 🤝 Elliptic Curve Diffie-\/\+Hellman \href{https://en.wikipedia.org/wiki/Elliptic-curve_Diffie\%E2\%80\%93Hellman}{\texttt{ECDH}}
+\item 🔒 Supports \href{https://paulmillr.com/posts/deterministic-signatures/}{\texttt{hedged signatures}} guarding against fault attacks
+\item 🪶 3.\+98\+KB gzipped (elliptic.\+js is 12x larger, tiny-\/secp256k1 is 20-\/40x larger)
+\end{DoxyItemize}
+
+The module is a sister project of \href{https://github.com/paulmillr/noble-curves}{\texttt{noble-\/curves}}, focusing on smaller attack surface \& better auditability. Curves are drop-\/in replacement and have more features:\+ MSM, DER encoding, endomorphism, prehashing, custom point precomputes. To upgrade from earlier version, see UpgradingUpgrading.
+
+898-\/byte version of the library is available for learning purposes in {\ttfamily test/\+misc/\+1kb.\+min.\+js}, it was created for the article \href{https://paulmillr.com/posts/noble-secp256k1-fast-ecc/}{\texttt{Learning fast elliptic-\/curve cryptography}}.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4698}{}\doxysubsubsection{\texorpdfstring{This library belongs to {\itshape noble} cryptography}{This library belongs to {\itshape noble} cryptography}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4698}
+\begin{quote}
+{\bfseries{noble-\/cryptography}} — high-\/security, easily auditable set of contained cryptographic libraries and tools. \end{quote}
+
+
+
+\begin{DoxyItemize}
+\item Zero or minimal dependencies
+\item Highly readable Type\+Script /\+ JS code
+\item PGP-\/signed releases and transparent NPM builds with provenance
+\item Check out \href{https://paulmillr.com/noble/}{\texttt{homepage}} \& all libraries:\+ \href{https://github.com/paulmillr/noble-ciphers}{\texttt{ciphers}}, \href{https://github.com/paulmillr/noble-curves}{\texttt{curves}}, \href{https://github.com/paulmillr/noble-hashes}{\texttt{hashes}}, \href{https://github.com/paulmillr/noble-post-quantum}{\texttt{post-\/quantum}}, 4kb \href{https://github.com/paulmillr/noble-secp256k1}{\texttt{secp256k1}} /\+ \href{https://github.com/paulmillr/noble-ed25519}{\texttt{ed25519}}
+\end{DoxyItemize}\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4699}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4699}
+\begin{quote}
+{\ttfamily npm install @noble/\+secp256k1} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno add jsr:\+@noble/\+secp256k1} \end{quote}
+
+
+\begin{quote}
+{\ttfamily deno doc jsr:\+@noble/\+secp256k1} \# command-\/line documentation \end{quote}
+
+
+\doxylink{namespace_we}{We} support all major platforms and runtimes. For React Native, additional polyfills are needed:\+ see below.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ *\ as\ secp\ from\ '@noble/secp256k1';}
+\DoxyCodeLine{(async\ ()\ =>\ \{}
+\DoxyCodeLine{\ \ //\ Uint8Arrays\ or\ hex\ strings\ are\ accepted:}
+\DoxyCodeLine{\ \ //\ Uint8Array.from([0xde,\ 0xad,\ 0xbe,\ 0xef])\ is\ equal\ to\ 'deadbeef'}
+\DoxyCodeLine{\ \ const\ privKey\ =\ secp.utils.randomPrivateKey();\ //\ Secure\ random\ private\ key}
+\DoxyCodeLine{\ \ //\ sha256\ of\ 'hello\ world'}
+\DoxyCodeLine{\ \ const\ msgHash\ =\ 'b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9';}
+\DoxyCodeLine{\ \ const\ pubKey\ =\ secp.getPublicKey(privKey);}
+\DoxyCodeLine{\ \ const\ signature\ =\ await\ secp.signAsync(msgHash,\ privKey);\ //\ Sync\ methods\ below}
+\DoxyCodeLine{\ \ const\ isValid\ =\ secp.verify(signature,\ msgHash,\ pubKey);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ const\ alicesPub\ =\ secp.getPublicKey(secp.utils.randomPrivateKey());}
+\DoxyCodeLine{\ \ const\ shared\ =\ secp.getSharedSecret(privKey,\ alicesPub);\ //\ Diffie-\/Hellman}
+\DoxyCodeLine{\ \ const\ pub2\ =\ signature.recoverPublicKey(msgHash);\ //\ Public\ key\ recovery}
+\DoxyCodeLine{\})();}
+
+\end{DoxyCode}
+\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4700}{}\doxysubsubsection{\texorpdfstring{Enabling synchronous methods}{Enabling synchronous methods}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4700}
+Only async methods are available by default, to keep the library dependency-\/free. To enable sync methods:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ hmac\ \}\ from\ '@noble/hashes/hmac.js';}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{secp.etc.hmacSha256Sync\ =\ (k,\ ...m)\ =>\ hmac(sha256,\ k,\ secp.etc.concatBytes(...m));}
+
+\end{DoxyCode}
+\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4701}{}\doxysubsubsection{\texorpdfstring{React Native:\+ polyfill get\+Random\+Values and sha512}{React Native:\+ polyfill get\+Random\+Values and sha512}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4701}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ 'react-\/native-\/get-\/random-\/values';}
+\DoxyCodeLine{import\ \{\ hmac\ \}\ from\ '@noble/hashes/hmac.js';}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha2.js';}
+\DoxyCodeLine{secp.etc.hmacSha256Sync\ =\ (k,\ ...m)\ =>\ hmac(sha256,\ k,\ secp.etc.concatBytes(...m));}
+\DoxyCodeLine{secp.etc.hmacSha256Async\ =\ (k,\ ...m)\ =>\ Promise.resolve(secp.etc.hmacSha256Sync(k,\ ...m));}
+
+\end{DoxyCode}
+\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4702}{}\doxysubsection{\texorpdfstring{API}{API}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4702}
+There are 3 main methods:\+
+
+
+\begin{DoxyItemize}
+\item {\ttfamily get\+Public\+Key(private\+Key)}
+\item {\ttfamily sign(message\+Hash, private\+Key)} and {\ttfamily sign\+Async(message\+Hash, private\+Key)}
+\item {\ttfamily verify(signature, message\+Hash, public\+Key)}
+\end{DoxyItemize}
+
+Functions generally accept Uint8\+Array. There are optional utilities which convert hex strings, utf8 strings or bigints to u8a.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4703}{}\doxysubsubsection{\texorpdfstring{get\+Public\+Key}{get\+Public\+Key}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4703}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ \{\ getPublicKey,\ utils,\ ProjectivePoint\ \}\ from\ '@noble/secp256k1';}
+\DoxyCodeLine{const\ privKey\ =\ utils.randomPrivateKey();}
+\DoxyCodeLine{const\ pubKey33b\ =\ getPublicKey(privKey);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Variants}
+\DoxyCodeLine{const\ pubKey65b\ =\ getPublicKey(privKey,\ false);}
+\DoxyCodeLine{const\ pubKeyPoint\ =\ ProjectivePoint.fromPrivateKey(privKey);}
+\DoxyCodeLine{const\ samePoint\ =\ ProjectivePoint.fromHex(pubKeyPoint.toHex());}
+
+\end{DoxyCode}
+
+
+Generates 33-\/byte compressed (default) or 65-\/byte public key from 32-\/byte private key.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4704}{}\doxysubsubsection{\texorpdfstring{sign}{sign}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4704}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ *\ as\ secp\ from\ '@noble/secp256k1';}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha256';}
+\DoxyCodeLine{import\ \{\ utf8ToBytes\ \}\ from\ '@noble/hashes/utils';}
+\DoxyCodeLine{const\ msg\ =\ 'noble\ cryptography';}
+\DoxyCodeLine{const\ msgHash\ =\ sha256(utf8ToBytes(msg));}
+\DoxyCodeLine{const\ priv\ =\ secp.utils.randomPrivateKey();}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ sigA\ =\ secp.sign(msgHash,\ priv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Variants}
+\DoxyCodeLine{const\ sigB\ =\ await\ secp.signAsync(msgHash,\ priv);}
+\DoxyCodeLine{const\ sigC\ =\ secp.sign(msgHash,\ priv,\ \{\ extraEntropy:\ true\ \});\ //\ hedged\ sig}
+\DoxyCodeLine{const\ sigC2\ =\ secp.sign(msgHash,\ priv,\ \{\ extraEntropy:\ Uint8Array.from([0xca,\ 0xfe])\ \});}
+\DoxyCodeLine{const\ sigD\ =\ secp.sign(msgHash,\ priv,\ \{\ lowS:\ false\ \});\ //\ malleable\ sig}
+
+\end{DoxyCode}
+
+
+Generates low-\/s deterministic-\/k RFC6979 ECDSA signature. Requries hash of message, which means you\textquotesingle{}ll need to do something like {\ttfamily \doxylink{namespacesha256}{sha256(message)}} before signing.
+
+{\ttfamily extra\+Entropy:\+ true} enables hedged signatures. They incorporate extra randomness into RFC6979 (described in section 3.\+6), to provide additional protection against fault attacks. Check out blog post \href{https://paulmillr.com/posts/deterministic-signatures/}{\texttt{Deterministic signatures are not your friends}}. Even if their RNG is broken, they will fall back to determinism.
+
+Default behavior {\ttfamily lowS:\+ true} prohibits signatures which have (sig.\+s \texorpdfstring{$>$}{>}= CURVE.\+n/\+2n) and is compatible with BTC/\+\+ETH. Setting {\ttfamily lowS:\+ false} allows to create malleable signatures, which is default openssl behavior. Non-\/malleable signatures can still be successfully verified in openssl.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4705}{}\doxysubsubsection{\texorpdfstring{verify}{verify}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4705}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ *\ as\ secp\ from\ '@noble/secp256k1';}
+\DoxyCodeLine{const\ hex\ =\ secp.etc.hexToBytes;}
+\DoxyCodeLine{const\ sig\ =\ hex(}
+\DoxyCodeLine{\ \ 'ddc633c5b48a1a6725c31201892715dda3058350f7b444e89d32c33c90d9c9e218d7eaf02c2254e88c3b33d755394b08bcc7efd13df02338510b750b64572983'}
+\DoxyCodeLine{);}
+\DoxyCodeLine{const\ msgHash\ =\ hex('736403f76264eccc1b77ba58dc8fc690e76b2b1532ba82c736a60f3862082db3');}
+\DoxyCodeLine{//\ const\ priv\ =\ 'd60937c2a1ece169888d4c48717dfcc0e1a7af915505823148cca11859210e9c';}
+\DoxyCodeLine{const\ pubKey\ =\ hex('020b6d70b68873ff8fd729adf5cf4bf45021b34236f991768249cba06b11136ec6');}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ verify}
+\DoxyCodeLine{const\ isValid\ =\ secp.verify(sig,\ msgHash,\ pubKey);}
+\DoxyCodeLine{const\ isValidLoose\ =\ secp.verify(sig,\ msgHash,\ pubKey,\ \{\ lowS:\ false\ \});}
+
+\end{DoxyCode}
+
+
+Verifies ECDSA signature. Default behavior {\ttfamily lowS:\+ true} prohibits malleable signatures which have ({\ttfamily sig.\+s \texorpdfstring{$>$}{>}= CURVE.\+n/\+2n}) and is compatible with BTC /\+ ETH. Setting {\ttfamily lowS:\+ false} allows to create signatures, which is default openssl behavior.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4706}{}\doxysubsubsection{\texorpdfstring{get\+Shared\+Secret}{get\+Shared\+Secret}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4706}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ *\ as\ secp\ from\ '@noble/secp256k1';}
+\DoxyCodeLine{const\ bobsPriv\ =\ secp.utils.randomPrivateKey();}
+\DoxyCodeLine{const\ alicesPub\ =\ secp.getPublicKey(secp.utils.randomPrivateKey());}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ ECDH\ between\ Alice\ and\ Bob}
+\DoxyCodeLine{const\ shared33b\ =\ secp.getSharedSecret(bobsPriv,\ alicesPub);}
+\DoxyCodeLine{const\ shared65b\ =\ secp.getSharedSecret(bobsPriv,\ alicesPub,\ false);}
+\DoxyCodeLine{const\ sharedPoint\ =\ secp.ProjectivePoint.fromHex(alicesPub).multiply(bobsPriv);}
+
+\end{DoxyCode}
+
+
+Computes ECDH (Elliptic Curve Diffie-\/\+Hellman) shared secret between key A and different key B.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4707}{}\doxysubsubsection{\texorpdfstring{recover\+Public\+Key}{recover\+Public\+Key}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4707}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{import\ *\ as\ secp\ from\ '@noble/secp256k1';}
+\DoxyCodeLine{}
+\DoxyCodeLine{import\ \{\ sha256\ \}\ from\ '@noble/hashes/sha256';}
+\DoxyCodeLine{import\ \{\ utf8ToBytes\ \}\ from\ '@noble/hashes/utils';}
+\DoxyCodeLine{const\ msg\ =\ 'noble\ cryptography';}
+\DoxyCodeLine{const\ msgHash\ =\ sha256(utf8ToBytes(msg));}
+\DoxyCodeLine{const\ priv\ =\ secp.utils.randomPrivateKey();}
+\DoxyCodeLine{const\ pub1\ =\ secp.getPubkicKey(priv);}
+\DoxyCodeLine{const\ sig\ =\ secp.sign(msgHash,\ priv);}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ pub2\ =\ sig.recoverPublicKey(msgHash);}
+
+\end{DoxyCode}
+
+
+Recover public key from Signature instance with {\ttfamily recovery} bit set.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4708}{}\doxysubsubsection{\texorpdfstring{utils}{utils}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4708}
+A bunch of useful {\bfseries{utilities}} are also exposed:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{type\ Bytes\ =\ Uint8Array;}
+\DoxyCodeLine{const\ etc:\ \{}
+\DoxyCodeLine{\ \ hexToBytes:\ (hex:\ string)\ =>\ Bytes;}
+\DoxyCodeLine{\ \ bytesToHex:\ (b:\ Bytes)\ =>\ string;}
+\DoxyCodeLine{\ \ concatBytes:\ (...arrs:\ Bytes[])\ =>\ Bytes;}
+\DoxyCodeLine{\ \ bytesToNumberBE:\ (b:\ Bytes)\ =>\ bigint;}
+\DoxyCodeLine{\ \ numberToBytesBE:\ (num:\ bigint)\ =>\ Bytes;}
+\DoxyCodeLine{\ \ mod:\ (a:\ bigint,\ b?:\ bigint)\ =>\ bigint;}
+\DoxyCodeLine{\ \ invert:\ (num:\ bigint,\ md?:\ bigint)\ =>\ bigint;}
+\DoxyCodeLine{\ \ hmacSha256Async:\ (key:\ Bytes,\ ...msgs:\ Bytes[])\ =>\ Promise<Bytes>;}
+\DoxyCodeLine{\ \ hmacSha256Sync:\ HmacFnSync;}
+\DoxyCodeLine{\ \ hashToPrivateKey:\ (hash:\ Hex)\ =>\ Bytes;}
+\DoxyCodeLine{\ \ randomBytes:\ (len:\ number)\ =>\ Bytes;}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{const\ utils:\ \{}
+\DoxyCodeLine{\ \ normPrivateKeyToScalar:\ (p:\ PrivKey)\ =>\ bigint;}
+\DoxyCodeLine{\ \ randomPrivateKey:\ ()\ =>\ Bytes;\ //\ Uses\ CSPRNG\ https://developer.mozilla.org/en-\/US/docs/Web/API/Crypto/getRandomValues}
+\DoxyCodeLine{\ \ isValidPrivateKey:\ (key:\ Hex)\ =>\ boolean;}
+\DoxyCodeLine{\ \ precompute(p:\ ProjectivePoint,\ windowSize?:\ number):\ ProjectivePoint;}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{class\ ProjectivePoint\ \{}
+\DoxyCodeLine{\ \ constructor(px:\ bigint,\ py:\ bigint,\ pz:\ bigint);}
+\DoxyCodeLine{\ \ static\ readonly\ BASE:\ ProjectivePoint;}
+\DoxyCodeLine{\ \ static\ readonly\ ZERO:\ ProjectivePoint;}
+\DoxyCodeLine{\ \ static\ fromAffine(point:\ AffinePoint):\ ProjectivePoint;}
+\DoxyCodeLine{\ \ static\ fromHex(hex:\ Hex):\ ProjectivePoint;}
+\DoxyCodeLine{\ \ static\ fromPrivateKey(n:\ PrivKey):\ ProjectivePoint;}
+\DoxyCodeLine{\ \ get\ x():\ bigint;}
+\DoxyCodeLine{\ \ get\ y():\ bigint;}
+\DoxyCodeLine{\ \ add(other:\ ProjectivePoint):\ ProjectivePoint;}
+\DoxyCodeLine{\ \ assertValidity():\ void;}
+\DoxyCodeLine{\ \ equals(other:\ ProjectivePoint):\ boolean;}
+\DoxyCodeLine{\ \ multiply(n:\ bigint):\ ProjectivePoint;}
+\DoxyCodeLine{\ \ negate():\ ProjectivePoint;}
+\DoxyCodeLine{\ \ subtract(other:\ ProjectivePoint):\ ProjectivePoint;}
+\DoxyCodeLine{\ \ toAffine():\ AffinePoint;}
+\DoxyCodeLine{\ \ toHex(isCompressed?:\ boolean):\ string;}
+\DoxyCodeLine{\ \ toRawBytes(isCompressed?:\ boolean):\ Bytes;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{class\ Signature\ \{}
+\DoxyCodeLine{\ \ constructor(r:\ bigint,\ s:\ bigint,\ recovery?:\ number\ |\ undefined);}
+\DoxyCodeLine{\ \ static\ fromCompact(hex:\ Hex):\ Signature;}
+\DoxyCodeLine{\ \ readonly\ r:\ bigint;}
+\DoxyCodeLine{\ \ readonly\ s:\ bigint;}
+\DoxyCodeLine{\ \ readonly\ recovery?:\ number\ |\ undefined;}
+\DoxyCodeLine{\ \ ok():\ Signature;}
+\DoxyCodeLine{\ \ hasHighS():\ boolean;}
+\DoxyCodeLine{\ \ normalizeS():\ Signature;}
+\DoxyCodeLine{\ \ recoverPublicKey(msgh:\ Hex):\ Point;}
+\DoxyCodeLine{\ \ toCompactRawBytes():\ Bytes;}
+\DoxyCodeLine{\ \ toCompactHex():\ string;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{CURVE;\ //\ curve\ prime;\ order;\ equation\ params,\ generator\ coordinates}
+
+\end{DoxyCode}
+\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4709}{}\doxysubsection{\texorpdfstring{Security}{Security}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4709}
+The module is production-\/ready.
+
+\doxylink{namespace_we}{We} cross-\/test against sister project \href{https://github.com/paulmillr/noble-curves}{\texttt{noble-\/curves}}, which was audited and provides improved security.
+
+
+\begin{DoxyItemize}
+\item The current version has not been independently audited. It is a rewrite of v1, which has been audited by cure53 in Apr 2021:\+ \href{https://cure53.de/pentest-report_noble-lib.pdf}{\texttt{PDF}} (funded by \href{https://umbra.cash}{\texttt{Umbra.\+cash}} \& community).
+\item It\textquotesingle{}s being fuzzed \href{https://github.com/paulmillr/fuzzing}{\texttt{in a separate repository}}
+\end{DoxyItemize}\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4710}{}\doxysubsubsection{\texorpdfstring{Constant-\/timeness}{Constant-\/timeness}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4710}
+\doxylink{namespace_we}{We}\textquotesingle{}re targetting algorithmic constant time. {\itshape JIT-\/compiler} and {\itshape Garbage Collector} make "{}constant time"{} extremely hard to achieve \href{https://en.wikipedia.org/wiki/Timing_attack}{\texttt{timing attack}} resistance in a scripting language. Which means {\itshape any other JS library can\textquotesingle{}t have constant-\/timeness}. Even statically typed Rust, a language without GC, \href{https://www.chosenplaintext.ca/open-source/rust-timing-shield/security}{\texttt{makes it harder to achieve constant-\/time}} for some cases. If your goal is absolute security, don\textquotesingle{}t use any JS lib — including bindings to native ones. Use low-\/level libraries \& languages.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4711}{}\doxysubsubsection{\texorpdfstring{Supply chain security}{Supply chain security}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4711}
+
+\begin{DoxyItemize}
+\item {\bfseries{Commits}} are signed with PGP keys, to prevent forgery. Make sure to verify commit signatures
+\item {\bfseries{Releases}} are transparent and built on Git\+Hub CI. Check out \href{https://github.com/paulmillr/noble-secp256k1/attestations}{\texttt{attested checksums of single-\/file builds}} and \href{https://github.com/paulmillr/noble-secp256k1/actions/workflows/release.yml}{\texttt{provenance logs}}
+\item {\bfseries{Rare releasing}} is followed to ensure less re-\/audit need for end-\/users
+\item {\bfseries{Dependencies}} are minimized and locked-\/down:\+ any dependency could get hacked and users will be downloading malware with every install.
+\begin{DoxyItemize}
+\item \doxylink{namespace_we}{We} make sure to use as few dependencies as possible
+\item Automatic dep updates are prevented by locking-\/down version ranges; diffs are checked with {\ttfamily npm-\/diff}
+\end{DoxyItemize}
+\item {\bfseries{Dev Dependencies}} are disabled for end-\/users; they are only used to develop /\+ build the source code
+\end{DoxyItemize}
+
+For this package, there are 0 dependencies; and a few dev dependencies:\+
+
+
+\begin{DoxyItemize}
+\item \href{https://github.com/paulmillr/noble-hashes}{\texttt{noble-\/hashes}} provides cryptographic hashing functionality
+\item micro-\/bmark, micro-\/should and jsbt are used for benchmarking /\+ testing /\+ build tooling and developed by the same author
+\item prettier, fast-\/check and typescript are used for code quality /\+ test generation /\+ ts compilation. It\textquotesingle{}s hard to audit their source code thoroughly and fully because of their size
+\end{DoxyItemize}\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4712}{}\doxysubsubsection{\texorpdfstring{Randomness}{Randomness}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4712}
+\doxylink{namespace_we}{We}\textquotesingle{}re deferring to built-\/in \href{https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues}{\texttt{crypto.\+get\+Random\+Values}} which is considered cryptographically secure (CSPRNG).
+
+In the past, browsers had bugs that made it weak:\+ it may happen again. Implementing a userspace CSPRNG to get resilient to the weakness is even worse:\+ there is no reliable userspace source of quality entropy.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4713}{}\doxysubsubsection{\texorpdfstring{Quantum computers}{Quantum computers}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4713}
+Cryptographically relevant quantum computer, if built, will allow to break elliptic curve cryptography (both ECDSA /\+ Ed\+DSA \& ECDH) using Shor\textquotesingle{}s algorithm.
+
+Consider switching to newer /\+ hybrid algorithms, such as SPHINCS+. They are available in \href{https://github.com/paulmillr/noble-post-quantum}{\texttt{noble-\/post-\/quantum}}.
+
+NIST prohibits classical cryptography (RSA, DSA, ECDSA, ECDH) \href{https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8547.ipd.pdf}{\texttt{after 2035}}. Australian ASD prohibits it \href{https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism/cyber-security-guidelines/guidelines-cryptography}{\texttt{after 2030}}.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4714}{}\doxysubsection{\texorpdfstring{Speed}{Speed}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4714}
+\begin{DoxyVerb}npm run bench
+\end{DoxyVerb}
+
+
+Benchmarks measured with Apple M4. \href{https://github.com/paulmillr/noble-curves}{\texttt{noble-\/curves}} enable faster performance.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{getPublicKey(utils.randomPrivateKey())\ x\ 8,770\ ops/sec\ @\ 114μs/op}
+\DoxyCodeLine{signAsync\ x\ 4,848\ ops/sec\ @\ 206μs/op}
+\DoxyCodeLine{sign\ x\ 7,261\ ops/sec\ @\ 137μs/op}
+\DoxyCodeLine{verify\ x\ 817\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{getSharedSecret\ x\ 688\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{recoverPublicKey\ x\ 839\ ops/sec\ @\ 1ms/op}
+\DoxyCodeLine{Point.fromHex\ (decompression)\ x\ 12,937\ ops/sec\ @\ 77μs/op}
+
+\end{DoxyCode}
+\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4715}{}\doxysubsection{\texorpdfstring{Upgrading}{Upgrading}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4715}
+\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4716}{}\doxysubsubsection{\texorpdfstring{v1 to v2}{v1 to v2}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4716}
+noble-\/secp256k1 v2 improves security and reduces attack surface. The goal of v2 is to provide minimum possible JS library which is safe and fast.
+
+
+\begin{DoxyItemize}
+\item Disable some features to ensure 4x smaller than v1, 4KB bundle size:\+
+\begin{DoxyItemize}
+\item The features are now a part of \href{https://github.com/paulmillr/noble-curves}{\texttt{noble-\/curves}}, {\bfseries{switch to curves if you need them}}. Curves is drop-\/in replacement.
+\item DER encoding:\+ to\+DERHex, to\+DERRaw\+Bytes, signing /\+ verification of DER sigs
+\item Schnorr signatures
+\item Support for environments which don\textquotesingle{}t support bigint literals
+\item Common.\+js support
+\item Support for node.\+js 18 and older without shimshim
+\end{DoxyItemize}
+\end{DoxyItemize}
+\begin{DoxyItemize}
+\item Using {\ttfamily utils.\+precompute()} for non-\/base point
+\end{DoxyItemize}
+
+{\ttfamily get\+Public\+Key}
+\begin{DoxyItemize}
+\item now produce 33-\/byte compressed signatures by default
+\item to use old behavior, which produced 65-\/byte uncompressed keys, set argument {\ttfamily is\+Compressed} to {\ttfamily false}:\+ {\ttfamily get\+Public\+Key(priv, false)}
+\end{DoxyItemize}
+
+{\ttfamily sign}
+\begin{DoxyItemize}
+\item is now sync; use {\ttfamily sign\+Async} for async version
+\item now returns {\ttfamily Signature} instance with {\ttfamily \{ r, s, recovery \}} properties
+\item {\ttfamily canonical} option was renamed to {\ttfamily lowS}
+\item {\ttfamily recovered} option has been removed because recovery bit is always returned now
+\item {\ttfamily der} option has been removed. There are 2 options:\+
+\begin{DoxyEnumerate}
+\item Use compact encoding:\+ {\ttfamily from\+Compact}, {\ttfamily to\+Compact\+Raw\+Bytes}, {\ttfamily to\+Compact\+Hex}. Compact encoding is simply a concatenation of 32-\/byte r and 32-\/byte s.
+\item If you must use DER encoding, switch to noble-\/curves (see above).
+\end{DoxyEnumerate}
+\end{DoxyItemize}
+
+{\ttfamily verify}
+\begin{DoxyItemize}
+\item {\ttfamily strict} option was renamed to {\ttfamily lowS}
+\end{DoxyItemize}
+
+{\ttfamily get\+Shared\+Secret}
+\begin{DoxyItemize}
+\item now produce 33-\/byte compressed signatures by default
+\item to use old behavior, which produced 65-\/byte uncompressed keys, set argument {\ttfamily is\+Compressed} to {\ttfamily false}:\+ {\ttfamily get\+Shared\+Secret(a, b, false)}
+\end{DoxyItemize}
+
+{\ttfamily recover\+Public\+Key(msg, sig, rec)} was changed to {\ttfamily sig.\+recover\+Public\+Key(msg)}
+\begin{DoxyItemize}
+\item {\ttfamily number} type for private keys have been removed:\+ use {\ttfamily bigint} instead
+\item {\ttfamily Point} (2d xy) has been changed to {\ttfamily Projective\+Point} (3d xyz)
+\item {\ttfamily utils} were split into {\ttfamily utils} (same api as in noble-\/curves) and {\ttfamily etc} ({\ttfamily hmac\+Sha256\+Sync} and others)
+\end{DoxyItemize}\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4717}{}\doxysubsection{\texorpdfstring{Contributing \& testing}{Contributing \& testing}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4717}
+
+\begin{DoxyItemize}
+\item {\ttfamily npm install \&\& npm run \doxylink{namespacebuild}{build} \&\& npm \doxylink{namespacetest}{test}} will build the code and run tests.
+\item {\ttfamily npm run bench} will run benchmarks, which may need their deps first ({\ttfamily npm run bench:\+install})
+\item {\ttfamily npm run loc} will count total output size, important to be less than 4KB
+\end{DoxyItemize}
+
+Check out \href{https://github.com/paulmillr/guidelines}{\texttt{github.\+com/\+paulmillr/\+guidelines}} for general coding practices and rules.
+
+See \href{https://paulmillr.com/noble/}{\texttt{paulmillr.\+com/\+noble}} for useful resources, articles, documentation and demos related to the library.\hypertarget{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4718}{}\doxysubsection{\texorpdfstring{License}{License}}\label{dir_49ccee3a0d478a9ba3a302fbb2053eab_autotoc_md4718}
+MIT (c) Paul Miller \href{https://paulmillr.com}{\texttt{(https:\+/\+/\+paulmillr.\+com)}}, see LICENSE file. 

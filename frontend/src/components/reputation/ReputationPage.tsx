@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import {
   Heart,
   Utensils,
@@ -11,10 +13,10 @@ import {
   Activity,
   Sparkles,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
@@ -128,12 +130,15 @@ interface LeaderboardEntry {
   badge: "none" | "bronze" | "silver" | "gold" | "satoshi";
 }
 
-interface LeaderboardResp {
-  entries: LeaderboardEntry[];
-}
-
 type SortKey = "total" | CupKey;
 type Tab = "mine" | "earn" | "leaderboard" | "decay";
+
+const REP_TABS: { key: Tab; label: string }[] = [
+  { key: "mine",        label: "My Reputation" },
+  { key: "earn",        label: "How to Earn" },
+  { key: "leaderboard", label: "Leaderboard" },
+  { key: "decay",       label: "Decay & Penalties" },
+];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -144,12 +149,6 @@ function fmtCup(v: number): string {
 
 function pctCup(v: number): number {
   return Math.min(100, Math.max(0, v / 100));
-}
-
-function truncAddr(addr: string): string {
-  if (!addr) return "";
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
 // Normalize whatever shape the node returns into our internal ReputationData.
@@ -388,7 +387,7 @@ function TabMine({ data, animated }: { data: ReputationData | null; animated: bo
                 {events.map((ev, i) => {
                   const cup = CUPS.find((c) => c.label === ev.domain);
                   return (
-                    <tr key={i} className="border-b border-mempool-border/30 hover:bg-mempool-bg/40">
+                    <tr key={`${ev.block}:${ev.kind}:${i}`} className="border-b border-mempool-border/30 hover:bg-mempool-bg/40">
                       <td className="px-3 py-1.5 font-mono text-xs text-mempool-text-dim">#{ev.block}</td>
                       <td className="px-3 py-1.5 text-xs text-mempool-text">
                         {HISTORY_KIND_LABEL[ev.kind] || ev.kind}
@@ -475,8 +474,8 @@ function TabEarn() {
             </div>
             <table className="w-full text-sm">
               <tbody>
-                {rules.map((r, i) => (
-                  <tr key={i} className="border-b border-mempool-border/30 last:border-b-0">
+                {rules.map((r) => (
+                  <tr key={r.label} className="border-b border-mempool-border/30 last:border-b-0">
                     <td className="py-1.5 text-mempool-text">{r.label}</td>
                     <td className="py-1.5 text-right font-mono text-green-400">{r.rate}</td>
                   </tr>
@@ -538,7 +537,36 @@ function TabLeaderboard({
             {o.label}
           </button>
         ))}
-        <span className="ml-auto text-xs text-mempool-text-dim">Top 100</span>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-mempool-text-dim">Top 100</span>
+          {entries.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["rank", "address", "love", "food", "rent", "vacation", "total", "badge"].join(","),
+                  ...entries.map((e) => [
+                    e.rank,
+                    `"${e.address}"`,
+                    (e.love / 100).toFixed(2),
+                    (e.food / 100).toFixed(2),
+                    (e.rent / 100).toFixed(2),
+                    (e.vacation / 100).toFixed(2),
+                    e.total,
+                    e.badge,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-reputation-leaderboard.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="text-[10px] px-2 py-1 bg-mempool-bg-elev border border-mempool-border rounded text-mempool-text-dim hover:text-mempool-text transition-colors font-mono"
+            >
+              ⬇ CSV
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev overflow-hidden">
@@ -576,11 +604,11 @@ function TabLeaderboard({
                       </td>
                       <td className="px-3 py-2 font-mono text-xs">
                         <button
-                          onClick={() => onCopy(e.address)}
+                          onClick={() => { window.location.hash = `#/address/${e.address}`; }}
                           className="text-mempool-blue hover:underline"
-                          title="Click to copy"
+                          title={e.address}
                         >
-                          {truncAddr(e.address)}
+                          <AddressLabel address={e.address} showEmoji truncate={{ left: 8, right: 6 }} />
                         </button>
                       </td>
                       {CUPS.map((c) => (
@@ -662,7 +690,7 @@ function TabDecay({ violations }: { violations: HistoryEvent[] }) {
             </thead>
             <tbody>
               {violations.map((v, i) => (
-                <tr key={i} className="border-b border-mempool-border/30">
+                <tr key={`${v.block}:${v.domain}:${i}`} className="border-b border-mempool-border/30">
                   <td className="px-3 py-1.5 font-mono text-xs text-mempool-text-dim">#{v.block}</td>
                   <td className="px-3 py-1.5 text-xs text-mempool-text">{v.domain}</td>
                   <td className="px-3 py-1.5 text-right font-mono text-xs text-red-400">
@@ -713,7 +741,7 @@ export function ReputationPage() {
     if (!addr) return;
     setLoadingMine(true);
     try {
-      const raw = await rpc.request_raw("getreputation", [addr]);
+      const raw = await rpc.getReputation(addr);
       const norm = normalizeRep(raw);
       setData(norm);
       setError(null);
@@ -732,7 +760,7 @@ export function ReputationPage() {
     let cancelled = false;
     const run = async () => {
       try {
-        const raw = await rpc.request_raw("getreputationtop", [{ sort_by: sortBy, limit: 100 }]);
+        const raw = await rpc.getReputationTop(sortBy, 100);
         if (!cancelled) {
           setLeaderboard(normalizeLeaderboard(raw));
           setMethodMissing(false);
@@ -746,9 +774,11 @@ export function ReputationPage() {
         if (!cancelled) setLoadingTop(false);
       }
     };
-    run();
-    const id = setInterval(run, 8000);
-    return () => { cancelled = true; clearInterval(id); };
+    void run();
+    // Reputation updates per-block (mining, staking rewards) — refresh on new_block.
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void run(); });
+    const id = setInterval(() => { void run(); }, 60_000);
+    return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [sortBy]);
 
   // Auto-load mine when wallet/address changes
@@ -761,12 +791,7 @@ export function ReputationPage() {
     return (data?.history || []).filter((h) => h.kind === "violation" || h.delta < 0).slice(0, 30);
   }, [data]);
 
-  const tabs: Array<{ key: Tab; label: string }> = [
-    { key: "mine",        label: "My Reputation" },
-    { key: "earn",        label: "How to Earn" },
-    { key: "leaderboard", label: "Leaderboard" },
-    { key: "decay",       label: "Decay & Penalties" },
-  ];
+  const tabs = REP_TABS;
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
@@ -844,3 +869,131 @@ export function ReputationPage() {
 }
 
 export default ReputationPage;
+
+// ── Social Follow Panel ────────────────────────────────────────────────────
+// Covers: follow, unfollow, getfollowers, getfollowing RPCs
+
+export function SocialFollowPanel({ address }: { address: string }) {
+  const [followers, setFollowers] = useState<string[]>([]);
+  const [following, setFollowing] = useState<string[]>([]);
+  const [followTarget, setFollowTarget] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [actionErr, setActionErr] = useState<string | null>(null);
+  const [actionMsg, setActionMsg] = useState<string | null>(null);
+
+  const loadSocial = async () => {
+    if (!address) return;
+    setLoading(true);
+    try {
+      const [frs, fing] = await Promise.all([
+        rpc.getFollowers(address),
+        rpc.getFollowing(address),
+      ]);
+      setFollowers(frs);
+      setFollowing(fing);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void loadSocial(); }, [address]); // eslint-disable-line
+
+  const doFollow = async () => {
+    if (!followTarget.trim()) return;
+    setActionErr(null);
+    setActionMsg(null);
+    try {
+      await rpc.follow(address, followTarget.trim());
+      setActionMsg(`Following ${followTarget.trim().slice(0, 14)}…`);
+      setFollowTarget("");
+      await loadSocial();
+    } catch (e: any) {
+      setActionErr(e?.message ?? String(e));
+    }
+  };
+
+  const doUnfollow = async (target: string) => {
+    setActionErr(null);
+    setActionMsg(null);
+    try {
+      await rpc.unfollow(address, target);
+      setActionMsg(`Unfollowed ${target.slice(0, 14)}…`);
+      await loadSocial();
+    } catch (e: any) {
+      setActionErr(e?.message ?? String(e));
+    }
+  };
+
+  return (
+    <div className="bg-mempool-bg-elev rounded-xl border border-mempool-border p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+        Social Graph
+      </h3>
+
+      <div className="flex gap-2">
+        <input
+          value={followTarget}
+          onChange={(e) => setFollowTarget(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && doFollow()}
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+          placeholder="ob1q… address to follow"
+        />
+        <button
+          onClick={doFollow}
+          disabled={!followTarget.trim()}
+          className="px-3 py-1.5 text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/30 rounded disabled:opacity-50 whitespace-nowrap"
+        >
+          Follow
+        </button>
+      </div>
+      {actionErr && <p className="text-[11px] text-red-400">{actionErr}</p>}
+      {actionMsg && <p className="text-[11px] text-green-400">{actionMsg}</p>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div>
+          <h4 className="text-[10px] uppercase text-mempool-text-dim mb-1.5">
+            Following ({following.length})
+          </h4>
+          {loading ? (
+            <p className="text-mempool-text-dim animate-pulse text-[10px]">Loading…</p>
+          ) : following.length === 0 ? (
+            <p className="text-mempool-text-dim text-[10px]">Not following anyone.</p>
+          ) : (
+            <div className="space-y-1">
+              {following.map((f) => (
+                <div key={f} className="flex items-center justify-between gap-2 font-mono text-[10px]">
+                  <span className="text-mempool-text truncate">{f.slice(0, 16)}…</span>
+                  <button
+                    onClick={() => doUnfollow(f)}
+                    className="text-red-400 hover:text-red-300 text-[9px] shrink-0"
+                  >
+                    Unfollow
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <h4 className="text-[10px] uppercase text-mempool-text-dim mb-1.5">
+            Followers ({followers.length})
+          </h4>
+          {loading ? (
+            <p className="text-mempool-text-dim animate-pulse text-[10px]">Loading…</p>
+          ) : followers.length === 0 ? (
+            <p className="text-mempool-text-dim text-[10px]">No followers yet.</p>
+          ) : (
+            <div className="space-y-1">
+              {followers.map((f) => (
+                <div key={f} className="font-mono text-[10px] text-mempool-text truncate">
+                  {f.slice(0, 20)}…
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

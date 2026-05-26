@@ -1,0 +1,73 @@
+\doxysection{build-\/zig-\/updater.py}
+\hypertarget{build-zig-updater_8py_source}{}\label{build-zig-updater_8py_source}\index{tools/CODEGEN/build-\/zig-\/updater.py@{tools/CODEGEN/build-\/zig-\/updater.py}}
+\doxymbox{\hyperlink{build-zig-updater_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00001}\doxymbox{\hyperlink{namespacebuild-zig-updater}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00002}\doxymbox{\hyperlink{namespacebuild}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00003}00003\ \textcolor{stringliteral}{OmniBus\ Blockchain\ Core\ —\ build.zig\ Updater}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00005}00005\ \textcolor{stringliteral}{Automatically\ adds\ a\ new\ core/*.zig\ module\ to\ build.zig\ test\ steps.}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00006}00006\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00008}00008\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00009}00009\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00010}00010\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00011}00011\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00012}00012\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00014}\doxymbox{\hyperlink{namespacebuild-zig-updater_a6b446e623dac92b35b8e305528831269}{00014}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00015}\doxymbox{\hyperlink{namespacebuild-zig-updater_a36b394212bb72396ac1fe680ccf8b435}{00015}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00016}\doxymbox{\hyperlink{namespacebuild-zig-updater_a81e907c806741182a65cef0dbdd358f8}{00016}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00017}\doxymbox{\hyperlink{namespacebuild-zig-updater_ad8f6f992de763fda13e5757e259f5162}{00017}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00020}\doxymbox{\hyperlink{namespacebuild-zig-updater_acd59877dca2a9957888013a6f06aab6d}{00020}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuild-zig-updater_acd59877dca2a9957888013a6f06aab6d}{cprint}}(color:\ str,\ msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00021}00021\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{color\}\{msg\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00024}\doxymbox{\hyperlink{namespacebuild-zig-updater_a9628ed5c2bdef3049fb467c2168335c9}{00024}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuild-zig-updater_a9628ed5c2bdef3049fb467c2168335c9}{add\_module}}(build\_file:\ str,\ module\_file:\ str,\ step\_name:\ str,\ test\_step:\ str)\ -\/>\ bool:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00025}00025\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ os.path.isfile(build\_file):}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00026}00026\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuild-zig-updater_acd59877dca2a9957888013a6f06aab6d}{cprint}}(RED,\ f\textcolor{stringliteral}{"{}build.zig\ not\ found:\ \{build\_file\}"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00027}00027\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00029}00029\ \ \ \ \ \textcolor{keyword}{with}\ open(build\_file,\ \textcolor{stringliteral}{"{}r"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ content\ =\ f.read()}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00032}00032\ \ \ \ \ zig\_path\ =\ f\textcolor{stringliteral}{"{}core/\{module\_file\}"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00033}00033\ \ \ \ \ add\_line\ =\ f\textcolor{stringliteral}{"{}\ \ \ \ test\_\{step\_name\}\_step.dependOn(\&addTest(b,\ \(\backslash\)"{}\{step\_name\}\(\backslash\)"{},\ \ \(\backslash\)"{}\{zig\_path\}\(\backslash\)"{},\ target,\ optimize).step);"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00035}00035\ \ \ \ \ \textcolor{comment}{\#\ Find\ the\ target\ step\ block}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00036}00036\ \ \ \ \ pattern\ =\ re.compile(rf\textcolor{stringliteral}{"{}(const\ test\_\{test\_step\}\_step\ =\ b\(\backslash\).step\(\backslash\)(\(\backslash\)"{}\{test\_step\}\(\backslash\)"{}.*?\(\backslash\)n)(.*?)(?=const\ test\_|\$)"{}},\ re.DOTALL)}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00037}00037\ \ \ \ \ m\ =\ pattern.search(content)}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00038}00038\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ m:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuild-zig-updater_acd59877dca2a9957888013a6f06aab6d}{cprint}}(YELLOW,\ f\textcolor{stringliteral}{"{}Step\ '\{test\_step\}'\ not\ found,\ appending\ near\ end\ of\ file"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ content\ =\ content.rstrip()\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ add\_line\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00041}00041\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ insert\_pos\ =\ m.end(2)}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ content\ =\ content[:insert\_pos]\ +\ add\_line\ +\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ content[insert\_pos:]}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00045}00045\ \ \ \ \ \textcolor{keyword}{with}\ open(build\_file,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ f:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ f.write(content)}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00047}00047\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00050}\doxymbox{\hyperlink{namespacebuild-zig-updater_a7431cb90017e54fe695b23d4190db046}{00050}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebuild-zig-updater_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00051}00051\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Add\ a\ new\ core\ module\ to\ build.zig"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00052}00052\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}module"{}},\ help=\textcolor{stringliteral}{"{}Module\ file\ name\ (e.g.\ new\_module.zig)"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00053}00053\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/step-\/name"{}},\ help=\textcolor{stringliteral}{"{}Short\ test\ name\ (e.g.\ new-\/module)"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00054}00054\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/test-\/step"{}},\ default=\textcolor{stringliteral}{"{}test-\/crypto"{}},\ help=\textcolor{stringliteral}{"{}Which\ build\ step\ to\ append\ to"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00055}00055\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/build-\/file"{}},\ default=\textcolor{stringliteral}{"{}build.zig"{}},\ help=\textcolor{stringliteral}{"{}Path\ to\ build.zig"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00056}00056\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00058}00058\ \ \ \ \ step\_name\ =\ args.step\_name\ \textcolor{keywordflow}{or}\ args.module.replace(\textcolor{stringliteral}{"{}.zig"{}},\ \textcolor{stringliteral}{"{}"{}}).replace(\textcolor{stringliteral}{"{}\_"{}},\ \textcolor{stringliteral}{"{}-\/"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00059}00059\ \ \ \ \ \doxymbox{\hyperlink{namespacebuild-zig-updater_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ \textcolor{stringliteral}{"{}===\ OmniBus\ build.zig\ Updater\ ==="{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00060}00060\ \ \ \ \ ok\ =\ \doxymbox{\hyperlink{namespacebuild-zig-updater_a9628ed5c2bdef3049fb467c2168335c9}{add\_module}}(args.build\_file,\ args.module,\ step\_name,\ args.test\_step)}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{if}\ ok:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebuild-zig-updater_acd59877dca2a9957888013a6f06aab6d}{cprint}}(GREEN,\ f\textcolor{stringliteral}{"{}Added\ '\{step\_name\}'\ -\/>\ \{args.build\_file\}\ under\ step\ '\{args.test\_step\}'"{}})}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00063}00063\ \ \ \ \ \textcolor{keywordflow}{return}\ 0\ \textcolor{keywordflow}{if}\ ok\ \textcolor{keywordflow}{else}\ 1}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00066}00066\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{build-zig-updater_8py_source_l00067}00067\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacebuild-zig-updater_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

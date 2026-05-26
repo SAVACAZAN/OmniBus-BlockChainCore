@@ -1,0 +1,300 @@
+[ORACLE-BRIDGE] injected 16 prices from :28100
+thread 1023886 panic: Deadlock detected
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread/Mutex.zig:72:13: 0x12e53da in lock (std.zig)
+            @panic("Deadlock detected");
+            ^
+/root/omnibus-blockchain/core/blockchain.zig:2707:24: 0x1e89df3 in getBlockCount (main.zig)
+        self.mutex.lock();
+                       ^
+/root/omnibus-blockchain/core/rpc_server.zig:2869:41: 0x1c5cd5d in handleGetBalance (main.zig)
+    const height  = ctx.bc.getBlockCount();
+                                        ^
+/root/omnibus-blockchain/core/rpc_server.zig:3774:75: 0x1db5577 in dispatch (main.zig)
+    if (std.mem.eql(u8, method, "getbalance"))     return handleGetBalance(body, ctx, id);
+                                                                          ^
+/root/omnibus-blockchain/core/rpc_server.zig:691:30: 0x1dc3370 in handleConnCounted (main.zig)
+    const response = dispatch(body, ctx.server_ctx) catch {
+                             ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread.zig:509:13: 0x1b20ae0 in callFn__anon_276455 (std.zig)
+            @call(.auto, f, args);
+            ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread.zig:781:30: 0x1a69f59 in entryFn (std.zig)
+                return callFn(f, args_ptr.*);
+                             ^
+???:?:?: 0x14aba206aac2 in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x14aba206aac2` was not available, trace may be incomplete
+
+[HEARTBEAT] PING sent to 1 peers (my height=0)
+--
+
+thread 1024334 panic: Deadlock detected
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread/Mutex.zig:72:13: 0x12e53da in lock (std.zig)
+            @panic("Deadlock detected");
+            ^
+/root/omnibus-blockchain/core/blockchain.zig:2707:24: 0x1e89df3 in getBlockCount (main.zig)
+        self.mutex.lock();
+                       ^
+/root/omnibus-blockchain/core/rpc_server.zig:6372:35: 0x1c6bb9d in handleNetInfo (main.zig)
+    const h = ctx.bc.getBlockCount();
+                                  ^
+/root/omnibus-blockchain/core/rpc_server.zig:3789:74: 0x1db5e28 in dispatch (main.zig)
+    if (std.mem.eql(u8, method, "getnetworkinfo"))   return handleNetInfo(ctx, id);
+                                                                         ^
+/root/omnibus-blockchain/core/rpc_server.zig:691:30: 0x1dc3370 in handleConnCounted (main.zig)
+    const response = dispatch(body, ctx.server_ctx) catch {
+                             ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread.zig:509:13: 0x1b20ae0 in callFn__anon_276455 (std.zig)
+            @call(.auto, f, args);
+            ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread.zig:781:30: 0x1a69f59 in entryFn (std.zig)
+                return callFn(f, args_ptr.*);
+                             ^
+???:?:?: 0x14a56364bac2 in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x14a56364bac2` was not available, trace may be incomplete
+
+[CLOCK] TSC calibrated: 2005536400 Hz (2.006 GHz)
+--
+
+thread 1029605 panic: incorrect alignment
+/opt/zig-x86_64-linux-0.15.2/lib/std/heap/debug_allocator.zig:294:40: 0x15df544 in usedBits (std.zig)
+                const bits: [*]usize = @ptrCast(@alignCast(ptr + @sizeOf(BucketHeader)));
+                                       ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/heap/debug_allocator.zig:429:49: 0x15e309f in detectLeaksInBucket (std.zig)
+                const used_int = bucket.usedBits(used_bits_byte).*;
+                                                ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/heap/debug_allocator.zig:457:48: 0x14aa698 in detectLeaks (std.zig)
+                    leaks = detectLeaksInBucket(bucket, size_class_index, used_bits_count) or leaks;
+                                               ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/heap/debug_allocator.zig:501:62: 0x1404c2d in deinit (std.zig)
+            const leaks = if (config.safety) self.detectLeaks() else false;
+                                                             ^
+/root/omnibus-blockchain/core/main.zig:1200:25: 0x13fadb1 in main (main.zig)
+    defer _ = gpa.deinit();
+                        ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/start.zig:627:37: 0x1403581 in main (std.zig)
+            const result = root.main() catch |err| {
+                                    ^
+???:?:?: 0x155527f38d8f in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x155527f38d8f` was not available, trace may be incomplete
+
+[CLOCK] TSC calibrated: 2012053200 Hz (2.012 GHz)
+[PQ] liboqs initialized — ML-DSA-87 + Falcon-512 + SLH-DSA + ML-KEM-768 ready
+[ORACLE-POLICY] warn=2.0% reject=5.0% fillgap=10.0% enabled=true
+
+--
+[WS] Client conectat
+thread 1091369 panic: Deadlock detected
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread/Mutex.zig:72:13: 0x12e53da in lock (std.zig)
+            @panic("Deadlock detected");
+            ^
+/root/omnibus-blockchain/core/blockchain.zig:2702:24: 0x1e88c93 in getBlockCount (main.zig)
+        self.mutex.lock();
+                       ^
+/root/omnibus-blockchain/core/rpc_server.zig:6712:44: 0x1c71701 in handleMinerSt (main.zig)
+            id, count, ctx.bc.getBlockCount() -| 1,
+                                           ^
+/root/omnibus-blockchain/core/rpc_server.zig:3794:74: 0x1db4ed7 in dispatch (main.zig)
+    if (std.mem.eql(u8, method, "getminerstats"))    return handleMinerSt(ctx, id);
+                                                                         ^
+/root/omnibus-blockchain/core/rpc_server.zig:691:30: 0x1dc2210 in handleConnCounted (main.zig)
+    const response = dispatch(body, ctx.server_ctx) catch {
+                             ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread.zig:509:13: 0x1b202d0 in callFn__anon_276456 (std.zig)
+            @call(.auto, f, args);
+            ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread.zig:781:30: 0x1a69749 in entryFn (std.zig)
+                return callFn(f, args_ptr.*);
+                             ^
+???:?:?: 0x148092dc5ac2 in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x148092dc5ac2` was not available, trace may be incomplete
+
+[ORACLE-BRIDGE] injected 16 prices from :28100
+--
+
+thread 1100742 panic: incorrect alignment
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:784:44: 0x16c139a in header (std.zig)
+            return @ptrCast(@as([*]Header, @ptrCast(@alignCast(self.metadata.?))) - 1);
+                                           ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:798:31: 0x160d16d in capacity (std.zig)
+            return self.header().capacity;
+                              ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:977:39: 0x16ca052 in getIndex__anon_253206 (std.zig)
+            const mask = self.capacity() - 1;
+                                      ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:1088:30: 0x16c8c49 in getAdapted__anon_253171 (std.zig)
+            if (self.getIndex(key, ctx)) |idx| {
+                             ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:1085:35: 0x1618169 in getContext (std.zig)
+            return self.getAdapted(key, ctx);
+                                  ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:368:45: 0x14cb1eb in get (std.zig)
+            return self.unmanaged.getContext(key, self.ctx);
+                                            ^
+/root/omnibus-blockchain/core/blockchain.zig:670:47: 0x1e865f2 in getAddressHistory (main.zig)
+        const list = self.address_tx_index.get(address) orelse return null;
+                                              ^
+/root/omnibus-blockchain/core/rpc_server.zig:5625:37: 0x1c80bfc in handleListTx (main.zig)
+            error.InvalidYears      => "Invalid years tier (allowed: 1, 2, 3, 4, 5, 10, 25, 50, 100)",
+                                    ^
+/root/omnibus-blockchain/core/rpc_server.zig:3416:74: 0x1da6228 in dispatch (main.zig)
+--
+[REWARD] Miner ob1qw6zhsqg29aht +8333333 SAT (0.01 OMNI) + 0 fees (0 burned) @ block 7010
+thread 1103035 panic: incorrect alignment
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:784:44: 0x16c1fda in header (std.zig)
+            return @ptrCast(@as([*]Header, @ptrCast(@alignCast(self.metadata.?))) - 1);
+                                           ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:798:31: 0x160e1dd in capacity (std.zig)
+            return self.header().capacity;
+                              ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:977:39: 0x16cac92 in getIndex__anon_253267 (std.zig)
+            const mask = self.capacity() - 1;
+                                      ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:1088:30: 0x16c9889 in getAdapted__anon_253232 (std.zig)
+            if (self.getIndex(key, ctx)) |idx| {
+                             ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:1085:35: 0x16191d9 in getContext (std.zig)
+            return self.getAdapted(key, ctx);
+                                  ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/hash_map.zig:368:45: 0x14cb6db in get (std.zig)
+            return self.unmanaged.getContext(key, self.ctx);
+                                            ^
+/root/omnibus-blockchain/core/utxo.zig:154:35: 0x141b88f in getUTXOsForAddress (main.zig)
+        if (self.address_index.get(address)) |list| {
+                                  ^
+/root/omnibus-blockchain/core/utxo.zig:162:50: 0x1573e06 in getBalance (main.zig)
+        const outpoints = self.getUTXOsForAddress(address);
+                                                 ^
+/root/omnibus-blockchain/core/blockchain.zig:541:40: 0x147c329 in getAddressBalance (main.zig)
+--
+[REWARD] Miner ob1qw6zhsqg29aht +8333333 SAT (0.01 OMNI) + 0 fees (0 burned) @ block 8640
+thread 1116616 panic: Deadlock detected
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread/Mutex.zig:72:13: 0x12e53da in lock (std.zig)
+            @panic("Deadlock detected");
+            ^
+/root/omnibus-blockchain/core/reputation_manager.zig:112:24: 0x148309b in creditVacationDay (main.zig)
+        self.mutex.lock();
+                       ^
+/root/omnibus-blockchain/core/main.zig:2847:50: 0x13f4b51 in main (main.zig)
+                        rep_mgr.creditVacationDay(
+                                                 ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/start.zig:627:37: 0x14039e1 in main (std.zig)
+            const result = root.main() catch |err| {
+                                    ^
+???:?:?: 0x15499f1f0d8f in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x15499f1f0d8f` was not available, trace may be incomplete
+
+[DB] Background save failed: error.FileNotFound
+[ORACLE-BRIDGE] injected 27 prices from :28100
+[CLOCK] TSC calibrated: 2001439400 Hz (2.001 GHz)
+[PQ] liboqs initialized — ML-DSA-87 + Falcon-512 + SLH-DSA + ML-KEM-768 ready
+[ORACLE-POLICY] warn=2.0% reject=5.0% fillgap=10.0% enabled=true
+
+╔══════════════════════════════════════════════════════╗
+║              OmniBus Network Config                  ║
+╚══════════════════════════════════════════════════════╝
+  Network:     omnibus-mainnet
+--
+[WS] Client deconectat
+thread 1142937 panic: reached unreachable code
+/opt/zig-x86_64-linux-0.15.2/lib/std/posix.zig:294:18: 0x12b004b in close (std.zig)
+        .BADF => unreachable, // Always a race condition.
+                 ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/net.zig:1915:32: 0x154f96f in close (std.zig)
+            else => posix.close(s.handle),
+                               ^
+/root/omnibus-blockchain/core/ws_server.zig:279:28: 0x1e47ca3 in removeClient (main.zig)
+        client.stream.close();
+                           ^
+/root/omnibus-blockchain/core/ws_server.zig:266:21: 0x1c5baf8 in handleClient__anon_288995 (main.zig)
+        removeClient(srv, client);
+                    ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread.zig:509:13: 0x1b1e020 in callFn__anon_275670 (std.zig)
+            @call(.auto, f, args);
+            ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread.zig:781:30: 0x1a64379 in entryFn (std.zig)
+                return callFn(f, args_ptr.*);
+                             ^
+???:?:?: 0x14f6b6e32ac2 in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x14f6b6e32ac2` was not available, trace may be incomplete
+
+error(gpa): memory address 0x14f6b4f60060 leaked: 
+/opt/zig-x86_64-linux-0.15.2/lib/std/mem/Allocator.zig[CLOCK] TSC calibrated: 2001782600 Hz (2.002 GHz)
+[PQ] liboqs initialized — ML-DSA-87 + Falcon-512 + SLH-DSA + ML-KEM-768 ready
+[ORACLE-POLICY] warn=2.0% reject=5.0% fillgap=10.0% enabled=true
+--
+[REWARD] Miner ob1qw6zhsqg29aht +8333333 SAT (0.01 OMNI) + 0 fees (0 burned) @ block 17280
+thread 1151737 panic: Deadlock detected
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread/Mutex.zig:72:13: 0x12e53da in lock (std.zig)
+            @panic("Deadlock detected");
+            ^
+/root/omnibus-blockchain/core/reputation_manager.zig:112:24: 0x148309b in creditVacationDay (main.zig)
+        self.mutex.lock();
+                       ^
+/root/omnibus-blockchain/core/main.zig:2847:50: 0x13f4b51 in main (main.zig)
+                        rep_mgr.creditVacationDay(
+                                                 ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/start.zig:627:37: 0x14039e1 in main (std.zig)
+            const result = root.main() catch |err| {
+                                    ^
+???:?:?: 0x1553e4f88d8f in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x1553e4f88d8f` was not available, trace may be incomplete
+
+[ORACLE-BRIDGE] injected 27 prices from :28100
+[CLOCK] TSC calibrated: 2001426800 Hz (2.001 GHz)
+[PQ] liboqs initialized — ML-DSA-87 + Falcon-512 + SLH-DSA + ML-KEM-768 ready
+[ORACLE-POLICY] warn=2.0% reject=5.0% fillgap=10.0% enabled=true
+
+╔══════════════════════════════════════════════════════╗
+║              OmniBus Network Config                  ║
+╚══════════════════════════════════════════════════════╝
+  Network:     omnibus-mainnet
+  Chain ID:    1
+--
+[REWARD] Miner ob1qw6zhsqg29aht +8333333 SAT (0.01 OMNI) + 0 fees (0 burned) @ block 17280
+thread 1185467 panic: Deadlock detected
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread/Mutex.zig:72:13: 0x12e53da in lock (std.zig)
+            @panic("Deadlock detected");
+            ^
+/root/omnibus-blockchain/core/reputation_manager.zig:112:24: 0x148309b in creditVacationDay (main.zig)
+        self.mutex.lock();
+                       ^
+/root/omnibus-blockchain/core/main.zig:2847:50: 0x13f4b51 in main (main.zig)
+                        rep_mgr.creditVacationDay(
+                                                 ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/start.zig:627:37: 0x14039e1 in main (std.zig)
+            const result = root.main() catch |err| {
+                                    ^
+???:?:?: 0x14705954cd8f in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x14705954cd8f` was not available, trace may be incomplete
+
+[ORACLE-BRIDGE] injected 27 prices from :28100
+[CLOCK] TSC calibrated: 2001534600 Hz (2.002 GHz)
+[PQ] liboqs initialized — ML-DSA-87 + Falcon-512 + SLH-DSA + ML-KEM-768 ready
+[ORACLE-POLICY] warn=2.0% reject=5.0% fillgap=10.0% enabled=true
+
+╔══════════════════════════════════════════════════════╗
+║              OmniBus Network Config                  ║
+╚══════════════════════════════════════════════════════╝
+  Network:     omnibus-mainnet
+  Chain ID:    1
+--
+[REWARD] Miner ob1qw6zhsqg29aht +8333333 SAT (0.01 OMNI) + 0 fees (0 burned) @ block 17280
+thread 1185629 panic: Deadlock detected
+/opt/zig-x86_64-linux-0.15.2/lib/std/Thread/Mutex.zig:72:13: 0x12e53da in lock (std.zig)
+            @panic("Deadlock detected");
+            ^
+/root/omnibus-blockchain/core/reputation_manager.zig:112:24: 0x148309b in creditVacationDay (main.zig)
+        self.mutex.lock();
+                       ^
+/root/omnibus-blockchain/core/main.zig:2847:50: 0x13f4b51 in main (main.zig)
+                        rep_mgr.creditVacationDay(
+                                                 ^
+/opt/zig-x86_64-linux-0.15.2/lib/std/start.zig:627:37: 0x14039e1 in main (std.zig)
+            const result = root.main() catch |err| {
+                                    ^
+???:?:?: 0x154dc1c3ed8f in ??? (libc.so.6)
+Unwind information for `libc.so.6:0x154dc1c3ed8f` was not available, trace may be incomplete
+
+[CLOCK] TSC calibrated: 2001323400 Hz (2.001 GHz)
+[PQ] liboqs initialized — ML-DSA-87 + Falcon-512 + SLH-DSA + ML-KEM-768 ready
+[ORACLE-POLICY] warn=2.0% reject=5.0% fillgap=10.0% enabled=true

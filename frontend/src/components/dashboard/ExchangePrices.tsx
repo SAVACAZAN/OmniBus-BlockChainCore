@@ -1,16 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
-
-// ── Types ─────────────────────────────────────────────────────────────────
-
-interface PriceEntry {
-  exchange: string;
-  pair: string;
-  bidMicroUsd: number;
-  askMicroUsd: number;
-  timestampMs: number;
-  success: boolean;
-}
+import { useEffect, useState } from "react";
+import { rpc } from "../../api/rpc-client";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOraclePriceEvent, BlockPriceSnapshot as PriceEntry } from "../../types/index";
+import { fmtUsd } from "../../utils/fmt";
 
 interface ExchangeFeed {
   prices: PriceEntry[];
@@ -20,7 +12,6 @@ interface ExchangeFeed {
 
 type AssetKey = "BTC" | "LCX";
 
-const POLL_MS = 2000;
 const STALE_MS = 30_000;
 const EXCHANGES = ["Coinbase", "Kraken", "LCX"] as const;
 const ASSETS: { key: AssetKey; label: string; pair: string }[] = [
@@ -28,39 +19,6 @@ const ASSETS: { key: AssetKey; label: string; pair: string }[] = [
   { key: "LCX", label: "LCX/USD", pair: "LCX/USD" },
 ];
 
-// ── Format helpers ────────────────────────────────────────────────────────
-
-function microUsdToDollars(micro: number): number {
-  return micro / 1_000_000;
-}
-
-function formatPrice(microUsd: number, asset: AssetKey): string {
-  const dollars = microUsdToDollars(microUsd);
-  if (asset === "BTC") {
-    return `$${dollars.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }
-  return `$${dollars.toLocaleString("en-US", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  })}`;
-}
-
-function formatSpread(bidMicro: number, askMicro: number, asset: AssetKey): string {
-  const spread = microUsdToDollars(askMicro - bidMicro);
-  if (asset === "BTC") {
-    return `spread $${spread.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }
-  return `spread $${spread.toLocaleString("en-US", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  })}`;
-}
 
 // Match an exchange entry by name (case-insensitive) and asset symbol.
 function findEntry(
@@ -116,14 +74,14 @@ function ExchangeRow({
       </div>
       <div className="flex items-center justify-between font-mono text-sm">
         <span className="text-mempool-green">
-          {formatPrice(entry.bidMicroUsd, asset)}
+          {fmtUsd(entry.bidMicroUsd)}
         </span>
         <span className="text-mempool-orange">
-          {formatPrice(entry.askMicroUsd, asset)}
+          {fmtUsd(entry.askMicroUsd)}
         </span>
       </div>
       <span className="text-[10px] text-mempool-text-dim">
-        {formatSpread(entry.bidMicroUsd, entry.askMicroUsd, asset)}
+        spread {fmtUsd(entry.askMicroUsd - entry.bidMicroUsd)}
       </span>
     </div>
   );
@@ -152,7 +110,7 @@ function AssetColumn({
       </div>
       <p className="text-xl font-mono font-bold text-mempool-blue mb-2">
         {medianMicroUsd !== undefined && medianMicroUsd > 0
-          ? formatPrice(medianMicroUsd, asset)
+          ? fmtUsd(medianMicroUsd)
           : "—"}
       </p>
       <div>
@@ -173,7 +131,6 @@ function AssetColumn({
 // ── Main component ────────────────────────────────────────────────────────
 
 export default function ExchangePrices() {
-  const rpc = useMemo(() => new OmniBusRpcClient(), []);
   const [feed, setFeed] = useState<ExchangeFeed | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState<number>(Date.now());
@@ -183,9 +140,7 @@ export default function ExchangePrices() {
 
     const fetchFeed = async () => {
       try {
-        const result = (await rpc.request_raw(
-          "omnibus_getexchangefeed",
-        )) as ExchangeFeed | null;
+        const result = (await rpc.getExchangeFeed()) as ExchangeFeed | null;
         if (cancelled) return;
         if (result && Array.isArray(result.prices)) {
           setFeed(result);
@@ -201,13 +156,16 @@ export default function ExchangePrices() {
     };
 
     fetchFeed();
-    const id = setInterval(fetchFeed, POLL_MS);
+    // oracle_price fires when backend refreshes feed — update immediately.
+    const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => { void fetchFeed(); });
+    const id = setInterval(() => { void fetchFeed(); }, 30_000);
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
-  }, [rpc]);
+  }, []);
 
   const prices = feed?.prices ?? [];
 

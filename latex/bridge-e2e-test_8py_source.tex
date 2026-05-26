@@ -1,0 +1,194 @@
+\doxysection{bridge-\/e2e-\/test.py}
+\hypertarget{bridge-e2e-test_8py_source}{}\label{bridge-e2e-test_8py_source}\index{scripts/cross/bridge-\/e2e-\/test.py@{scripts/cross/bridge-\/e2e-\/test.py}}
+\doxymbox{\hyperlink{bridge-e2e-test_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00001}\doxymbox{\hyperlink{namespacebridge-e2e-test}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00002}\doxymbox{\hyperlink{namespacebridge}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00003}00003\ \textcolor{stringliteral}{bridge-\/e2e-\/test.py}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00005}00005\ \textcolor{stringliteral}{End-\/to-\/end\ bridge\ test\ for\ OmniBus\ ecosystem:}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ 1.\ Mint\ an\ asset\ on\ BlockChainCore\ (via\ RPC).}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ 2.\ Submit\ bridge\ lock/burn\ transaction.}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ 3.\ Verify\ the\ corresponding\ mint\ /\ unlock\ on\ aweb3\ Liberty\ (Solidity\ side).}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00009}00009\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00010}00010\ \textcolor{stringliteral}{Requires:}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ -\/\ BlockChainCore\ node\ RPC\ (default\ http://127.0.0.1:8332)}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ -\/\ aweb3\ Liberty\ RPC\ endpoint\ (default\ http://127.0.0.1:8545)}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00013}00013\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00014}00014\ \textcolor{stringliteral}{Outputs:\ bridge-\/e2e-\/result.json}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00015}00015\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00017}00017\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00018}00018\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00019}00019\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00020}00020\ \textcolor{keyword}{import}\ random}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00021}00021\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00022}00022\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00023}00023\ \textcolor{keyword}{from}\ datetime\ \textcolor{keyword}{import}\ datetime,\ timezone}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00024}00024\ \textcolor{keyword}{from}\ typing\ \textcolor{keyword}{import}\ Any}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00026}00026\ \textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00028}\doxymbox{\hyperlink{namespacebridge-e2e-test_aec55d4b0aecb2e4ce487fcf30f6277de}{00028}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00029}\doxymbox{\hyperlink{namespacebridge-e2e-test_aac6c26408373dc7c3a5a55b918b1f48a}{00029}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00030}\doxymbox{\hyperlink{namespacebridge-e2e-test_aff64e52558ba23166126f24c369d826f}{00030}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00031}\doxymbox{\hyperlink{namespacebridge-e2e-test_ad25cd0dfbc7f29218e51d82f5a01c89b}{00031}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00032}\doxymbox{\hyperlink{namespacebridge-e2e-test_ac1270b7eccd03270aa059ea98a514330}{00032}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00035}\doxymbox{\hyperlink{namespacebridge-e2e-test_a54b6ddaf7ffa1fe8575da1c58ab597e2}{00035}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00036}00036\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}[INFO]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00039}\doxymbox{\hyperlink{namespacebridge-e2e-test_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{00039}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00040}00040\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PASS]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00043}\doxymbox{\hyperlink{namespacebridge-e2e-test_abf994b8269849d29e07697ea8a840f74}{00043}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00044}00044\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{RED\}[FAIL]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00047}\doxymbox{\hyperlink{namespacebridge-e2e-test_adf0e2aa4d06b5ca38e44721821eca783}{00047}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_adf0e2aa4d06b5ca38e44721821eca783}{log\_warn}}(msg:\ str)\ -\/>\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00048}00048\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{YELLOW\}[WARN]\{RESET\}\ \{msg\}"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00051}00051\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00052}00052\ \textcolor{comment}{\#\ RPC\ helpers}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00053}00053\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00054}\doxymbox{\hyperlink{namespacebridge-e2e-test_ab74f2bd09c909f6ea32e82ffe962bc0e}{00054}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_ab74f2bd09c909f6ea32e82ffe962bc0e}{rpc\_json}}(url:\ str,\ method:\ str,\ params:\ Any\ =\ \textcolor{keywordtype}{None},\ auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ headers:\ dict[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None},\ timeout:\ float\ =\ 15.0)\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00056}00056\ \ \ \ \ payload\ =\ \{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000)\}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00057}00057\ \ \ \ \ \textcolor{keywordflow}{if}\ params\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ payload[\textcolor{stringliteral}{"{}params"{}}]\ =\ params}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00059}00059\ \ \ \ \ h\ =\ dict(headers\ \textcolor{keywordflow}{or}\ \{\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00060}00060\ \ \ \ \ h.setdefault(\textcolor{stringliteral}{"{}Content-\/Type"{}},\ \textcolor{stringliteral}{"{}application/json"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ auth=auth,\ headers=h,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ data\ =\ resp.json()}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ data.get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}\_error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00069}\doxymbox{\hyperlink{namespacebridge-e2e-test_a409e466f33d23fc83b3a774c71157d9d}{00069}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_a409e466f33d23fc83b3a774c71157d9d}{eth\_call}}(url:\ str,\ to:\ str,\ data:\ str,\ timeout:\ float\ =\ 15.0)\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00070}00070\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Minimal\ Ethereum\ eth\_call\ helper."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00071}00071\ \ \ \ \ payload\ =\ \{}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}eth\_call"{}},}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ [\{\textcolor{stringliteral}{"{}to"{}}:\ to,\ \textcolor{stringliteral}{"{}data"{}}:\ data\},\ \textcolor{stringliteral}{"{}latest"{}}],}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000),}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00076}00076\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.json().get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}\_error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00084}\doxymbox{\hyperlink{namespacebridge-e2e-test_a75b06de0369789251ec1f69bb0b2c1f5}{00084}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_a75b06de0369789251ec1f69bb0b2c1f5}{eth\_get\_balance}}(url:\ str,\ address:\ str,\ timeout:\ float\ =\ 15.0)\ -\/>\ Any:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00085}00085\ \ \ \ \ payload\ =\ \{}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}method"{}}:\ \textcolor{stringliteral}{"{}eth\_getBalance"{}},}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}params"{}}:\ [address,\ \textcolor{stringliteral}{"{}latest"{}}],}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}id"{}}:\ random.randint(1,\ 100000),}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00090}00090\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00091}00091\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ resp\ =\ requests.post(url,\ json=payload,\ timeout=timeout)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ resp.json().get(\textcolor{stringliteral}{"{}result"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00094}00094\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}\_error"{}}:\ str(exc)\}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00098}00098\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00099}00099\ \textcolor{comment}{\#\ Bridge\ flow}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00100}00100\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00101}\doxymbox{\hyperlink{namespacebridge-e2e-test_a48b578fd5108e3a53cd23d04cbdb64f5}{00101}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_a48b578fd5108e3a53cd23d04cbdb64f5}{run\_bridge\_test}}(zig\_rpc:\ str,\ eth\_rpc:\ str,\ bridge\_contract:\ str,}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ zig\_auth:\ tuple[str,\ str]\ |\ \textcolor{keywordtype}{None}\ =\ \textcolor{keywordtype}{None})\ -\/>\ dict[str,\ Any]:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00103}00103\ \ \ \ \ steps:\ list[dict[str,\ Any]]\ =\ []}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00105}00105\ \ \ \ \ \textcolor{comment}{\#\ Step\ 1:\ BlockChainCore\ health}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00106}00106\ \ \ \ \ info\ =\ \doxymbox{\hyperlink{namespacebridge-e2e-test_ab74f2bd09c909f6ea32e82ffe962bc0e}{rpc\_json}}(zig\_rpc,\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},\ auth=zig\_auth)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(info,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ info:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 1,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}zig\_health"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}fail"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ info[\textcolor{stringliteral}{"{}\_error"{}}]\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}success"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}steps"{}}:\ steps\}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00110}00110\ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 1,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}zig\_health"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}pass"{}},\ \textcolor{stringliteral}{"{}blocks"{}}:\ info.get(\textcolor{stringliteral}{"{}blocks"{}})\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00112}00112\ \ \ \ \ \textcolor{comment}{\#\ Step\ 2:\ aweb3\ Liberty\ health}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00113}00113\ \ \ \ \ eth\_block\ =\ \doxymbox{\hyperlink{namespacebridge-e2e-test_ab74f2bd09c909f6ea32e82ffe962bc0e}{rpc\_json}}(eth\_rpc,\ \textcolor{stringliteral}{"{}eth\_blockNumber"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00114}00114\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(eth\_block,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ eth\_block:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 2,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}eth\_health"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}fail"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ eth\_block[\textcolor{stringliteral}{"{}\_error"{}}]\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}success"{}}:\ \textcolor{keyword}{False},\ \textcolor{stringliteral}{"{}steps"{}}:\ steps\}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00117}00117\ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 2,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}eth\_health"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}pass"{}},\ \textcolor{stringliteral}{"{}block\_number"{}}:\ eth\_block\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00119}00119\ \ \ \ \ \textcolor{comment}{\#\ Step\ 3:\ Mint\ on\ BlockChainCore\ (simulated\ via\ sendtoaddress\ or\ generatetoaddress)}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00120}00120\ \ \ \ \ \textcolor{comment}{\#\ Use\ a\ dummy\ address\ if\ wallet\ commands\ are\ unavailable}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00121}00121\ \ \ \ \ dummy\_addr\ =\ \textcolor{stringliteral}{"{}omni1dummyaddressforbridgetest"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00122}00122\ \ \ \ \ txid\ =\ \doxymbox{\hyperlink{namespacebridge-e2e-test_ab74f2bd09c909f6ea32e82ffe962bc0e}{rpc\_json}}(zig\_rpc,\ \textcolor{stringliteral}{"{}sendtoaddress"{}},\ [dummy\_addr,\ 1.0],\ auth=zig\_auth)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00123}00123\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(txid,\ dict)\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}\_error"{}}\ \textcolor{keywordflow}{in}\ txid:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 3,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}zig\_mint"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}warn"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ txid[\textcolor{stringliteral}{"{}\_error"{}}]\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ txid\ =\ f\textcolor{stringliteral}{"{}simulated-\/txid-\/\{random.randint(0,\ 999999)\}"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00126}00126\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00127}00127\ \ \ \ \ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 3,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}zig\_mint"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}pass"{}},\ \textcolor{stringliteral}{"{}txid"{}}:\ txid\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00129}00129\ \ \ \ \ \textcolor{comment}{\#\ Step\ 4:\ Bridge\ submission\ (stub\ —\ real\ bridge\ would\ call\ a\ contract\ or\ relayer)}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00130}00130\ \ \ \ \ bridge\_tx\ =\ f\textcolor{stringliteral}{"{}bridge-\/\{txid\}"{}}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00131}00131\ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 4,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}bridge\_submit"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}info"{}},\ \textcolor{stringliteral}{"{}bridge\_tx"{}}:\ bridge\_tx\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00133}00133\ \ \ \ \ \textcolor{comment}{\#\ Step\ 5:\ Verify\ on\ aweb3\ side\ (balance\ or\ event\ query)}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00134}00134\ \ \ \ \ \textcolor{keywordflow}{if}\ bridge\_contract:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ ERC20\ balanceOf(address)\ selector\ =\ 0x70a08231}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ padded\_addr\ =\ \textcolor{stringliteral}{"{}000000000000000000000000"{}}\ +\ dummy\_addr[-\/40:]\ \textcolor{keywordflow}{if}\ len(dummy\_addr)\ >=\ 40\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}0"{}}\ *\ 24\ +\ dummy\_addr}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ data\ =\ \textcolor{stringliteral}{"{}0x70a08231"{}}\ +\ padded\_addr}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacebridge-e2e-test_a409e466f33d23fc83b3a774c71157d9d}{eth\_call}}(eth\_rpc,\ bridge\_contract,\ data)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 5,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}eth\_verify"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}pass"{}}\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ isinstance(result,\ dict)\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}warn"{}},}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}balance\_raw"{}}:\ result\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00142}00142\ \ \ \ \ \ \ \ \ steps.append(\{\textcolor{stringliteral}{"{}step"{}}:\ 5,\ \textcolor{stringliteral}{"{}name"{}}:\ \textcolor{stringliteral}{"{}eth\_verify"{}},\ \textcolor{stringliteral}{"{}status"{}}:\ \textcolor{stringliteral}{"{}skip"{}},\ \textcolor{stringliteral}{"{}detail"{}}:\ \textcolor{stringliteral}{"{}No\ bridge\ contract\ address\ provided"{}}\})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00144}00144\ \ \ \ \ success\ =\ all(s[\textcolor{stringliteral}{"{}status"{}}]\ \textcolor{keywordflow}{in}\ (\textcolor{stringliteral}{"{}pass"{}},\ \textcolor{stringliteral}{"{}info"{}},\ \textcolor{stringliteral}{"{}skip"{}})\ \textcolor{keywordflow}{for}\ s\ \textcolor{keywordflow}{in}\ steps)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}success"{}}:\ success,\ \textcolor{stringliteral}{"{}steps"{}}:\ steps\}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00146}00146\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00148}00148\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00149}00149\ \textcolor{comment}{\#\ Main}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00150}00150\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00151}\doxymbox{\hyperlink{namespacebridge-e2e-test_a7431cb90017e54fe695b23d4190db046}{00151}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespacebridge-e2e-test_a7431cb90017e54fe695b23d4190db046}{main}}()\ -\/>\ int:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00152}00152\ \ \ \ \ parser\ =\ argparse.ArgumentParser(description=\textcolor{stringliteral}{"{}Bridge\ end-\/to-\/end\ test."{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00153}00153\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/rpc"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8332"{}},\ help=\textcolor{stringliteral}{"{}BlockChainCore\ RPC"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00154}00154\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/eth-\/rpc"{}},\ default=\textcolor{stringliteral}{"{}http://127.0.0.1:8545"{}},\ help=\textcolor{stringliteral}{"{}aweb3\ /\ Liberty\ RPC"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00155}00155\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/bridge-\/contract"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Bridge\ contract\ address\ on\ ETH\ side"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00156}00156\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/user"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Zig\ RPC\ user"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00157}00157\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/zig-\/password"{}},\ default=\textcolor{stringliteral}{"{}"{}},\ help=\textcolor{stringliteral}{"{}Zig\ RPC\ password"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00158}00158\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/output"{}},\ default=\textcolor{stringliteral}{"{}scripts/cross/bridge-\/e2e-\/result.json"{}},\ help=\textcolor{stringliteral}{"{}Output\ path"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00159}00159\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00161}00161\ \ \ \ \ zig\_auth\ =\ (args.zig\_user,\ args.zig\_password)\ \textcolor{keywordflow}{if}\ args.zig\_user\ \textcolor{keywordflow}{or}\ args.zig\_password\ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00163}00163\ \ \ \ \ \doxymbox{\hyperlink{namespacebridge-e2e-test_a54b6ddaf7ffa1fe8575da1c58ab597e2}{log\_info}}(\textcolor{stringliteral}{"{}Starting\ bridge\ E2E\ test\ …"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00164}00164\ \ \ \ \ result\ =\ \doxymbox{\hyperlink{namespacebridge-e2e-test_a48b578fd5108e3a53cd23d04cbdb64f5}{run\_bridge\_test}}(args.zig\_rpc,\ args.eth\_rpc,\ args.bridge\_contract,\ zig\_auth)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00166}00166\ \ \ \ \ report\ =\ \{}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00167}00167\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}generated\_at"{}}:\ datetime.now(timezone.utc).isoformat(),}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}zig\_rpc"{}}:\ args.zig\_rpc,}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00169}00169\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}eth\_rpc"{}}:\ args.eth\_rpc,}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00170}00170\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}bridge\_contract"{}}:\ args.bridge\_contract\ \textcolor{keywordflow}{or}\ \textcolor{keywordtype}{None},}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00171}00171\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}result"{}}:\ result,}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00172}00172\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00173}00173\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00174}00174\ \ \ \ \ out\_path\ =\ os.path.abspath(args.output)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00175}00175\ \ \ \ \ os.makedirs(os.path.dirname(out\_path),\ exist\_ok=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00176}00176\ \ \ \ \ \textcolor{keyword}{with}\ open(out\_path,\ \textcolor{stringliteral}{"{}w"{}},\ encoding=\textcolor{stringliteral}{"{}utf-\/8"{}})\ \textcolor{keyword}{as}\ fh:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ json.dump(report,\ fh,\ indent=2)}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00179}00179\ \ \ \ \ \textcolor{keywordflow}{if}\ result[\textcolor{stringliteral}{"{}success"{}}]:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00180}00180\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebridge-e2e-test_a47ec9bdd7fc087ec23b3c1fa5050c2d3}{log\_pass}}(\textcolor{stringliteral}{"{}Bridge\ E2E\ test\ completed\ successfully"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00181}00181\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00182}00182\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00183}00183\ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{namespacebridge-e2e-test_abf994b8269849d29e07697ea8a840f74}{log\_fail}}(\textcolor{stringliteral}{"{}Bridge\ E2E\ test\ failed"{}})}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00187}00187\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{bridge-e2e-test_8py_source_l00188}00188\ \ \ \ \ sys.exit(\doxymbox{\hyperlink{namespacebridge-e2e-test_a7431cb90017e54fe695b23d4190db046}{main}}())}
+
+\end{DoxyCode}

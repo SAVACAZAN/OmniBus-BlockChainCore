@@ -1,0 +1,79 @@
+\doxysection{bridge\+\_\+validator Namespace Reference}
+\hypertarget{namespacebridge__validator}{}\label{namespacebridge__validator}\index{bridge\_validator@{bridge\_validator}}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classbridge__validator_1_1_chain_type}{Chain\+Type}}
+\item 
+class \doxymbox{\hyperlink{classbridge__validator_1_1_tx_status}{Tx\+Status}}
+\item 
+class \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_transaction}{Bridge\+Transaction}}
+\item 
+class \doxymbox{\hyperlink{classbridge__validator_1_1_bridge_validator}{Bridge\+Validator}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacebridge__validator_a51af30a60f9f02777c6396b8247e356f}{main}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{namespacebridge__validator_a494606b1d68a85898e6b73d4e358f9f5}{ROOT}} = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}bridge_validator.py - Cross-Chain Bridge Transaction Validator v1.0
+
+Validează tranzacții cross-chain pentru OmniBus:
+  - Verifică proof-uri de la alte blockchain-uri
+  - Validează Merkle proofs pentru lock/unlock
+  - Verifică semnături de la bridge validators
+  - Detectează double-spend între chains
+  - Estimează timp de finalizare
+
+Suportă:
+  - Bitcoin (SPV proofs)
+  - Ethereum (Merkle Patricia proofs)
+  - Solana (light client verification)
+
+Usage:
+  python tools/BRIDGE/bridge_validator.py --verify-tx <tx_hash> --source bitcoin
+  python tools/BRIDGE/bridge_validator.py --proof <file.json>
+  python tools/BRIDGE/bridge_validator.py --monitor
+\end{DoxyVerb}
+ 
+
+\label{namespacebridge__validator_doc-func-members}
+\Hypertarget{namespacebridge__validator_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacebridge__validator_a51af30a60f9f02777c6396b8247e356f}\index{bridge\_validator@{bridge\_validator}!main@{main}}
+\index{main@{main}!bridge\_validator@{bridge\_validator}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{namespacebridge__validator_a51af30a60f9f02777c6396b8247e356f} 
+main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00282}{282}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+
+Here is the call graph for this function:\+
+% FIG 0
+Here is the caller graph for this function:\+
+% FIG 1
+
+
+\label{namespacebridge__validator_doc-var-members}
+\Hypertarget{namespacebridge__validator_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacebridge__validator_a494606b1d68a85898e6b73d4e358f9f5}\index{bridge\_validator@{bridge\_validator}!ROOT@{ROOT}}
+\index{ROOT@{ROOT}!bridge\_validator@{bridge\_validator}}
+\doxysubsubsection{\texorpdfstring{ROOT}{ROOT}}
+{\footnotesize\ttfamily \label{namespacebridge__validator_a494606b1d68a85898e6b73d4e358f9f5} 
+bridge\+\_\+validator.\+ROOT = Path(\+\_\+\+\_\+file\+\_\+\+\_\+).parent.\+parent.\+parent}
+
+
+
+Definition at line \doxymbox{\hyperlink{bridge__validator_8py_source_l00033}{33}} of file \doxymbox{\hyperlink{bridge__validator_8py_source}{bridge\+\_\+validator.\+py}}.
+

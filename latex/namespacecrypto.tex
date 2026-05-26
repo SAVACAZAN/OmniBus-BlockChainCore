@@ -1,0 +1,53 @@
+\doxysection{crypto Namespace Reference}
+\hypertarget{namespacecrypto}{}\label{namespacecrypto}\index{crypto@{crypto}}
+
+
+-\/edge-\/cases  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/edge-\/cases 
+
+-\/audit
+
+-\/implementation-\/tracker
+
+\begin{DoxyVerb}crypto-edge-cases.py
+
+Test mathematical edge cases in secp256k1-style elliptic-curve cryptography:
+  - signing with k = 0, k = n, k = n-1
+  - private_key = 0, private_key = n
+  - point-at-infinity operations
+  - signature malleability: (r, s) -> (r, n-s)
+  - weak nonce detection (repeated k leaks private key)
+  - low-s normalization check
+
+Outputs: crypto-edge-results.json
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}crypto-implementation-tracker.py
+
+Track the evolution of cryptographic implementations in a BlockChainCore
+repository via git history.  Monitors:
+  - secp256k1.zig iterations, bug fixes, test vector changes
+  - BIP-32 derivation path handling changes
+  - Crypto-related API surface changes over time
+
+Outputs: crypto-evolution-timeline.json
+\end{DoxyVerb}
+
+
+\begin{DoxyVerb}OmniBus Blockchain Core — Crypto Security Auditor
+
+Audits crypto implementations in core/ for:
+  - secp256k1 test vectors (NIST + Wycheproof)
+  - RIPEMD-160 test vectors
+  - BIP-32 derivation path compliance
+  - Constant-time operation timing analysis
+
+Outputs: audit-report.json
+\end{DoxyVerb}
+ 

@@ -1,0 +1,358 @@
+\doxysection{onion-\/privacy-\/audit.py}
+\hypertarget{onion-privacy-audit_8py_source}{}\label{onion-privacy-audit_8py_source}\index{tools/NETWORK/onion-\/privacy-\/audit.py@{tools/NETWORK/onion-\/privacy-\/audit.py}}
+\doxymbox{\hyperlink{onion-privacy-audit_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00001}\doxymbox{\hyperlink{namespaceonion-privacy-audit}{00001}}\ \textcolor{comment}{\#!/usr/bin/env\ python3}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00002}\doxymbox{\hyperlink{namespaceonion}{00002}}\ \textcolor{stringliteral}{"{}"{}"{}OmniBus\ BlockChainCore\ —\ Onion\ Privacy\ Audit.}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00003}00003\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00004}00004\ \textcolor{stringliteral}{Connects\ to\ RPC\ 8332,\ calls\ getnetworkinfo\ (or\ equivalent).}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00005}00005\ \textcolor{stringliteral}{Parses\ response\ for\ IP\ address\ patterns\ (regex\ for\ IPv4/IPv6).}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00006}00006\ \textcolor{stringliteral}{Connects\ via\ Tor\ SOCKS\ and\ repeats.}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00007}00007\ \textcolor{stringliteral}{Compares:\ does\ the\ response\ leak\ the\ node's\ real\ IP\ when\ connected\ via\ Tor?}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00008}00008\ \textcolor{stringliteral}{Checks\ version\ string,\ user-\/agent\ headers.}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00009}00009\ \textcolor{stringliteral}{Reports\ PASS/FAIL.}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00010}00010\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00012}00012\ \textcolor{keyword}{import}\ argparse}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00013}00013\ \textcolor{keyword}{import}\ http.client}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00014}00014\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00015}00015\ \textcolor{keyword}{import}\ re}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00016}00016\ \textcolor{keyword}{import}\ socket}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00017}00017\ \textcolor{keyword}{import}\ struct}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00018}00018\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00019}00019\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00021}00021\ \textcolor{comment}{\#\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00022}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a38440c17a292b052c2aa2d02a110a6b5}{00022}}\ RED\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[91m"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00023}\doxymbox{\hyperlink{namespaceonion-privacy-audit_aeef17db522a080ea0413f45cd4ec911f}{00023}}\ GREEN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[92m"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00024}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a8b79e3b081eb95ee2fc21c0fb3f76075}{00024}}\ YELLOW\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[93m"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00025}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a25bf3a3e3482047fd8fcf3f9afd3c00c}{00025}}\ CYAN\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[96m"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00026}\doxymbox{\hyperlink{namespaceonion-privacy-audit_acd84efb2aa6d43e1853842b31e3acc6a}{00026}}\ BOLD\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[1m"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00027}\doxymbox{\hyperlink{namespaceonion-privacy-audit_af62e0bdb579b75ab925250e9da443e0e}{00027}}\ RESET\ =\ \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00029}00029\ \textcolor{comment}{\#\ OmniBus\ BlockChainCore}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00030}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a94c58b18e0d1d1c5b26f4c7944cb5af2}{00030}}\ RPC\_PORT\ =\ 8332}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00031}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a840afe79619e41db4be487bcebfc1c03}{00031}}\ P2P\_PORT\ =\ 9000}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00032}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a02d0ae0b02c8a9773bf34b6ef31ce6dc}{00032}}\ WS\_PORT\ =\ 8334}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00033}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a40875d6b547a88addbd3bddbc156bc6f}{00033}}\ SHARDS\ =\ 4}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00034}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a480b0744e742ec9bd2d6e81903f85ce6}{00034}}\ MAX\_SUPPLY\ =\ 21\_000\_000}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00035}\doxymbox{\hyperlink{namespaceonion-privacy-audit_aa4e1c08fc6f6118cb9d344e888e7b608}{00035}}\ SAT\ =\ int(1e9)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00037}00037\ \textcolor{comment}{\#\ IP\ detection\ patterns}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00038}\doxymbox{\hyperlink{namespaceonion-privacy-audit_af28caa85a4e7181376fb282f645b0f41}{00038}}\ IPV4\_PATTERN\ =\ re.compile(}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00039}00039\ \ \ \ \ \textcolor{stringliteral}{r'\(\backslash\)b(?:(?:25[0-\/5]|2[0-\/4]\(\backslash\)d|[01]?\(\backslash\)d\(\backslash\)d?)\(\backslash\).)\{3\}(?:25[0-\/5]|2[0-\/4]\(\backslash\)d|[01]?\(\backslash\)d\(\backslash\)d?)\(\backslash\)b'}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00040}00040\ )}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00041}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a5c6693327eb353f41716892f6a9f19c0}{00041}}\ IPV6\_PATTERN\ =\ re.compile(}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00042}00042\ \ \ \ \ \textcolor{stringliteral}{r'(?:[0-\/9a-\/fA-\/F]\{1,4\}:)\{2,7\}[0-\/9a-\/fA-\/F]\{1,4\}'}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00043}00043\ )}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00044}00044\ \textcolor{comment}{\#\ Exclude\ common\ non-\/routable\ IPs}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00045}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a8cb721c7e7376e24f2b9f4c2d431e2e9}{00045}}\ PRIVATE\_IPS\ =\ re.compile(}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00046}00046\ \ \ \ \ \textcolor{stringliteral}{r'\string^(127\(\backslash\).|10\(\backslash\).|192\(\backslash\).168\(\backslash\).|172\(\backslash\).(1[6-\/9]|2\(\backslash\)d|3[01])\(\backslash\).|0\(\backslash\).0\(\backslash\).0\(\backslash\).0|::1|fe80:)'}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00047}00047\ )}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00050}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a5930551710c9a2b3636641224922a4ca}{00050}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceonion-privacy-audit_a5930551710c9a2b3636641224922a4ca}{socks5\_connect}}(proxy\_host:\ str,\ proxy\_port:\ int,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ target\_host:\ str,\ target\_port:\ int)\ -\/>\ socket.socket:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00052}00052\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}SOCKS5\ connection\ (no\ auth)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00053}00053\ \ \ \ \ sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00054}00054\ \ \ \ \ sock.settimeout(10)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00055}00055\ \ \ \ \ sock.connect((proxy\_host,\ proxy\_port))}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00056}00056\ \ \ \ \ sock.sendall(b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x01\(\backslash\)x00"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00057}00057\ \ \ \ \ resp\ =\ sock.recv(2)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{if}\ resp\ !=\ b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x00"{}}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ ConnectionError(\textcolor{stringliteral}{"{}SOCKS5\ handshake\ failed"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00062}00062\ \ \ \ \ addr\_bytes\ =\ socket.inet\_aton(target\_host)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00063}00063\ \ \ \ \ port\_bytes\ =\ struct.pack(\textcolor{stringliteral}{"{}>H"{}},\ target\_port)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00064}00064\ \ \ \ \ sock.sendall(b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x01\(\backslash\)x00\(\backslash\)x01"{}}\ +\ addr\_bytes\ +\ port\_bytes)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00065}00065\ \ \ \ \ resp\ =\ sock.recv(10)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00066}00066\ \ \ \ \ \textcolor{keywordflow}{if}\ len(resp)\ <\ 2\ \textcolor{keywordflow}{or}\ resp[1]\ !=\ 0:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ ConnectionError(f\textcolor{stringliteral}{"{}SOCKS5\ connect\ failed:\ \{resp.hex()\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00069}00069\ \ \ \ \ \textcolor{keywordflow}{return}\ sock}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00072}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a8a77f8e893ea82373f0bbf7e15d18ca3}{00072}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceonion-privacy-audit_a8a77f8e893ea82373f0bbf7e15d18ca3}{rpc\_call\_direct}}(host:\ str,\ port:\ int,\ method:\ str,\ params=\textcolor{keywordtype}{None})\ -\/>\ tuple:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00073}00073\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Direct\ RPC\ call.\ Returns\ (json\_response,\ http\_headers\_dict)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00074}00074\ \ \ \ \ payload\ =\ json.dumps(\{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ []\})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00075}00075\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ conn\ =\ http.client.HTTPConnection(host,\ port,\ timeout=10)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ conn.request(\textcolor{stringliteral}{"{}POST"{}},\ \textcolor{stringliteral}{"{}/"{}},\ payload,\ \{\textcolor{stringliteral}{"{}Content-\/Type"{}}:\ \textcolor{stringliteral}{"{}application/json"{}}\})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ resp\ =\ conn.getresponse()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ headers\ =\ dict(resp.getheaders())}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ body\ =\ json.loads(resp.read().decode())}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ conn.close()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ body,\ headers}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00083}00083\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ str(exc)\},\ \{\}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00087}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a7afafbe356f8f44dd62b8b62a9873e46}{00087}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceonion-privacy-audit_a7afafbe356f8f44dd62b8b62a9873e46}{rpc\_call\_tor}}(proxy\_host:\ str,\ proxy\_port:\ int,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ target\_host:\ str,\ target\_port:\ int,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ method:\ str,\ params=\textcolor{keywordtype}{None})\ -\/>\ tuple:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00090}00090\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}RPC\ call\ through\ Tor.\ Returns\ (json\_response,\ raw\_headers\_str)."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00091}00091\ \ \ \ \ payload\ =\ json.dumps(\{\textcolor{stringliteral}{"{}jsonrpc"{}}:\ \textcolor{stringliteral}{"{}2.0"{}},\ \textcolor{stringliteral}{"{}id"{}}:\ 1,\ \textcolor{stringliteral}{"{}method"{}}:\ method,\ \textcolor{stringliteral}{"{}params"{}}:\ params\ \textcolor{keywordflow}{or}\ []\})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00092}00092\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ sock\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a5930551710c9a2b3636641224922a4ca}{socks5\_connect}}(proxy\_host,\ proxy\_port,\ target\_host,\ target\_port)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ http\_req\ =\ (}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}POST\ /\ HTTP/1.1\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Host:\ \{target\_host\}:\{target\_port\}\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Content-\/Type:\ application/json\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Content-\/Length:\ \{len(payload)\}\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}Connection:\ close\(\backslash\)r\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\(\backslash\)r\(\backslash\)n\{payload\}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ sock.sendall(http\_req.encode())}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00104}00104\ \ \ \ \ \ \ \ \ response\ =\ b\textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keyword}{True}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chunk\ =\ sock.recv(4096)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ chunk:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ response\ +=\ chunk}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ socket.timeout:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ sock.close()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00115}00115\ \ \ \ \ \ \ \ \ resp\_text\ =\ response.decode(\textcolor{stringliteral}{"{}utf-\/8"{}},\ errors=\textcolor{stringliteral}{"{}replace"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ header\_end\ =\ resp\_text.find(\textcolor{stringliteral}{"{}\(\backslash\)r\(\backslash\)n\(\backslash\)r\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ header\_end\ >=\ 0:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ headers\_raw\ =\ resp\_text[:header\_end]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ body\ =\ resp\_text[header\_end\ +\ 4:]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ json.loads(body),\ headers\_raw}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ \textcolor{stringliteral}{"{}no\ body"{}}\},\ resp\_text[:500]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00122}00122\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ exc:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \{\textcolor{stringliteral}{"{}error"{}}:\ str(exc)\},\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00126}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc}{00126}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc}{find\_ips\_in\_data}}(data,\ exclude\_private:\ bool\ =\ \textcolor{keyword}{True})\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00127}00127\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Recursively\ search\ for\ IP\ addresses\ in\ JSON\ data."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00128}00128\ \ \ \ \ found\ =\ []}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00129}00129\ \ \ \ \ text\ =\ json.dumps(data)\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ isinstance(data,\ str)\ \textcolor{keywordflow}{else}\ data}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00131}00131\ \ \ \ \ \textcolor{keywordflow}{for}\ ip\ \textcolor{keywordflow}{in}\ IPV4\_PATTERN.findall(text):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ exclude\_private\ \textcolor{keywordflow}{and}\ PRIVATE\_IPS.match(ip):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ found.append(\{\textcolor{stringliteral}{"{}type"{}}:\ \textcolor{stringliteral}{"{}IPv4"{}},\ \textcolor{stringliteral}{"{}ip"{}}:\ ip\})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00136}00136\ \ \ \ \ \textcolor{keywordflow}{for}\ ip\ \textcolor{keywordflow}{in}\ IPV6\_PATTERN.findall(text):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ exclude\_private\ \textcolor{keywordflow}{and}\ PRIVATE\_IPS.match(ip):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ found.append(\{\textcolor{stringliteral}{"{}type"{}}:\ \textcolor{stringliteral}{"{}IPv6"{}},\ \textcolor{stringliteral}{"{}ip"{}}:\ ip\})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{return}\ found}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00144}\doxymbox{\hyperlink{namespaceonion-privacy-audit_ad1d10515c59c610499ff14e73e60e2b2}{00144}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceonion-privacy-audit_ad1d10515c59c610499ff14e73e60e2b2}{find\_ips\_in\_headers}}(headers)\ -\/>\ list:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00145}00145\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Search\ for\ IPs\ in\ HTTP\ response\ headers."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00146}00146\ \ \ \ \ \textcolor{keywordflow}{if}\ isinstance(headers,\ dict):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00147}00147\ \ \ \ \ \ \ \ \ text\ =\ json.dumps(headers)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00148}00148\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00149}00149\ \ \ \ \ \ \ \ \ text\ =\ str(headers)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{return}\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc}{find\_ips\_in\_data}}(text,\ exclude\_private=\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00153}\doxymbox{\hyperlink{namespaceonion-privacy-audit_ae046e0cd9f3903f26949a838845eb709}{00153}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceonion-privacy-audit_ae046e0cd9f3903f26949a838845eb709}{check\_version\_leak}}(data:\ dict)\ -\/>\ dict:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00154}00154\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}Check\ if\ response\ leaks\ version/OS\ information."{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00155}00155\ \ \ \ \ leaks\ =\ []}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00156}00156\ \ \ \ \ text\ =\ json.dumps(data).lower()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00158}00158\ \ \ \ \ \textcolor{comment}{\#\ Check\ for\ OS/platform\ info}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00159}00159\ \ \ \ \ os\_patterns\ =\ [\textcolor{stringliteral}{"{}windows"{}},\ \textcolor{stringliteral}{"{}linux"{}},\ \textcolor{stringliteral}{"{}darwin"{}},\ \textcolor{stringliteral}{"{}macos"{}},\ \textcolor{stringliteral}{"{}freebsd"{}},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}x86\_64"{}},\ \textcolor{stringliteral}{"{}amd64"{}},\ \textcolor{stringliteral}{"{}arm64"{}},\ \textcolor{stringliteral}{"{}aarch64"{}}]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00161}00161\ \ \ \ \ \textcolor{keywordflow}{for}\ pat\ \textcolor{keywordflow}{in}\ os\_patterns:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00162}00162\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ pat\ \textcolor{keywordflow}{in}\ text:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ leaks.append(f\textcolor{stringliteral}{"{}OS\ info\ leaked:\ \{pat\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00165}00165\ \ \ \ \ \textcolor{comment}{\#\ Check\ for\ version\ details}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00166}00166\ \ \ \ \ version\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'"{}version"{}\(\backslash\)s*:\(\backslash\)s*"{}([\string^"{}]+)"{}'})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00167}00167\ \ \ \ \ \textcolor{keywordflow}{for}\ match\ \textcolor{keywordflow}{in}\ version\_pattern.finditer(json.dumps(data)):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00168}00168\ \ \ \ \ \ \ \ \ leaks.append(f\textcolor{stringliteral}{"{}Version\ string:\ \{match.group(1)\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00170}00170\ \ \ \ \ \textcolor{comment}{\#\ Check\ for\ user-\/agent}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00171}00171\ \ \ \ \ ua\_pattern\ =\ re.compile(\textcolor{stringliteral}{r'"{}(?:user.?agent|subversion)"{}\(\backslash\)s*:\(\backslash\)s*"{}([\string^"{}]+)"{}'},\ re.I)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00172}00172\ \ \ \ \ \textcolor{keywordflow}{for}\ match\ \textcolor{keywordflow}{in}\ ua\_pattern.finditer(json.dumps(data)):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00173}00173\ \ \ \ \ \ \ \ \ leaks.append(f\textcolor{stringliteral}{"{}User-\/Agent:\ \{match.group(1)\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{return}\ \{}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00176}00176\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}leaks\_found"{}}:\ len(leaks),}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00177}00177\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}details"{}}:\ leaks,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00178}00178\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ len(leaks)\ ==\ 0,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00179}00179\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00182}\doxymbox{\hyperlink{namespaceonion-privacy-audit_a51af30a60f9f02777c6396b8247e356f}{00182}}\ \textcolor{keyword}{def\ }\doxymbox{\hyperlink{namespaceonion-privacy-audit_a51af30a60f9f02777c6396b8247e356f}{main}}():}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00183}00183\ \ \ \ \ parser\ =\ argparse.ArgumentParser(}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00184}00184\ \ \ \ \ \ \ \ \ description=\textcolor{stringliteral}{"{}OmniBus\ BlockChainCore\ —\ Onion\ Privacy\ Audit"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00185}00185\ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00186}00186\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/host"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1"{}},\ help=\textcolor{stringliteral}{"{}Node\ host"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00187}00187\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/port"{}},\ type=int,\ default=RPC\_PORT,\ help=f\textcolor{stringliteral}{"{}RPC\ port\ (default:\ \{RPC\_PORT\})"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00188}00188\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/tor-\/proxy"{}},\ default=\textcolor{stringliteral}{"{}127.0.0.1:9050"{}},\ help=\textcolor{stringliteral}{"{}Tor\ SOCKS5"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00189}00189\ \ \ \ \ parser.add\_argument(\textcolor{stringliteral}{"{}-\/-\/json"{}},\ action=\textcolor{stringliteral}{"{}store\_true"{}},\ help=\textcolor{stringliteral}{"{}JSON\ output"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00190}00190\ \ \ \ \ args\ =\ parser.parse\_args()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00192}00192\ \ \ \ \ proxy\_parts\ =\ args.tor\_proxy.split(\textcolor{stringliteral}{"{}:"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00193}00193\ \ \ \ \ proxy\_host\ =\ proxy\_parts[0]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00194}00194\ \ \ \ \ proxy\_port\ =\ int(proxy\_parts[1])\ \textcolor{keywordflow}{if}\ len(proxy\_parts)\ >\ 1\ \textcolor{keywordflow}{else}\ 9050}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00196}00196\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{CYAN\}\{BOLD\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00197}00197\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ OmniBus\ BlockChainCore\ —\ Onion\ Privacy\ Audit"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00198}00198\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Node:\ \{args.host\}:\{args.port\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00199}00199\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Tor:\ \{proxy\_host\}:\{proxy\_port\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00200}00200\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ Shards:\ \{SHARDS\}\ |\ Max\ supply:\ \{MAX\_SUPPLY:,\}\ OMNI"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00201}00201\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}\(\backslash\)n"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00203}00203\ \ \ \ \ report\ =\ \{\textcolor{stringliteral}{"{}tests"{}}:\ [],\ \textcolor{stringliteral}{"{}verdict"{}}:\ \textcolor{stringliteral}{"{}PASS"{}}\}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00204}00204\ \ \ \ \ methods\_to\_check\ =\ [\textcolor{stringliteral}{"{}getnetworkinfo"{}},\ \textcolor{stringliteral}{"{}getpeerinfo"{}},\ \textcolor{stringliteral}{"{}getblockchaininfo"{}},\ \textcolor{stringliteral}{"{}getmininginfo"{}}]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00206}00206\ \ \ \ \ \textcolor{comment}{\#\ Phase\ 1:\ Direct\ connection}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00207}00207\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{GREEN\}[PHASE\ 1]\ Direct\ RPC\ —\ checking\ for\ IP\ leaks\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00208}00208\ \ \ \ \ direct\_ips\ =\ []}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00209}00209\ \ \ \ \ direct\_version\ =\ \{\textcolor{stringliteral}{"{}leaks\_found"{}}:\ 0,\ \textcolor{stringliteral}{"{}details"{}}:\ [],\ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{True}\}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{for}\ method\ \textcolor{keywordflow}{in}\ methods\_to\_check:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00212}00212\ \ \ \ \ \ \ \ \ resp,\ headers\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a8a77f8e893ea82373f0bbf7e15d18ca3}{rpc\_call\_direct}}(args.host,\ args.port,\ method)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ resp:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00216}00216\ \ \ \ \ \ \ \ \ ips\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc}{find\_ips\_in\_data}}(resp)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00217}00217\ \ \ \ \ \ \ \ \ header\_ips\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_ad1d10515c59c610499ff14e73e60e2b2}{find\_ips\_in\_headers}}(headers)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00218}00218\ \ \ \ \ \ \ \ \ direct\_ips.extend(ips)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00219}00219\ \ \ \ \ \ \ \ \ direct\_ips.extend(header\_ips)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00220}00220\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00221}00221\ \ \ \ \ \ \ \ \ ver\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_ae046e0cd9f3903f26949a838845eb709}{check\_version\_leak}}(resp)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ver[\textcolor{stringliteral}{"{}leaks\_found"{}}]\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ direct\_version\ =\ ver}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00225}00225\ \ \ \ \ direct\_public\_ips\ =\ [ip\ \textcolor{keywordflow}{for}\ ip\ \textcolor{keywordflow}{in}\ direct\_ips\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ PRIVATE\_IPS.match(ip[\textcolor{stringliteral}{"{}ip"{}}])]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00226}00226\ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00227}00227\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}direct\_ip\_leak"{}},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00228}00228\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}public\_ips\_found"{}}:\ len(direct\_public\_ips),}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ips"{}}:\ direct\_public\_ips[:10],}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{True},\ \ \textcolor{comment}{\#\ Direct\ is\ expected\ to\ show\ IPs}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00231}00231\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00232}00232\ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}version\_info\_leak"{}},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00234}00234\ \ \ \ \ \ \ \ \ **direct\_version,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00235}00235\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00237}00237\ \ \ \ \ \textcolor{keywordflow}{if}\ direct\_public\_ips:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00238}00238\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Public\ IPs\ found\ in\ direct\ response:\ "{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{',\ '.join(ip['ip']\ for\ ip\ in\ direct\_public\_ips[:5])\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00240}00240\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00241}00241\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}No\ public\ IPs\ in\ direct\ response\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00242}00242\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00243}00243\ \ \ \ \ \textcolor{keywordflow}{if}\ direct\_version[\textcolor{stringliteral}{"{}leaks\_found"{}}]\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ detail\ \textcolor{keywordflow}{in}\ direct\_version[\textcolor{stringliteral}{"{}details"{}}]:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Info\ leak:\ \{detail\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00247}00247\ \ \ \ \ \textcolor{comment}{\#\ Phase\ 2:\ Tor\ connection}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00248}00248\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[PHASE\ 2]\ Tor-\/routed\ RPC\ —\ checking\ for\ IP\ leaks\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00250}00250\ \ \ \ \ \textcolor{comment}{\#\ Check\ Tor\ availability}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00251}00251\ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00252}00252\ \ \ \ \ \ \ \ \ test\_sock\ =\ socket.socket(socket.AF\_INET,\ socket.SOCK\_STREAM)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00253}00253\ \ \ \ \ \ \ \ \ test\_sock.settimeout(3)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00254}00254\ \ \ \ \ \ \ \ \ test\_sock.connect((proxy\_host,\ proxy\_port))}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00255}00255\ \ \ \ \ \ \ \ \ test\_sock.sendall(b\textcolor{stringliteral}{"{}\(\backslash\)x05\(\backslash\)x01\(\backslash\)x00"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00256}00256\ \ \ \ \ \ \ \ \ test\_sock.recv(2)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00257}00257\ \ \ \ \ \ \ \ \ test\_sock.close()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00258}00258\ \ \ \ \ \ \ \ \ tor\_available\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00259}00259\ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00260}00260\ \ \ \ \ \ \ \ \ tor\_available\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00262}00262\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ tor\_available:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00263}00263\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}[SKIP]\ Tor\ not\ available\ at\ \{proxy\_host\}:\{proxy\_port\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00264}00264\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}tor\_ip\_leak"{}},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00266}00266\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}note"{}}:\ \textcolor{stringliteral}{"{}Tor\ not\ available\ —\ skipped"{}},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00268}00268\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00269}00269\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00270}00270\ \ \ \ \ \ \ \ \ tor\_ips\ =\ []}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00271}00271\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ method\ \textcolor{keywordflow}{in}\ methods\_to\_check:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ resp,\ headers\_raw\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a7afafbe356f8f44dd62b8b62a9873e46}{rpc\_call\_tor}}(}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00273}00273\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proxy\_host,\ proxy\_port,\ args.host,\ args.port,\ method}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00275}00275\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{"{}error"{}}\ \textcolor{keywordflow}{in}\ resp\ \textcolor{keywordflow}{and}\ \textcolor{stringliteral}{"{}result"{}}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ resp:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00276}00276\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00278}00278\ \ \ \ \ \ \ \ \ \ \ \ \ ips\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc}{find\_ips\_in\_data}}(resp)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ header\_ips\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a9db5cf3d142f973cb37361ed75c6f6dc}{find\_ips\_in\_data}}(headers\_raw)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ tor\_ips.extend(ips)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ tor\_ips.extend(header\_ips)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00283}00283\ \ \ \ \ \ \ \ \ tor\_public\_ips\ =\ [ip\ \textcolor{keywordflow}{for}\ ip\ \textcolor{keywordflow}{in}\ tor\_ips\ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ PRIVATE\_IPS.match(ip[\textcolor{stringliteral}{"{}ip"{}}])]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ CRITICAL:\ If\ Tor\ response\ contains\ same\ IPs\ as\ direct,\ it's\ leaking}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00286}00286\ \ \ \ \ \ \ \ \ leaked\_via\_tor\ =\ [ip\ \textcolor{keywordflow}{for}\ ip\ \textcolor{keywordflow}{in}\ tor\_public\_ips}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ip[\textcolor{stringliteral}{"{}ip"{}}]\ \textcolor{keywordflow}{in}\ [d[\textcolor{stringliteral}{"{}ip"{}}]\ \textcolor{keywordflow}{for}\ d\ \textcolor{keywordflow}{in}\ direct\_public\_ips]]}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00289}00289\ \ \ \ \ \ \ \ \ passed\ =\ len(leaked\_via\_tor)\ ==\ 0}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00290}00290\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ passed:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00291}00291\ \ \ \ \ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}verdict"{}}]\ =\ \textcolor{stringliteral}{"{}FAIL"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00293}00293\ \ \ \ \ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00294}00294\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}tor\_ip\_leak"{}},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}public\_ips\_found"{}}:\ len(tor\_public\_ips),}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00296}00296\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}leaked\_real\_ip"{}}:\ len(leaked\_via\_tor)\ >\ 0,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00297}00297\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}leaked\_ips"{}}:\ leaked\_via\_tor[:5],}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ passed,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00299}00299\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00300}00300\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00301}00301\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ leaked\_via\_tor:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00302}00302\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{RED\}[FAIL]\ Real\ IP\ leaked\ via\ Tor:\ "{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{',\ '.join(ip['ip']\ for\ ip\ in\ leaked\_via\_tor)\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00304}00304\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ tor\_public\_ips:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}IPs\ in\ Tor\ response\ (not\ matching\ direct):\ "{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\textcolor{stringliteral}{"{}\{',\ '.join(ip['ip']\ for\ ip\ in\ tor\_public\_ips[:5])\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00307}00307\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00308}00308\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}No\ IP\ leaks\ detected\ via\ Tor\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00309}00309\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00310}00310\ \ \ \ \ \textcolor{comment}{\#\ Phase\ 3:\ Header\ analysis}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00311}00311\ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{GREEN\}[PHASE\ 3]\ HTTP\ header\ analysis\ ...\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00312}00312\ \ \ \ \ \_,\ headers\ =\ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a8a77f8e893ea82373f0bbf7e15d18ca3}{rpc\_call\_direct}}(args.host,\ args.port,\ \textcolor{stringliteral}{"{}getblockcount"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00313}00313\ \ \ \ \ suspicious\_headers\ =\ []}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00314}00314\ \ \ \ \ \textcolor{keywordflow}{for}\ key,\ value\ \textcolor{keywordflow}{in}\ (headers.items()\ \textcolor{keywordflow}{if}\ isinstance(headers,\ dict)\ \textcolor{keywordflow}{else}\ []):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00315}00315\ \ \ \ \ \ \ \ \ key\_lower\ =\ key.lower()}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00316}00316\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ any(h\ \textcolor{keywordflow}{in}\ key\_lower\ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}server"{}},\ \textcolor{stringliteral}{"{}x-\/powered-\/by"{}},\ \textcolor{stringliteral}{"{}x-\/node"{}},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}x-\/version"{}},\ \textcolor{stringliteral}{"{}x-\/real-\/ip"{}}]):}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00318}00318\ \ \ \ \ \ \ \ \ \ \ \ \ suspicious\_headers.append(f\textcolor{stringliteral}{"{}\{key\}:\ \{value\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00319}00319\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00320}00320\ \ \ \ \ report[\textcolor{stringliteral}{"{}tests"{}}].append(\{}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00321}00321\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}test"{}}:\ \textcolor{stringliteral}{"{}http\_header\_leak"{}},}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00322}00322\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}suspicious\_headers"{}}:\ suspicious\_headers,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00323}00323\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}passed"{}}:\ len(suspicious\_headers)\ ==\ 0,}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00324}00324\ \ \ \ \ \})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00325}00325\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00326}00326\ \ \ \ \ \textcolor{keywordflow}{if}\ suspicious\_headers:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00327}00327\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ h\ \textcolor{keywordflow}{in}\ suspicious\_headers:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00328}00328\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{YELLOW\}Suspicious\ header:\ \{h\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00329}00329\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00330}00330\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{GREEN\}No\ suspicious\ HTTP\ headers\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00332}00332\ \ \ \ \ \textcolor{comment}{\#\ Overall}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00333}00333\ \ \ \ \ all\_passed\ =\ all(t[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ report[\textcolor{stringliteral}{"{}tests"{}}])}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00334}00334\ \ \ \ \ report[\textcolor{stringliteral}{"{}verdict"{}}]\ =\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{if}\ all\_passed\ \textcolor{keywordflow}{else}\ \textcolor{stringliteral}{"{}FAIL"{}}}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00335}00335\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00336}00336\ \ \ \ \ \textcolor{keywordflow}{if}\ args.json:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00337}00337\ \ \ \ \ \ \ \ \ print(json.dumps(report,\ indent=2))}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00338}00338\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00339}00339\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\{CYAN\}\{'='*60\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00340}00340\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ PRIVACY\ AUDIT\ RESULTS"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00341}00341\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\{'='*60\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00342}00342\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ report[\textcolor{stringliteral}{"{}tests"{}}]:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00343}00343\ \ \ \ \ \ \ \ \ \ \ \ \ color\ =\ GREEN\ \textcolor{keywordflow}{if}\ t[\textcolor{stringliteral}{"{}passed"{}}]\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00344}00344\ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ \{t['test']:25s\}:\ \{color\}\{'PASS'\ if\ t['passed']\ else\ 'FAIL'\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00345}00345\ \ \ \ \ \ \ \ \ vc\ =\ GREEN\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ RED}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00346}00346\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\(\backslash\)n\ \ Verdict:\ \{vc\}\{BOLD\}\{report['verdict']\}\{RESET\}"{}})}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00347}00347\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00348}00348\ \ \ \ \ sys.exit(0\ \textcolor{keywordflow}{if}\ report[\textcolor{stringliteral}{"{}verdict"{}}]\ ==\ \textcolor{stringliteral}{"{}PASS"{}}\ \textcolor{keywordflow}{else}\ 1)}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00349}00349\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00350}00350\ }
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00351}00351\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{onion-privacy-audit_8py_source_l00352}00352\ \ \ \ \ \doxymbox{\hyperlink{namespaceonion-privacy-audit_a51af30a60f9f02777c6396b8247e356f}{main}}()}
+
+\end{DoxyCode}

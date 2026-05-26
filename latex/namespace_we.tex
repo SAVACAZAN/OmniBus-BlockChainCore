@@ -1,0 +1,38 @@
+\doxysection{We Namespace Reference}
+\hypertarget{namespace_we}{}\label{namespace_we}\index{We@{We}}
+
+
+-\/Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER  
+
+
+
+
+\doxysubsection{Detailed Description}
+-\/Are-\/\+Here-\/\+Hod\+Lum-\/\+WORKER 
+
+\begin{DoxyVerb}We-Are-Here-HodLum-WORKER.py
+─────────────────────────────
+Standalone OmniBus miner. Takes ONLY a public wallet address — never a
+mnemonic. Block rewards go to that address; the mnemonic stays in your
+desktop wallet (Liberty Suite, paper backup, hardware wallet).
+
+This is how production blockchain miners work (Bitcoin: bitcoind +
+external wallet; Ethereum: --miner.etherbase=0x...; Cosmos: separate
+operator key from validator key). Mnemonic on a 24/7 internet-exposed
+miner = bad. Public address only = safe.
+
+Usage:
+    # First time, set your reward address (one-line file, no quotes):
+    mkdir -p "$HOME/.omnibus"
+    echo 'OMNIBUS_MINER_ADDRESS=ob1qzhrauq0xe9hg033ccup7vlgsdmj6kcxyza9zp0' \\
+        > "$HOME/.omnibus/miner.env"
+
+    # Or pass it inline:
+    python We-Are-Here-HodLum-WORKER.py --miner-address ob1q...
+
+    # Run:
+    python We-Are-Here-HodLum-WORKER.py [--chain testnet|regtest|mainnet]
+
+Defaults: testnet, port 9101, seed = 38.143.19.97 (omnibusblockchain.cc).
+\end{DoxyVerb}
+ 

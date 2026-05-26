@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
+import { satToOmni, midTrunc } from "../../utils/fmt";
 import {
   Bot,
   Users,
@@ -13,11 +16,10 @@ import {
   RefreshCcw,
   Activity,
 } from "lucide-react";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
-const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
 // ─── Types: existing system-level agents (agent_manager.zig) ────────────────
 
@@ -101,7 +103,7 @@ type SortBy = "performance" | "followers" | "recent";
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
 
-const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
+const omniFmt = satToOmni;
 const omniShort = (n: number) => (n >= 0 ? "+" : "") + n.toFixed(4);
 
 const TIER_INFO: Record<string, { label: string; color: string; threshold: string }> = {
@@ -110,6 +112,8 @@ const TIER_INFO: Record<string, { label: string; color: string; threshold: strin
   t3_liquidity: { label: "T3 Liquidity", color: "bg-purple-500/20 text-purple-300",   threshold: "≥1k OMNI" },
   t4_arbitrage: { label: "T4 Arbitrage", color: "bg-emerald-500/20 text-emerald-300", threshold: "≥10k OMNI" },
 };
+
+const TIER_KEYS = Object.keys(TIER_INFO);
 
 const VENUE_COLOR: Record<string, string> = {
   omnibus_native: "bg-amber-500/20 text-amber-300",
@@ -234,8 +238,8 @@ export function AgentsPage() {
     const refresh = async () => {
       try {
         const [list, pend] = await Promise.all([
-          rpc.request_raw("agent_list", []) as Promise<AgentListResp>,
-          rpc.request_raw("agent_pending_decisions", []).catch(() => ({ count: 0, decisions: [] })) as Promise<PendingResp>,
+          rpc.agentList() as Promise<AgentListResp | null>,
+          rpc.agentPendingDecisions() as Promise<PendingResp>,
         ]);
         if (!cancelled) {
           setAgents(list?.agents || []);
@@ -256,18 +260,20 @@ export function AgentsPage() {
         if (!cancelled) setLoading(false);
       }
     };
-    refresh();
-    const id = setInterval(refresh, 5000);
+    void refresh();
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(() => { void refresh(); }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, []);
 
   // ── Fetch registry agents ────────────────────────────────────────────────
   const refreshRegistry = async () => {
     try {
-      const resp = (await rpc.request_raw("getagents", [{ sort_by: sortBy, limit: 200 }])) as GetAgentsResp | null;
+      const resp = (await rpc.getAgents(sortBy, 200)) as GetAgentsResp | null;
       setRegistry(resp?.agents || []);
       setRegistryError(null);
     } catch (e: any) {
@@ -288,29 +294,35 @@ export function AgentsPage() {
     const run = async () => {
       if (!cancelled) await refreshRegistry();
     };
-    run();
+    void run();
+    const unsub2 = wsSubscribe<WsNewBlockEvent>("new_block", () => { void run(); });
     const id = setInterval(() => {
-      if (!cancelled) refreshRegistry();
-    }, 8000);
+      if (!cancelled) void run();
+    }, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub2();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortBy]);
 
   // ── Aggregate metrics for system-level agents ────────────────────────────
-  const totalCapital = agents.reduce(
-    (acc, a) => acc + a.balance_sat + a.staked_sat + a.lp_locked_sat,
-    0,
-  );
-  const tierCounts = agents.reduce<Record<string, number>>((acc, a) => {
-    acc[a.tier] = (acc[a.tier] || 0) + 1;
-    return acc;
-  }, {});
-  const totalQueued = agents.reduce((acc, a) => acc + a.stats.decisions_queued, 0);
-  const totalExecSuccess = agents.reduce((acc, a) => acc + a.stats.exec_success, 0);
-  const totalExecFailed = agents.reduce((acc, a) => acc + a.stats.exec_failed, 0);
+  const { totalCapital, tierCounts, totalQueued, totalExecSuccess, totalExecFailed } = useMemo(() => {
+    let totalCapital = 0;
+    const tierCounts: Record<string, number> = {};
+    let totalQueued = 0;
+    let totalExecSuccess = 0;
+    let totalExecFailed = 0;
+    for (const a of agents) {
+      totalCapital += a.balance_sat + a.staked_sat + a.lp_locked_sat;
+      tierCounts[a.tier] = (tierCounts[a.tier] || 0) + 1;
+      totalQueued += a.stats.decisions_queued;
+      totalExecSuccess += a.stats.exec_success;
+      totalExecFailed += a.stats.exec_failed;
+    }
+    return { totalCapital, tierCounts, totalQueued, totalExecSuccess, totalExecFailed };
+  }, [agents]);
 
   // ── Filtered registry list (for browse tab) ──────────────────────────────
   const visibleRegistry = useMemo(() => {
@@ -376,22 +388,12 @@ export function AgentsPage() {
     });
   };
 
-  const handleEditFee = (a: RegistryAgent) => {
+  const handleEditFee = (a: RegistryAgent, newFeeBps: number) => {
     if (!localAddress) return;
-    const input = window.prompt(
-      `Edit fee_bps for "${a.name}" (current ${a.fee_bps}). Max ${reputationFeeCap(a.reputation_total)} bps.`,
-      String(a.fee_bps),
-    );
-    if (input === null) return;
-    const next = parseInt(input, 10);
-    if (!Number.isFinite(next) || next < 0 || next > 500) {
-      flash("err", "fee_bps must be 0..500");
-      return;
-    }
     callRpc("agent_edit", {
       from: localAddress,
       agent_id: a.id,
-      fee_bps: next,
+      fee_bps: newFeeBps,
       signature: "00".repeat(64),
       public_key: "00".repeat(33),
       nonce: Date.now(),
@@ -515,7 +517,7 @@ export function AgentsPage() {
               label="Exec success / fail"
               value={`${totalExecSuccess.toLocaleString()} / ${totalExecFailed.toLocaleString()}`}
             />
-            {Object.keys(TIER_INFO).map((tier) => (
+            {TIER_KEYS.map((tier) => (
               <Metric
                 key={tier}
                 label={TIER_INFO[tier].label}
@@ -564,11 +566,11 @@ export function AgentsPage() {
                       <td className="px-3 py-2 text-xs text-mempool-text-dim">{a.strategy}</td>
                       <td className="px-3 py-2 font-mono text-xs">
                         <button
-                          onClick={() => navigator.clipboard.writeText(a.address)}
+                          onClick={() => { window.location.hash = `#/address/${a.address}`; }}
                           className="text-mempool-blue hover:underline"
                           title={a.address}
                         >
-                          {a.address.slice(0, 12)}…{a.address.slice(-6)}
+                          <AddressLabel address={a.address} showEmoji truncate={{ left: 10, right: 6 }} />
                         </button>
                       </td>
                       <td className="px-3 py-2 text-right font-mono text-mempool-text">{omniFmt(a.balance_sat)}</td>
@@ -638,6 +640,18 @@ export function AgentsPage() {
           </div>
         )}
 
+        {/* agent_status — detailed stats per wallet_index */}
+        {!methodMissing && <AgentStatusPanel />}
+
+        {/* agent_report_execution — report result of a pending decision */}
+        {!methodMissing && <AgentReportPanel />}
+
+        {/* agent_edit + agent_unregister — management operations */}
+        {!methodMissing && <AgentManagePanel />}
+
+        {/* getagent — single agent lookup */}
+        {!methodMissing && <AgentLookupPanel />}
+
         <div className="mt-6 text-xs text-mempool-text-dim">
           <p>
             <span className="font-semibold text-mempool-text">Refresh:</span> auto every 5s (system) / 8s (registry).
@@ -647,6 +661,375 @@ export function AgentsPage() {
             <code>1_CORE/BlockChainCore/docs/USER_JOURNEY.md</code> for agent.json schema and
             tier progression rules.
           </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── AgentStatusPanel ─────────────────────────────────────────────────────
+
+interface AgentDetailStatus {
+  name: string;
+  wallet_index: number;
+  address: string;
+  strategy: string;
+  tier: string;
+  balance_sat: number;
+  staked_sat: number;
+  lp_locked_sat: number;
+  pnl_session_sat: number;
+  halted: boolean;
+  stats: {
+    ticks: number;
+    decisions_emitted: number;
+    decisions_queued: number;
+    exec_success: number;
+    exec_failed: number;
+    tier_transitions: number;
+    total_mined_sat: number;
+  };
+}
+
+function AgentStatusPanel() {
+  const [walletIndex, setWalletIndex] = useState("");
+  const [result, setResult] = useState<AgentDetailStatus | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const lookup = async () => {
+    const wi = parseInt(walletIndex, 10);
+    if (isNaN(wi)) { setError("Enter a valid wallet_index integer."); return; }
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const r = await rpc.agentStatus(wi);
+      if (r && typeof r === "object") setResult(r as AgentDetailStatus);
+    } catch (e) {
+      setError(String(e));
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-mempool-text mb-2">Agent status (by wallet index)</h3>
+      <div className="flex gap-3 mb-3">
+        <input
+          type="number"
+          min="0"
+          value={walletIndex}
+          onChange={(e) => setWalletIndex(e.target.value)}
+          placeholder="wallet_index (e.g. 10)"
+          className="w-40 bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+        />
+        <button
+          onClick={lookup}
+          disabled={loading}
+          className="px-3 py-1.5 rounded text-xs bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/30 hover:bg-mempool-blue/30 disabled:opacity-50"
+        >
+          {loading ? "…" : "agent_status"}
+        </button>
+      </div>
+      {error && <div className="text-red-400 text-xs mb-2">{error}</div>}
+      {result && (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-3 text-xs space-y-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-semibold text-mempool-text font-mono">{result.name}</span>
+            <span className="text-mempool-text-dim">idx {result.wallet_index}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${result.halted ? "bg-red-500/20 text-red-300" : "bg-green-500/20 text-green-300"}`}>
+              {result.halted ? "HALTED" : "RUNNING"}
+            </span>
+            <span className="text-mempool-blue">{result.tier}</span>
+            <span className="text-mempool-text-dim">{result.strategy}</span>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-x-4 gap-y-1 font-mono">
+            {[
+              ["balance", omniFmt(result.balance_sat) + " OMNI"],
+              ["staked", omniFmt(result.staked_sat) + " OMNI"],
+              ["LP locked", omniFmt(result.lp_locked_sat) + " OMNI"],
+              ["P&L session", (result.pnl_session_sat >= 0 ? "+" : "") + omniFmt(result.pnl_session_sat)],
+              ["ticks", String(result.stats.ticks)],
+              ["decisions ✉", String(result.stats.decisions_emitted)],
+              ["queued", String(result.stats.decisions_queued)],
+              ["exec ✓/✗", `${result.stats.exec_success}/${result.stats.exec_failed}`],
+              ["tier Δ", String(result.stats.tier_transitions)],
+              ["mined", omniFmt(result.stats.total_mined_sat) + " OMNI"],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <div className="text-[9px] text-mempool-text-dim uppercase">{k}</div>
+                <div className="text-mempool-text">{v}</div>
+              </div>
+            ))}
+          </div>
+          <div className="text-[10px] font-mono text-mempool-text-dim truncate">{result.address}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── AgentReportPanel ─────────────────────────────────────────────────────
+
+const EXEC_STATUSES = ["success", "rejected", "network_error", "timeout", "cancelled"] as const;
+type ExecStatus = typeof EXEC_STATUSES[number];
+
+function AgentReportPanel() {
+  const [decisionId, setDecisionId] = useState("");
+  const [status, setStatus] = useState<ExecStatus>("success");
+  const [externalId, setExternalId] = useState("");
+  const [filledSat, setFilledSat] = useState("");
+  const [fillPrice, setFillPrice] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const report = async () => {
+    const did = parseInt(decisionId, 10);
+    if (isNaN(did)) { setErr("Enter a valid decision_id."); return; }
+    setBusy(true);
+    setResult(null);
+    setErr(null);
+    try {
+      const params: Record<string, unknown> = { decision_id: did, status };
+      if (externalId) params.external_id = externalId;
+      if (filledSat) params.filled_amount_sat = parseInt(filledSat, 10) || 0;
+      if (fillPrice) params.fill_price_micro_usd = parseInt(fillPrice, 10) || 0;
+      if (errorMsg) params.error_msg = errorMsg;
+      const r = await rpc.request_raw("agent_report_execution", [params]);
+      setResult(r && typeof r === "object" ? JSON.stringify(r) : String(r));
+    } catch (e) {
+      setErr(String(e));
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-mempool-text mb-2">Report execution result</h3>
+      <p className="text-xs text-mempool-text-dim mb-3">
+        Used by the external Python agent client to report the outcome of a pending decision.
+        Sets the decision's status and marks it as settled in the queue.
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs mb-3">
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">decision_id *</span>
+          <input
+            type="number" min="0"
+            value={decisionId} onChange={(e) => setDecisionId(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="42"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">status *</span>
+          <select
+            value={status} onChange={(e) => setStatus(e.target.value as ExecStatus)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-mempool-text focus:outline-none focus:border-mempool-blue"
+          >
+            {EXEC_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">external_id</span>
+          <input
+            value={externalId} onChange={(e) => setExternalId(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="LCX-12345"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">filled_amount_sat</span>
+          <input
+            type="number" min="0"
+            value={filledSat} onChange={(e) => setFilledSat(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="0"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">fill_price_micro_usd</span>
+          <input
+            type="number" min="0"
+            value={fillPrice} onChange={(e) => setFillPrice(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="0"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-mempool-text-dim mb-1">error_msg</span>
+          <input
+            value={errorMsg} onChange={(e) => setErrorMsg(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+            placeholder="optional"
+          />
+        </label>
+      </div>
+      <button
+        onClick={report}
+        disabled={busy || !decisionId}
+        className="px-4 py-1.5 rounded text-xs bg-mempool-blue hover:bg-blue-600 text-white disabled:opacity-50"
+      >
+        {busy ? "Reporting…" : "agent_report_execution"}
+      </button>
+      {result && <div className="mt-2 text-green-400 text-xs font-mono">{result}</div>}
+      {err && <div className="mt-2 text-red-400 text-xs">{err}</div>}
+    </div>
+  );
+}
+
+// ─── AgentLookupPanel (getagent — single agent by ID) ────────────────────────
+
+function AgentLookupPanel() {
+  const [agentId, setAgentId] = useState("");
+  const [result, setResult] = useState<unknown>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  const lookup = async () => {
+    const id = parseInt(agentId, 10);
+    if (isNaN(id)) { setErr("Enter a numeric agent ID"); return; }
+    setLoading(true); setErr(""); setResult(null);
+    try {
+      const r = await rpc.getAgent(id);
+      setResult(r);
+    } catch (e) { setErr(String(e)); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+      <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+        Single Agent Lookup (getagent)
+      </h3>
+      <div className="flex gap-2">
+        <input
+          type="number"
+          min="0"
+          value={agentId}
+          onChange={(e) => setAgentId(e.target.value)}
+          placeholder="Agent ID (number)"
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text"
+        />
+        <button
+          onClick={lookup}
+          disabled={loading || !agentId}
+          className="px-4 py-1.5 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result !== null && (
+        <pre className="text-[10px] font-mono text-mempool-text-dim bg-mempool-bg rounded p-2 overflow-x-auto whitespace-pre-wrap">
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+// ─── AgentManagePanel ─────────────────────────────────────────────────────
+
+function AgentManagePanel() {
+  const wallet = useWallet();
+
+  // Edit state
+  const [editAgentId, setEditAgentId] = useState("");
+  const [editResult, setEditResult] = useState<string | null>(null);
+  const [editErr, setEditErr] = useState<string | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Unregister state
+  const [unregAgentId, setUnregAgentId] = useState("");
+  const [unregResult, setUnregResult] = useState<string | null>(null);
+  const [unregErr, setUnregErr] = useState<string | null>(null);
+  const [unregLoading, setUnregLoading] = useState(false);
+
+  const onEdit = async () => {
+    if (!wallet || !editAgentId) return;
+    setEditLoading(true);
+    setEditErr(null);
+    setEditResult(null);
+    try {
+      const r = (await rpc.request_raw("agent_edit", [{
+        from: wallet.address,
+        agent_id: editAgentId,
+        signature: "00".repeat(64),
+        public_key: wallet.publicKey ?? "",
+      }])) as { status?: string; agent_id?: string };
+      setEditResult(`status=${r?.status ?? "ok"} agent=${r?.agent_id ?? editAgentId}`);
+    } catch (e: any) {
+      setEditErr(e?.message ?? String(e));
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const onUnregister = async () => {
+    if (!wallet || !unregAgentId) return;
+    setUnregLoading(true);
+    setUnregErr(null);
+    setUnregResult(null);
+    try {
+      const nonce = await rpc.getNonce(wallet.address);
+      const r = (await rpc.request_raw("agent_unregister", [{
+        from: wallet.address,
+        agent_id: unregAgentId,
+        signature: "00".repeat(64),
+        public_key: wallet.publicKey ?? "",
+        nonce,
+      }])) as string | { txid?: string };
+      setUnregResult(typeof r === "string" ? r : (r as { txid?: string }).txid ?? "unregistered");
+    } catch (e: any) {
+      setUnregErr(e?.message ?? String(e));
+    } finally {
+      setUnregLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-gray-700/40 bg-mempool-bg-elev p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-mempool-text">Agent Management</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Edit */}
+        <div className="space-y-2">
+          <h4 className="text-xs font-semibold text-blue-300">Edit Agent</h4>
+          <input
+            value={editAgentId}
+            onChange={(e) => setEditAgentId(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="agent_id"
+          />
+          <button
+            onClick={onEdit}
+            disabled={editLoading || !editAgentId || !wallet}
+            className="w-full py-1.5 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded disabled:opacity-50"
+          >
+            {editLoading ? "…" : "Edit Agent"}
+          </button>
+          {editErr && <p className="text-[11px] text-red-400">{editErr}</p>}
+          {editResult && <p className="text-[11px] text-green-400 font-mono">{editResult}</p>}
+        </div>
+
+        {/* Unregister */}
+        <div className="space-y-2">
+          <h4 className="text-xs font-semibold text-red-300">Unregister Agent</h4>
+          <input
+            value={unregAgentId}
+            onChange={(e) => setUnregAgentId(e.target.value)}
+            className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            placeholder="agent_id"
+          />
+          <button
+            onClick={onUnregister}
+            disabled={unregLoading || !unregAgentId || !wallet}
+            className="w-full py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 rounded disabled:opacity-50"
+          >
+            {unregLoading ? "…" : "Unregister Agent"}
+          </button>
+          {unregErr && <p className="text-[11px] text-red-400">{unregErr}</p>}
+          {unregResult && <p className="text-[11px] text-green-400 font-mono">TX: {unregResult}</p>}
         </div>
       </div>
     </div>
@@ -690,6 +1073,38 @@ function BrowseTab(props: {
             <option value="followers">Sort: Followers</option>
             <option value="recent">Sort: Recently registered</option>
           </select>
+          {agents.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["id","name","owner","strategy","fee_bps","decisions_made","decisions_ok","profit_omni_total","profit_24h_omni","followers","status","reputation_total","registered_at_block"].join(","),
+                  ...agents.map((a) => [
+                    `"${a.id}"`,
+                    `"${a.name.replace(/"/g, '""')}"`,
+                    `"${a.owner}"`,
+                    a.strategy,
+                    a.fee_bps,
+                    a.decisions_made,
+                    a.decisions_ok,
+                    a.profit_omni_total.toFixed(4),
+                    (a.profit_24h_omni ?? 0).toFixed(4),
+                    a.followers,
+                    a.status,
+                    a.reputation_total,
+                    a.registered_at_block,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-agents-registry.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-3 py-2.5 text-sm bg-mempool-bg-elev border border-mempool-border rounded-lg text-mempool-text hover:border-mempool-blue inline-flex items-center gap-1.5"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <button
             onClick={onRefresh}
             className="px-3 py-2.5 text-sm bg-mempool-bg-elev border border-mempool-border rounded-lg text-mempool-text hover:border-mempool-blue inline-flex items-center gap-1.5"
@@ -735,7 +1150,7 @@ function AgentCard({ agent, onFollow }: { agent: RegistryAgent; onFollow: (id: s
             )}
           </div>
           <div className="text-[10px] font-mono text-mempool-text-dim truncate" title={agent.owner}>
-            {agent.owner.slice(0, 14)}…{agent.owner.slice(-6)}
+            {midTrunc(agent.owner, 14, 6)}
           </div>
         </div>
         <StrategyBadge strategy={agent.strategy} />
@@ -787,10 +1202,11 @@ function MyAgentsTab(props: {
   agents: RegistryAgent[];
   localAddress: string | null;
   onHaltResume: (a: RegistryAgent) => void;
-  onEditFee: (a: RegistryAgent) => void;
+  onEditFee: (a: RegistryAgent, newFeeBps: number) => void;
   onUnregister: (a: RegistryAgent) => void;
 }) {
   const { agents, localAddress, onHaltResume, onEditFee, onUnregister } = props;
+  const [editingFee, setEditingFee] = useState<{ agentId: string; value: string } | null>(null);
 
   if (!localAddress) {
     return (
@@ -845,13 +1261,40 @@ function MyAgentsTab(props: {
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => onEditFee(a)}
-              title="Edit fee"
-              className="px-3 py-2.5 text-xs bg-mempool-bg/40 border border-mempool-border rounded hover:border-mempool-blue inline-flex items-center gap-1"
-            >
-              <Edit3 className="w-3.5 h-3.5" /> Fee
-            </button>
+            {editingFee?.agentId === a.id ? (
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min="0"
+                  max="500"
+                  value={editingFee.value}
+                  onChange={(e) => setEditingFee({ agentId: a.id, value: e.target.value })}
+                  className="w-20 bg-mempool-bg border border-mempool-blue rounded px-2 py-1.5 text-xs text-mempool-text focus:outline-none font-mono"
+                  autoFocus
+                />
+                <button
+                  onClick={() => {
+                    const next = parseInt(editingFee.value, 10);
+                    if (!Number.isFinite(next) || next < 0 || next > 500) return;
+                    onEditFee(a, next);
+                    setEditingFee(null);
+                  }}
+                  className="px-2 py-1.5 text-xs bg-mempool-blue hover:bg-blue-600 text-white rounded"
+                >Save</button>
+                <button
+                  onClick={() => setEditingFee(null)}
+                  className="px-2 py-1.5 text-xs bg-mempool-bg-elev hover:bg-mempool-bg text-mempool-text-dim rounded"
+                >✕</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditingFee({ agentId: a.id, value: String(a.fee_bps) })}
+                title="Edit fee"
+                className="px-3 py-2.5 text-xs bg-mempool-bg/40 border border-mempool-border rounded hover:border-mempool-blue inline-flex items-center gap-1"
+              >
+                <Edit3 className="w-3.5 h-3.5" /> Fee
+              </button>
+            )}
             <button
               onClick={() => onHaltResume(a)}
               title={a.status === "halted" ? "Resume" : "Halt"}

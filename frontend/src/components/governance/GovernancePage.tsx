@@ -19,6 +19,10 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
+import { useBlockHeight } from "../../api/use-block-height";
+import { fmtInt } from "../../utils/fmt";
 import {
   Scale,
   RefreshCw,
@@ -31,31 +35,14 @@ import {
   AlertTriangle,
   Info,
 } from "lucide-react";
-import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
-import { hmac } from "@noble/hashes/hmac";
-import { OmniBusRpcClient } from "../../api/rpc-client";
+import { rpc } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { bytesToHex, signMessage } from "../../api/exchange-sign";
 
-// ── noble/secp256k1 v2 HMAC init (copy from exchange-sign.ts) ─────────────
+// exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 
-const sAny: unknown = secp;
-{
-  const s = sAny as Record<string, Record<string, unknown>>;
-  const concatB = (...arrays: Uint8Array[]): Uint8Array => {
-    let t = 0; for (const a of arrays) t += a.length;
-    const o = new Uint8Array(t); let off = 0;
-    for (const a of arrays) { o.set(a, off); off += a.length; }
-    return o;
-  };
-  if (s?.etc && !s.etc.hmacSha256Sync)
-    s.etc.hmacSha256Sync = (k: Uint8Array, ...m: Uint8Array[]) => hmac(sha256, k, concatB(...m));
-  if (s?.utils && !s.utils.hmacSha256Sync)
-    s.utils.hmacSha256Sync = (k: Uint8Array, ...m: Uint8Array[]) => hmac(sha256, k, concatB(...m));
-}
-
-const rpc = new OmniBusRpcClient();
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -96,14 +83,15 @@ interface GovExecuteResp { proposal_id: number; executed_block: number; action_k
 
 type SubTab = "proposals" | "all" | "propose" | "vote";
 
+const GOV_TABS: { id: SubTab; label: string }[] = [
+  { id: "proposals", label: "Active" },
+  { id: "all",       label: "All proposals" },
+  { id: "propose",   label: "Propose" },
+  { id: "vote",      label: "Vote by ID" },
+];
+
 // ── Format helpers ─────────────────────────────────────────────────────────
 
-const intFmt = new Intl.NumberFormat("en-US");
-
-function shortAddr(addr: string): string {
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 8)}…${addr.slice(-4)}`;
-}
 
 function sha256Hex(text: string): string {
   const bytes = new TextEncoder().encode(text);
@@ -136,35 +124,28 @@ function signGovVote(args: {
   return signMessage(args.privateKeyHex, msg);
 }
 
-function signMessage(privKeyHex: string, msg: string): { signature: string; publicKey: string } {
-  const bytes = new TextEncoder().encode(msg);
-  const h = sha256(sha256(bytes));
-  const priv = hexToBytes(privKeyHex);
-  const sig = secp.sign(h, priv, { lowS: true });
-  const pub = secp.getPublicKey(priv, true);
-  return { signature: bytesToHex(sig.toBytes()), publicKey: bytesToHex(pub) };
-}
-
 // ── Status badge helper ────────────────────────────────────────────────────
 
+const PROPOSAL_STATUS_CLS: Record<ProposalStatus, string> = {
+  voting:   "bg-blue-500/20 text-blue-400 border-blue-500/40",
+  passed:   "bg-green-500/20 text-green-400 border-green-500/40",
+  rejected: "bg-red-500/20 text-red-400 border-red-500/40",
+  expired:  "bg-gray-500/20 text-gray-400 border-gray-500/40",
+  executed: "bg-purple-500/20 text-purple-400 border-purple-500/40",
+};
+
+const PROPOSAL_STATUS_ICON: Record<ProposalStatus, React.ReactNode> = {
+  voting:   <Clock className="w-3 h-3 inline mr-1" />,
+  passed:   <CheckCircle className="w-3 h-3 inline mr-1" />,
+  rejected: <XCircle className="w-3 h-3 inline mr-1" />,
+  expired:  <Clock className="w-3 h-3 inline mr-1" />,
+  executed: <Zap className="w-3 h-3 inline mr-1" />,
+};
+
 function StatusBadge({ status }: { status: ProposalStatus }) {
-  const cls: Record<ProposalStatus, string> = {
-    voting:   "bg-blue-500/20 text-blue-400 border-blue-500/40",
-    passed:   "bg-green-500/20 text-green-400 border-green-500/40",
-    rejected: "bg-red-500/20 text-red-400 border-red-500/40",
-    expired:  "bg-gray-500/20 text-gray-400 border-gray-500/40",
-    executed: "bg-purple-500/20 text-purple-400 border-purple-500/40",
-  };
-  const icon: Record<ProposalStatus, React.ReactNode> = {
-    voting:   <Clock className="w-3 h-3 inline mr-1" />,
-    passed:   <CheckCircle className="w-3 h-3 inline mr-1" />,
-    rejected: <XCircle className="w-3 h-3 inline mr-1" />,
-    expired:  <Clock className="w-3 h-3 inline mr-1" />,
-    executed: <Zap className="w-3 h-3 inline mr-1" />,
-  };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] uppercase tracking-wider font-medium ${cls[status]}`}>
-      {icon[status]}{status}
+    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] uppercase tracking-wider font-medium ${PROPOSAL_STATUS_CLS[status]}`}>
+      {PROPOSAL_STATUS_ICON[status]}{status}
     </span>
   );
 }
@@ -183,11 +164,11 @@ function VoteBar({ yes, no, quorum }: { yes: number; no: number; quorum: number 
         <div className="bg-red-500/70 transition-all"   style={{ width: `${noPct}%`  }} />
       </div>
       <div className="flex justify-between text-[10px] font-mono text-mempool-text-dim">
-        <span className="text-green-400">{intFmt.format(yes)} yes</span>
+        <span className="text-green-400">{fmtInt(yes)} yes</span>
         <span className={quorumReached ? "text-green-400" : "text-mempool-text-dim"}>
-          {intFmt.format(total)}/{intFmt.format(quorum)} quorum{quorumReached ? " ✓" : ""}
+          {fmtInt(total)}/{fmtInt(quorum)} quorum{quorumReached ? " ✓" : ""}
         </span>
-        <span className="text-red-400">{intFmt.format(no)} no</span>
+        <span className="text-red-400">{fmtInt(no)} no</span>
       </div>
     </div>
   );
@@ -233,21 +214,25 @@ function ProposalModal({
 
         {/* Info grid */}
         <div className="bg-mempool-bg border border-mempool-border rounded p-3 space-y-1.5">
-          <Row label="Proposer"        value={<span className="font-mono text-mempool-blue">{shortAddr(proposal.proposer)}</span>} />
-          <Row label="Created at block" value={proposal.create_block !== undefined ? intFmt.format(proposal.create_block) : "—"} />
-          <Row label="Voting ends"      value={<>block {intFmt.format(proposal.voting_end_block)} <span className="text-mempool-text-dim">({blocksLeft > 0 ? `~${blocksLeft} blk left` : "ended"})</span></>} />
-          <Row label="Quorum"           value={`${intFmt.format(proposal.quorum)} votes required`} />
+          <Row label="Proposer"        value={
+            <button onClick={() => { window.location.hash = `#/address/${proposal.proposer}`; }} className="font-mono text-mempool-blue hover:underline">
+              <AddressLabel address={proposal.proposer} showEmoji truncate={{ left: 10, right: 8 }} />
+            </button>
+          } />
+          <Row label="Created at block" value={proposal.create_block !== undefined ? fmtInt(proposal.create_block) : "—"} />
+          <Row label="Voting ends"      value={<>block {fmtInt(proposal.voting_end_block)} <span className="text-mempool-text-dim">({blocksLeft > 0 ? `~${blocksLeft} blk left` : "ended"})</span></>} />
+          <Row label="Quorum"           value={`${fmtInt(proposal.quorum)} votes required`} />
           {proposal.action_kind && (
             <Row label="Action kind" value={<span className="text-mempool-orange font-mono">{proposal.action_kind}</span>} />
           )}
           {proposal.action_u64 !== undefined && (
-            <Row label="Action value" value={<span className="font-mono">{intFmt.format(proposal.action_u64)}</span>} />
+            <Row label="Action value" value={<span className="font-mono">{fmtInt(proposal.action_u64)}</span>} />
           )}
           {proposal.action_bool !== undefined && (
             <Row label="Action bool" value={proposal.action_bool ? "true" : "false"} />
           )}
           {proposal.executed_block !== undefined && (
-            <Row label="Executed at block" value={<span className="text-purple-400 font-mono">{intFmt.format(proposal.executed_block)}</span>} />
+            <Row label="Executed at block" value={<span className="text-purple-400 font-mono">{fmtInt(proposal.executed_block)}</span>} />
           )}
         </div>
 
@@ -338,7 +323,9 @@ function ProposalRow({
         <td className="py-2.5 px-2"><StatusBadge status={proposal.status} /></td>
         {/* Proposer */}
         <td className="py-2.5 px-2 font-mono text-[11px]">
-          <span className="text-mempool-blue" title={proposal.proposer}>{shortAddr(proposal.proposer)}</span>
+          <button onClick={() => { window.location.hash = `#/address/${proposal.proposer}`; }} className="text-mempool-blue hover:underline font-mono text-[11px]">
+            <AddressLabel address={proposal.proposer} showEmoji truncate={{ left: 8, right: 6 }} />
+          </button>
         </td>
         {/* Votes */}
         <td className="py-2.5 px-2 min-w-[120px]">
@@ -347,8 +334,8 @@ function ProposalRow({
         {/* Ends */}
         <td className="py-2.5 px-2 font-mono text-[11px] text-mempool-text-dim">
           {proposal.status === "voting"
-            ? (blocksLeft > 0 ? `~${intFmt.format(blocksLeft)} blk` : "ended")
-            : `@ ${intFmt.format(proposal.voting_end_block)}`}
+            ? (blocksLeft > 0 ? `~${fmtInt(blocksLeft)} blk` : "ended")
+            : `@ ${fmtInt(proposal.voting_end_block)}`}
         </td>
         {/* Actions */}
         <td className="py-2.5 px-2">
@@ -397,13 +384,13 @@ function ProposalRow({
               </div>
               <div className="flex flex-wrap gap-3 text-[11px] font-mono">
                 <span className="text-mempool-text-dim">
-                  quorum: <span className="text-mempool-text">{intFmt.format(proposal.quorum)}</span>
+                  quorum: <span className="text-mempool-text">{fmtInt(proposal.quorum)}</span>
                 </span>
                 <span className="text-mempool-text-dim">
-                  votes: <span className="text-mempool-text">{intFmt.format(proposal.vote_count)}</span>
+                  votes: <span className="text-mempool-text">{fmtInt(proposal.vote_count)}</span>
                 </span>
                 <span className="text-mempool-text-dim">
-                  ends @ block: <span className="text-mempool-text">{intFmt.format(proposal.voting_end_block)}</span>
+                  ends @ block: <span className="text-mempool-text">{fmtInt(proposal.voting_end_block)}</span>
                 </span>
               </div>
               <button
@@ -448,7 +435,7 @@ function ProposalsTab({
     setLoading(true);
     setErr(null);
     try {
-      const r = (await rpc.request_raw("getproposals", [{ filter }])) as GetProposalsResp | null;
+      const r = (await rpc.getProposals(filter)) as GetProposalsResp | null;
       setProposals(r?.proposals ?? []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -458,19 +445,20 @@ function ProposalsTab({
     }
   }, [filter]);
 
-  // Initial load + auto-refresh every 10s
+  // Initial load + WS-driven refresh on new block, 60s fallback.
   useEffect(() => {
     let cancelled = false;
     const tick = async () => { if (!cancelled) await refresh(); };
     void tick();
-    const id = window.setInterval(tick, 10_000);
-    return () => { cancelled = true; window.clearInterval(id); };
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void tick(); });
+    const id = window.setInterval(() => { void tick(); }, 60_000);
+    return () => { cancelled = true; window.clearInterval(id); unsub(); };
   }, [refresh]);
 
   // Fetch full proposal details for modal (getproposal returns extra fields)
   const openDetails = async (p: Proposal) => {
     try {
-      const full = (await rpc.request_raw("getproposal", [{ proposal_id: p.id }])) as Proposal | null;
+      const full = (await rpc.getProposal(p.id)) as Proposal | null;
       setModalProposal(full ?? p);
     } catch {
       setModalProposal(p);
@@ -485,6 +473,33 @@ function ProposalsTab({
           {filter === "active" ? "Active proposals" : "All proposals"}
         </span>
         <div className="flex-1 h-px bg-mempool-border" />
+        {proposals && proposals.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["id", "status", "proposer", "yes_votes", "no_votes", "quorum", "voting_end_block", "vote_count"].join(","),
+                ...proposals.map((p) => [
+                  p.id,
+                  p.status,
+                  `"${p.proposer}"`,
+                  p.yes_weight,
+                  p.no_weight,
+                  p.quorum,
+                  p.voting_end_block,
+                  p.vote_count,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-proposals.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-text font-mono"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
@@ -582,9 +597,7 @@ function ProposeTab({
     if (!titleHash) { setToast("Enter a proposal title"); return; }
     setBusy(true);
     try {
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signGovPropose({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -604,7 +617,7 @@ function ProposeTab({
         nonce,
       }])) as GovProposeResp;
       setToast(
-        `Proposal #${r.proposal_id} submitted — txid ${r.txid.slice(0, 12)}… — voting ends @ block ${intFmt.format(r.voting_end_block)}`
+        `Proposal #${r.proposal_id} submitted — txid ${r.txid.slice(0, 12)}… — voting ends @ block ${fmtInt(r.voting_end_block)}`
       );
       setTitle("");
       setNote("");
@@ -758,7 +771,7 @@ function VoteTab({
     setFetchedProposal(null);
     setVote(null);
     try {
-      const r = (await rpc.request_raw("getproposal", [{ proposal_id: id }])) as Proposal | null;
+      const r = (await rpc.getProposal(id)) as Proposal | null;
       if (!r) { setFetchErr("Proposal not found"); return; }
       setFetchedProposal(r);
     } catch (e) {
@@ -774,9 +787,7 @@ function VoteTab({
     if (!vote) { setToast("Select Yes or No"); return; }
     setBusy(true);
     try {
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signGovVote({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -916,7 +927,7 @@ function VoteTab({
 export function GovernancePage() {
   const wallet = useWallet();
   const [tab, setTab] = useState<SubTab>("proposals");
-  const [blockHeight, setBlockHeight] = useState<number>(0);
+  const blockHeight = useBlockHeight();
 
   // Shared toast + vote/execute callbacks so proposals list and modal
   // both surface results in a single place.
@@ -924,27 +935,12 @@ export function GovernancePage() {
   const [voteBusy, setVoteBusy] = useState(false);
   const [executeBusy, setExecuteBusy] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    const tick = async () => {
-      try {
-        const h = await rpc.getBlockCount();
-        if (!cancelled) setBlockHeight(h);
-      } catch { /* ignore */ }
-    };
-    void tick();
-    const id = window.setInterval(tick, 5000);
-    return () => { cancelled = true; window.clearInterval(id); };
-  }, []);
-
   const handleVote = async (proposal: Proposal, vote: "yes" | "no") => {
     if (!wallet) { setSharedToast("Connect wallet to vote"); return; }
     if (proposal.status !== "voting") { setSharedToast("Proposal is not in voting status"); return; }
     setVoteBusy(true);
     try {
-      const nonceResp = await rpc.request_raw("getnonce", [wallet.address]) as
-        { nonce?: number } | number | null;
-      const nonce = typeof nonceResp === "number" ? nonceResp : (nonceResp?.nonce ?? 0);
+      const nonce = await rpc.getNonce(wallet.address);
       const { signature, publicKey } = signGovVote({
         privateKeyHex: wallet.privateKey,
         from: wallet.address,
@@ -976,7 +972,7 @@ export function GovernancePage() {
     try {
       const r = (await rpc.request_raw("gov_execute", [{ proposal_id: proposal.id }])) as GovExecuteResp;
       setSharedToast(
-        `Proposal #${r.proposal_id} executed at block ${intFmt.format(r.executed_block)} — action: ${r.action_kind}`
+        `Proposal #${r.proposal_id} executed at block ${fmtInt(r.executed_block)} — action: ${r.action_kind}`
       );
     } catch (e) {
       setSharedToast(`Execute failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -999,18 +995,13 @@ export function GovernancePage() {
         </h2>
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-[10px] sm:text-xs text-mempool-text-dim font-mono whitespace-nowrap">
-          height {intFmt.format(blockHeight)}
+          height {fmtInt(blockHeight)}
         </span>
       </div>
 
       {/* Sub-tab bar */}
       <div className="flex gap-1 border-b border-mempool-border mb-4 overflow-x-auto scrollbar-none">
-        {([
-          { id: "proposals", label: "Active" },
-          { id: "all",       label: "All proposals" },
-          { id: "propose",   label: "Propose" },
-          { id: "vote",      label: "Vote by ID" },
-        ] as { id: SubTab; label: string }[]).map((t) => {
+        {GOV_TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button
