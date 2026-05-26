@@ -107,6 +107,12 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
   }, [txs]);
   const pricePairs = useMemo(() => Array.from(new Set(prices.map((p) => p.pair))), [prices]);
 
+  const isOnChain = tipHeight > 0 && full.height < tipHeight - 100;
+  const priceSourceLabel = isOnChain ? "on-chain" : "live";
+  const priceSourceClass = isOnChain
+    ? "bg-mempool-blue/20 text-mempool-blue"
+    : "bg-mempool-green/20 text-mempool-green";
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}>
@@ -182,13 +188,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
               ("live") or read from the on-chain block ("on-chain"). The
               legacy cache trims after ~100 blocks behind tip, so anything
               older is almost certainly chain-sourced. */}
-          {prices.length > 0 && (() => {
-            const isOnChain = tipHeight > 0 && full.height < tipHeight - 100;
-            const sourceLabel = isOnChain ? "on-chain" : "live";
-            const sourceClass = isOnChain
-              ? "bg-mempool-blue/20 text-mempool-blue"
-              : "bg-mempool-green/20 text-mempool-green";
-            return (
+          {prices.length > 0 && (
               <div className="bg-mempool-bg rounded-lg p-3 border border-mempool-border/50">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[10px] text-mempool-text-dim uppercase tracking-wider">
@@ -204,7 +204,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                           (p.bidMicroUsd / MICRO_PER_USD).toFixed(6),
                           (p.askMicroUsd / MICRO_PER_USD).toFixed(6),
                           p.timestampMs,
-                          isOnChain ? "on-chain" : "live",
+                          priceSourceLabel,
                         ].join(",")),
                       ].join("\n");
                       const blob = new Blob([csvRows], { type: "text/csv" });
@@ -254,8 +254,8 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                                   {p.success ? fmtTs(p.timestampMs) : "—"}
                                 </td>
                                 <td className="text-right pl-1">
-                                  <span className={`text-[9px] px-1 py-0.5 rounded ${sourceClass}`}>
-                                    {sourceLabel}
+                                  <span className={`text-[9px] px-1 py-0.5 rounded ${priceSourceClass}`}>
+                                    {priceSourceLabel}
                                   </span>
                                 </td>
                               </tr>
@@ -267,8 +267,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                   })}
                 </div>
               </div>
-            );
-          })()}
+          )}
 
           {/* Fee Summary */}
           {txs.length > 0 && (

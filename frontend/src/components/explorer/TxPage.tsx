@@ -49,6 +49,10 @@ export function TxPage({ hash, onNavigate }: Props) {
     );
   }
 
+  const txMs = tx.timestamp !== undefined && tx.timestamp > 0
+    ? (tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp)
+    : null;
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
       {/* Breadcrumb */}
@@ -113,17 +117,14 @@ export function TxPage({ hash, onNavigate }: Props) {
             </div>
           )}
 
-          {tx.timestamp !== undefined && tx.timestamp > 0 && (() => {
-            const ms = tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp;
-            return (
+          {txMs !== null && (
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Timestamp</div>
-                <div className="text-mempool-text font-mono text-xs" title={new Date(ms).toLocaleString()}>
-                  {fmtAge(ms)} · {new Date(ms).toLocaleTimeString()}
+                <div className="text-mempool-text font-mono text-xs" title={new Date(txMs).toLocaleString()}>
+                  {fmtAge(txMs)} · {new Date(txMs).toLocaleTimeString()}
                 </div>
               </div>
-            );
-          })()}
+          )}
 
           {tx.kind && (
             <div>
