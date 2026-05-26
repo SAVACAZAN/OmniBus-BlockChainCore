@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Trash2, Clock, RefreshCw, X, Plus } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 
@@ -298,7 +299,9 @@ export function ColdWalletPanel() {
               {addresses.map((entry) => (
                 <tr key={entry.address} className="border-t border-mempool-border/40 hover:bg-mempool-bg/50">
                   <td className="py-2 px-2 text-mempool-blue" title={entry.address}>
-                    {shortAddr(entry.address)}
+                    <button onClick={() => { window.location.hash = `#/address/${entry.address}`; }} className="hover:underline">
+                      <AddressLabel address={entry.address} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </button>
                   </td>
                   <td className="py-2 px-2 text-mempool-text-dim">
                     {entry.label || <span className="italic opacity-50">—</span>}

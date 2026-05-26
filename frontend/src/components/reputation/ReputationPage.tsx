@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
@@ -576,11 +577,11 @@ function TabLeaderboard({
                       </td>
                       <td className="px-3 py-2 font-mono text-xs">
                         <button
-                          onClick={() => onCopy(e.address)}
+                          onClick={() => { window.location.hash = `#/address/${e.address}`; }}
                           className="text-mempool-blue hover:underline"
-                          title="Click to copy"
+                          title={e.address}
                         >
-                          {truncAddr(e.address)}
+                          <AddressLabel address={e.address} showEmoji truncate={{ left: 8, right: 6 }} />
                         </button>
                       </td>
                       {CUPS.map((c) => (

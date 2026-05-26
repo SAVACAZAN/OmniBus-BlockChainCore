@@ -35,6 +35,7 @@ import {
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 
@@ -260,7 +261,9 @@ function EventInfoCard({
       {/* Meta rows */}
       <div className="space-y-1">
         <Row label="organizer" value={
-          <span className="text-mempool-blue" title={event.organizer}>{shortAddr(event.organizer)}</span>
+          <button onClick={() => { window.location.hash = `#/address/${event.organizer}`; }} className="text-mempool-blue hover:underline">
+            <AddressLabel address={event.organizer} showEmoji truncate={{ left: 8, right: 6 }} />
+          </button>
         } />
         <Row label="created at block" value={intFmt.format(event.create_block)} />
         <Row

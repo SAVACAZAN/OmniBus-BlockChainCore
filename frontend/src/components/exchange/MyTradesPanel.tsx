@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 
 const rpc = new OmniBusRpcClient();
@@ -171,7 +172,9 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
                     <td className="py-1 pr-2 text-right">{priceUsd.toFixed(4)}</td>
                     <td className="py-1 pr-2 text-right">{amtOmni.toFixed(4)}</td>
                     <td className="py-1 pr-2 text-mempool-text-dim" title={t.counterparty}>
-                      {shortAddr(t.counterparty)}
+                      <button onClick={() => { if (t.counterparty) window.location.hash = `#/address/${t.counterparty}`; }} className="hover:text-mempool-blue hover:underline transition-colors">
+                        <AddressLabel address={t.counterparty ?? ""} showEmoji truncate={{ left: 8, right: 5 }} />
+                      </button>
                     </td>
                     <td className="py-1 pr-2 text-right text-mempool-text-dim">{t.blockHeight}</td>
                     <td className="py-1">

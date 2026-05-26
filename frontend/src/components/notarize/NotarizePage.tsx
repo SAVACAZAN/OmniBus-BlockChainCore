@@ -34,6 +34,7 @@ import {
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 
@@ -1066,7 +1067,9 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
                       {fmtOmni(row.amount_sat)} <span className="text-mempool-text-dim">OMNI</span>
                     </td>
                     <td className="py-2 px-2 text-mempool-blue" title={counterparty}>
-                      {shortAddr(counterparty)}
+                      <button onClick={() => { if (counterparty) window.location.hash = `#/address/${counterparty}`; }} className="hover:underline">
+                        <AddressLabel address={counterparty ?? ""} showEmoji truncate={{ left: 8, right: 6 }} />
+                      </button>
                     </td>
                     <td className="py-2 px-2 text-right text-mempool-text-dim">
                       {intFmt.format(row.timeout_block)}

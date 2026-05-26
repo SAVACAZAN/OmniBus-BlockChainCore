@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked } from "../../api/wallet-keystore";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 import { useWallet } from "../../api/use-wallet";
 import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
-import { AddressLabel } from "../common/AddressLabel";
 import { TxHashLink } from "../common/TxHashLink";
 
 const rpc = new OmniBusRpcClient();
@@ -939,11 +939,11 @@ export function NamesPage() {
                   </td>
                   <td className="px-3 py-2 text-xs">
                     <button
-                      onClick={() => navigator.clipboard.writeText(e.address)}
+                      onClick={() => { window.location.hash = `#/address/${e.address}`; }}
                       className="font-mono text-mempool-text hover:text-mempool-blue hover:underline"
-                      title={`Click to copy ${e.address}`}
+                      title={e.address}
                     >
-                      {e.address.slice(0, 14)}…{e.address.slice(-8)}
+                      <AddressLabel address={e.address} showEmoji truncate={{ left: 10, right: 8 }} />
                     </button>
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-mono text-mempool-text-dim">
@@ -1457,9 +1457,12 @@ function BrowseByCategory() {
                     <span className={`font-semibold ${cat?.color}`}>
                       {e.name}.{e.tld}
                     </span>
-                    <span className="text-[10px] text-mempool-text-dim font-mono ml-auto">
-                      {e.address.slice(0, 14)}…{e.address.slice(-6)}
-                    </span>
+                    <button
+                      onClick={() => { window.location.hash = `#/address/${e.address}`; }}
+                      className="text-[10px] text-mempool-text-dim font-mono ml-auto hover:text-mempool-blue hover:underline"
+                    >
+                      <AddressLabel address={e.address} showEmoji truncate={{ left: 10, right: 6 }} />
+                    </button>
                     <span className="text-[9px] text-mempool-text-dim">
                       block #{e.registeredAtBlock.toLocaleString()}
                     </span>

@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Shield, Trash2, ChevronDown, ChevronRight, Plus, X, RefreshCw, AlertTriangle } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
@@ -302,7 +303,9 @@ export function CovenantPanel() {
                   ) : (
                     <ChevronRight className="w-3.5 h-3.5 text-mempool-text-dim flex-shrink-0" />
                   )}
-                  <span className="font-mono text-xs text-mempool-blue">{shortAddr(c.address)}</span>
+                  <span className="font-mono text-xs text-mempool-blue">
+                    <AddressLabel address={c.address} showEmoji truncate={{ left: 8, right: 6 }} />
+                  </span>
                   <span className="text-xs text-mempool-text">{c.label || <span className="italic text-mempool-text-dim">—</span>}</span>
                   <span className="text-[10px] text-mempool-text-dim">
                     {c.whitelist.length} allowed dest{c.whitelist.length !== 1 ? "s" : ""}

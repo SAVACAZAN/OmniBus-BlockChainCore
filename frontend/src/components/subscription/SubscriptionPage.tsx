@@ -18,6 +18,7 @@ import { useState, useEffect, useCallback } from "react";
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 
@@ -328,7 +329,9 @@ export function SubscriptionPage() {
           </div>
           <div className="text-right text-xs text-mempool-text-dim">
             <p>Connected as</p>
-            <p className="font-mono text-mempool-blue">{shortAddr(wallet.address)}</p>
+            <p className="font-mono text-mempool-blue">
+              <AddressLabel address={wallet.address} showEmoji truncate={{ left: 8, right: 6 }} />
+            </p>
           </div>
         </div>
       </div>
@@ -524,7 +527,9 @@ export function SubscriptionPage() {
                   {parseFloat(createAmount || "0").toFixed(4)} OMNI
                 </span>{" "}
                 to{" "}
-                <span className="font-mono text-mempool-text">{shortAddr(createTo)}</span>
+                <span className="font-mono text-mempool-text">
+                  <AddressLabel address={createTo} showEmoji truncate={{ left: 8, right: 6 }} />
+                </span>
               </p>
               <p className="text-mempool-text">
                 Every{" "}
@@ -664,12 +669,16 @@ function SubscriptionCard({
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-mempool-text-dim mt-2">
             <div>
               <span className="opacity-70">From </span>
-              <span className="font-mono text-mempool-text">{shortAddr(sub.from)}</span>
+              <button onClick={() => { window.location.hash = `#/address/${sub.from}`; }} className="font-mono text-mempool-text hover:text-mempool-blue hover:underline">
+              <AddressLabel address={sub.from} showEmoji truncate={{ left: 8, right: 6 }} />
+            </button>
               {isOwner && <span className="ml-1 text-mempool-blue">(you)</span>}
             </div>
             <div>
               <span className="opacity-70">To </span>
-              <span className="font-mono text-mempool-text">{shortAddr(sub.to)}</span>
+              <button onClick={() => { window.location.hash = `#/address/${sub.to}`; }} className="font-mono text-mempool-text hover:text-mempool-blue hover:underline">
+                <AddressLabel address={sub.to} showEmoji truncate={{ left: 8, right: 6 }} />
+              </button>
             </div>
             <div>
               <span className="opacity-70">Per period </span>

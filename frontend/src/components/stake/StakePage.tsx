@@ -29,6 +29,7 @@ import {
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 import { useGlobalBalance, refreshGlobalBalance } from "../../api/use-global-balance";
@@ -779,13 +780,13 @@ function TopStakersTab() {
                 <tr key={r.address + i} className="border-t border-mempool-border/40">
                   <td className="py-2 px-2 text-mempool-text-dim">{i + 1}</td>
                   <td className="py-2 px-2">
-                    <a
-                      href={`/blocks/${r.address}`}
+                    <button
+                      onClick={() => { window.location.hash = `#/address/${r.address}`; }}
                       className="text-mempool-blue hover:underline"
                       title={r.address}
                     >
-                      {shortAddr(r.address)}
-                    </a>
+                      <AddressLabel address={r.address} showEmoji truncate={{ left: 8, right: 6 }} />
+                    </button>
                   </td>
                   <td className="py-2 px-2 text-right text-mempool-text">{fmtOmni(r.amount_sat)}</td>
                   <td className="py-2 px-2 text-right text-mempool-text-dim">{intFmt.format(r.days_locked)}</td>
