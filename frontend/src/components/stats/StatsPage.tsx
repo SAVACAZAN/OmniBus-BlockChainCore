@@ -371,7 +371,7 @@ export function StatsPage() {
             <StatCard
               label="Avg Fee / TX"
               value={`${(netStats.avgFeeLast100 / SAT_PER_OMNI).toFixed(8)} OMNI`}
-              sub={`${netStats.avgFeeLast100.toLocaleString()} SAT_PER_OMNI`}
+              sub={`${netStats.avgFeeLast100.toLocaleString()} sat`}
               color="green"
             />
           )}
@@ -420,7 +420,7 @@ export function StatsPage() {
               <StatCard
                 label="Latest Block Fees"
                 value={`${((chainMetrics.latestBlockFees ?? 0) / SAT_PER_OMNI).toFixed(8)} OMNI`}
-                sub={`${(chainMetrics.latestBlockFees ?? 0).toLocaleString()} SAT_PER_OMNI`}
+                sub={`${(chainMetrics.latestBlockFees ?? 0).toLocaleString()} sat`}
                 color="green"
               />
             )}
@@ -660,7 +660,7 @@ export function StatsPage() {
       {series.some((s) => s.feesEstimate > 0) && (
         <div className="bg-mempool-bg-elev border border-mempool-border rounded-xl p-4">
           <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim mb-3">
-            Fees per Block (SAT_PER_OMNI)
+            Fees per Block (sat)
           </h3>
           <ResponsiveContainer width="100%" height={120}>
             <BarChart data={series} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
@@ -676,7 +676,7 @@ export function StatsPage() {
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 labelFormatter={(v) => `Block #${v}`}
-                formatter={(v: any) => [`${(v/SAT_PER_OMNI).toFixed(8)} OMNI (${Number(v).toLocaleString()} SAT_PER_OMNI)`, "Fees"]}
+                formatter={(v: any) => [`${(v/SAT_PER_OMNI).toFixed(8)} OMNI (${Number(v).toLocaleString()} sat)`, "Fees"]}
               />
               <Bar dataKey="feesEstimate" fill="#a855f7" radius={[2, 2, 0, 0]} maxBarSize={16} />
             </BarChart>
