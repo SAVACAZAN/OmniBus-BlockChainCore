@@ -270,9 +270,10 @@ function GridLadderChart({
 
 function GridLevelsModal({ grid_id, pairs, onClose }: { grid_id: number; pairs: Pair[]; onClose: () => void }) {
   const [status, setStatus] = useState<GridStatus | null>(null);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
 
   useEffect(() => {
-    rpc.gridStatus(grid_id).then(setStatus);
+    rpc.gridStatus(grid_id).then(setStatus).catch((e: any) => setLoadErr(e?.message ?? String(e)));
   }, [grid_id]);
 
   const pair = pairs.find((p) => status && p.id === status.pair_id);
@@ -286,8 +287,10 @@ function GridLevelsModal({ grid_id, pairs, onClose }: { grid_id: number; pairs: 
           <h2 className="text-sm font-bold text-mempool-text uppercase tracking-wider">Grid #{grid_id} Levels</h2>
           <button onClick={onClose} className="text-mempool-text-dim hover:text-mempool-text text-lg">×</button>
         </div>
-        {!status ? (
-          <p className="text-mempool-text-dim text-sm text-center py-8">Loading…</p>
+        {loadErr ? (
+          <p className="text-red-400 text-xs font-mono text-center py-8">{loadErr}</p>
+        ) : !status ? (
+          <p className="text-mempool-text-dim text-sm text-center py-8 animate-pulse">Loading…</p>
         ) : (
           <div className="space-y-3">
             {/* Summary stats */}
@@ -323,6 +326,7 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
   const [showCreate, setShowCreate] = useState(false);
   const [detailGridId, setDetailGridId] = useState<number | null>(null);
   const [cancelling, setCancelling] = useState<number | null>(null);
+  const [cancelErr, setCancelErr] = useState<string | null>(null);
   const [filterOwn, setFilterOwn] = useState(false);
 
   async function load() {
@@ -344,11 +348,12 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
   async function cancel(g: GridConfig) {
     if (!walletAddress) return;
     setCancelling(g.grid_id);
+    setCancelErr(null);
     try {
       await rpc.gridCancel(g.grid_id, walletAddress);
       await load();
     } catch (e: any) {
-      alert(e?.message ?? "Cancel failed");
+      setCancelErr(e?.message ?? "Cancel failed");
     } finally {
       setCancelling(null);
     }
@@ -440,6 +445,10 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
         </div>
       </div>
 
+      {cancelErr && (
+        <p className="text-xs text-red-400 font-mono px-1">{cancelErr}</p>
+      )}
+
       <div className="text-[10px] text-mempool-text-dim bg-mempool-bg-elev rounded-lg p-3 border border-mempool-border">
         Grid = automated market making. Set price range + levels once — chain trades automatically using oracle prices.
         Funds stay in your wallet. <strong className="text-mempool-text">1 HTLC per fill</strong>, not per order.
@@ -481,7 +490,7 @@ export function GridPanel({ pairs, walletAddress }: { pairs: Pair[]; walletAddre
                     </td>
                     <td className="py-2 pr-3 text-right text-mempool-text">{g.levels}×2</td>
                     <td className="py-2 pr-3 text-right text-mempool-text">{g.filled_count}</td>
-                    <td className="py-2 pr-3 text-right font-mono text-green-400">
+                    <td className={`py-2 pr-3 text-right font-mono ${g.profit_quote >= 0 ? "text-green-400" : "text-red-400"}`}>
                       {g.profit_quote >= 0 ? "+" : ""}{(g.profit_quote / MICRO_PER_USD).toFixed(4)} {quote}
                     </td>
                     <td className="py-2 pr-3 text-center">

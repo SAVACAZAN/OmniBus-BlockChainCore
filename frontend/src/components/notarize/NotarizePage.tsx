@@ -909,7 +909,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
   // Live-hash proof text
   useEffect(() => {
     if (proofMode !== "text" || !proofInput) { if (proofMode === "text") setProofHash(""); return; }
-    void sha256HexFromText(proofInput).then(setProofHash);
+    void sha256HexFromText(proofInput).then(setProofHash).catch(() => setProofHash(""));
   }, [proofInput, proofMode]);
 
   const doRelease = async (escrowId: number) => {
@@ -1237,7 +1237,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
   // Live hash from secret text
   useEffect(() => {
     if (condMode !== "text" || !condText) { if (condMode === "text") setCondHash(""); return; }
-    void sha256HexFromText(condText).then(setCondHash);
+    void sha256HexFromText(condText).then(setCondHash).catch(() => setCondHash(""));
   }, [condText, condMode]);
 
   const showToast = (msg: string) => {
@@ -1496,7 +1496,7 @@ function ReleaseEscrowTab() {
   // Live hash from proof text
   useEffect(() => {
     if (proofMode !== "text" || !proofText) { if (proofMode === "text") setProofHash(""); return; }
-    void sha256HexFromText(proofText).then(setProofHash);
+    void sha256HexFromText(proofText).then(setProofHash).catch(() => setProofHash(""));
   }, [proofText, proofMode]);
 
   const loadEscrow = async () => {

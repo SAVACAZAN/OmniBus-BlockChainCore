@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import {
   fetchEvmBalance,
@@ -315,7 +315,7 @@ export function MultiWalletBalances() {
       {sameEvm && (
         <div className="text-[10px] text-mempool-text-dim bg-mempool-bg px-3 py-1.5 rounded">
           Same EVM address for all wallets (index 0):{" "}
-          <span className="font-mono text-mempool-text">{evmAddrs[0]?.slice(0,10)}…{evmAddrs[0]?.slice(-6)}</span>
+          <span className="font-mono text-mempool-text">{midTrunc(evmAddrs[0] ?? "", 10, 6)}</span>
           {" "}— Sepolia/Liberty/Base balances shown once, applied to all rows.
         </div>
       )}
@@ -338,14 +338,14 @@ export function MultiWalletBalances() {
                         <div className="flex items-center gap-1 text-[10px]">
                           <span className="text-mempool-text-dim w-8 shrink-0">EVM</span>
                           <span className="font-mono text-mempool-text-dim truncate" title={row.evmAddr}>
-                            {row.evmAddr.slice(0,12)}…{row.evmAddr.slice(-6)}
+                            {midTrunc(row.evmAddr, 12, 6)}
                           </span>
                         </div>
                       )}
                       <div className="flex items-center gap-1 text-[10px]">
                         <span className="text-mempool-text-dim w-8 shrink-0">OMNI</span>
                         <span className="font-mono text-[10px] text-mempool-text-dim truncate" title={row.omniAddr}>
-                          {row.omniAddr.slice(0,14)}…{row.omniAddr.slice(-8)}
+                          {midTrunc(row.omniAddr, 14, 8)}
                         </span>
                       </div>
                     </div>
@@ -410,7 +410,7 @@ export function MultiWalletBalances() {
                   <td className="py-1 px-1">
                     <div className="text-mempool-text font-semibold truncate" style={{ fontSize: "8px" }}>Slot #{row.index}</div>
                     <div className="font-mono text-mempool-text-dim truncate" style={{ fontSize: "7px" }} title={row.evmAddr}>
-                      {row.evmAddr ? `${row.evmAddr.slice(0,6)}…${row.evmAddr.slice(-3)}` : ""}
+                      {midTrunc(row.evmAddr, 6, 3)}
                     </div>
                   </td>
                   {COLS.map(c => (
