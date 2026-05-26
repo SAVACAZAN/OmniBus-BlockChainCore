@@ -24,6 +24,7 @@ function fmtOmni(sat: number): string {
 export function MinerTable() {
   const { state } = useBlockchain();
   const [rpcMiners, setRpcMiners] = useState<MinerRow[]>([]);
+  const [addrSearch, setAddrSearch] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -70,11 +71,18 @@ export function MinerTable() {
 
   return (
     <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border overflow-hidden backdrop-blur-sm">
-      <div className="px-4 py-3 border-b border-mempool-border flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
+      <div className="px-4 py-3 border-b border-mempool-border flex flex-wrap items-center gap-3">
+        <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider shrink-0">
           Miners ({miners.length})
         </h3>
-        <div className="flex items-center gap-3">
+        <input
+          type="text"
+          placeholder="Filter by address…"
+          value={addrSearch}
+          onChange={(e) => setAddrSearch(e.target.value)}
+          className="flex-1 min-w-[140px] max-w-xs bg-mempool-bg border border-mempool-border rounded px-3 py-1 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
+        />
+        <div className="flex items-center gap-3 ml-auto">
           {totalBlocks > 0 && (
             <span className="text-[10px] text-mempool-text-dim">
               {totalBlocks.toLocaleString()} blocks total
@@ -124,6 +132,7 @@ export function MinerTable() {
           <tbody className="divide-y divide-mempool-border/30">
             {[...miners]
               .sort((a, b) => b.blocksMined - a.blocksMined)
+              .filter((m) => !addrSearch.trim() || m.address.toLowerCase().includes(addrSearch.trim().toLowerCase()))
               .map((miner, idx) => {
                 const pct = totalBlocks > 0
                   ? (miner.blocksMined / totalBlocks) * 100
@@ -167,6 +176,13 @@ export function MinerTable() {
                   </tr>
                 );
               })}
+            {addrSearch.trim() && miners.filter((m) => m.address.toLowerCase().includes(addrSearch.trim().toLowerCase())).length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-4 text-center text-xs text-mempool-text-dim">
+                  No miners match "{addrSearch}"
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
