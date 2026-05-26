@@ -7185,9 +7185,20 @@ fn handleGetBlk(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
     }
     const prices_validated = blk.validatePrices();
 
+    // Build transactions array: array of txid strings so BlockPage can
+    // load individual TX details via gettransaction.
+    var tx_arr: []u8 = try alloc.dupe(u8, "");
+    for (blk.transactions.items, 0..) |tx, ti| {
+        const sep: []const u8 = if (ti == 0) "" else ",";
+        const e = try std.fmt.allocPrint(alloc, "{s}\"{s}\"", .{ sep, tx.hash });
+        const m = try std.fmt.allocPrint(alloc, "{s}{s}", .{ tx_arr, e });
+        alloc.free(tx_arr); alloc.free(e); tx_arr = m;
+    }
+    defer alloc.free(tx_arr);
+
     return std.fmt.allocPrint(alloc,
-        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d},\"prices\":{s},\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
-        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, total_fees, prices_buf[0..prices_len], pr_hex, if (prices_validated) "true" else "false" });
+        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"hash\":\"{s}\",\"height\":{d},\"timestamp\":{d},\"previousHash\":\"{s}\",\"merkleRoot\":\"{s}\",\"difficulty\":{d},\"nonce\":{d},\"txCount\":{d},\"size\":{d},\"miner\":\"{s}\",\"rewardSAT\":{d},\"totalFees\":{d},\"transactions\":[{s}],\"prices\":{s},\"pricesRoot\":\"{s}\",\"pricesValidated\":{s}}}}}",
+        .{ id, blk.hash, blk.index, blk.timestamp, blk.previous_hash, mr_hex, ctx.bc.difficulty, blk.nonce, tx_count, approx_size, blk.miner_address, blk.reward_sat, total_fees, tx_arr, prices_buf[0..prices_len], pr_hex, if (prices_validated) "true" else "false" });
 }
 
 fn handleGetBlks(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
