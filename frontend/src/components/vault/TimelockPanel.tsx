@@ -69,6 +69,7 @@ export function TimelockPanel() {
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [spendBusy, setSpendBusy] = useState<string | null>(null);
+  const [statusMap, setStatusMap] = useState<Record<string, { blocks_remaining: number }>>({});
 
   // Create form
   const [dest, setDest] = useState("");
@@ -137,6 +138,14 @@ export function TimelockPanel() {
     } finally {
       setCreateBusy(false);
     }
+  };
+
+  const handleStatus = async (vaultId: string) => {
+    try {
+      const r = await rpc.request_raw("timelock_status", [{ vault_id: vaultId }]) as
+        { blocks_remaining?: number } | null;
+      if (r) setStatusMap((prev) => ({ ...prev, [vaultId]: { blocks_remaining: r.blocks_remaining ?? 0 } }));
+    } catch { /* ignore */ }
   };
 
   const handleSpend = async (vaultId: string) => {
@@ -288,6 +297,15 @@ export function TimelockPanel() {
                     dest: {shortAddr(v.dest)}
                   </span>
                   <div className="flex-1" />
+                  <button
+                    onClick={() => void handleStatus(v.vault_id)}
+                    className="px-2 py-1 text-[10px] rounded border border-mempool-border/40 text-mempool-text-dim hover:border-mempool-blue/40 hover:text-mempool-blue"
+                    title="Fetch live status"
+                  >
+                    {statusMap[v.vault_id] !== undefined
+                      ? `${statusMap[v.vault_id].blocks_remaining.toLocaleString()} blk left`
+                      : "Status"}
+                  </button>
                   {v.state !== "spent" && (
                     <button
                       onClick={() => void handleSpend(v.vault_id)}

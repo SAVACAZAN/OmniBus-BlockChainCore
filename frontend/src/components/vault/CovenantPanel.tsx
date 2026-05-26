@@ -42,6 +42,7 @@ export function CovenantPanel() {
   const [toast, setToast] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [removeAddr, setRemoveAddr] = useState<string | null>(null);
+  const [liveMap, setLiveMap] = useState<Record<string, CovenantEntry>>({});
 
   // Create form state
   const [formAddr, setFormAddr] = useState("");
@@ -107,6 +108,13 @@ export function CovenantPanel() {
     } finally {
       setCreateBusy(false);
     }
+  };
+
+  const handleFetchLive = async (address: string) => {
+    try {
+      const r = await rpc.request_raw("covenant_get", [{ address }]) as CovenantEntry | null;
+      if (r) setLiveMap((prev) => ({ ...prev, [address]: r }));
+    } catch { /* ignore */ }
   };
 
   const handleRemove = async (address: string) => {
@@ -317,19 +325,29 @@ export function CovenantPanel() {
                 {/* Expanded whitelist */}
                 {isOpen && (
                   <div className="px-4 pb-3 border-t border-mempool-border/40 space-y-1 pt-2">
-                    <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-2">
-                      Whitelist
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">
+                        Whitelist{liveMap[c.address] ? " (live)" : ""}
+                      </div>
+                      {!liveMap[c.address] && (
+                        <button
+                          onClick={() => void handleFetchLive(c.address)}
+                          className="text-[10px] text-mempool-blue hover:underline"
+                        >
+                          Fetch live
+                        </button>
+                      )}
                     </div>
-                    {c.whitelist.map((addr, i) => (
+                    {(liveMap[c.address]?.whitelist ?? c.whitelist).map((addr, i) => (
                       <div key={i} className="font-mono text-xs text-mempool-text bg-mempool-bg-elev rounded px-2 py-1 break-all">
                         {addr}
                       </div>
                     ))}
-                    {c.max_per_tx_sat && (
+                    {(liveMap[c.address]?.max_per_tx_sat ?? c.max_per_tx_sat) ? (
                       <div className="text-[10px] text-mempool-text-dim pt-1">
-                        Max per TX: {(c.max_per_tx_sat / SAT_PER_OMNI).toFixed(4)} OMNI
+                        Max per TX: {((liveMap[c.address]?.max_per_tx_sat ?? c.max_per_tx_sat ?? 0) / SAT_PER_OMNI).toFixed(4)} OMNI
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </div>

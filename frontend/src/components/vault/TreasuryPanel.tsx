@@ -127,6 +127,7 @@ export function TreasuryPanel() {
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [distributeTarget, setDistributeTarget] = useState<TreasuryEntry | null>(null);
+  const [statusMap, setStatusMap] = useState<Record<string, { pending_distribute_sat: number; total_distributed_sat: number; balance_sat: number }>>({});
 
   // Create form
   const [formAddress, setFormAddress] = useState("");
@@ -199,6 +200,18 @@ export function TreasuryPanel() {
     } finally {
       setCreateBusy(false);
     }
+  };
+
+  const handleStatus = async (tid: string) => {
+    try {
+      const r = await rpc.request_raw("treasury_status", [{ treasury_id: tid }]) as
+        { pending_distribute_sat?: number; total_distributed_sat?: number; balance_sat?: number } | null;
+      if (r) setStatusMap((prev) => ({ ...prev, [tid]: {
+        pending_distribute_sat: r.pending_distribute_sat ?? 0,
+        total_distributed_sat: r.total_distributed_sat ?? 0,
+        balance_sat: r.balance_sat ?? 0,
+      } }));
+    } catch { /* ignore */ }
   };
 
   const handleDistribute = async (entry: TreasuryEntry) => {
@@ -378,6 +391,12 @@ export function TreasuryPanel() {
                   </span>
                   <div className="flex-1" />
                   <button
+                    onClick={() => void handleStatus(t.treasury_id)}
+                    className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-mempool-border/40 text-mempool-text-dim hover:border-mempool-blue/40 hover:text-mempool-blue"
+                  >
+                    Status
+                  </button>
+                  <button
                     onClick={() => setDistributeTarget(t)}
                     className="flex items-center gap-1 px-3 py-1 text-xs rounded border border-mempool-green/40 text-mempool-green hover:bg-mempool-green/10"
                   >
@@ -408,6 +427,26 @@ export function TreasuryPanel() {
                     </div>
                   </div>
                 </div>
+
+                {/* Live status from treasury_status RPC */}
+                {statusMap[t.treasury_id] && (
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-[11px] font-mono">
+                    <div>
+                      <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Live balance</div>
+                      <div className="text-mempool-blue">{fmtOmni(statusMap[t.treasury_id].balance_sat)} OMNI</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Pending dist.</div>
+                      <div className={statusMap[t.treasury_id].pending_distribute_sat > 0 ? "text-mempool-green" : "text-mempool-text-dim"}>
+                        {fmtOmni(statusMap[t.treasury_id].pending_distribute_sat)} OMNI
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim">Total distrib.</div>
+                      <div className="text-mempool-text">{fmtOmni(statusMap[t.treasury_id].total_distributed_sat)} OMNI</div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Destinations mini-list */}
                 <div className="mt-2 flex flex-wrap gap-1">
