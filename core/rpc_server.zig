@@ -5032,6 +5032,19 @@ fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
     // Current block reward (uses blockchain.zig blockRewardAt — handles halvings).
     const current_reward = blockchain_mod.blockRewardAt(@intCast(height));
 
+    // Latest block quick stats (tx count + fees) for dashboard — avoids extra getblock call.
+    var latest_tx_count: usize = 0;
+    var latest_fees: u64 = 0;
+    var latest_timestamp: i64 = 0;
+    if (height > 0) {
+        const tip = ctx.bc.chain.items[height - 1];
+        latest_tx_count = tip.transactions.items.len;
+        latest_timestamp = tip.timestamp;
+        for (tip.transactions.items) |tx| {
+            if (tx.fee > 0) latest_fees += @as(u64, @intCast(tx.fee));
+        }
+    }
+
     return std.fmt.allocPrint(alloc,
         "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{" ++
             "\"height\":{d}," ++
@@ -5044,12 +5057,16 @@ fn handleChainMetrics(ctx: *ServerCtx, id: u64) ![]u8 {
             "\"mempoolSize\":{d}," ++
             "\"peerCount\":{d}," ++
             "\"currentBlockReward\":{d}," ++
+            "\"latestBlockTxCount\":{d}," ++
+            "\"latestBlockFees\":{d}," ++
+            "\"latestBlockTimestamp\":{d}," ++
             "\"satPerOmni\":1000000000" ++
             "}}}}",
         .{
             id, height, tip_hash, total_supply, addresses_with_balance,
             validators, validator_set_size, validator_mod.MIN_VALIDATOR_BALANCE,
             mempool_size, peer_count, current_reward,
+            latest_tx_count, latest_fees, latest_timestamp,
         });
 }
 

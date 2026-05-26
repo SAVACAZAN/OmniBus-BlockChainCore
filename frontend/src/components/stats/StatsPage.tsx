@@ -50,6 +50,9 @@ interface ChainMetrics {
   peerCount: number;
   currentBlockReward: number;
   satPerOmni: number;
+  latestBlockTxCount?: number;
+  latestBlockFees?: number;
+  latestBlockTimestamp?: number;
 }
 
 interface RichEntry {
@@ -371,6 +374,22 @@ export function StatsPage() {
               sub={`mempool: ${chainMetrics.mempoolSize ?? 0} TX`}
               color="dim"
             />
+            {(chainMetrics.latestBlockTxCount ?? 0) > 0 && (
+              <StatCard
+                label="Latest Block TXs"
+                value={(chainMetrics.latestBlockTxCount ?? 0).toLocaleString()}
+                sub={chainMetrics.latestBlockTimestamp ? new Date(chainMetrics.latestBlockTimestamp * 1000).toLocaleTimeString() : undefined}
+                color="blue"
+              />
+            )}
+            {(chainMetrics.latestBlockFees ?? 0) > 0 && (
+              <StatCard
+                label="Latest Block Fees"
+                value={`${((chainMetrics.latestBlockFees ?? 0) / SAT).toFixed(8)} OMNI`}
+                sub={`${(chainMetrics.latestBlockFees ?? 0).toLocaleString()} SAT`}
+                color="green"
+              />
+            )}
           </div>
           {chainMetrics.peerCount > 0 && (
             <div className="mt-2 text-[10px] text-mempool-text-dim font-mono">

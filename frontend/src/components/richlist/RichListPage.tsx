@@ -42,6 +42,9 @@ type ChainMetrics = {
   peerCount: number;
   currentBlockReward: number;
   satPerOmni: number;
+  latestBlockTxCount?: number;
+  latestBlockFees?: number;
+  latestBlockTimestamp?: number;
 };
 
 // Derive role list with backward-compat fallback when entry.roles is missing.
