@@ -33,7 +33,7 @@ import * as secp from "@noble/secp256k1";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { CopyButton } from "../common/CopyButton";
-import { satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
+import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 
 const rpc = new OmniBusRpcClient();
@@ -125,11 +125,6 @@ function getPubkeyFromPrivkey(privKeyHex: string): string {
 }
 
 // ── Format helpers ────────────────────────────────────────────────────────────
-
-function shortId(id: string): string {
-  if (id.length <= 14) return id;
-  return `${id.slice(0, 8)}…${id.slice(-4)}`;
-}
 
 function shortPubkey(pk: string): string {
   return pk.length > 8 ? pk.slice(0, 8) : pk;
@@ -422,7 +417,7 @@ function OverviewTab({
                   >
                     <td className="py-2 px-2">
                       <span className="text-mempool-blue" title={c.channel_id}>
-                        {shortId(c.channel_id)}
+                        {midTrunc(c.channel_id, 8, 4)}
                       </span>
                       {isMine && (
                         <span className="ml-1 text-[9px] text-mempool-blue opacity-70">(me)</span>
@@ -732,7 +727,7 @@ function OpenChannelTab() {
           </div>
           <Row label="Channel ID" value={
             <span className="flex items-center gap-1">
-              <span title={result.channel_id}>{shortId(result.channel_id)}</span>
+              <span title={result.channel_id}>{midTrunc(result.channel_id, 8, 4)}</span>
               <CopyButton text={result.channel_id} />
             </span>
           } />
@@ -1081,12 +1076,12 @@ function CloseTab({ prefillChannelId }: { prefillChannelId: string }) {
           <Row label="Final balance B" value={`${toOMNI(result.final_balance_b)} OMNI`} />
           {result.tx_hash_a && (
             <Row label="TX hash A" value={
-              <span title={result.tx_hash_a}>{shortId(result.tx_hash_a)}</span>
+              <span title={result.tx_hash_a}>{midTrunc(result.tx_hash_a, 8, 4)}</span>
             } />
           )}
           {result.tx_hash_b && (
             <Row label="TX hash B" value={
-              <span title={result.tx_hash_b}>{shortId(result.tx_hash_b)}</span>
+              <span title={result.tx_hash_b}>{midTrunc(result.tx_hash_b, 8, 4)}</span>
             } />
           )}
         </div>

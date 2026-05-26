@@ -34,7 +34,7 @@ import {
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
@@ -55,10 +55,6 @@ function fmtOmni(sat: number): string {
   return omniFmt.format(sat / SAT_PER_OMNI);
 }
 
-function shortHash(h: string, head = 10, tail = 6): string {
-  if (h.length <= head + tail + 3) return h;
-  return `${h.slice(0, head)}…${h.slice(-tail)}`;
-}
 // ── Types ─────────────────────────────────────────────────────────────────
 
 type DocType = "contract" | "certificate" | "receipt" | "identity" | "media" | "other";
@@ -628,7 +624,7 @@ function VerifyDocTab() {
                 <div className="flex justify-between gap-2">
                   <span className="flex-shrink-0">txid</span>
                   <span className="flex items-center gap-1">
-                    <span className="text-mempool-blue">{shortHash(result.tx_hash)}</span>
+                    <span className="text-mempool-blue">{midTrunc(result.tx_hash)}</span>
                     <CopyButton text={result.tx_hash} />
                   </span>
                 </div>
@@ -788,7 +784,7 @@ function MyDocsTab() {
                   <td className="py-2 px-2 text-mempool-text-dim">#{row.notarize_id}</td>
                   <td className="py-2 px-2">
                     <span className="flex items-center gap-1">
-                      <span className="text-mempool-blue">{shortHash(row.doc_hash)}</span>
+                      <span className="text-mempool-blue">{midTrunc(row.doc_hash)}</span>
                       <CopyButton text={row.doc_hash} />
                     </span>
                   </td>
@@ -1456,7 +1452,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
           <div className="flex justify-between text-mempool-text-dim">
             <span>txid</span>
             <span className="flex items-center gap-1">
-              <span className="text-mempool-blue">{shortHash(success.txid)}</span>
+              <span className="text-mempool-blue">{midTrunc(success.txid)}</span>
               <CopyButton text={success.txid} />
             </span>
           </div>
@@ -1595,7 +1591,7 @@ function ReleaseEscrowTab() {
             ["recipient", escrow.recipient],
             ["amount",   `${fmtOmni(escrow.amount_sat)} OMNI`],
             ["timeout block", intFmt.format(escrow.timeout_block)],
-            ["condition_hash", shortHash(escrow.condition_hash)],
+            ["condition_hash", midTrunc(escrow.condition_hash)],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between gap-2">
               <span className="text-mempool-text-dim flex-shrink-0">{k}</span>
