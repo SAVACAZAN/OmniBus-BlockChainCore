@@ -472,8 +472,8 @@ function TabEarn() {
             </div>
             <table className="w-full text-sm">
               <tbody>
-                {rules.map((r, i) => (
-                  <tr key={i} className="border-b border-mempool-border/30 last:border-b-0">
+                {rules.map((r) => (
+                  <tr key={r.label} className="border-b border-mempool-border/30 last:border-b-0">
                     <td className="py-1.5 text-mempool-text">{r.label}</td>
                     <td className="py-1.5 text-right font-mono text-green-400">{r.rate}</td>
                   </tr>
