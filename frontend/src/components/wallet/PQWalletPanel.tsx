@@ -23,7 +23,6 @@
 import { useState, useEffect, useCallback } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
 import type { PqOmniSlot } from "../../api/wallet-keystore";
 import { midTrunc, satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
@@ -880,5 +879,3 @@ function PqAttestTab() {
   );
 }
 
-// Ensure signMessage is "used" for future inline use — suppress lint warning.
-void signMessage;

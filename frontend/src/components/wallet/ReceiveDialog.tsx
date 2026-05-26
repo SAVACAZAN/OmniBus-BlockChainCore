@@ -155,7 +155,10 @@ function Modal({ onClose, children }: { onClose: () => void; children: React.Rea
 // nothing else needs to change.
 
 function QRCode({ value, size }: { value: string; size: number }) {
-  const grid = useMemo(() => buildVisualGrid(value), [value]);
+  const grid = useMemo(() => {
+    try { return encodeQRBytes(value); }
+    catch { return buildVisualGrid(value); }
+  }, [value]);
   const n = grid.length;
   let d = "";
   for (let y = 0; y < n; y++) {
@@ -164,7 +167,7 @@ function QRCode({ value, size }: { value: string; size: number }) {
     }
   }
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${n} ${n}`} shapeRendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wallet address visual identicon">
+    <svg width={size} height={size} viewBox={`0 0 ${n} ${n}`} shapeRendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wallet address QR code">
       <rect width={n} height={n} fill="#fff" />
       <path d={d} fill="#000" />
     </svg>

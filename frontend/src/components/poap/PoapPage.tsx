@@ -35,7 +35,7 @@ import {
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
 import { midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();

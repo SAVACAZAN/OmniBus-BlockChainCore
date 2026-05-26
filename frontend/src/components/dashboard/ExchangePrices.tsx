@@ -23,7 +23,6 @@ interface ExchangeFeed {
 
 type AssetKey = "BTC" | "LCX";
 
-const POLL_MS = 2000;
 const STALE_MS = 30_000;
 const EXCHANGES = ["Coinbase", "Kraken", "LCX"] as const;
 const ASSETS: { key: AssetKey; label: string; pair: string }[] = [

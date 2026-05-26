@@ -13,7 +13,7 @@
  * connection. Only use this on a trusted local or VPN-secured node.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Users, Send, Plus, X, AlertTriangle, Copy, RefreshCw } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";

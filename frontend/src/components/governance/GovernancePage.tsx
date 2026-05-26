@@ -37,7 +37,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
+import { bytesToHex, signMessage } from "../../api/exchange-sign";
 
 // exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 

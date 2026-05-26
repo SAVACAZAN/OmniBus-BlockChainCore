@@ -283,7 +283,6 @@ function buildV2Levels(res: V2Reserves, pool: PoolDef): Level[] {
       : Math.pow(10, pool.token0Dec - pool.token1Dec);
     const targetRaw = pool.showToken0Price ? targetPrice / decAdj : 1 / (targetPrice / decAdj);
     const newR1 = Math.sqrt(k * targetRaw);
-    const newR0 = k / newR1;
     const delta1 = (r1 - newR1) / dec1; // token1 flowing out (positive = bid)
     bidQtys.push(Math.abs(delta1));
   }

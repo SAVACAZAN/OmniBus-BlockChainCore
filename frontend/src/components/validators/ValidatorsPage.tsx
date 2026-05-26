@@ -51,12 +51,6 @@ interface GetValidatorsResp {
   slashed_count: number;
 }
 
-interface SlotLeaderResp {
-  address: string;
-  slot_height: number;
-  blocks_remaining_in_slot: number;
-}
-
 interface SlashEvent {
   timestamp: number;
   address: string;

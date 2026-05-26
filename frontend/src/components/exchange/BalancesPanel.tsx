@@ -31,16 +31,6 @@ function explorerFor(chain: string, address: string): string {
   }
 }
 
-// How much is locked in open orders for a given token
-function exchLocked(exchBalances: ExchangeBalance[], token: string | null): number {
-  if (!token) return 0;
-  const b = exchBalances.find(b => b.token === token);
-  if (!b || !b.locked) return 0;
-  if (token === "OMNI") return b.locked / SAT_PER_OMNI;
-  if (token === "ETH")  return b.locked / 1e18;
-  if (token === "USDC" || token === "LCX") return b.locked / MICRO_PER_USD;
-  return b.locked;
-}
 
 export function BalancesPanel() {
   const [, force] = useState(0);

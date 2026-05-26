@@ -33,7 +33,7 @@ import {
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
 
 // exchange-sign.ts initializes noble's HMAC-SHA256 as a side-effect on import.
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { getUnlocked } from "../../api/wallet-keystore";
-import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
 import { useWallet } from "../../api/use-wallet";
 import { refreshNameCache, useExpiringNames, daysUntilExpiry } from "../../api/use-names";
 import { TxHashLink } from "../common/TxHashLink";
@@ -445,8 +445,6 @@ export function NamesPage() {
       setRegistering(false);
     }
   };
-
-  const feeOmni = (sat: number) => sat / SAT_PER_OMNI;
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">

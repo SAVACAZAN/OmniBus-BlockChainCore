@@ -30,7 +30,7 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc, fmtOmni } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
+import { signMessage } from "../../api/exchange-sign";
 import { useGlobalBalance, refreshGlobalBalance } from "../../api/use-global-balance";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";

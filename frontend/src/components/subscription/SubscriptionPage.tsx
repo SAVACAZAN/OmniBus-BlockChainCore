@@ -20,8 +20,8 @@ import type { WsNewBlockEvent } from "../../types";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
-import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
-import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { signMessage } from "../../api/exchange-sign";
+import { satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 

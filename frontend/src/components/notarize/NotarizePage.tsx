@@ -22,14 +22,10 @@ import type { WsNewBlockEvent } from "../../types";
 import {
   FileText,
   Shield,
-  Search,
-  List,
-  Plus,
   Unlock,
   RefreshCw,
   AlertTriangle,
   Lock,
-  ChevronDown,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc, fmtOmni } from "../../utils/fmt";

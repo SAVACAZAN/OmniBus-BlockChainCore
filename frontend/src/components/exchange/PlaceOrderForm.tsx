@@ -9,7 +9,7 @@ import { useTraderMode } from "./TraderModeToggle";
 import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { TradePairBalances } from "./TradePairBalances";
 import { fetchUsdcBalance, fetchEurcBalance, fetchEvmBalance, fetchSolanaBalance, fetchXrpBalance } from "../../api/multichain-balances";
-import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance, dexContractFor } from "../../api/omnibus-dex";
+import { placeBuyOrderNativeOnDex, placeBuyOrderOnDex, ensureAllowance } from "../../api/omnibus-dex";
 import { USDC_CONTRACT } from "../../api/multichain-balances";
 
 const rpc = new OmniBusRpcClient();

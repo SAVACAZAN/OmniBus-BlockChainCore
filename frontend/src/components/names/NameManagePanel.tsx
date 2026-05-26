@@ -11,7 +11,7 @@
 // row has its own "Save" button; nothing batched, so a partial failure
 // only stops one slot at a time.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 
 const rpc = new OmniBusRpcClient();

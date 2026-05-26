@@ -25,11 +25,9 @@ declare global {
 import OmniBusRpcClient from "../../api/rpc-client";
 import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
-import { signPlaceOrderPayload } from "../../api/exchange-sign";
 import {
-  HTLC_CONTRACTS, HTLC_ABI, lockEth, claimEth,
+  HTLC_CONTRACTS, lockEth, claimEth,
 } from "../../api/htlc-eth";
-import { fetchUsdcBalance } from "../../api/multichain-balances";
 
 const rpc = new OmniBusRpcClient();
 
@@ -106,7 +104,6 @@ export function HtlcTradePanel() {
   }, [state.log]);
 
   const log = (msg: string) => setState(s => addLog(s, msg));
-  const setStep = (step: Step) => setState(s => ({ ...s, step }));
   const setErr = (msg: string) => setState(s => ({ ...s, step: "error", error: msg, log: [...s.log, `[${ts()}] ❌ ${msg}`] }));
 
   const evmAddr = u?.allAddresses?.[0]?.evmAddress

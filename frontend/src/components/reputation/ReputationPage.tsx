@@ -131,10 +131,6 @@ interface LeaderboardEntry {
   badge: "none" | "bronze" | "silver" | "gold" | "satoshi";
 }
 
-interface LeaderboardResp {
-  entries: LeaderboardEntry[];
-}
-
 type SortKey = "total" | CupKey;
 type Tab = "mine" | "earn" | "leaderboard" | "decay";
 
