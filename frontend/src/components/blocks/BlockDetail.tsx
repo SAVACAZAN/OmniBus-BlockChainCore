@@ -4,6 +4,20 @@ import type { BlockData } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 
+const KIND_STYLE: Record<string, string> = {
+  coinbase:       "bg-yellow-500/20 text-yellow-300",
+  faucet:         "bg-cyan-500/20 text-cyan-300",
+  registrar:      "bg-purple-500/20 text-purple-300",
+  exchange:       "bg-blue-500/20 text-blue-300",
+  stake:          "bg-green-500/20 text-green-300",
+  unstake:        "bg-amber-500/20 text-amber-300",
+  ns_claim:       "bg-violet-500/20 text-violet-300",
+  agent_register: "bg-indigo-500/20 text-indigo-300",
+  notarize:       "bg-rose-500/20 text-rose-300",
+  demo_grant:     "bg-pink-500/20 text-pink-300",
+  transfer:       "bg-gray-700/40 text-gray-300",
+};
+
 interface PriceEntry {
   exchange: string;
   pair: string;
@@ -322,9 +336,20 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             ) : (
               txs.map((tx: any, i: number) => (
                 <div key={tx.txid || i} className="bg-mempool-bg rounded-lg p-3 mb-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <div className="w-2 h-2 rounded-full bg-mempool-blue flex-shrink-0" />
-                    <span className="text-xs font-mono text-mempool-text truncate">{tx.txid?.slice(0, 24)}...</span>
+                    <button
+                      onClick={() => { window.location.hash = `#/tx/${tx.txid}`; }}
+                      className="text-xs font-mono text-mempool-blue hover:underline truncate"
+                      title={tx.txid}
+                    >
+                      {tx.txid?.slice(0, 16)}…{tx.txid?.slice(-6)}
+                    </button>
+                    {tx.kind && (
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider ${KIND_STYLE[tx.kind] ?? KIND_STYLE.transfer}`}>
+                        {tx.kind}
+                      </span>
+                    )}
                     <span className={`text-[10px] px-1.5 py-0.5 rounded ml-auto ${
                       tx.status === "confirmed"
                         ? "bg-mempool-green/20 text-mempool-green"
@@ -332,10 +357,22 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                     }`}>{tx.status}</span>
                   </div>
                   <div className="mt-1 text-[10px] text-mempool-text-dim flex items-center gap-2 flex-wrap">
-                    <span>
-                      <span className="font-mono">{tx.from?.slice(0, 20)}</span>
-                      <span className="text-mempool-text-dim"> -&gt; </span>
-                      <span className="font-mono">{tx.to?.slice(0, 20)}</span>
+                    <span className="flex items-center gap-1 min-w-0">
+                      {tx.from && tx.from !== "coinbase" ? (
+                        <button onClick={() => { window.location.hash = `#/address/${tx.from}`; }}
+                          className="font-mono text-mempool-blue hover:underline truncate" title={tx.from}>
+                          {tx.from.slice(0, 14)}…
+                        </button>
+                      ) : (
+                        <span className="font-mono italic text-mempool-text-dim">(coinbase)</span>
+                      )}
+                      <span className="text-mempool-text-dim flex-shrink-0">→</span>
+                      {tx.to ? (
+                        <button onClick={() => { window.location.hash = `#/address/${tx.to}`; }}
+                          className="font-mono text-mempool-blue hover:underline truncate" title={tx.to}>
+                          {tx.to.slice(0, 14)}…
+                        </button>
+                      ) : null}
                     </span>
                     <span className="text-mempool-orange">
                       {((tx.amount || 0) / 1e9).toFixed(8)} OMNI

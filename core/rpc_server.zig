@@ -6821,8 +6821,10 @@ fn handleMpStats(ctx: *ServerCtx, id: u64) ![]u8 {
     }
     ctx.bc.mutex.lock();
     const mp_len = ctx.bc.mempool.items.len;
+    var mp_bytes: u64 = 0;
+    for (ctx.bc.mempool.items) |tx| mp_bytes += estimateTxBytes(tx.scheme);
     ctx.bc.mutex.unlock();
-    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":0}}}}", .{ id, mp_len, mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES });
+    return std.fmt.allocPrint(alloc, "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"size\":{d},\"maxTx\":{d},\"maxBytes\":{d},\"bytes\":{d}}}}}", .{ id, mp_len, mempool_mod.MEMPOOL_MAX_TX, mempool_mod.MEMPOOL_MAX_BYTES, mp_bytes });
 }
 
 /// RPC "getpendingtxs" — returns all TXs currently in the mempool with scheme info.
