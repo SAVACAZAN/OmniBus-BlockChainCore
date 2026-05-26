@@ -396,13 +396,44 @@ export function SubscriptionPage() {
             />
           ))}
 
-          <button
-            onClick={loadMySubs}
-            disabled={loadingSubs}
-            className="w-full py-2 text-sm text-mempool-text-dim border border-mempool-border rounded-lg hover:border-mempool-blue hover:text-mempool-blue transition-colors disabled:opacity-50"
-          >
-            Refresh
-          </button>
+          <div className="flex gap-2">
+            {mySubs.length > 0 && (
+              <button
+                onClick={() => {
+                  const rows = [
+                    ["id","from","to","amount_omni","interval_blocks","max_payments","payments_made","next_block","active","note"].join(","),
+                    ...mySubs.map((s) => [
+                      s.id,
+                      `"${s.from}"`,
+                      `"${s.to}"`,
+                      fmtOmni(s.amount),
+                      s.interval,
+                      s.max_payments,
+                      s.payments_made,
+                      s.next_block,
+                      s.active ? "true" : "false",
+                      `"${(s.note ?? "").replace(/"/g, '""')}"`,
+                    ].join(",")),
+                  ].join("\n");
+                  const blob = new Blob([rows], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = "omnibus-subscriptions.csv";
+                  a.click(); URL.revokeObjectURL(url);
+                }}
+                className="flex-1 py-2 text-sm text-mempool-text-dim border border-mempool-border rounded-lg hover:border-mempool-blue hover:text-mempool-blue transition-colors"
+              >
+                ⬇ CSV
+              </button>
+            )}
+            <button
+              onClick={loadMySubs}
+              disabled={loadingSubs}
+              className="flex-1 py-2 text-sm text-mempool-text-dim border border-mempool-border rounded-lg hover:border-mempool-blue hover:text-mempool-blue transition-colors disabled:opacity-50"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
       )}
 

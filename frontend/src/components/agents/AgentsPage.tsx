@@ -1072,6 +1072,38 @@ function BrowseTab(props: {
             <option value="followers">Sort: Followers</option>
             <option value="recent">Sort: Recently registered</option>
           </select>
+          {agents.length > 0 && (
+            <button
+              onClick={() => {
+                const rows = [
+                  ["id","name","owner","strategy","fee_bps","decisions_made","decisions_ok","profit_omni_total","profit_24h_omni","followers","status","reputation_total","registered_at_block"].join(","),
+                  ...agents.map((a) => [
+                    `"${a.id}"`,
+                    `"${a.name.replace(/"/g, '""')}"`,
+                    `"${a.owner}"`,
+                    a.strategy,
+                    a.fee_bps,
+                    a.decisions_made,
+                    a.decisions_ok,
+                    a.profit_omni_total.toFixed(4),
+                    (a.profit_24h_omni ?? 0).toFixed(4),
+                    a.followers,
+                    a.status,
+                    a.reputation_total,
+                    a.registered_at_block,
+                  ].join(",")),
+                ].join("\n");
+                const blob = new Blob([rows], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "omnibus-agents-registry.csv";
+                a.click(); URL.revokeObjectURL(url);
+              }}
+              className="px-3 py-2.5 text-sm bg-mempool-bg-elev border border-mempool-border rounded-lg text-mempool-text hover:border-mempool-blue inline-flex items-center gap-1.5"
+            >
+              ⬇ CSV
+            </button>
+          )}
           <button
             onClick={onRefresh}
             className="px-3 py-2.5 text-sm bg-mempool-bg-elev border border-mempool-border rounded-lg text-mempool-text hover:border-mempool-blue inline-flex items-center gap-1.5"

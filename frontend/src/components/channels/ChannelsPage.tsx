@@ -373,6 +373,33 @@ function OverviewTab({
           </label>
         )}
         <div className="flex-1" />
+        {channels.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["channel_id","party_a","party_b","balance_a_omni","balance_b_omni","capacity_omni","sequence_num","state"].join(","),
+                ...channels.map((c) => [
+                  `"${c.channel_id}"`,
+                  `"${c.party_a}"`,
+                  `"${c.party_b}"`,
+                  toOMNI(c.balance_a),
+                  toOMNI(c.balance_b),
+                  toOMNI(c.capacity_sat),
+                  c.sequence_num,
+                  c.state,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-channels.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}

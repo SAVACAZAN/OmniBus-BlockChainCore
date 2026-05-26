@@ -493,6 +493,28 @@ function MyPoapsTab({ wallet }: { wallet: WalletProp }) {
             className="flex-1 min-w-0 sm:min-w-[280px] w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-xs font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
           />
         )}
+        {poaps !== null && poaps.length > 0 && (
+          <button
+            onClick={() => {
+              const rows = [
+                ["event_id","claim_block","tx_hash"].join(","),
+                ...poaps.map((p) => [
+                  `"${p.event_id}"`,
+                  p.claim_block,
+                  `"${p.tx_hash}"`,
+                ].join(",")),
+              ].join("\n");
+              const blob = new Blob([rows], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "omnibus-poaps.csv";
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue"
+          >
+            ⬇ CSV
+          </button>
+        )}
         <button
           onClick={() => void refresh()}
           disabled={loading}
