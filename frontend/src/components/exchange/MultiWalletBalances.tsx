@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
@@ -250,12 +250,14 @@ export function MultiWalletBalances() {
   if (!u) return <p className="text-xs text-mempool-text-dim p-2">Unlock wallet with mnemonic.</p>;
   if (!u.allAddresses?.length) return <p className="text-xs text-mempool-text-dim p-2">Re-unlock with mnemonic to derive all addresses.</p>;
 
-  const totals = Object.fromEntries(
-    COLS.map(c => [c.key, sumCol(rows, c.key, c.isSat)])
-  ) as Record<ColKey, number>;
+  const totals = useMemo(() =>
+    Object.fromEntries(COLS.map(c => [c.key, sumCol(rows, c.key, c.isSat)])) as Record<ColKey, number>,
+  [rows]);
 
-  const evmAddrs = [...new Set(rows.map(r => r.evmAddr).filter(Boolean))];
-  const sameEvm = evmAddrs.length === 1;
+  const { evmAddrs, sameEvm } = useMemo(() => {
+    const evmAddrs = [...new Set(rows.map(r => r.evmAddr).filter(Boolean))];
+    return { evmAddrs, sameEvm: evmAddrs.length === 1 };
+  }, [rows]);
 
   return (
     <div className="space-y-3">

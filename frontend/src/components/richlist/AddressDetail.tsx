@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { KIND_STYLE } from "../common/TxBadges";
@@ -85,8 +85,15 @@ export function AddressDetail({
   }, [address]);
 
   const txs = data?.transactions ?? [];
-  const kinds = Array.from(new Set(txs.map((t) => t.kind)));
-  const filteredTxs = filter === "all" ? txs : txs.filter((t) => t.kind === filter);
+  const { kinds, filteredTxs, kindCounts } = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const t of txs) counts[t.kind] = (counts[t.kind] ?? 0) + 1;
+    return {
+      kinds: Object.keys(counts),
+      filteredTxs: filter === "all" ? txs : txs.filter((t) => t.kind === filter),
+      kindCounts: counts,
+    };
+  }, [txs, filter]);
   const net = data ? data.totalReceived - data.totalSent : 0;
 
   return (
@@ -170,22 +177,19 @@ export function AddressDetail({
           >
             all ({txs.length})
           </button>
-          {kinds.map((k) => {
-            const count = txs.filter((t) => t.kind === k).length;
-            return (
-              <button
-                key={k}
-                onClick={() => setFilter(k)}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  filter === k
-                    ? "bg-mempool-blue text-white"
-                    : "bg-mempool-bg-elev text-mempool-text-dim hover:text-mempool-text"
-                }`}
-              >
-                {k} ({count})
-              </button>
-            );
-          })}
+          {kinds.map((k) => (
+            <button
+              key={k}
+              onClick={() => setFilter(k)}
+              className={`px-2 py-1 text-xs rounded transition-colors ${
+                filter === k
+                  ? "bg-mempool-blue text-white"
+                  : "bg-mempool-bg-elev text-mempool-text-dim hover:text-mempool-text"
+              }`}
+            >
+              {k} ({kindCounts[k] ?? 0})
+            </button>
+          ))}
         </div>
       )}
 
