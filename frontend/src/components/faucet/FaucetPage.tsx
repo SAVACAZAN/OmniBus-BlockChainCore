@@ -54,15 +54,18 @@ export function FaucetPage() {
   }, []);
 
   const isOmniBusAddr = (a: string) =>
-    a.startsWith("ob1") || a.startsWith("obk1_") || a.startsWith("obf5_") ||
-    a.startsWith("obd5_") || a.startsWith("obs3_");
+    a.startsWith("ob1") ||
+    a.startsWith("obk1_") || a.startsWith("obf5_") ||
+    a.startsWith("obd5_") || a.startsWith("obs3_") ||
+    a.startsWith("ob_k1_") || a.startsWith("ob_f5_") ||
+    a.startsWith("ob_d5_") || a.startsWith("ob_s3_");
 
   const claim = async () => {
     setError(null);
     setResult(null);
     const addr = recipient.trim();
     if (!isOmniBusAddr(addr)) {
-      setError("Address must be an OmniBus native address (ob1… or obk1_/obf5_/obd5_/obs3_…).");
+      setError("Address must be an OmniBus native address (ob1… / obk1_/obf5_/obd5_/obs3_ / ob_k1_/ob_f5_/ob_d5_/ob_s3_).");
       return;
     }
     if (addr.length < 20 || addr.length > 90) {
