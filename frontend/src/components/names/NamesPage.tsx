@@ -254,7 +254,7 @@ export function NamesPage() {
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", (ev) => {
       setCurrentBlock(ev.height);
     });
-    const id = setInterval(fetchHeight, 60_000);
+    const id = setInterval(() => { void fetchHeight(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, []);
 

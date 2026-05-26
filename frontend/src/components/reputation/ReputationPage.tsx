@@ -775,7 +775,7 @@ export function ReputationPage() {
     run();
     // Reputation updates per-block (mining, staking rewards) — refresh on new_block.
     const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void run(); });
-    const id = setInterval(run, 60_000);
+    const id = setInterval(() => { void run(); }, 60_000);
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [sortBy]);
 

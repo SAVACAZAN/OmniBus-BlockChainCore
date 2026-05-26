@@ -181,7 +181,7 @@ export default function AllPricesGrid() {
       void fetchAll();
     });
     // Slow fallback poll (30 s) for when WS is disconnected.
-    const id = setInterval(fetchAll, 30_000);
+    const id = setInterval(() => { void fetchAll(); }, 30_000);
 
     return () => {
       cancelled = true;

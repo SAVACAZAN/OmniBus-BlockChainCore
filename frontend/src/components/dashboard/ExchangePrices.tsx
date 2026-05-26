@@ -173,7 +173,7 @@ export default function ExchangePrices() {
     fetchFeed();
     // oracle_price fires when backend refreshes feed — update immediately.
     const unsub = wsSubscribe<WsOraclePriceEvent>("oracle_price", () => { void fetchFeed(); });
-    const id = setInterval(fetchFeed, 30_000);
+    const id = setInterval(() => { void fetchFeed(); }, 30_000);
 
     return () => {
       cancelled = true;

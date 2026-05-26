@@ -671,7 +671,7 @@ function BecomeValidatorTab({ wallet }: { wallet: ReturnType<typeof useWallet> }
       }
     };
     send();
-    const id = setInterval(send, 30_000);
+    const id = setInterval(() => { void send(); }, 30_000);
     return () => clearInterval(id);
   }, [isValidator, wallet]);
 

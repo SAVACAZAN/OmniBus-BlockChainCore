@@ -115,7 +115,7 @@ export default function ArbitrageOpportunities() {
       void fetchArb();
     });
     // Slow fallback poll (30 s) for when WS is disconnected.
-    const id = setInterval(fetchArb, 30_000);
+    const id = setInterval(() => { void fetchArb(); }, 30_000);
 
     return () => {
       cancelled = true;

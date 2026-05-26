@@ -153,7 +153,7 @@ export function MempoolPage() {
   useEffect(() => {
     fetchMempool();
     // new_tx WS (below) prepends TXs live — this poll only refreshes fee estimates.
-    const id = setInterval(fetchMempool, 30_000);
+    const id = setInterval(() => { void fetchMempool(); }, 30_000);
     return () => clearInterval(id);
   }, []);
 
