@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1e9;
@@ -170,8 +171,17 @@ export function BlockPage({ height, onNavigate }: Props) {
           <Field label="Nonce" value={(block.nonce ?? 0).toLocaleString()} />
           <Field label="Transactions" value={String(block.txCount ?? txs.length)} />
           {block.miner && (
-            <Field label="Miner" value={block.miner} mono copy
-              onClick={() => onNavigate(`#/address/${block.miner}`)} />
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Miner</div>
+              <div className="flex items-center gap-1.5 min-w-0 text-sm text-mempool-text">
+                <button onClick={() => onNavigate(`#/address/${block.miner}`)}
+                  className="text-mempool-blue hover:underline text-xs font-mono">
+                  <AddressLabel address={block.miner} showRawAddress showEmoji
+                    truncate={{ left: 12, right: 10 }} />
+                </button>
+                <CopyBtn text={block.miner} />
+              </div>
+            </div>
           )}
           <Field label="Block Reward" value={fmtSat(block.rewardSAT || 0)} highlight />
           <Field label="Confirmations" value={String(confirmations)} />
@@ -254,7 +264,7 @@ export function BlockPage({ height, onNavigate }: Props) {
                 →{" "}
                 <button onClick={() => onNavigate(`#/address/${block.miner}`)}
                   className="text-mempool-blue hover:underline font-mono">
-                  {midTrunc(block.miner, 14, 12)}
+                  <AddressLabel address={block.miner} showEmoji truncate={{ left: 14, right: 12 }} />
                 </button>
               </div>
             )}
@@ -284,14 +294,14 @@ export function BlockPage({ height, onNavigate }: Props) {
                   From:{" "}
                   <button onClick={() => onNavigate(`#/address/${tx.from}`)}
                     className="text-mempool-blue hover:underline font-mono">
-                    {midTrunc(tx.from, 10, 8)}
+                    <AddressLabel address={tx.from ?? ""} showEmoji truncate={{ left: 10, right: 8 }} />
                   </button>
                 </span>
                 <span>
                   →{" "}
                   <button onClick={() => onNavigate(`#/address/${tx.to}`)}
                     className="text-mempool-blue hover:underline font-mono">
-                    {midTrunc(tx.to, 10, 8)}
+                    <AddressLabel address={tx.to ?? ""} showEmoji truncate={{ left: 10, right: 8 }} />
                   </button>
                 </span>
               </div>
