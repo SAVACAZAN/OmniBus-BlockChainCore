@@ -19,8 +19,8 @@ function dec(token: string) {
 async function fetchOnChain(token: string, omniAddr: string, evmAddr: string): Promise<number> {
   if (token === "OMNI") {
     try {
-      const r = await rpc.request_raw("getbalance", [omniAddr]);
-      const sat: number = typeof r === "number" ? r : (r?.balance ?? 0);
+      const r = await rpc.getAddressBalance(omniAddr);
+      const sat: number = r?.balance ?? 0;
       return sat / SAT_PER_OMNI;
     } catch { return 0; }
   }

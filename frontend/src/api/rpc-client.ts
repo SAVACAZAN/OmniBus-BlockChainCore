@@ -388,6 +388,19 @@ export class OmniBusRpcClient {
     }
   }
 
+  async resolveName(name: string, tld: string): Promise<{
+    name: string; address: string | null; found: boolean;
+    registeredAtBlock?: number; expiresAtBlock?: number; fullLabel?: string;
+    tld?: string; category?: string; addresses?: Record<string, string | null>;
+    preferred_slot?: number; registered_years?: number;
+  } | null> {
+    try {
+      return await this.request("resolvename", [name, tld]);
+    } catch {
+      return null;
+    }
+  }
+
   async getHeaders(fromHeight: number, count: number = 10): Promise<any> {
     return this.request("getheaders", [fromHeight, count]);
   }

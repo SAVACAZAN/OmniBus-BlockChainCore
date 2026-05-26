@@ -181,8 +181,8 @@ export function MultiWalletBalances() {
     // OMNI — per address
     for (const { index, address } of addrs) {
       fetches.push(
-        rpc.request_raw("getbalance", [address])
-          .then((res: any) => setVal(index, "omni", res?.balance ?? 0))
+        rpc.getAddressBalance(address)
+          .then((res) => setVal(index, "omni", res?.balance ?? 0))
           .catch(() => setVal(index, "omni", null))
       );
     }

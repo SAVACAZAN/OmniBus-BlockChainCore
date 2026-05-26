@@ -1213,7 +1213,7 @@ function SendNamePreview({ rawInput, onResolve }: {
         } else {
           // Also fetch the full entry for category badge — `ns_resolveforsend`
           // intentionally omits category to keep the contract narrow.
-          const full: any = await rpc.request_raw("resolvename", [n, t]).catch(() => null);
+          const full = await rpc.resolveName(n, t).catch(() => null);
           setData({ ...r, category: full?.category });
           onResolve(r.route_address || r.primary_address);
         }

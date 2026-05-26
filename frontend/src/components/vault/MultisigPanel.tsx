@@ -407,8 +407,8 @@ function BalanceTab() {
     setErr(null);
     setBalance(null);
     try {
-      const res = await rpc.request_raw("getbalance", [a]) as number | { balance?: number } | null;
-      const sat = typeof res === "number" ? res : (res?.balance ?? 0);
+      const res = await rpc.getAddressBalance(a);
+      const sat = res?.balance ?? 0;
       setBalance(sat);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));

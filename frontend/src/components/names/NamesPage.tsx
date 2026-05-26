@@ -341,7 +341,7 @@ export function NamesPage() {
         // strip trailing dot if user typed "alice."
         if (clean.endsWith(".")) clean = clean.slice(0, -1);
         const calls = TLDS.map(async (t): Promise<MultiResolveResp> => {
-          const r = (await rpc.request_raw("resolvename", [clean, t])) as ResolveResp;
+          const r = (await rpc.resolveName(clean, t)) as ResolveResp;
           return { ...r, _tld: t };
         });
         const all = await Promise.all(calls);
@@ -352,7 +352,7 @@ export function NamesPage() {
           tld = explicitTld;
           clean = clean.slice(0, -("." + explicitTld).length);
         }
-        const r = (await rpc.request_raw("resolvename", [clean, tld])) as ResolveResp;
+        const r = (await rpc.resolveName(clean, tld)) as ResolveResp;
         setSearchResult(r);
       }
     } catch (e: any) {

@@ -104,7 +104,7 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
       setMsg(null);
       try {
         const [name, tld] = selected.split(".");
-        const r = (await rpc.request_raw("resolvename", [name, tld])) as ResolveResp;
+        const r = (await rpc.resolveName(name, tld)) as unknown as ResolveResp;
         if (cancelled) return;
         setResolved(r);
         if (r.addresses) {
@@ -131,7 +131,7 @@ export function NameManagePanel({ ownerAddress, ownedNames }: NameManagePanelPro
     if (!selected) return;
     const [name, tld] = selected.split(".");
     try {
-      const r = (await rpc.request_raw("resolvename", [name, tld])) as ResolveResp;
+      const r = (await rpc.resolveName(name, tld)) as unknown as ResolveResp;
       setResolved(r);
     } catch { /* keep existing */ }
   };
