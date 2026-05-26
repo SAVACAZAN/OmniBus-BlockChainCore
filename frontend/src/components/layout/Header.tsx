@@ -51,8 +51,9 @@ export function Header() {
       if (/^\d+$/.test(s)) { window.location.hash = `#/block/${s}`; return; }
       // Full TX hash
       if (/^[0-9a-fA-F]{64}$/.test(s)) { window.location.hash = `#/tx/${s}`; return; }
-      // ob1q... OMNI address — navigate directly
-      if (/^ob1[a-z0-9]{8,}$/.test(s)) { window.location.hash = `#/address/${s}`; return; }
+      // Any OmniBus address (ECDSA ob1q/ob1p/ob1m, soulbound ob_k1_/ob_f5_/ob_d5_/ob_s3_,
+      // transferable PQ obk1_/obf5_/obd5_/obs3_) — navigate directly to address explorer.
+      if (/^ob[1_][a-z0-9_]{5,}/.test(s)) { window.location.hash = `#/address/${s}`; return; }
       // ENS-style name — try resolveaddress, fall back to TxSearch
       if (/^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9]+)?$/.test(s) && !/^[0-9a-fA-F]+$/.test(s)) {
         _searchRpc.request_raw("resolveaddress", [s]).then((r: any) => {
