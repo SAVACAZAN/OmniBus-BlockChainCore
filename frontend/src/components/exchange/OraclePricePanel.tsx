@@ -645,6 +645,11 @@ export function OraclePricePanel() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); unsub(); };
   }, [load]);
 
+  const cexPriceEntries = useMemo(
+    () => Object.entries(cexPrices).filter(([, v]) => v > 0),
+    [cexPrices],
+  );
+
   // Compute arbitrage opportunities
   const arbOpps = useMemo<ArbOpportunity[]>(() => priceRows
     .filter(r => Math.abs(r.spreadPct) >= 0.3 && r.dexUsd > 0 && r.cexUsd > 0)
@@ -761,7 +766,7 @@ export function OraclePricePanel() {
       {Object.keys(cexPrices).length > 0 && (
         <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-mempool-bg border border-mempool-border">
           <span className="text-[9px] text-mempool-text-dim self-center uppercase tracking-wider mr-1">CEX:</span>
-          {Object.entries(cexPrices).filter(([, v]) => v > 0).map(([sym, price]) => (
+          {cexPriceEntries.map(([sym, price]) => (
             <div key={sym} className="flex items-center gap-1 px-2 py-0.5 rounded bg-mempool-bg-elev border border-mempool-border/50">
               <span className="text-[10px] font-bold text-mempool-text">{sym}</span>
               <span className="text-[10px] font-mono text-green-400">

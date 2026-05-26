@@ -289,7 +289,7 @@ export function NamesPage() {
   const [renewTarget, setRenewTarget] = useState<ListEntry | null>(null);
   // The user's expiring names — used to highlight rows that need attention.
   const expiringNames = useExpiringNames(wallet?.address);
-  const expiringByLabel = new Set(expiringNames.map((e) => e.fullLabel));
+  const expiringByLabel = useMemo(() => new Set(expiringNames.map((e) => e.fullLabel)), [expiringNames]);
 
   const refresh = async () => {
     try {
