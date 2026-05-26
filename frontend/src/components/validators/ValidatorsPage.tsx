@@ -10,6 +10,10 @@ import {
   Copy,
   Check,
   X,
+  Clock,
+  Calendar,
+  Layers,
+  Gavel,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
@@ -63,8 +67,56 @@ interface StakeResp {
   locked: boolean;
 }
 
+// Consensus & Slots types
+interface SlotLeaderResp2 {
+  slot: number;
+  leader: string | null;
+  weight: number;
+}
+
+interface ClockStatusResp {
+  now_ms: number;
+  rdtsc: number;
+  spectrum: string;
+}
+
+interface SlotCalendarEntry {
+  slot_id: number;
+  leader: string;
+  expected_arrival_ms: number;
+  state: "future" | "in_flight" | "finalized" | "missed";
+}
+
+interface SlotCalendarResp {
+  head_slot: number;
+  slot_interval_ms: number;
+  entries: SlotCalendarEntry[];
+}
+
+interface FuturePoolResp {
+  current_height: number;
+  locked_count: number;
+  earliest_target: number;
+  latest_target: number;
+}
+
+interface SlashEvidenceResp {
+  valid: boolean;
+  slashed_amount: number;
+  reporter_reward: number;
+  new_stake: number;
+  reason: string;
+}
+
+interface SlashHistoryEntry {
+  block_height: number;
+  reason: string;
+  slashed_amount: number;
+  reporter: string;
+}
+
 type SortBy = "tier" | "uptime" | "stake";
-type SubTab = "list" | "become" | "slashing";
+type SubTab = "list" | "become" | "slashing" | "consensus";
 
 // ---------------------------------------------------------------------------
 // Visual helpers
@@ -147,6 +199,7 @@ export function ValidatorsPage() {
               { k: "list", label: "Validator List", icon: ShieldCheck },
               { k: "become", label: "Become Validator", icon: Award },
               { k: "slashing", label: "Slashing Log", icon: AlertOctagon },
+              { k: "consensus", label: "Consensus & Slots", icon: Calendar },
             ] as const
           ).map(({ k, label, icon: Icon }) => (
             <button
@@ -167,6 +220,7 @@ export function ValidatorsPage() {
         {tab === "list" && <ValidatorListTab />}
         {tab === "become" && <BecomeValidatorTab wallet={wallet} />}
         {tab === "slashing" && <SlashingLogTab />}
+        {tab === "consensus" && <ConsensusTab />}
       </div>
     </div>
   );
@@ -600,8 +654,245 @@ function ReqRow({ ok, label }: { ok: boolean; label: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 3: Slashing log
+// Tab 3: Slashing log (includes submit evidence + history lookup)
 // ---------------------------------------------------------------------------
+
+function SlashEvidencePanel() {
+  const [validatorAddr, setValidatorAddr] = useState("");
+  const [reason, setReason] = useState<"double_sign" | "invalid_block" | "downtime">("downtime");
+  const [hash1, setHash1] = useState("");
+  const [hash2, setHash2] = useState("");
+  const [blockHeight, setBlockHeight] = useState("");
+  const [reporterAddr, setReporterAddr] = useState("");
+  const [sig1, setSig1] = useState("");
+  const [sig2, setSig2] = useState("");
+  const [result, setResult] = useState<SlashEvidenceResp | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const needsHashes = reason === "double_sign" || reason === "invalid_block";
+
+  const onSubmit = async () => {
+    if (!validatorAddr || !blockHeight || !reporterAddr) return;
+    setLoading(true);
+    setErr(null);
+    setResult(null);
+    try {
+      const params: (string | null | number)[] = [
+        validatorAddr,
+        reason,
+        needsHashes ? (hash1 || null) : null,
+        needsHashes ? (hash2 || null) : null,
+        parseInt(blockHeight, 10),
+        reporterAddr,
+        needsHashes ? (sig1 || null) : null,
+        needsHashes ? (sig2 || null) : null,
+      ];
+      const r = (await rpc.request_raw("submitslashevidence", params)) as SlashEvidenceResp;
+      setResult(r);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-4 space-y-3">
+      <h4 className="font-semibold text-orange-200 flex items-center gap-2 text-sm">
+        <Gavel className="w-4 h-4" /> Submit Slash Evidence
+      </h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+        <div>
+          <label className="text-gray-400 block mb-0.5">Validator address *</label>
+          <input
+            value={validatorAddr}
+            onChange={(e) => setValidatorAddr(e.target.value)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+            placeholder="ob1…"
+          />
+        </div>
+        <div>
+          <label className="text-gray-400 block mb-0.5">Reason *</label>
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value as typeof reason)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 text-gray-100 text-xs"
+          >
+            <option value="downtime">downtime</option>
+            <option value="double_sign">double_sign</option>
+            <option value="invalid_block">invalid_block</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-gray-400 block mb-0.5">Evidence block height *</label>
+          <input
+            value={blockHeight}
+            onChange={(e) => setBlockHeight(e.target.value)}
+            type="number"
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+            placeholder="12345"
+          />
+        </div>
+        <div>
+          <label className="text-gray-400 block mb-0.5">Reporter address *</label>
+          <input
+            value={reporterAddr}
+            onChange={(e) => setReporterAddr(e.target.value)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+            placeholder="ob1…"
+          />
+        </div>
+        {needsHashes && (
+          <>
+            <div>
+              <label className="text-gray-400 block mb-0.5">Block hash 1 (hex)</label>
+              <input
+                value={hash1}
+                onChange={(e) => setHash1(e.target.value)}
+                className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+                placeholder="64 hex chars"
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 block mb-0.5">Block hash 2 (hex)</label>
+              <input
+                value={hash2}
+                onChange={(e) => setHash2(e.target.value)}
+                className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+                placeholder="64 hex chars"
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 block mb-0.5">Validator sig 1 (hex)</label>
+              <input
+                value={sig1}
+                onChange={(e) => setSig1(e.target.value)}
+                className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 block mb-0.5">Validator sig 2 (hex)</label>
+              <input
+                value={sig2}
+                onChange={(e) => setSig2(e.target.value)}
+                className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+              />
+            </div>
+          </>
+        )}
+      </div>
+      <button
+        onClick={onSubmit}
+        disabled={loading || !validatorAddr || !blockHeight || !reporterAddr}
+        className="px-4 py-1.5 rounded text-xs bg-orange-500/30 hover:bg-orange-500/50 text-orange-100 border border-orange-500/40 disabled:opacity-50"
+      >
+        {loading ? "Submitting…" : "Submit Evidence"}
+      </button>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mt-1">
+          <div className="bg-gray-800/40 rounded p-2">
+            <div className="text-gray-400">Valid</div>
+            <div className={result.valid ? "text-green-400" : "text-red-400"}>
+              {result.valid ? "yes" : "no"}
+            </div>
+          </div>
+          <div className="bg-gray-800/40 rounded p-2">
+            <div className="text-gray-400">Slashed (sat)</div>
+            <div className="font-mono text-red-300">{result.slashed_amount}</div>
+          </div>
+          <div className="bg-gray-800/40 rounded p-2">
+            <div className="text-gray-400">Reporter reward</div>
+            <div className="font-mono text-green-300">{result.reporter_reward}</div>
+          </div>
+          <div className="bg-gray-800/40 rounded p-2">
+            <div className="text-gray-400">New stake</div>
+            <div className="font-mono text-gray-200">{result.new_stake}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SlashHistoryPanel() {
+  const [address, setAddress] = useState("");
+  const [history, setHistory] = useState<SlashHistoryEntry[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onLookup = async () => {
+    if (!address) return;
+    setLoading(true);
+    setErr(null);
+    setHistory(null);
+    try {
+      const r = (await rpc.request_raw("getslashhistory", [address])) as SlashHistoryEntry[];
+      setHistory(Array.isArray(r) ? r : []);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-gray-700/40 bg-mempool-bg-elev p-4 space-y-3">
+      <h4 className="font-semibold text-gray-200 flex items-center gap-2 text-sm">
+        <AlertOctagon className="w-4 h-4 text-red-400" /> Slash History Lookup
+      </h4>
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-xs text-gray-400 block mb-0.5">Validator address</label>
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2 py-1.5 font-mono text-gray-100 text-xs"
+            placeholder="ob1…"
+            onKeyDown={(e) => e.key === "Enter" && onLookup()}
+          />
+        </div>
+        <button
+          onClick={onLookup}
+          disabled={loading || !address}
+          className="px-3 py-1.5 rounded text-xs bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30 disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {history !== null && (
+        history.length === 0 ? (
+          <p className="text-xs text-gray-500">No slash history for this address.</p>
+        ) : (
+          <div className="overflow-x-auto rounded border border-gray-700/40">
+            <table className="w-full text-xs min-w-[400px]">
+              <thead className="bg-gray-800/60 text-gray-400 uppercase">
+                <tr>
+                  <th className="text-right px-3 py-2">Block</th>
+                  <th className="text-left px-3 py-2">Reason</th>
+                  <th className="text-right px-3 py-2">Slashed (sat)</th>
+                  <th className="text-left px-3 py-2">Reporter</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((h, i) => (
+                  <tr key={i} className="border-t border-gray-800/60">
+                    <td className="px-3 py-1.5 text-right font-mono text-gray-300">{h.block_height}</td>
+                    <td className="px-3 py-1.5 text-red-300">{h.reason}</td>
+                    <td className="px-3 py-1.5 text-right font-mono text-red-400">{h.slashed_amount}</td>
+                    <td className="px-3 py-1.5 font-mono text-xs text-gray-400">{truncAddr(h.reporter)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
 
 function SlashingLogTab() {
   const [events, setEvents] = useState<SlashEvent[]>([]);
@@ -704,6 +995,193 @@ function SlashingLogTab() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <SlashEvidencePanel />
+      <SlashHistoryPanel />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tab 4: Consensus & Slots
+// ---------------------------------------------------------------------------
+
+const SLOT_STATE_COLOR: Record<string, string> = {
+  future: "text-gray-400",
+  in_flight: "text-yellow-300",
+  finalized: "text-green-400",
+  missed: "text-red-400",
+};
+
+function ConsensusTab() {
+  const [leader, setLeader] = useState<SlotLeaderResp2 | null>(null);
+  const [clock, setClock] = useState<ClockStatusResp | null>(null);
+  const [calendar, setCalendar] = useState<SlotCalendarResp | null>(null);
+  const [futurePool, setFuturePool] = useState<FuturePoolResp | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const [l, c, cal, fp] = await Promise.all([
+          rpc.request_raw("getslotleader", []) as Promise<SlotLeaderResp2>,
+          rpc.request_raw("getclockstatus", []) as Promise<ClockStatusResp>,
+          rpc.request_raw("getslotcalendar", []) as Promise<SlotCalendarResp>,
+          rpc.request_raw("getfuturepool", []) as Promise<FuturePoolResp>,
+        ]);
+        if (cancelled) return;
+        setLeader(l);
+        setClock(c);
+        setCalendar(cal);
+        setFuturePool(fp);
+        setErr(null);
+      } catch (e: any) {
+        if (!cancelled) setErr(e?.message ?? String(e));
+      }
+    };
+    refresh();
+    const id = setInterval(refresh, 5_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      {err && (
+        <div className="p-3 rounded border border-red-500/40 bg-red-500/10 text-red-300 text-sm">
+          {err}
+        </div>
+      )}
+
+      {/* Slot Leader + Clock */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
+          <h4 className="font-semibold text-yellow-200 flex items-center gap-2 text-sm mb-3">
+            <Crown className="w-4 h-4" /> Current Slot Leader
+          </h4>
+          {leader ? (
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Slot</span>
+                <span className="font-mono text-gray-200">{leader.slot ?? "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Leader</span>
+                <span className="font-mono text-yellow-300">{leader.leader ? truncAddr(leader.leader) : "none"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Weight</span>
+                <span className="font-mono text-gray-200">{leader.weight ?? 0}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">Loading…</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-4">
+          <h4 className="font-semibold text-cyan-200 flex items-center gap-2 text-sm mb-3">
+            <Clock className="w-4 h-4" /> Hardware Clock Status
+          </h4>
+          {clock ? (
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Now (ms)</span>
+                <span className="font-mono text-gray-200">{clock.now_ms}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">RDTSC cycles</span>
+                <span className="font-mono text-gray-200">{clock.rdtsc}</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-gray-400 block mb-1">RDTSC spectrum (64 bits)</span>
+                <span className="font-mono text-[9px] text-cyan-300 break-all leading-tight">
+                  {clock.spectrum ?? "—"}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">Loading…</p>
+          )}
+        </div>
+      </div>
+
+      {/* Future Pool */}
+      {futurePool && (
+        <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 p-4">
+          <h4 className="font-semibold text-purple-200 flex items-center gap-2 text-sm mb-3">
+            <Layers className="w-4 h-4" /> Future TX Pool (time-locked)
+          </h4>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400">Current height</div>
+              <div className="font-mono text-gray-100">{futurePool.current_height}</div>
+            </div>
+            <div className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400">Locked TXs</div>
+              <div className="font-mono text-purple-300">{futurePool.locked_count}</div>
+            </div>
+            <div className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400">Earliest unlock</div>
+              <div className="font-mono text-gray-200">{futurePool.earliest_target || "—"}</div>
+            </div>
+            <div className="bg-gray-800/40 rounded p-2">
+              <div className="text-gray-400">Latest unlock</div>
+              <div className="font-mono text-gray-200">{futurePool.latest_target || "—"}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slot Calendar */}
+      <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
+        <h4 className="font-semibold text-blue-200 flex items-center gap-2 text-sm mb-1">
+          <Calendar className="w-4 h-4" /> Slot Calendar
+          {calendar && (
+            <span className="text-xs text-gray-400 font-normal">
+              — head {calendar.head_slot} · interval {calendar.slot_interval_ms}ms
+            </span>
+          )}
+        </h4>
+        {calendar ? (
+          <div className="overflow-x-auto mt-2 rounded border border-blue-500/10">
+            <table className="w-full text-xs min-w-[520px]">
+              <thead className="bg-gray-800/60 text-gray-400 uppercase">
+                <tr>
+                  <th className="text-right px-3 py-2">Slot</th>
+                  <th className="text-left px-3 py-2">Leader</th>
+                  <th className="text-right px-3 py-2">Expected (ms)</th>
+                  <th className="text-left px-3 py-2">State</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(calendar.entries ?? []).map((e) => (
+                  <tr
+                    key={e.slot_id}
+                    className={`border-t border-gray-800/60 ${
+                      e.state === "in_flight" ? "bg-yellow-500/5" : ""
+                    }`}
+                  >
+                    <td className="px-3 py-1.5 text-right font-mono text-gray-300">{e.slot_id}</td>
+                    <td className="px-3 py-1.5 font-mono text-xs text-gray-200">{truncAddr(e.leader)}</td>
+                    <td className="px-3 py-1.5 text-right font-mono text-gray-400">{e.expected_arrival_ms}</td>
+                    <td className={`px-3 py-1.5 font-semibold ${SLOT_STATE_COLOR[e.state] ?? "text-gray-400"}`}>
+                      {e.state}
+                    </td>
+                  </tr>
+                ))}
+                {(calendar.entries ?? []).length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-gray-500">No calendar entries.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500 mt-2">Loading…</p>
+        )}
       </div>
     </div>
   );
