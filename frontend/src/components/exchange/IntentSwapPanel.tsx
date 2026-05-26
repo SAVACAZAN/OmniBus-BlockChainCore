@@ -30,7 +30,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc, fmtInt } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 import { signMessage } from "../../api/exchange-sign";
 
@@ -122,7 +122,6 @@ function shortHex(h: string): string {
   return midTrunc(h, 8, 4);
 }
 
-const intFmt = new Intl.NumberFormat("en-US");
 
 // ── Status badge ─────────────────────────────────────────────────────────────
 
@@ -242,7 +241,7 @@ function MyIntentsTab() {
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-mempool-text-dim">
-          Block height: {intFmt.format(blockHeight)}
+          Block height: {fmtInt(blockHeight)}
         </span>
         <button
           onClick={refresh}
@@ -291,7 +290,7 @@ function MyIntentsTab() {
               <div>
                 <p className="text-mempool-text-dim text-[10px]">Expiry block</p>
                 <p className={`font-mono ${isExpired ? "text-yellow-400" : "text-mempool-text"}`}>
-                  {intFmt.format(intent.expiry_block)}
+                  {fmtInt(intent.expiry_block)}
                 </p>
               </div>
             </div>
@@ -487,7 +486,7 @@ function MarketTab() {
             </div>
 
             <p className="text-[10px] text-mempool-text-dim">
-              Timeout block: {intFmt.format(swap.timeout_block)}
+              Timeout block: {fmtInt(swap.timeout_block)}
             </p>
 
             {feedback?.id === swap.swap_id && (
@@ -673,7 +672,7 @@ function PostIntentTab() {
           />
           {makerAmount && !isNaN(parseFloat(makerAmount)) && (
             <p className="text-[10px] text-mempool-text-dim mt-0.5">
-              = {intFmt.format(displayToSat(makerAmount))} sat
+              = {fmtInt(displayToSat(makerAmount))} sat
             </p>
           )}
         </div>
@@ -900,7 +899,7 @@ function FillIntentTab() {
           />
           {bondAmount && !isNaN(parseFloat(bondAmount)) && (
             <p className="text-[10px] text-mempool-text-dim mt-0.5">
-              = {intFmt.format(displayToSat(bondAmount))} sat
+              = {fmtInt(displayToSat(bondAmount))} sat
             </p>
           )}
         </div>
@@ -980,7 +979,7 @@ export function IntentSwapPanel() {
         <div className="flex-1 h-px bg-mempool-border" />
         <div className="flex items-center gap-1 text-[10px] text-mempool-text-dim font-mono whitespace-nowrap">
           <Clock className="w-3 h-3" />
-          block {intFmt.format(blockHeight)}
+          block {fmtInt(blockHeight)}
         </div>
       </div>
 

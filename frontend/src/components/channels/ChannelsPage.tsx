@@ -33,7 +33,7 @@ import * as secp from "@noble/secp256k1";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { CopyButton } from "../common/CopyButton";
-import { satToOmni, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
+import { satToOmni, SAT_PER_OMNI, midTrunc, fmtInt } from "../../utils/fmt";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 
 const rpc = new OmniBusRpcClient();
@@ -43,7 +43,6 @@ const rpc = new OmniBusRpcClient();
 const toOMNI = (sat: number) => satToOmni(sat, 8);
 const toSAT = (omni: number) => Math.round(omni * SAT_PER_OMNI);
 
-const intFmt = new Intl.NumberFormat("en-US");
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -311,13 +310,13 @@ function OverviewTab({
           <div className="bg-mempool-bg border border-mempool-border rounded p-3">
             <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Open channels</div>
             <div className="text-base font-mono text-green-400 mt-1">
-              {intFmt.format(summary.open_count)}
+              {fmtInt(summary.open_count)}
             </div>
           </div>
           <div className="bg-mempool-bg border border-mempool-border rounded p-3">
             <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Settled</div>
             <div className="text-base font-mono text-gray-400 mt-1">
-              {intFmt.format(summary.settled_count)}
+              {fmtInt(summary.settled_count)}
             </div>
           </div>
         </div>
@@ -441,7 +440,7 @@ function OverviewTab({
                       <StateBadge state={c.state} />
                     </td>
                     <td className="py-2 px-2 text-right text-mempool-text-dim">
-                      {intFmt.format(c.sequence_num)}
+                      {fmtInt(c.sequence_num)}
                     </td>
                     <td className="py-2 px-2">
                       <button
@@ -536,7 +535,7 @@ function ChannelDetailsPanel({
         <Row label="Balance A" value={`${toOMNI(c.balance_a)} OMNI`} />
         <Row label="Balance B" value={`${toOMNI(c.balance_b)} OMNI`} />
         <Row label="State" value={<StateBadge state={c.state} />} />
-        <Row label="Sequence #" value={intFmt.format(c.sequence_num)} />
+        <Row label="Sequence #" value={fmtInt(c.sequence_num)} />
       </div>
 
       {/* Balance bar */}
@@ -692,7 +691,7 @@ function OpenChannelTab() {
         />
         {myAmountSat > 0 && (
           <p className="text-[11px] text-mempool-text-dim font-mono">
-            = {intFmt.format(myAmountSat)} SAT
+            = {fmtInt(myAmountSat)} SAT
           </p>
         )}
       </div>
@@ -896,7 +895,7 @@ function PayTab({ prefillChannelId }: { prefillChannelId: string }) {
         />
         {amountSat > 0 && (
           <p className="text-[11px] text-mempool-text-dim font-mono">
-            = {intFmt.format(amountSat)} SAT
+            = {fmtInt(amountSat)} SAT
           </p>
         )}
       </div>
@@ -916,7 +915,7 @@ function PayTab({ prefillChannelId }: { prefillChannelId: string }) {
             <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
             <span className="text-xs text-green-400 font-semibold uppercase tracking-wider">Payment sent</span>
           </div>
-          <Row label="Sequence #" value={intFmt.format(result.sequence_num)} />
+          <Row label="Sequence #" value={fmtInt(result.sequence_num)} />
           <Row label="New balance A" value={`${toOMNI(result.balance_a)} OMNI`} />
           <Row label="New balance B" value={`${toOMNI(result.balance_b)} OMNI`} />
         </div>
@@ -1042,7 +1041,7 @@ function CloseTab({ prefillChannelId }: { prefillChannelId: string }) {
           <Row label="State" value={<StateBadge state={channelInfo.state} />} />
           <Row label="Balance A" value={`${toOMNI(channelInfo.balance_a)} OMNI`} />
           <Row label="Balance B" value={`${toOMNI(channelInfo.balance_b)} OMNI`} />
-          <Row label="Sequence #" value={intFmt.format(channelInfo.sequence_num)} />
+          <Row label="Sequence #" value={fmtInt(channelInfo.sequence_num)} />
           {channelInfo.state !== "open" && (
             <p className="text-xs text-yellow-400 font-mono pt-1">
               Channel state is "{channelInfo.state}" — already closed or in dispute.

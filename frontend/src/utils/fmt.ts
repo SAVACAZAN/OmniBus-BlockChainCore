@@ -97,6 +97,16 @@ export function fmtOmni(sat: number): string {
   return omni.toFixed(9);
 }
 
+const _intFmt = new Intl.NumberFormat("en-US");
+
+/**
+ * Format an integer with locale thousands separators (e.g. 1234567 → "1,234,567").
+ * Shared replacement for the 7+ per-file `const intFmt = new Intl.NumberFormat("en-US")`.
+ */
+export function fmtInt(n: number): string {
+  return _intFmt.format(n);
+}
+
 /**
  * Pick the right number of decimal places for a micro-USD price based on magnitude.
  * Small prices (< $0.01) get 6 decimals; large prices (>= $1) get 2.

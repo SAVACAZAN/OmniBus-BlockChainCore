@@ -22,6 +22,7 @@ import { useCallback, useEffect, useState } from "react";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
 import { useBlockHeight } from "../../api/use-block-height";
+import { fmtInt } from "../../utils/fmt";
 import {
   Scale,
   RefreshCw,
@@ -85,7 +86,6 @@ type SubTab = "proposals" | "all" | "propose" | "vote";
 
 // ── Format helpers ─────────────────────────────────────────────────────────
 
-const intFmt = new Intl.NumberFormat("en-US");
 
 function sha256Hex(text: string): string {
   const bytes = new TextEncoder().encode(text);
@@ -156,11 +156,11 @@ function VoteBar({ yes, no, quorum }: { yes: number; no: number; quorum: number 
         <div className="bg-red-500/70 transition-all"   style={{ width: `${noPct}%`  }} />
       </div>
       <div className="flex justify-between text-[10px] font-mono text-mempool-text-dim">
-        <span className="text-green-400">{intFmt.format(yes)} yes</span>
+        <span className="text-green-400">{fmtInt(yes)} yes</span>
         <span className={quorumReached ? "text-green-400" : "text-mempool-text-dim"}>
-          {intFmt.format(total)}/{intFmt.format(quorum)} quorum{quorumReached ? " ✓" : ""}
+          {fmtInt(total)}/{fmtInt(quorum)} quorum{quorumReached ? " ✓" : ""}
         </span>
-        <span className="text-red-400">{intFmt.format(no)} no</span>
+        <span className="text-red-400">{fmtInt(no)} no</span>
       </div>
     </div>
   );
@@ -211,20 +211,20 @@ function ProposalModal({
               <AddressLabel address={proposal.proposer} showEmoji truncate={{ left: 10, right: 8 }} />
             </button>
           } />
-          <Row label="Created at block" value={proposal.create_block !== undefined ? intFmt.format(proposal.create_block) : "—"} />
-          <Row label="Voting ends"      value={<>block {intFmt.format(proposal.voting_end_block)} <span className="text-mempool-text-dim">({blocksLeft > 0 ? `~${blocksLeft} blk left` : "ended"})</span></>} />
-          <Row label="Quorum"           value={`${intFmt.format(proposal.quorum)} votes required`} />
+          <Row label="Created at block" value={proposal.create_block !== undefined ? fmtInt(proposal.create_block) : "—"} />
+          <Row label="Voting ends"      value={<>block {fmtInt(proposal.voting_end_block)} <span className="text-mempool-text-dim">({blocksLeft > 0 ? `~${blocksLeft} blk left` : "ended"})</span></>} />
+          <Row label="Quorum"           value={`${fmtInt(proposal.quorum)} votes required`} />
           {proposal.action_kind && (
             <Row label="Action kind" value={<span className="text-mempool-orange font-mono">{proposal.action_kind}</span>} />
           )}
           {proposal.action_u64 !== undefined && (
-            <Row label="Action value" value={<span className="font-mono">{intFmt.format(proposal.action_u64)}</span>} />
+            <Row label="Action value" value={<span className="font-mono">{fmtInt(proposal.action_u64)}</span>} />
           )}
           {proposal.action_bool !== undefined && (
             <Row label="Action bool" value={proposal.action_bool ? "true" : "false"} />
           )}
           {proposal.executed_block !== undefined && (
-            <Row label="Executed at block" value={<span className="text-purple-400 font-mono">{intFmt.format(proposal.executed_block)}</span>} />
+            <Row label="Executed at block" value={<span className="text-purple-400 font-mono">{fmtInt(proposal.executed_block)}</span>} />
           )}
         </div>
 
@@ -326,8 +326,8 @@ function ProposalRow({
         {/* Ends */}
         <td className="py-2.5 px-2 font-mono text-[11px] text-mempool-text-dim">
           {proposal.status === "voting"
-            ? (blocksLeft > 0 ? `~${intFmt.format(blocksLeft)} blk` : "ended")
-            : `@ ${intFmt.format(proposal.voting_end_block)}`}
+            ? (blocksLeft > 0 ? `~${fmtInt(blocksLeft)} blk` : "ended")
+            : `@ ${fmtInt(proposal.voting_end_block)}`}
         </td>
         {/* Actions */}
         <td className="py-2.5 px-2">
@@ -376,13 +376,13 @@ function ProposalRow({
               </div>
               <div className="flex flex-wrap gap-3 text-[11px] font-mono">
                 <span className="text-mempool-text-dim">
-                  quorum: <span className="text-mempool-text">{intFmt.format(proposal.quorum)}</span>
+                  quorum: <span className="text-mempool-text">{fmtInt(proposal.quorum)}</span>
                 </span>
                 <span className="text-mempool-text-dim">
-                  votes: <span className="text-mempool-text">{intFmt.format(proposal.vote_count)}</span>
+                  votes: <span className="text-mempool-text">{fmtInt(proposal.vote_count)}</span>
                 </span>
                 <span className="text-mempool-text-dim">
-                  ends @ block: <span className="text-mempool-text">{intFmt.format(proposal.voting_end_block)}</span>
+                  ends @ block: <span className="text-mempool-text">{fmtInt(proposal.voting_end_block)}</span>
                 </span>
               </div>
               <button
@@ -609,7 +609,7 @@ function ProposeTab({
         nonce,
       }])) as GovProposeResp;
       setToast(
-        `Proposal #${r.proposal_id} submitted — txid ${r.txid.slice(0, 12)}… — voting ends @ block ${intFmt.format(r.voting_end_block)}`
+        `Proposal #${r.proposal_id} submitted — txid ${r.txid.slice(0, 12)}… — voting ends @ block ${fmtInt(r.voting_end_block)}`
       );
       setTitle("");
       setNote("");
@@ -964,7 +964,7 @@ export function GovernancePage() {
     try {
       const r = (await rpc.request_raw("gov_execute", [{ proposal_id: proposal.id }])) as GovExecuteResp;
       setSharedToast(
-        `Proposal #${r.proposal_id} executed at block ${intFmt.format(r.executed_block)} — action: ${r.action_kind}`
+        `Proposal #${r.proposal_id} executed at block ${fmtInt(r.executed_block)} — action: ${r.action_kind}`
       );
     } catch (e) {
       setSharedToast(`Execute failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -987,7 +987,7 @@ export function GovernancePage() {
         </h2>
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-[10px] sm:text-xs text-mempool-text-dim font-mono whitespace-nowrap">
-          height {intFmt.format(blockHeight)}
+          height {fmtInt(blockHeight)}
         </span>
       </div>
 

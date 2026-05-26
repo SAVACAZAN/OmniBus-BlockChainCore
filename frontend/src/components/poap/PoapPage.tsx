@@ -36,7 +36,7 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { signMessage } from "../../api/exchange-sign";
-import { midTrunc } from "../../utils/fmt";
+import { midTrunc, fmtInt } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -68,7 +68,6 @@ type SubTab = "my-poaps" | "lookup" | "create" | "claim";
 
 // ── Format helpers ────────────────────────────────────────────────────────
 
-const intFmt = new Intl.NumberFormat("en-US");
 
 
 /** Derive a stable color class from an event_id string using a simple hash. */
@@ -184,7 +183,7 @@ function BadgeCard({
           {poap.event_id}
         </div>
         <div className="text-[10px] text-mempool-text-dim font-mono mt-0.5">
-          block #{intFmt.format(poap.claim_block)}
+          block #{fmtInt(poap.claim_block)}
         </div>
       </div>
     </button>
@@ -239,13 +238,13 @@ function EventInfoCard({
             <AddressLabel address={event.organizer} showEmoji truncate={{ left: 8, right: 6 }} />
           </button>
         } />
-        <Row label="created at block" value={intFmt.format(event.create_block)} />
+        <Row label="created at block" value={fmtInt(event.create_block)} />
         <Row
           label="claims"
           value={
             unlimited
-              ? `${intFmt.format(event.claims_count)} / unlimited`
-              : `${intFmt.format(event.claims_count)} / ${intFmt.format(event.max_claims)}`
+              ? `${fmtInt(event.claims_count)} / unlimited`
+              : `${fmtInt(event.claims_count)} / ${fmtInt(event.max_claims)}`
           }
         />
         {!unlimited && claimPct !== null && (
@@ -876,7 +875,7 @@ function CreateEventTab({ wallet }: { wallet: WalletProp }) {
           className="w-full bg-mempool-bg border border-mempool-border rounded px-3 py-2 text-sm font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue disabled:opacity-40"
         />
         <div className="text-[10px] text-mempool-text-dim font-mono">
-          {maxClaimsNum === 0 ? "Unlimited participants can claim this badge." : `Up to ${intFmt.format(maxClaimsNum)} participants.`}
+          {maxClaimsNum === 0 ? "Unlimited participants can claim this badge." : `Up to ${fmtInt(maxClaimsNum)} participants.`}
         </div>
       </div>
 

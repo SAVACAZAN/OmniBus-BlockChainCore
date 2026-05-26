@@ -29,7 +29,7 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI, fmtOmni } from "../../utils/fmt";
+import { SAT_PER_OMNI, fmtOmni, fmtInt } from "../../utils/fmt";
 import { useWallet } from "../../api/use-wallet";
 
 const rpc = new OmniBusRpcClient();
@@ -83,8 +83,6 @@ type SortKey =
   | "feesBurned"
   | "stakeChange";
 type SortDir = "asc" | "desc";
-
-const intFmt = new Intl.NumberFormat("en-US");
 
 /** Convert tip block timestamp + day-window math to a real ISO date string. */
 function dayDate(d: DailyEntry, resp: DailyActivityResp | null): string {
@@ -263,7 +261,7 @@ export function DailyAuditPage() {
         </h2>
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-[10px] sm:text-xs text-mempool-text-dim font-mono whitespace-nowrap">
-          {resp ? `tip ${intFmt.format(resp.tipHeight)}` : ""}
+          {resp ? `tip ${fmtInt(resp.tipHeight)}` : ""}
         </span>
       </div>
 
@@ -325,7 +323,7 @@ export function DailyAuditPage() {
       {/* Window totals — chain-derived, recomputed each render */}
       {resp && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-3">
-          <SummaryCell label="TX (window)" value={intFmt.format(totals.txCount)} />
+          <SummaryCell label="TX (window)" value={fmtInt(totals.txCount)} />
           <SummaryCell label="Sent" value={`${fmtOmni(totals.sent)} OMNI`} />
           <SummaryCell label="Received" value={`${fmtOmni(totals.received)} OMNI`} accent="text-mempool-green" />
           <SummaryCell label="Mining" value={`${fmtOmni(totals.miningReward)} OMNI`} accent="text-mempool-green" />
@@ -372,9 +370,9 @@ export function DailyAuditPage() {
                 <tr key={d.dayIndex} className="border-t border-mempool-border/40">
                   <td className="py-2 px-2 text-mempool-text">{dayDate(d, resp)}</td>
                   <td className="py-2 px-2 text-right text-mempool-text-dim">
-                    {intFmt.format(d.blockStart)}–{intFmt.format(d.blockEnd)}
+                    {fmtInt(d.blockStart)}–{fmtInt(d.blockEnd)}
                   </td>
-                  <td className="py-2 px-2 text-right text-mempool-text">{intFmt.format(d.txCount)}</td>
+                  <td className="py-2 px-2 text-right text-mempool-text">{fmtInt(d.txCount)}</td>
                   <td className="py-2 px-2 text-right text-mempool-text">{fmtOmni(d.sent)}</td>
                   <td className="py-2 px-2 text-right text-mempool-green">{fmtOmni(d.received)}</td>
                   <td className="py-2 px-2 text-right text-mempool-green">{fmtOmni(d.miningReward)}</td>

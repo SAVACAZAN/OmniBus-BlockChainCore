@@ -27,7 +27,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI, midTrunc, fmtOmni } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc, fmtOmni, fmtInt } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { signMessage } from "../../api/exchange-sign";
@@ -109,7 +109,6 @@ type SortBy = "amount" | "rent" | "days";
 
 // ── Format helpers ────────────────────────────────────────────────────────
 
-const intFmt = new Intl.NumberFormat("en-US");
 const repFmt = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -155,7 +154,7 @@ export function StakePage() {
         </h2>
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-[10px] sm:text-xs text-mempool-text-dim font-mono whitespace-nowrap">
-          height {intFmt.format(blockHeight)}
+          height {fmtInt(blockHeight)}
         </span>
       </div>
 
@@ -352,7 +351,7 @@ function MyStakesTab({ blockHeight }: { blockHeight: number }) {
             </div>
             <p className="text-xs text-mempool-text-dim leading-relaxed">
               Unstaking starts a <span className="text-mempool-orange font-mono">7-day unbonding</span>
-              {" "}period ({intFmt.format(UNBONDING_BLOCKS)} blocks). During unbonding the funds
+              {" "}period ({fmtInt(UNBONDING_BLOCKS)} blocks). During unbonding the funds
               are locked but accrue no further RENT. Funds become spendable after unbonding ends.
             </p>
             <div className="flex justify-end gap-2 pt-2">
@@ -418,7 +417,7 @@ function StakeCard({
           <span className="text-xs text-mempool-text-dim ml-1">OMNI</span>
         </div>
         <div className="text-xs text-mempool-text-dim font-mono">
-          lock {intFmt.format(stake.lock_blocks)} blk · {stake.days_locked}d
+          lock {fmtInt(stake.lock_blocks)} blk · {stake.days_locked}d
         </div>
         <div className="text-xs font-mono">
           <span className="text-mempool-text-dim">RENT</span>{" "}
@@ -439,13 +438,13 @@ function StakeCard({
         )}
       </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-mempool-text-dim font-mono">
-        <span>started @ block {intFmt.format(stake.started_at_block)}</span>
+        <span>started @ block {fmtInt(stake.started_at_block)}</span>
         {stake.status === "active" && (
-          <span>unlocks in ~{daysRemaining}d ({intFmt.format(blocksRemaining)} blk)</span>
+          <span>unlocks in ~{daysRemaining}d ({fmtInt(blocksRemaining)} blk)</span>
         )}
         {stake.status === "unbonding" && stake.unbonding_until !== undefined && (
           <span className="text-mempool-orange">
-            unbonding until block {intFmt.format(stake.unbonding_until)}
+            unbonding until block {fmtInt(stake.unbonding_until)}
           </span>
         )}
       </div>
@@ -630,7 +629,7 @@ function StakeNewTab({ blockHeight }: { blockHeight: number }) {
         <Row label="RENT over lock" value={
           <span className="text-mempool-green">{repFmt.format(estRentTotal)} RENT</span>
         } />
-        <Row label="lock_blocks" value={`${intFmt.format(lockBlocks)} blk · unlocks @ ${intFmt.format(blockHeight + lockBlocks)}`} />
+        <Row label="lock_blocks" value={`${fmtInt(lockBlocks)} blk · unlocks @ ${fmtInt(blockHeight + lockBlocks)}`} />
       </div>
 
       {availableSat !== null && amountSat > availableSat && (
@@ -780,7 +779,7 @@ function TopStakersTab() {
                     </button>
                   </td>
                   <td className="py-2 px-2 text-right text-mempool-text">{fmtOmni(r.amount_sat)}</td>
-                  <td className="py-2 px-2 text-right text-mempool-text-dim">{intFmt.format(r.days_locked)}</td>
+                  <td className="py-2 px-2 text-right text-mempool-text-dim">{fmtInt(r.days_locked)}</td>
                   <td className="py-2 px-2 text-right text-mempool-green">{fmtRent(r.rent_earned)}</td>
                 </tr>
               ))}
@@ -986,7 +985,7 @@ function StakeActivityTab() {
               {rows.map((r, i) => (
                 <tr key={r.tx.txid + i} className="border-t border-mempool-border/40">
                   <td className="py-2 px-2 text-mempool-text-dim">
-                    {r.tx.blockHeight === null ? "pending" : intFmt.format(r.tx.blockHeight)}
+                    {r.tx.blockHeight === null ? "pending" : fmtInt(r.tx.blockHeight)}
                   </td>
                   <td className="py-2 px-2">
                     <span

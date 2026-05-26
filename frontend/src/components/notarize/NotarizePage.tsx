@@ -27,7 +27,7 @@ import {
   Lock,
 } from "lucide-react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
-import { SAT_PER_OMNI, midTrunc, fmtOmni } from "../../utils/fmt";
+import { SAT_PER_OMNI, midTrunc, fmtOmni, fmtInt } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { useWallet } from "../../api/use-wallet";
@@ -38,7 +38,6 @@ const rpc = new OmniBusRpcClient();
 // ── Constants ─────────────────────────────────────────────────────────────
 
 
-const intFmt = new Intl.NumberFormat("en-US");
 // ── Types ─────────────────────────────────────────────────────────────────
 
 type DocType = "contract" | "certificate" | "receipt" | "identity" | "media" | "other";
@@ -599,7 +598,7 @@ function VerifyDocTab() {
               {result.block_height !== undefined && (
                 <div className="flex justify-between">
                   <span>block</span>
-                  <span className="text-mempool-text">{intFmt.format(result.block_height)}</span>
+                  <span className="text-mempool-text">{fmtInt(result.block_height)}</span>
                 </div>
               )}
               {result.tx_hash && (
@@ -615,7 +614,7 @@ function VerifyDocTab() {
                 <div className="flex justify-between">
                   <span>expiry block</span>
                   <span className="text-mempool-text">
-                    {result.expiry_block === 0 ? "never" : intFmt.format(result.expiry_block)}
+                    {result.expiry_block === 0 ? "never" : fmtInt(result.expiry_block)}
                   </span>
                 </div>
               )}
@@ -772,7 +771,7 @@ function MyDocsTab() {
                   </td>
                   <td className="py-2 px-2 text-mempool-text">{row.doc_type}</td>
                   <td className="py-2 px-2 text-right text-mempool-text-dim">
-                    {intFmt.format(row.block_height)}
+                    {fmtInt(row.block_height)}
                   </td>
                   <td className="py-2 px-2">
                     <StatusBadge status={row.status} />
@@ -1076,7 +1075,7 @@ function MyEscrowsTab({ blockHeight }: { blockHeight: number }) {
                       </button>
                     </td>
                     <td className="py-2 px-2 text-right text-mempool-text-dim">
-                      {intFmt.format(row.timeout_block)}
+                      {fmtInt(row.timeout_block)}
                       {pastTimeout && row.status === "open" && (
                         <span className="ml-1 text-mempool-orange">(elapsed)</span>
                       )}
@@ -1307,7 +1306,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
         />
         {amountSat > 0 && (
           <div className="text-[11px] text-mempool-text-dim font-mono">
-            = {intFmt.format(amountSat)} SAT
+            = {fmtInt(amountSat)} SAT
           </div>
         )}
       </div>
@@ -1394,7 +1393,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
         )}
         {blockHeight > 0 && timeoutBlocks > 0 && (
           <div className="text-[11px] text-mempool-text-dim font-mono">
-            timeout block: ~{intFmt.format(timeoutBlock)} (in {intFmt.format(timeoutBlocks)} blocks)
+            timeout block: ~{fmtInt(timeoutBlock)} (in {fmtInt(timeoutBlocks)} blocks)
           </div>
         )}
       </div>
@@ -1440,7 +1439,7 @@ function CreateEscrowTab({ blockHeight }: { blockHeight: number }) {
           </div>
           <div className="flex justify-between text-mempool-text-dim">
             <span>timeout block</span>
-            <span className="text-mempool-text">{intFmt.format(success.timeout_block)}</span>
+            <span className="text-mempool-text">{fmtInt(success.timeout_block)}</span>
           </div>
           <div className="border-t border-mempool-border/60 pt-2 text-mempool-orange text-[11px] leading-relaxed">
             IMPORTANT: Save the condition_hash and/or secret phrase. The recipient needs it to
@@ -1572,7 +1571,7 @@ function ReleaseEscrowTab() {
             ["creator",  escrow.creator],
             ["recipient", escrow.recipient],
             ["amount",   `${fmtOmni(escrow.amount_sat)} OMNI`],
-            ["timeout block", intFmt.format(escrow.timeout_block)],
+            ["timeout block", fmtInt(escrow.timeout_block)],
             ["condition_hash", midTrunc(escrow.condition_hash)],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between gap-2">
@@ -1681,7 +1680,7 @@ export function NotarizePage() {
         </h2>
         <div className="flex-1 h-px bg-mempool-border" />
         <span className="text-[10px] sm:text-xs text-mempool-text-dim font-mono whitespace-nowrap">
-          height {intFmt.format(blockHeight)}
+          height {fmtInt(blockHeight)}
         </span>
       </div>
 
