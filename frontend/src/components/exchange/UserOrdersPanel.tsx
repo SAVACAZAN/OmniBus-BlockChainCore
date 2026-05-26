@@ -3,6 +3,8 @@ import OmniBusRpcClient, { UserOrder } from "../../api/rpc-client";
 import { signCancelOrderPayload } from "../../api/exchange-sign";
 import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keystore";
 import { useTraderMode } from "./TraderModeToggle";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsOrderbookUpdateEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -44,10 +46,16 @@ export function UserOrdersPanel({ pairId, refreshKey }: Props) {
       }
     };
     refresh();
-    const id = setInterval(refresh, 4000);
+    // Live: orderbook_update fires whenever this pair's book changes.
+    const unsub = wsSubscribe<WsOrderbookUpdateEvent>("orderbook_update", (ev) => {
+      if (ev.pair_id === pairId) void refresh();
+    });
+    // Fallback poll at 15 s in case WS is not connected.
+    const id = setInterval(refresh, 15_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [u?.address, pairId, refreshKey, traderMode]);
 
