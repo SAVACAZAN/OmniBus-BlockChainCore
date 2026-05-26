@@ -128,19 +128,24 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
             <button
               onClick={() => {
                 const rows = [
-                  ["fill_id","pair","side","price_usd","amount_omni","counterparty","block_height","timestamp","settle_tx_hash","settle_chain_id"].join(","),
-                  ...trades.map((t) => [
-                    t.fillId,
-                    PAIR_LABELS[t.pairId] ?? `pair ${t.pairId}`,
-                    t.side,
-                    (t.price / MICRO_PER_USD).toFixed(6),
-                    (t.amount / SAT_PER_OMNI).toFixed(8),
-                    `"${t.counterparty}"`,
-                    t.blockHeight,
-                    new Date(t.ts).toISOString(),
-                    t.evmSettleTxHash ? `"${t.evmSettleTxHash}"` : "",
-                    t.evmChainId || "",
-                  ].join(",")),
+                  ["fill_id","pair","side","price_usd","amount_omni","value_usd","counterparty","block_height","timestamp","settle_tx_hash","settle_chain_id"].join(","),
+                  ...trades.map((t) => {
+                    const p = t.price / MICRO_PER_USD;
+                    const a = t.amount / SAT_PER_OMNI;
+                    return [
+                      t.fillId,
+                      PAIR_LABELS[t.pairId] ?? `pair ${t.pairId}`,
+                      t.side,
+                      p.toFixed(6),
+                      a.toFixed(8),
+                      (p * a).toFixed(4),
+                      `"${t.counterparty}"`,
+                      t.blockHeight,
+                      new Date(t.ts).toISOString(),
+                      t.evmSettleTxHash ? `"${t.evmSettleTxHash}"` : "",
+                      t.evmChainId || "",
+                    ].join(",");
+                  }),
                 ].join("\n");
                 const blob = new Blob([rows], { type: "text/csv" });
                 const url = URL.createObjectURL(blob);
@@ -168,72 +173,101 @@ export function MyTradesPanel({ pairId, refreshKey }: Props) {
         <div className="text-[10px] text-mempool-text-dim">No trades yet for this wallet.</div>
       )}
 
-      {trades.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-[10px] font-mono">
-            <thead>
-              <tr className="text-mempool-text-dim text-[8px] uppercase tracking-wider">
-                <th className="text-left py-1 pr-2">Time</th>
-                <th className="text-left py-1 pr-2">Pair</th>
-                <th className="text-left py-1 pr-2">Side</th>
-                <th className="text-right py-1 pr-2">Price</th>
-                <th className="text-right py-1 pr-2">Amount</th>
-                <th className="text-left py-1 pr-2">Counterparty</th>
-                <th className="text-right py-1 pr-2">Block</th>
-                <th className="text-left py-1">Settle TX</th>
-              </tr>
-            </thead>
-            <tbody>
-              {trades.map((t) => {
-                const date = new Date(t.ts);
-                const timeStr = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-                const pairLabel = PAIR_LABELS[t.pairId] ?? `pair ${t.pairId}`;
-                const priceUsd = t.price / MICRO_PER_USD;
-                const amtOmni = t.amount / SAT_PER_OMNI;
-                const sideColor = t.side === "buy" ? "text-green-400" : "text-red-400";
-                const settleUrl = t.evmSettleTxHash && t.evmChainId
-                  ? explorerUrl(t.evmChainId, t.evmSettleTxHash)
-                  : null;
+      {trades.length > 0 && (() => {
+        const buys = trades.filter((t) => t.side === "buy");
+        const sells = trades.filter((t) => t.side === "sell");
+        const totalVolOmni = trades.reduce((s, t) => s + t.amount / SAT_PER_OMNI, 0);
+        const totalVolUsd = trades.reduce((s, t) => s + (t.price / MICRO_PER_USD) * (t.amount / SAT_PER_OMNI), 0);
+        const avgBuy = buys.length > 0
+          ? buys.reduce((s, t) => s + t.price / MICRO_PER_USD, 0) / buys.length
+          : null;
+        const avgSell = sells.length > 0
+          ? sells.reduce((s, t) => s + t.price / MICRO_PER_USD, 0) / sells.length
+          : null;
 
-                return (
-                  <tr key={t.fillId} className="border-t border-mempool-border/40">
-                    <td className="py-1 pr-2 text-mempool-text-dim">{timeStr}</td>
-                    <td className="py-1 pr-2">{pairLabel}</td>
-                    <td className={`py-1 pr-2 uppercase font-semibold ${sideColor}`}>{t.side}</td>
-                    <td className="py-1 pr-2 text-right">{priceUsd.toFixed(4)}</td>
-                    <td className="py-1 pr-2 text-right">{amtOmni.toFixed(4)}</td>
-                    <td className="py-1 pr-2 text-mempool-text-dim" title={t.counterparty}>
-                      <button onClick={() => { if (t.counterparty) window.location.hash = `#/address/${t.counterparty}`; }} className="hover:text-mempool-blue hover:underline transition-colors">
-                        <AddressLabel address={t.counterparty ?? ""} showEmoji truncate={{ left: 8, right: 5 }} />
-                      </button>
-                    </td>
-                    <td className="py-1 pr-2 text-right text-mempool-text-dim">{t.blockHeight}</td>
-                    <td className="py-1">
-                      {settleUrl ? (
-                        <a
-                          href={settleUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:underline"
-                          title={t.evmSettleTxHash ?? undefined}
-                        >
-                          {midTrunc(t.evmSettleTxHash ?? "", 8, 4)}
-                        </a>
-                      ) : t.evmChainId ? (
-                        <span className="text-yellow-400/70" title="waiting for settler to submit on EVM">
-                          pending
-                        </span>
-                      ) : (
-                        <span className="text-mempool-text-dim">—</span>
-                      )}
-                    </td>
+        return (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[10px] font-mono">
+                <thead>
+                  <tr className="text-mempool-text-dim text-[8px] uppercase tracking-wider">
+                    <th className="text-left py-1 pr-2">Time</th>
+                    <th className="text-left py-1 pr-2">Pair</th>
+                    <th className="text-left py-1 pr-2">Side</th>
+                    <th className="text-right py-1 pr-2">Price</th>
+                    <th className="text-right py-1 pr-2">Amount</th>
+                    <th className="text-right py-1 pr-2">Value USD</th>
+                    <th className="text-left py-1 pr-2">Counterparty</th>
+                    <th className="text-right py-1 pr-2">Block</th>
+                    <th className="text-left py-1">Settle TX</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                </thead>
+                <tbody>
+                  {trades.map((t) => {
+                    const date = new Date(t.ts);
+                    const timeStr = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                    const pairLabel = PAIR_LABELS[t.pairId] ?? `pair ${t.pairId}`;
+                    const priceUsd = t.price / MICRO_PER_USD;
+                    const amtOmni = t.amount / SAT_PER_OMNI;
+                    const valueUsd = priceUsd * amtOmni;
+                    const sideColor = t.side === "buy" ? "text-green-400" : "text-red-400";
+                    const settleUrl = t.evmSettleTxHash && t.evmChainId
+                      ? explorerUrl(t.evmChainId, t.evmSettleTxHash)
+                      : null;
+
+                    return (
+                      <tr key={t.fillId} className="border-t border-mempool-border/40">
+                        <td className="py-1 pr-2 text-mempool-text-dim">{timeStr}</td>
+                        <td className="py-1 pr-2">{pairLabel}</td>
+                        <td className={`py-1 pr-2 uppercase font-semibold ${sideColor}`}>{t.side}</td>
+                        <td className="py-1 pr-2 text-right">{priceUsd.toFixed(4)}</td>
+                        <td className="py-1 pr-2 text-right">{amtOmni.toFixed(4)}</td>
+                        <td className="py-1 pr-2 text-right text-mempool-text-dim">${valueUsd.toFixed(2)}</td>
+                        <td className="py-1 pr-2 text-mempool-text-dim" title={t.counterparty}>
+                          <button onClick={() => { if (t.counterparty) window.location.hash = `#/address/${t.counterparty}`; }} className="hover:text-mempool-blue hover:underline transition-colors">
+                            <AddressLabel address={t.counterparty ?? ""} showEmoji truncate={{ left: 8, right: 5 }} />
+                          </button>
+                        </td>
+                        <td className="py-1 pr-2 text-right text-mempool-text-dim">{t.blockHeight}</td>
+                        <td className="py-1">
+                          {settleUrl ? (
+                            <a
+                              href={settleUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:underline"
+                              title={t.evmSettleTxHash ?? undefined}
+                            >
+                              {midTrunc(t.evmSettleTxHash ?? "", 8, 4)}
+                            </a>
+                          ) : t.evmChainId ? (
+                            <span className="text-yellow-400/70" title="waiting for settler to submit on EVM">
+                              pending
+                            </span>
+                          ) : (
+                            <span className="text-mempool-text-dim">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {/* Summary stats */}
+            <div className="mt-2 pt-2 border-t border-mempool-border/40 flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-mono text-mempool-text-dim">
+              <span>Vol: <span className="text-mempool-text">{totalVolOmni.toFixed(4)} base</span></span>
+              <span>USD val: <span className="text-mempool-text">${totalVolUsd.toFixed(2)}</span></span>
+              {avgBuy !== null && (
+                <span>Avg buy: <span className="text-green-400">${avgBuy.toFixed(4)}</span> ({buys.length}×)</span>
+              )}
+              {avgSell !== null && (
+                <span>Avg sell: <span className="text-red-400">${avgSell.toFixed(4)}</span> ({sells.length}×)</span>
+              )}
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }
