@@ -593,6 +593,12 @@ const ORACLE_TABS: { id: OracleTab; label: string }[] = [
   { id: "dex",    label: "🏛️ DEX Orderbook" },
 ];
 
+const URGENCY_COLOR: Record<string, string> = {
+  high:   "text-red-400 bg-red-500/10 border-red-500/30",
+  medium: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
+  low:    "text-blue-400 bg-blue-500/10 border-blue-500/30",
+};
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OraclePricePanel() {
@@ -678,12 +684,6 @@ export function OraclePricePanel() {
         : `Buy ${r.sym} on ${r.dexLabel.split("(")[0].trim()} → Sell ${r.sym} on CEX`,
       urgency: classifyArb(r.spreadPct),
     })), [priceRows]);
-
-  const urgencyColor = {
-    high:   "text-red-400 bg-red-500/10 border-red-500/30",
-    medium: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-    low:    "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  };
 
   return (
     <div className="space-y-4">
@@ -847,11 +847,11 @@ export function OraclePricePanel() {
             Arbitrage Opportunities
           </div>
           {arbOpps.map((arb) => (
-            <div key={`${arb.pair}${arb.directionLabel}`} className={`rounded-lg border p-3 ${urgencyColor[arb.urgency]}`}>
+            <div key={`${arb.pair}${arb.directionLabel}`} className={`rounded-lg border p-3 ${URGENCY_COLOR[arb.urgency]}`}>
               <div className="flex items-center justify-between mb-1">
                 <span className="font-bold text-[11px]">{arb.pair}</span>
                 <span className="font-mono text-[11px] font-bold">{arb.directionLabel}</span>
-                <span className={`text-[8px] uppercase font-bold px-1.5 py-0.5 rounded border ${urgencyColor[arb.urgency]}`}>
+                <span className={`text-[8px] uppercase font-bold px-1.5 py-0.5 rounded border ${URGENCY_COLOR[arb.urgency]}`}>
                   {arb.urgency}
                 </span>
               </div>

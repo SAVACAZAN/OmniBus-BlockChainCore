@@ -23,7 +23,7 @@ function StatCard({ label, value, sub, color }: {
   sub?: string;
   color: "blue" | "green" | "orange" | "dim";
 }) {
-  const cls = { blue: "text-mempool-blue", green: "text-green-400", orange: "text-orange-400", dim: "text-mempool-text-dim" }[color];
+  const cls = STAT_CARD_COLOR[color];
   return (
     <div className="text-center">
       <div className={`text-sm font-mono font-semibold ${cls}`}>{value}</div>
@@ -32,6 +32,13 @@ function StatCard({ label, value, sub, color }: {
     </div>
   );
 }
+
+const STAT_CARD_COLOR: Record<string, string> = {
+  blue:   "text-mempool-blue",
+  green:  "text-green-400",
+  orange: "text-orange-400",
+  dim:    "text-mempool-text-dim",
+};
 
 const PAGE_SIZE = 20;
 type FilterType = "all" | "received" | "sent";
