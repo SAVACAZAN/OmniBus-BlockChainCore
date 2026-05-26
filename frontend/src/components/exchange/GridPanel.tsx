@@ -187,11 +187,11 @@ function GridLadderChart({
     ...status.buy_levels.map((l) => ({ price: l.price, amount: l.amount, side: "buy" as const })),
   ].sort((a, b) => b.price - a.price), [status.sell_levels, status.buy_levels]);
 
-  if (rows.length === 0) return null;
-
   const maxAmount = useMemo(() => Math.max(...rows.map((r) => r.amount), 1), [rows]);
   const sellTotal = useMemo(() => status.sell_levels.reduce((s, l) => s + l.amount, 0), [status.sell_levels]);
   const buyTotal  = useMemo(() => status.buy_levels.reduce((s, l) => s + l.amount, 0), [status.buy_levels]);
+
+  if (rows.length === 0) return null;
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg overflow-hidden">

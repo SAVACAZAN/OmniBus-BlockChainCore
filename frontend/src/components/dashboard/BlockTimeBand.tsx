@@ -72,13 +72,16 @@ export function BlockTimeBand() {
     return () => { cancelled = true; };
   }, [state.blockCount]);
 
-  if (times.length < 3) return null;
+  const { avg, mn, mx } = useMemo(() => {
+    if (times.length === 0) return { avg: 0, mn: 0, mx: 0 };
+    return {
+      avg: times.reduce((s, v) => s + v, 0) / times.length,
+      mn: Math.min(...times),
+      mx: Math.max(...times),
+    };
+  }, [times]);
 
-  const { avg, mn, mx } = useMemo(() => ({
-    avg: times.reduce((s, v) => s + v, 0) / times.length,
-    mn: Math.min(...times),
-    mx: Math.max(...times),
-  }), [times]);
+  if (times.length < 3) return null;
 
   const healthColor =
     avg <= 2 ? "text-green-400" :

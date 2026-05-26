@@ -1608,13 +1608,13 @@ function NsHealthDashboard() {
     } catch { /* no-op */ } finally { setPruning(false); }
   };
 
-  if (loading && !stats) return null;
-  if (!stats) return null;
-
   const tldEntries = useMemo(
-    () => Object.entries(stats.by_tld).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a),
+    () => stats ? Object.entries(stats.by_tld).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a) : [],
     [stats],
   );
+
+  if (loading && !stats) return null;
+  if (!stats) return null;
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6 space-y-3">

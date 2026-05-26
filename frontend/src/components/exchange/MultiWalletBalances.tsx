@@ -247,9 +247,6 @@ export function MultiWalletBalances() {
     return () => { cancelRef.current = true; };
   }, [u?.address]);
 
-  if (!u) return <p className="text-xs text-mempool-text-dim p-2">Unlock wallet with mnemonic.</p>;
-  if (!u.allAddresses?.length) return <p className="text-xs text-mempool-text-dim p-2">Re-unlock with mnemonic to derive all addresses.</p>;
-
   const totals = useMemo(() =>
     Object.fromEntries(COLS.map(c => [c.key, sumCol(rows, c.key, c.isSat)])) as Record<ColKey, number>,
   [rows]);
@@ -258,6 +255,9 @@ export function MultiWalletBalances() {
     const evmAddrs = [...new Set(rows.map(r => r.evmAddr).filter(Boolean))];
     return { evmAddrs, sameEvm: evmAddrs.length === 1 };
   }, [rows]);
+
+  if (!u) return <p className="text-xs text-mempool-text-dim p-2">Unlock wallet with mnemonic.</p>;
+  if (!u.allAddresses?.length) return <p className="text-xs text-mempool-text-dim p-2">Re-unlock with mnemonic to derive all addresses.</p>;
 
   return (
     <div className="space-y-3">
