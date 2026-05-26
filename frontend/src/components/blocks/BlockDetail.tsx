@@ -41,6 +41,7 @@ function blockDate(ts: number | undefined): Date {
 export function BlockDetail({ block, onClose }: BlockDetailProps) {
   const [txs, setTxs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
   const [prices, setPrices] = useState<PriceEntry[]>([]);
   // Tip height is used to decide whether prices were read live (from the
   // in-memory map) or from the on-chain block. Blocks older than tip-100
@@ -55,6 +56,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
   useEffect(() => {
     setFull(block);
     setPrices([]);
+    setLoadErr(null);
     void loadBlock();
     void loadTip();
   }, [block.height]);
@@ -95,7 +97,9 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             .map((r) => r.value)
         );
       }
-    } catch {}
+    } catch (e: any) {
+      setLoadErr(e?.message || "Failed to load block detail");
+    }
     setLoading(false);
   };
 
@@ -338,6 +342,8 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
             {/* User TXs */}
             {loading ? (
               <p className="text-xs text-mempool-text-dim text-center py-4">Loading transactions...</p>
+            ) : loadErr ? (
+              <p className="text-xs text-red-400 text-center py-4 font-mono">{loadErr}</p>
             ) : txs.length === 0 ? (
               <p className="text-xs text-mempool-text-dim text-center py-2">
                 No user transactions in this block (coinbase only)
