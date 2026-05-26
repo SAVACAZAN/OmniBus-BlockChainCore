@@ -61,7 +61,17 @@ interface Props {
   onNavigate: (h: string) => void;
 }
 
-interface DailyEntry { dayIndex: number; txCount: number; sent: number; received: number; miningReward: number; }
+interface DailyEntry {
+  dayIndex: number;
+  blockStart: number;
+  blockEnd: number;
+  txCount: number;
+  sent: number;
+  received: number;
+  miningReward: number;
+  // computed client-side
+  dateLabel?: string;
+}
 interface NonceInfo { nonce: number; chainNonce: number; pendingCount: number; }
 
 function fmtAge(ts: number): string {
@@ -140,7 +150,24 @@ export function AddressPage({ addr, onNavigate }: Props) {
           setChainBalance(balData.balance);
         }
         if (dailyData?.daily && dailyData.daily.length > 0) {
-          const active = dailyData.daily.filter(d =>
+          // Compute real dates: tipTimestamp (unix s) + tipHeight + blocksPerDay
+          const tipTs: number = (dailyData as any).tipTimestamp ?? 0;
+          const tipH: number = (dailyData as any).tipHeight ?? 0;
+          const bpd: number = (dailyData as any).blocksPerDay ?? 86400;
+          const withDates = dailyData.daily.map((d: DailyEntry) => {
+            let dateLabel = `D${d.dayIndex}`;
+            if (tipTs > 0 && bpd > 0) {
+              const blocksFromTip = tipH - (d.blockStart || 0);
+              const secsFromTip = (blocksFromTip / bpd) * 86400;
+              const ts = tipTs - secsFromTip;
+              if (ts > 0) {
+                const dt = new Date(ts * 1000);
+                dateLabel = `${dt.getMonth() + 1}/${dt.getDate()}`;
+              }
+            }
+            return { ...d, dateLabel };
+          });
+          const active = withDates.filter((d: DailyEntry) =>
             d.txCount > 0 || d.sent > 0 || d.received > 0 || d.miningReward > 0
           );
           setDailyActivity(active.slice(-30));
@@ -245,12 +272,12 @@ export function AddressPage({ addr, onNavigate }: Props) {
           </h3>
           <ResponsiveContainer width="100%" height={110}>
             <BarChart data={dailyActivity} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-              <XAxis dataKey="dayIndex" tick={{ fontSize: 9, fill: "#6b7280" }}
-                tickFormatter={(v) => `D${v}`} interval="preserveStartEnd" />
+              <XAxis dataKey="dateLabel" tick={{ fontSize: 9, fill: "#6b7280" }}
+                interval="preserveStartEnd" />
               <YAxis hide />
               <Tooltip
                 contentStyle={{ background: "#1a1b1e", border: "1px solid #2d2f36", borderRadius: "6px", fontSize: "11px", color: "#c9d1d9" }}
-                labelFormatter={(v) => `Day ${v}`}
+                labelFormatter={(v) => `${v}`}
                 formatter={(val: number, name: string) => [
                   `${(val / SAT).toFixed(4)} OMNI`,
                   name === "received" ? "Received" : name === "sent" ? "Sent" : "Mining",
