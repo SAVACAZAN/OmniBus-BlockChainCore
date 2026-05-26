@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
+import { AddressLabel } from "../common/AddressLabel";
+import { useNameForAddress } from "../../api/use-names";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1e9;
@@ -57,6 +59,7 @@ export function AddressPage({ addr, onNavigate }: Props) {
   const [err, setErr] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
   const [page, setPage] = useState(0);
+  const ens = useNameForAddress(addr);
 
   useEffect(() => {
     setLoading(true);
@@ -127,6 +130,12 @@ export function AddressPage({ addr, onNavigate }: Props) {
         {/* Address */}
         <div className="mb-4">
           <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-1">Address</div>
+          {ens && (
+            <div className="flex items-center gap-2 mb-1">
+              <AddressLabel address={addr} showEmoji showCategory
+                className="text-base font-semibold" />
+            </div>
+          )}
           <div className="flex items-start gap-2">
             <span className="font-mono text-sm text-mempool-text break-all">{addr}</span>
             <CopyBtn text={addr} />
@@ -202,7 +211,8 @@ export function AddressPage({ addr, onNavigate }: Props) {
                       {tx.direction === "received" ? "From" : "To"}:{" "}
                       <button onClick={() => onNavigate(`#/address/${counterparty}`)}
                         className="text-mempool-blue hover:underline font-mono">
-                        {midTrunc(counterparty, 10, 8)}
+                        <AddressLabel address={counterparty ?? ""}
+                          truncate={{ left: 10, right: 8 }} showEmoji />
                       </button>
                     </span>
                     {tx.blockHeight >= 0 && (

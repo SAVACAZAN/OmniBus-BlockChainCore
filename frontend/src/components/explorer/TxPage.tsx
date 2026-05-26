@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { OmniBusRpcClient } from "../../api/rpc-client";
+import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
 const SAT = 1e9;
@@ -143,7 +144,8 @@ export function TxPage({ hash, onNavigate }: Props) {
               </div>
               <button onClick={() => onNavigate(`#/address/${tx.from}`)}
                 className="font-mono text-xs text-mempool-blue hover:underline break-all text-left w-full">
-                {tx.from}
+                <AddressLabel address={tx.from} showRawAddress showEmoji
+                  truncate={{ left: 10, right: 8 }} />
               </button>
             </div>
 
@@ -156,7 +158,8 @@ export function TxPage({ hash, onNavigate }: Props) {
               </div>
               <button onClick={() => onNavigate(`#/address/${tx.to}`)}
                 className="font-mono text-xs text-mempool-blue hover:underline break-all text-left w-full">
-                {tx.to}
+                <AddressLabel address={tx.to} showRawAddress showEmoji
+                  truncate={{ left: 10, right: 8 }} />
               </button>
             </div>
           </div>

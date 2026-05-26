@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
 import { getActiveChain, setActiveChain, type ChainName } from "../../api/rpc-client";
+import OmniBusRpcClient from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import { PlasmaLogo } from "../effects/PlasmaLogo";
 import { PlasmaLogoOrange } from "../effects/PlasmaLogoOrange";
@@ -279,20 +280,42 @@ export function Header() {
   );
 }
 
+const _searchRpc = new OmniBusRpcClient();
+
 /**
  * ExplorerSearchBar — inline search in the desktop header.
- * Detects input type: block number → #/block/:n, 64-hex → #/tx/:h,
- * otherwise → #/address/:addr. Falls back to legacy TxSearch modal for
- * short queries that don't match a known pattern.
+ * Detects input type:
+ *   - block number → #/block/:n
+ *   - 64-hex       → #/tx/:h
+ *   - name.tld     → resolves via resolveaddress RPC → #/address/:resolved
+ *   - anything 8+  → #/address/:s (direct address or name the address page handles)
  */
 function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
   const [q, setQ] = useState("");
+  const [resolving, setResolving] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const navigate = (raw: string) => {
+  const navigate = async (raw: string) => {
     const s = raw.trim();
     if (!s) { onFallback(); return; }
     if (/^\d+$/.test(s)) { window.location.hash = `#/block/${s}`; setQ(""); return; }
     if (/^[0-9a-fA-F]{64}$/.test(s)) { window.location.hash = `#/tx/${s}`; setQ(""); return; }
+    // ENS-style name (contains a dot, like "savacazan.omnibus")
+    if (/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$/.test(s)) {
+      setResolving(true);
+      if (abortRef.current) abortRef.current.abort();
+      abortRef.current = new AbortController();
+      try {
+        const r = (await _searchRpc.request_raw("resolveaddress", [s])) as { address?: string } | string | null;
+        const resolved = typeof r === "string" ? r : (r as any)?.address;
+        if (resolved && resolved.length > 8) {
+          window.location.hash = `#/address/${resolved}`;
+          setQ("");
+          return;
+        }
+      } catch { /* fall through to direct address lookup */ }
+      finally { setResolving(false); }
+    }
     if (s.length >= 8) { window.location.hash = `#/address/${s}`; setQ(""); return; }
     onFallback();
   };
@@ -311,11 +334,13 @@ function ExplorerSearchBar({ onFallback }: { onFallback: () => void }) {
         type="text"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter") navigate(q); }}
-        placeholder="Block / TX / Address…"
-        className="bg-mempool-bg border border-mempool-border rounded-lg pl-8 pr-8 py-1.5 text-xs text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue w-52 lg:w-64 transition-colors"
+        onKeyDown={(e) => { if (e.key === "Enter") void navigate(q); }}
+        placeholder="Block / TX / Address / name.tld…"
+        className="bg-mempool-bg border border-mempool-border rounded-lg pl-8 pr-8 py-1.5 text-xs text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue w-56 lg:w-72 transition-colors"
       />
-      {q ? (
+      {resolving ? (
+        <span className="absolute right-2 text-mempool-text-dim text-[10px] animate-pulse">…</span>
+      ) : q ? (
         <button
           onClick={() => setQ("")}
           className="absolute right-2 text-mempool-text-dim hover:text-mempool-text"
