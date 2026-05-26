@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient, { ExchangeBalance } from "../../api/rpc-client";
-import { SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
+import { SAT_PER_OMNI, MICRO_PER_USD, midTrunc } from "../../utils/fmt";
 import { getUnlocked, subscribeWallet } from "../../api/wallet-keystore";
 import { fetchChainBalance, fetchUsdcBalance, fetchEurcBalance, type ChainBalance } from "../../api/multichain-balances";
 import { MultiWalletBalances } from "./MultiWalletBalances";
@@ -264,7 +264,7 @@ export function BalancesPanel() {
                 <a href={row.explorerUrl} target="_blank" rel="noopener noreferrer"
                   className="text-[10px] font-mono text-mempool-text-dim hover:text-mempool-blue truncate block max-w-[28ch]"
                   title={row.address}>
-                  {row.address.slice(0, 14)}…{row.address.slice(-6)}
+                  {midTrunc(row.address, 14, 6)}
                 </a>
               </div>
 
@@ -321,7 +321,7 @@ export function BalancesPanel() {
           {evmAddr && (
             <div className="flex justify-between text-[10px]">
               <span className="text-mempool-text-dim">EVM (ETH/USDC)</span>
-              <span className="font-mono text-mempool-text" title={evmAddr}>{evmAddr.slice(0, 10)}…{evmAddr.slice(-6)}</span>
+              <span className="font-mono text-mempool-text" title={evmAddr}>{midTrunc(evmAddr, 10, 6)}</span>
             </div>
           )}
         </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData } from "../../types";
 import { KIND_STYLE } from "../common/TxBadges";
-import { MICRO_PER_USD, SAT_PER_OMNI } from "../../utils/fmt";
+import { MICRO_PER_USD, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
 const MICRO = MICRO_PER_USD;
 const rpc = new OmniBusRpcClient();
@@ -194,8 +194,8 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
               <span className="text-mempool-text-dim uppercase tracking-wider">pricesRoot:</span>
               <span className="text-mempool-blue truncate">
                 {full.pricesRoot
-                  ? `0x${full.pricesRoot.slice(0, 4)}...${full.pricesRoot.slice(-4)}`
-                  : "0x0000...0000"}
+                  ? `0x${midTrunc(full.pricesRoot, 4, 4)}`
+                  : "0x0000…0000"}
               </span>
               {full.pricesValidated ? (
                 <span className="text-mempool-green">✓ verified</span>
@@ -384,7 +384,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                       className="text-xs font-mono text-mempool-blue hover:underline truncate"
                       title={tx.txid}
                     >
-                      {tx.txid?.slice(0, 16)}…{tx.txid?.slice(-6)}
+                      {tx.txid ? midTrunc(tx.txid, 16, 6) : ""}
                     </button>
                     {tx.kind && (
                       <span className={`text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider ${KIND_STYLE[tx.kind] ?? KIND_STYLE.transfer}`}>
@@ -402,7 +402,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                       {tx.from && tx.from !== "coinbase" ? (
                         <button onClick={() => { window.location.hash = `#/address/${tx.from}`; }}
                           className="font-mono text-mempool-blue hover:underline truncate" title={tx.from}>
-                          {tx.from.slice(0, 14)}…
+                          {midTrunc(tx.from, 14, 6)}
                         </button>
                       ) : (
                         <span className="font-mono italic text-mempool-text-dim">(coinbase)</span>
@@ -411,7 +411,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                       {tx.to ? (
                         <button onClick={() => { window.location.hash = `#/address/${tx.to}`; }}
                           className="font-mono text-mempool-blue hover:underline truncate" title={tx.to}>
-                          {tx.to.slice(0, 14)}…
+                          {midTrunc(tx.to, 14, 6)}
                         </button>
                       ) : null}
                     </span>

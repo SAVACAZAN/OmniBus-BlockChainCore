@@ -8,6 +8,7 @@
  */
 
 import { useNameForAddress, useEntryForAddress, TLD_THEME } from "../../api/use-names";
+import { midTrunc } from "../../utils/fmt";
 
 type Props = {
   address: string;
@@ -37,10 +38,7 @@ export function AddressLabel({
 
   if (!address) return null;
 
-  const truncated =
-    address.length > truncate.left + truncate.right + 1
-      ? `${address.slice(0, truncate.left)}…${address.slice(-truncate.right)}`
-      : address;
+  const truncated = midTrunc(address, truncate.left, truncate.right);
 
   if (!name) {
     return (

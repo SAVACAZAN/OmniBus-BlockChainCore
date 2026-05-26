@@ -7,6 +7,8 @@
  * inputs/outputs, op_return memo, etc.
  */
 
+import { midTrunc } from "../../utils/fmt";
+
 type Props = {
   txid: string;
   truncate?: { left: number; right: number };
@@ -20,10 +22,7 @@ export function TxHashLink({
 }: Props) {
   if (!txid) return null;
 
-  const display =
-    txid.length > truncate.left + truncate.right + 1
-      ? `${txid.slice(0, truncate.left)}…${txid.slice(-truncate.right)}`
-      : txid;
+  const display = midTrunc(txid, truncate.left, truncate.right);
 
   return (
     <button

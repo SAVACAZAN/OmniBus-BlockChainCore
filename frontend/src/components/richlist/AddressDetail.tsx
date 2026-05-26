@@ -4,7 +4,7 @@ import { AddressLabel } from "../common/AddressLabel";
 import { KIND_STYLE } from "../common/TxBadges";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent, WsNewBlockEvent } from "../../types";
-import { satToOmni } from "../../utils/fmt";
+import { satToOmni, midTrunc } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -262,7 +262,7 @@ export function AddressDetail({
                         className="text-mempool-blue hover:underline"
                         title={tx.txid}
                       >
-                        {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}
+                        {midTrunc(tx.txid, 10, 6)}
                       </button>
                     </td>
                     <td className="px-3 py-2 text-center">

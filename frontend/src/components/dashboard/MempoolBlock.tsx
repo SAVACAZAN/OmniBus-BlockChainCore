@@ -4,7 +4,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import type { BlockData, BlockPriceSnapshot, PendingTx } from "../../types";
 import { DashboardPlasma } from "../effects/DashboardPlasma";
 import { useIsPlasmaActive } from "../effects/PlasmaSlotContext";
-import { MICRO_PER_USD, SAT_PER_OMNI } from "../../utils/fmt";
+import { MICRO_PER_USD, SAT_PER_OMNI, midTrunc } from "../../utils/fmt";
 
 const MICRO = MICRO_PER_USD;
 interface MempoolBlockProps {
@@ -201,7 +201,7 @@ export function MempoolBlock({
         {!isPending && (
           <div className="mt-1.5 space-y-0.5">
             <p className="text-[11px] font-mono text-mempool-text-dim truncate" title={hash}>
-              {hash.slice(0, 14)}...
+              {midTrunc(hash, 14, 6)}
             </p>
             <p className="text-[11px] font-mono text-mempool-green">
               +{(reward / SAT_PER_OMNI).toFixed(8)} OMNI
