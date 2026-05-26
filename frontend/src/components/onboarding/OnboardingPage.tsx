@@ -111,7 +111,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                 const u = await unlockFromMnemonic(mnemonic, 0);
                 // Fire-and-forget: create OmniBus ID on chain. Failure does
                 // not block onboarding — user can retry on profile tab.
-                initProfileForAddress(u.address);
+                void initProfileForAddress(u.address);
                 setStep("backup");
               } catch (e: any) {
                 setError(e?.message || "Unlock failed");
@@ -120,7 +120,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
             onSet={async (pw) => {
               try {
                 const u = await unlockFromMnemonic(mnemonic, 0, pw);
-                initProfileForAddress(u.address);
+                void initProfileForAddress(u.address);
                 setPassword(pw);
                 setStep("backup");
               } catch (e: any) {

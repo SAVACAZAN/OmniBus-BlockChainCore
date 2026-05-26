@@ -41,8 +41,6 @@ type AddressHistory = {
 };
 
 
-const omniFmt = satToOmni;
-
 export function AddressDetail({
   address,
   onBack,
@@ -116,11 +114,11 @@ export function AddressDetail({
       {data && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <Metric label="TX count" value={data.count.toLocaleString()} />
-          <Metric label="Received" value={`${omniFmt(data.totalReceived)} OMNI`} />
-          <Metric label="Sent" value={`${omniFmt(data.totalSent)} OMNI`} />
+          <Metric label="Received" value={`${satToOmni(data.totalReceived)} OMNI`} />
+          <Metric label="Sent" value={`${satToOmni(data.totalSent)} OMNI`} />
           <Metric
             label="Net"
-            value={`${net >= 0 ? "+" : ""}${omniFmt(net)} OMNI`}
+            value={`${net >= 0 ? "+" : ""}${satToOmni(net)} OMNI`}
           />
         </div>
       )}
@@ -137,8 +135,8 @@ export function AddressDetail({
                     `"${tx.txid}"`,
                     tx.kind,
                     tx.direction,
-                    omniFmt(tx.amount),
-                    omniFmt(tx.fee),
+                    satToOmni(tx.amount),
+                    satToOmni(tx.fee),
                     `"${counterparty}"`,
                     tx.blockHeight ?? "",
                     tx.confirmations,
@@ -295,7 +293,7 @@ export function AddressDetail({
                       className={`px-3 py-2 text-right font-mono ${signColor}`}
                     >
                       {sign}
-                      {omniFmt(tx.amount)} OMNI
+                      {satToOmni(tx.amount)} OMNI
                     </td>
                     <td className="px-3 py-2 text-right text-xs text-mempool-text-dim">
                       {tx.status === "pending" ? (

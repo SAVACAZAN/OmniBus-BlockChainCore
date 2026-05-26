@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
-import { SAT_PER_OMNI } from "../../utils/fmt";
+import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewBlockEvent } from "../../types";
@@ -188,7 +188,6 @@ export function RichListPage() {
     };
   }, [limit]);
 
-  const omniFmt = (sat: number) => (sat / SAT_PER_OMNI).toFixed(8);
 
   // Per-role counts derived from current entries.
   let validatorCount = 0;
@@ -245,7 +244,7 @@ export function RichListPage() {
       {metrics && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <Metric label="Height" value={metrics.height.toLocaleString()} />
-          <Metric label="Total supply" value={`${omniFmt(metrics.totalSupply)} OMNI`} />
+          <Metric label="Total supply" value={`${satToOmni(metrics.totalSupply)} OMNI`} />
           <Metric label="Addresses" value={metrics.addressesWithBalance.toLocaleString()} />
           <Metric label="Validators" value={validatorCount.toLocaleString()} />
           <Metric label="Miners" value={minerCount.toLocaleString()} />
@@ -253,8 +252,8 @@ export function RichListPage() {
           <Metric label="Users" value={userCount.toLocaleString()} />
           <Metric label="Mempool" value={metrics.mempoolSize.toString()} />
           <Metric label="Peers" value={metrics.peerCount.toString()} />
-          <Metric label="Block reward" value={`${omniFmt(metrics.currentBlockReward)} OMNI`} />
-          <Metric label="Min validator" value={`${omniFmt(metrics.minValidatorBalance)} OMNI`} />
+          <Metric label="Block reward" value={`${satToOmni(metrics.currentBlockReward)} OMNI`} />
+          <Metric label="Min validator" value={`${satToOmni(metrics.minValidatorBalance)} OMNI`} />
         </div>
       )}
 
@@ -355,7 +354,7 @@ export function RichListPage() {
                       </button>
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-mempool-text">
-                      {omniFmt(e.balance)} OMNI
+                      {satToOmni(e.balance)} OMNI
                     </td>
                     <td className="px-3 py-2 text-right text-xs text-mempool-text-dim">{sharePct}%</td>
                     <td className="px-3 py-2 text-right text-xs text-mempool-text">
@@ -365,13 +364,13 @@ export function RichListPage() {
                       {(e.txCount ?? 0).toLocaleString()}
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-xs text-green-300">
-                      {omniFmt(e.received ?? 0)}
+                      {satToOmni(e.received ?? 0)}
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-xs text-red-300">
-                      {omniFmt(e.sent ?? 0)}
+                      {satToOmni(e.sent ?? 0)}
                     </td>
                     <td className="px-3 py-2">
-                      <RoleBadges roles={roles} stake={e.stake} omniFmt={omniFmt} />
+                      <RoleBadges roles={roles} stake={e.stake} omniFmt={satToOmni} />
                     </td>
                   </tr>
                 );
@@ -418,7 +417,7 @@ function RoleBadges({
       {roles.map((r) => {
         const title =
           r === "validator" && stake && stake > 0
-            ? `stake: ${omniFmt(stake)} OMNI`
+            ? `stake: ${satToOmni(stake)} OMNI`
             : undefined;
         return (
           <span key={r} className={`${badgeBase} ${styles[r]}`} title={title}>

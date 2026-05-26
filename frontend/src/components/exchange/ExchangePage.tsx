@@ -71,10 +71,14 @@ export function ExchangePage() {
     if (!walletAddress) return;
     let cancelled = false;
     const fetch = async () => {
-      const bal = await rpc.exchangeGetBalances(walletAddress);
-      if (!cancelled && bal.length > 0) setExchBalances(bal);
+      try {
+        const bal = await rpc.exchangeGetBalances(walletAddress);
+        if (!cancelled && bal.length > 0) setExchBalances(bal);
+      } catch {
+        // balance fetch is best-effort; PlaceOrderForm falls back gracefully
+      }
     };
-    fetch();
+    void fetch();
     const unsubBal = wsSubscribe<WsNewBlockEvent>("new_block", () => { void fetch(); });
     const id = setInterval(fetch, 60_000);
     return () => { cancelled = true; clearInterval(id); unsubBal(); };
