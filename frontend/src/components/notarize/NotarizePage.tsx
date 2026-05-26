@@ -104,6 +104,22 @@ type TopTab = "notarize" | "escrow" | "opreturn";
 type NotarizeSubTab = "notarize-doc" | "verify-doc" | "my-docs";
 type EscrowSubTab = "my-escrows" | "create-escrow" | "release-escrow";
 
+const NOTARIZE_TOP_TABS: { id: TopTab; label: string }[] = [
+  { id: "notarize", label: "Notarize" },
+  { id: "escrow",   label: "Escrow" },
+  { id: "opreturn", label: "OP_RETURN" },
+];
+const NOTARIZE_SUB_TABS: { id: NotarizeSubTab; label: string }[] = [
+  { id: "notarize-doc", label: "Notarize" },
+  { id: "verify-doc",   label: "Verify" },
+  { id: "my-docs",      label: "My Docs" },
+];
+const ESCROW_SUB_TABS: { id: EscrowSubTab; label: string }[] = [
+  { id: "my-escrows",     label: "My Escrows" },
+  { id: "create-escrow",  label: "Create" },
+  { id: "release-escrow", label: "Release" },
+];
+
 // ── SHA-256 helpers ───────────────────────────────────────────────────────
 
 async function sha256Hex(data: Uint8Array | ArrayBuffer): Promise<string> {
@@ -367,11 +383,7 @@ const DOC_TYPES: { value: DocType; label: string }[] = [
 
 function NotarizeSection() {
   const [subTab, setSubTab] = useState<NotarizeSubTab>("notarize-doc");
-  const subTabs: { id: NotarizeSubTab; label: string }[] = [
-    { id: "notarize-doc", label: "Notarize" },
-    { id: "verify-doc",   label: "Verify" },
-    { id: "my-docs",      label: "My Docs" },
-  ];
+  const subTabs = NOTARIZE_SUB_TABS;
   return (
     <div>
       <SubTabBar tabs={subTabs} active={subTab} onChange={(t) => setSubTab(t as typeof subTab)} />
@@ -839,11 +851,7 @@ const TIMEOUT_PRESETS = [
 
 function EscrowSection({ blockHeight }: { blockHeight: number }) {
   const [subTab, setSubTab] = useState<EscrowSubTab>("my-escrows");
-  const subTabs: { id: EscrowSubTab; label: string }[] = [
-    { id: "my-escrows",      label: "My Escrows" },
-    { id: "create-escrow",   label: "Create" },
-    { id: "release-escrow",  label: "Release" },
-  ];
+  const subTabs = ESCROW_SUB_TABS;
   return (
     <div>
       <SubTabBar tabs={subTabs} active={subTab} onChange={(t) => setSubTab(t as typeof subTab)} />
@@ -1663,11 +1671,7 @@ export function NotarizePage() {
   const [topTab, setTopTab]     = useState<TopTab>("notarize");
   const blockHeight = useBlockHeight();
 
-  const topTabs: { id: TopTab; label: string }[] = [
-    { id: "notarize", label: "Notarize" },
-    { id: "escrow",   label: "Escrow" },
-    { id: "opreturn", label: "OP_RETURN" },
-  ];
+  const topTabs = NOTARIZE_TOP_TABS;
 
   return (
     <section className="bg-mempool-bg-elev rounded-lg p-3 sm:p-4 border border-mempool-border backdrop-blur-sm">

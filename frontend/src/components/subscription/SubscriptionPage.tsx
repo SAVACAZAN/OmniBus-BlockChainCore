@@ -48,6 +48,12 @@ interface GetSubscriptionsResp {
 
 type SubTab = "mine" | "create" | "incoming";
 
+const SUB_INTERVAL_PRESETS = [
+  { label: "1h",  blocks: 3600 },
+  { label: "1d",  blocks: 86400 },
+  { label: "30d", blocks: 2592000 },
+] as const;
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function signSubCreate(args: {
@@ -461,11 +467,7 @@ export function SubscriptionPage() {
                 className="bg-mempool-bg border border-mempool-border rounded-lg px-3 py-2 text-sm text-mempool-text flex-1 focus:outline-none focus:border-mempool-blue"
               />
               <div className="flex gap-1">
-                {[
-                  { label: "1h",  blocks: 3600 },
-                  { label: "1d",  blocks: 86400 },
-                  { label: "30d", blocks: 2592000 },
-                ].map((p) => (
+                {SUB_INTERVAL_PRESETS.map((p) => (
                   <button
                     key={p.label}
                     onClick={() => setCreateInterval(String(p.blocks))}

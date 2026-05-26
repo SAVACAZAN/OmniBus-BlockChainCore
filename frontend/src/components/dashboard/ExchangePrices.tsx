@@ -165,7 +165,7 @@ export default function ExchangePrices() {
       clearInterval(id);
       unsub();
     };
-  }, [rpc]);
+  }, []);
 
   const prices = feed?.prices ?? [];
 

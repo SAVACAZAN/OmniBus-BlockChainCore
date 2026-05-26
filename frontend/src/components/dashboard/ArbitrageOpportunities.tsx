@@ -121,7 +121,7 @@ export default function ArbitrageOpportunities() {
       clearInterval(id);
       unsub();
     };
-  }, [rpc]);
+  }, []);
 
   // Sort desc by spreadPct, top N.
   const sorted = useMemo(() => {

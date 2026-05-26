@@ -173,7 +173,7 @@ export default function AllPricesGrid() {
       clearInterval(id);
       unsub();
     };
-  }, [rpc]);
+  }, []);
 
   // Pivot prices into a map keyed by `(base, bucket)` — same canonical
   // form used by pair_discovery.py. Same base + same bucket from different
