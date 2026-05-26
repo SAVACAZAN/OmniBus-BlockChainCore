@@ -152,10 +152,16 @@ export function RecentTransactions() {
 
   return (
     <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border backdrop-blur-sm">
-      <div className="px-4 py-3 border-b border-mempool-border">
+      <div className="px-4 py-3 border-b border-mempool-border flex items-center justify-between">
         <h3 className="text-sm font-semibold text-mempool-text-dim uppercase tracking-wider">
           Recent Activity
         </h3>
+        <button
+          onClick={() => { window.location.hash = "#/mempool"; }}
+          className="text-[10px] text-mempool-blue hover:underline font-mono"
+        >
+          View mempool →
+        </button>
       </div>
       <div className="divide-y divide-mempool-border/50 max-h-80 overflow-y-auto">
         {uniqueItems.length === 0 ? (

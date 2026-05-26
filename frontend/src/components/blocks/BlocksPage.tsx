@@ -27,6 +27,7 @@ export function BlocksPage() {
   const [blocks, setBlocks] = useState<BlockWithDiff[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
+  const [jumpInput, setJumpInput] = useState("");
   const PAGE_SIZE = 20;
 
   useEffect(() => {
@@ -102,7 +103,36 @@ export function BlocksPage() {
             ({state.blockCount.toLocaleString()} total)
           </span>
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Jump to block */}
+          <form
+            className="flex items-center gap-1"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const n = parseInt(jumpInput.trim(), 10);
+              if (!isNaN(n) && n >= 0) {
+                window.location.hash = `#/block/${n}`;
+                setJumpInput("");
+              }
+            }}
+          >
+            <input
+              type="number"
+              min="0"
+              max={state.blockCount}
+              value={jumpInput}
+              onChange={(e) => setJumpInput(e.target.value)}
+              placeholder="Go to #…"
+              className="w-24 px-2 py-1 text-xs bg-mempool-bg border border-mempool-border rounded font-mono text-mempool-text placeholder:text-mempool-text-dim focus:outline-none focus:border-mempool-blue"
+            />
+            <button
+              type="submit"
+              className="px-2 py-1 text-xs bg-mempool-bg-elev border border-mempool-border rounded hover:bg-mempool-bg-light text-mempool-text-dim transition-colors"
+            >
+              ↵
+            </button>
+          </form>
+
           <button
             onClick={() => setPage(Math.min(page + 1, maxPage))}
             disabled={page >= maxPage}

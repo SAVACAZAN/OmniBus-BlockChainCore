@@ -109,7 +109,19 @@ export function MempoolPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(0);
+  const [sortCol, setSortCol] = useState<"amount" | "fee" | "age" | null>("fee");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const PAGE_SIZE = 25;
+
+  const toggleSort = (col: "amount" | "fee" | "age") => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortCol(col);
+      setSortDir("desc");
+    }
+    setPage(0);
+  };
   // Keep a live feed of incoming TXs (from WS) prepended to the list
   const wsBuffer = useRef<MempoolTx[]>([]);
 
@@ -214,7 +226,7 @@ export function MempoolPage() {
     color: BUCKET_COLORS[i],
   }));
 
-  // Filter + paginate
+  // Filter + sort + paginate
   const filtered = filter
     ? txs.filter(
         (t) =>
@@ -223,8 +235,19 @@ export function MempoolPage() {
           t.to.includes(filter)
       )
     : txs;
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const pageTxs = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const sorted = sortCol
+    ? [...filtered].sort((a, b) => {
+        let va = 0; let vb = 0;
+        if (sortCol === "fee")    { va = a.fee;       vb = b.fee; }
+        if (sortCol === "amount") { va = a.amount;    vb = b.amount; }
+        if (sortCol === "age")    { va = a.timestamp ?? 0; vb = b.timestamp ?? 0; }
+        return sortDir === "desc" ? vb - va : va - vb;
+      })
+    : filtered;
+
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const pageTxs = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const capacityPct = stats
     ? Math.min(100, Math.round((stats.size / stats.maxTx) * 100))
@@ -366,7 +389,7 @@ export function MempoolPage() {
         {/* Search */}
         <div className="px-4 py-3 border-b border-mempool-border flex items-center gap-3">
           <h3 className="text-[10px] font-semibold uppercase tracking-widest text-mempool-text-dim whitespace-nowrap">
-            Pending ({filtered.length})
+            Pending ({sorted.length})
           </h3>
           <input
             type="text"
@@ -389,10 +412,25 @@ export function MempoolPage() {
                 <th className="px-4 py-2.5 font-medium">TX Hash</th>
                 <th className="px-4 py-2.5 font-medium">From</th>
                 <th className="px-4 py-2.5 font-medium">To</th>
-                <th className="px-4 py-2.5 font-medium text-right">Amount</th>
-                <th className="px-4 py-2.5 font-medium text-right">Fee (SAT)</th>
+                <th
+                  className="px-4 py-2.5 font-medium text-right cursor-pointer select-none hover:text-mempool-blue transition-colors"
+                  onClick={() => toggleSort("amount")}
+                >
+                  Amount {sortCol === "amount" ? (sortDir === "desc" ? "↓" : "↑") : "↕"}
+                </th>
+                <th
+                  className="px-4 py-2.5 font-medium text-right cursor-pointer select-none hover:text-mempool-blue transition-colors"
+                  onClick={() => toggleSort("fee")}
+                >
+                  Fee (SAT) {sortCol === "fee" ? (sortDir === "desc" ? "↓" : "↑") : "↕"}
+                </th>
                 <th className="px-4 py-2.5 font-medium">Scheme</th>
-                <th className="px-4 py-2.5 font-medium text-right">Age</th>
+                <th
+                  className="px-4 py-2.5 font-medium text-right cursor-pointer select-none hover:text-mempool-blue transition-colors"
+                  onClick={() => toggleSort("age")}
+                >
+                  Age {sortCol === "age" ? (sortDir === "desc" ? "↓" : "↑") : "↕"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-mempool-border/30">
@@ -472,10 +510,10 @@ export function MempoolPage() {
               ← Prev
             </button>
             <span className="text-mempool-text-dim">
-              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
+              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, sorted.length)} of {sorted.length}
             </span>
             <button
-              disabled={(page + 1) * PAGE_SIZE >= filtered.length}
+              disabled={(page + 1) * PAGE_SIZE >= sorted.length}
               onClick={() => setPage((p) => p + 1)}
               className="px-3 py-1.5 rounded border border-mempool-border text-mempool-text-dim hover:text-mempool-blue hover:border-mempool-blue disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
