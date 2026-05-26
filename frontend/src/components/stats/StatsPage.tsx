@@ -183,8 +183,8 @@ export function StatsPage() {
     try {
       const [tipRaw, metricsRaw, richRaw, schemeRaw] = await Promise.all([
         rpc.getBlockCount(),
-        rpc.request_raw("getchainmetrics", []).catch(() => null) as Promise<ChainMetrics | null>,
-        rpc.request_raw("getrichlist", [100]).catch(() => null) as Promise<{ entries?: RichEntry[]; totalSupply?: number; total?: number } | null>,
+        rpc.getChainMetrics().catch(() => null) as Promise<ChainMetrics | null>,
+        rpc.getRichList(100).catch(() => null) as Promise<{ entries?: RichEntry[]; totalSupply?: number; total?: number } | null>,
         rpc.request_raw("getschemestats", [100]).catch(() => null) as Promise<SchemeStats | null>,
       ]);
       if (schemeRaw?.schemes && schemeRaw.schemes.length > 0) setSchemeStats(schemeRaw);

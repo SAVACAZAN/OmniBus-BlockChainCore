@@ -396,6 +396,34 @@ export class OmniBusRpcClient {
     }
   }
 
+  async getRichList(limit: number = 100): Promise<{
+    entries: Array<{
+      rank: number; address: string; balance: number; isValidator: boolean;
+      blocksMined: number; txCount: number; received: number; sent: number;
+      firstHeight: number; lastHeight: number; roles?: string[]; stake?: number;
+    }>;
+    total: number; shown: number; totalSupply: number;
+  } | null> {
+    try {
+      return await this.request("getrichlist", [limit]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getChainMetrics(): Promise<{
+    height: number; tipHash: string; totalSupply: number; addressesWithBalance: number;
+    validators: number; validatorSetSize: number; minValidatorBalance: number;
+    mempoolSize: number; peerCount: number; currentBlockReward: number; satPerOmni: number;
+    latestBlockTxCount?: number; latestBlockFees?: number; latestBlockTimestamp?: number;
+  } | null> {
+    try {
+      return await this.request("getchainmetrics", []);
+    } catch {
+      return null;
+    }
+  }
+
   async nsResolveForSend(name: string, tld: string): Promise<{
     found: boolean; route_address?: string; primary_address?: string;
     route_address_kind?: string; route_slot?: number;

@@ -167,8 +167,8 @@ export function RichListPage() {
     const refresh = async () => {
       try {
         const [rl, m] = await Promise.all([
-          rpc.request_raw("getrichlist", [limit]) as Promise<RichListResp>,
-          rpc.request_raw("getchainmetrics", []) as Promise<ChainMetrics>,
+          rpc.getRichList(limit) as Promise<RichListResp>,
+          rpc.getChainMetrics() as Promise<ChainMetrics>,
         ]);
         if (!cancelled) {
           setList(rl);
