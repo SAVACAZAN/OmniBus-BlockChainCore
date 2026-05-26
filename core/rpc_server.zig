@@ -4454,9 +4454,10 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
         if (std.mem.eql(u8, tx.hash, tx_hash)) {
             const scheme_label = txSchemeLabel(tx.scheme);
             const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
+            const kind = inferTxKind(tx);
             return std.fmt.allocPrint(alloc,
-                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":0,\"blockHeight\":null,\"status\":\"pending\"}}}}",
-                .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, op_ret });
+                "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":0,\"blockHeight\":null,\"status\":\"pending\"}}}}",
+                .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret });
         }
     }
 
@@ -4470,9 +4471,10 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 if (std.mem.eql(u8, tx.hash, tx_hash)) {
                     const scheme_label = txSchemeLabel(tx.scheme);
                     const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
+                    const kind = inferTxKind(tx);
                     return std.fmt.allocPrint(alloc,
-                        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-                        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, op_ret, confirmations, block_height });
+                        "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
+                        .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret, confirmations, block_height });
                 }
             }
         }
@@ -4491,9 +4493,10 @@ fn handleGetTx(body: []const u8, ctx: *ServerCtx, id: u64) ![]u8 {
                 const confirmations = if (current_height > bh) current_height - bh else 0;
                 const scheme_label = txSchemeLabel(tx.scheme);
                 const op_ret = if (tx.op_return.len > 0) tx.op_return else "";
+                const kind = inferTxKind(tx);
                 return std.fmt.allocPrint(alloc,
-                    "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
-                    .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, op_ret, confirmations, blk.index });
+                    "{{\"jsonrpc\":\"2.0\",\"id\":{d},\"result\":{{\"txid\":\"{s}\",\"from\":\"{s}\",\"to\":\"{s}\",\"amount\":{d},\"fee\":{d},\"nonce\":{d},\"timestamp\":{d},\"scheme\":\"{s}\",\"kind\":\"{s}\",\"op_return\":\"{s}\",\"confirmations\":{d},\"blockHeight\":{d},\"status\":\"confirmed\"}}}}",
+                    .{ id, tx.hash, tx.from_address, tx.to_address, tx.amount, tx.fee, tx.nonce, tx.timestamp, scheme_label, kind, op_ret, confirmations, blk.index });
             }
         }
     }

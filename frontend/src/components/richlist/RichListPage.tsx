@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
-import { AddressDetail } from "./AddressDetail";
 import { AddressLabel } from "../common/AddressLabel";
 
 const rpc = new OmniBusRpcClient();
@@ -71,17 +70,7 @@ export function RichListPage() {
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(100);
   const [error, setError] = useState<string | null>(null);
-  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
-
-  if (selectedAddress) {
-    return (
-      <AddressDetail
-        address={selectedAddress}
-        onBack={() => setSelectedAddress(null)}
-      />
-    );
-  }
 
   useEffect(() => {
     let cancelled = false;
@@ -228,7 +217,7 @@ export function RichListPage() {
                     <td className="px-3 py-2 text-mempool-text-dim font-mono text-xs">{e.rank}</td>
                     <td className="px-3 py-2 font-mono text-xs">
                       <button
-                        onClick={() => setSelectedAddress(e.address)}
+                        onClick={() => { window.location.hash = `#/address/${e.address}`; }}
                         className="text-mempool-blue hover:underline truncate max-w-[180px] inline-block align-middle"
                         title={e.address}
                       >

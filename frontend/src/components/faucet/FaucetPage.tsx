@@ -53,15 +53,19 @@ export function FaucetPage() {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
+  const isOmniBusAddr = (a: string) =>
+    a.startsWith("ob1") || a.startsWith("obk1_") || a.startsWith("obf5_") ||
+    a.startsWith("obd5_") || a.startsWith("obs3_");
+
   const claim = async () => {
     setError(null);
     setResult(null);
     const addr = recipient.trim();
-    if (!addr.startsWith("ob1")) {
-      setError("Address must start with ob1 (OmniBus native).");
+    if (!isOmniBusAddr(addr)) {
+      setError("Address must be an OmniBus native address (ob1… or obk1_/obf5_/obd5_/obs3_…).");
       return;
     }
-    if (addr.length < 20 || addr.length > 64) {
+    if (addr.length < 20 || addr.length > 90) {
       setError("Address length looks wrong.");
       return;
     }
@@ -197,7 +201,14 @@ export function FaucetPage() {
         <div className="mt-4 rounded-lg border border-green-600 bg-mempool-bg-elev p-4">
           <div className="text-green-400 font-medium mb-2">✓ {result.message}</div>
           <div className="text-xs text-mempool-text-dim space-y-1">
-            <div>TX: <span className="font-mono">{result.txid}</span></div>
+            <div>TX:{" "}
+              <button
+                onClick={() => { window.location.hash = `#/tx/${result.txid}`; }}
+                className="font-mono text-mempool-blue hover:underline"
+              >
+                {result.txid}
+              </button>
+            </div>
             <div>Amount: <span className="font-mono">{omniFmt(result.amount)} OMNI</span></div>
             <div>Declaration: <span className="text-green-400">{result.declaration}</span></div>
           </div>

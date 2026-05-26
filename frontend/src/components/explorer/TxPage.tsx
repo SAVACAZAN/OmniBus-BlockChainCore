@@ -14,6 +14,25 @@ function midTrunc(s: string | undefined | null, h = 14, t = 12): string {
   return s.slice(0, h) + "…" + s.slice(-t);
 }
 
+const KIND_STYLE: Record<string, string> = {
+  coinbase: "bg-yellow-500/20 text-yellow-300",
+  faucet: "bg-cyan-500/20 text-cyan-300",
+  registrar: "bg-purple-500/20 text-purple-300",
+  exchange: "bg-blue-500/20 text-blue-300",
+  stake: "bg-green-500/20 text-green-300",
+  demo_grant: "bg-pink-500/20 text-pink-300",
+  transfer: "bg-gray-700/40 text-gray-300",
+};
+
+function KindBadge({ kind }: { kind: string }) {
+  const cls = KIND_STYLE[kind] ?? "bg-gray-700/40 text-gray-300";
+  return (
+    <span className={`inline-block px-2 py-0.5 rounded text-[11px] uppercase tracking-wide font-mono ${cls}`}>
+      {kind}
+    </span>
+  );
+}
+
 function SchemeTag({ scheme }: { scheme: string }) {
   const isPQ = scheme.includes("ML-DSA") || scheme.includes("Falcon") || scheme.includes("SLH-DSA") || scheme.includes("Hybrid");
   const isSoulbound = scheme.includes("soulbound");
@@ -153,6 +172,13 @@ export function TxPage({ hash, onNavigate }: Props) {
               <div className="text-mempool-text font-mono text-xs">
                 {new Date(tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp).toLocaleString()}
               </div>
+            </div>
+          )}
+
+          {tx.kind && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Type</div>
+              <KindBadge kind={tx.kind} />
             </div>
           )}
 
