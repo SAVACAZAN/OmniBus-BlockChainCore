@@ -373,7 +373,7 @@ export function StatsPage() {
           {netStats.avgFeeLast100 > 0 && (
             <StatCard
               label="Avg Fee / TX"
-              value={`${(netStats.avgFeeLast100 / 1e9).toFixed(8)} OMNI`}
+              value={`${(netStats.avgFeeLast100 / SAT_PER_OMNI).toFixed(8)} OMNI`}
               sub={`${netStats.avgFeeLast100.toLocaleString()} SAT`}
               color="green"
             />
@@ -675,11 +675,11 @@ export function StatsPage() {
                 interval="preserveStartEnd"
               />
               <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} width={42}
-                tickFormatter={(v) => v >= 1e9 ? `${(v/1e9).toFixed(2)}` : v >= 1e6 ? `${(v/1e6).toFixed(0)}M` : v.toLocaleString()} />
+                tickFormatter={(v) => v >= SAT_PER_OMNI ? `${(v/SAT_PER_OMNI).toFixed(2)}` : v >= 1e6 ? `${(v/1e6).toFixed(0)}M` : v.toLocaleString()} />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 labelFormatter={(v) => `Block #${v}`}
-                formatter={(v: any) => [`${(v/1e9).toFixed(8)} OMNI (${Number(v).toLocaleString()} SAT)`, "Fees"]}
+                formatter={(v: any) => [`${(v/SAT_PER_OMNI).toFixed(8)} OMNI (${Number(v).toLocaleString()} SAT)`, "Fees"]}
               />
               <Bar dataKey="feesEstimate" fill="#a855f7" radius={[2, 2, 0, 0]} maxBarSize={16} />
             </BarChart>

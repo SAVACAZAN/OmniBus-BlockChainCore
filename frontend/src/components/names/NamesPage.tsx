@@ -392,7 +392,7 @@ export function NamesPage() {
       // Phase 2 — multi-year tier multiplier (1.000 .. 55.000)
       const tier = yearTiers.find(t => t.years === regYears) ?? yearTiers[0];
       const feeOmni = baseFeeOmni * tier.multiplier;
-      const feeSat = Math.floor(feeOmni * 1e9);
+      const feeSat = Math.floor(feeOmni * SAT_PER_OMNI);
       const memo = `ns_claim:${clean}.${regTld}`;
 
       setRegResult({ ok: true, message: `Step 1/2: sending ${feeOmni} OMNI fee TX to treasury…` });
@@ -1215,7 +1215,7 @@ function RenewModal({ entry, ensFee, tldList, yearTiers, onClose, onRenewed }: R
     }
     setBusy(true);
     try {
-      const feeSat = Math.floor(feeOmni * 1e9);
+      const feeSat = Math.floor(feeOmni * SAT_PER_OMNI);
       // Same two-step as register: fee TX first (so renewal also leaves an
       // on-chain trace), then renewname with the resulting txid + years.
       setResult({ ok: true, message: `Step 1/2: sending ${feeOmni.toFixed(3)} OMNI renewal fee…` });

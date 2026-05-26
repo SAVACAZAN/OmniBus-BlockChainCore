@@ -7,6 +7,8 @@
  * to the correct backend RPC port (8332/18332/28332).
  */
 
+import { SAT_PER_OMNI } from "../utils/fmt";
+
 export type ChainName = "mainnet" | "testnet" | "regtest";
 
 const CHAIN_KEY = "omnibus.chain";
@@ -250,7 +252,7 @@ export class OmniBusRpcClient {
         minerName: (m.miner || "").substring(0, 20),
         minerID: (m.miner || "").substring(0, 12),
         address: m.miner || "",
-        balanceOmni: (m.currentBalanceSAT || 0) / 1e9,
+        balanceOmni: (m.currentBalanceSAT || 0) / SAT_PER_OMNI,
         blocksMined: m.blocksMined || 0,
       }));
     } catch { return []; }

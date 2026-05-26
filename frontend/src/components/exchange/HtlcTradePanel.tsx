@@ -593,7 +593,7 @@ export function HtlcLookupPanel() {
           {[
             ["Sender", entry.sender],
             ["Receiver", entry.receiver],
-            ["Amount", `${(entry.amount_sat / 1e9).toFixed(9)} OMNI`],
+            ["Amount", `${(entry.amount_sat / SAT_PER_OMNI).toFixed(9)} OMNI`],
             ["Hash lock", entry.hash_lock.slice(0, 32) + "…"],
             ["Timelock block", String(entry.timelock_block)],
             ...(entry.tx_hash ? [["Init TX", entry.tx_hash.slice(0, 16) + "…"]] : []),

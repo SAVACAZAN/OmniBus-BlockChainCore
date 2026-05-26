@@ -20,6 +20,7 @@ import OmniBusRpcClient from "../../api/rpc-client";
 import { useGlobalBalance } from "../../api/use-global-balance";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { FeeEstimate, WsTxConfirmedEvent } from "../../types";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -132,7 +133,7 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
     // Reserve a token amount for the fee — 1 sat min, otherwise 1k sat for headroom.
     const reserve = Math.max(1_000, effectiveFee * 200);
     const spendable = Math.max(0, balanceSat - reserve);
-    setAmount((spendable / 1e9).toFixed(9).replace(/\.?0+$/, ""));
+    setAmount((spendable / SAT_PER_OMNI).toFixed(9).replace(/\.?0+$/, ""));
   };
 
   const onSubmit = async () => {
@@ -142,7 +143,7 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
     try {
       const finalAddr = resolvedAddress || to.trim();
       if (!finalAddr.startsWith("ob")) throw new Error("Invalid recipient address");
-      const amountSat = Math.floor(parseFloat(amount || "0") * 1e9);
+      const amountSat = Math.floor(parseFloat(amount || "0") * SAT_PER_OMNI);
       if (!amountSat || amountSat <= 0) throw new Error("Amount must be > 0");
       if (amountSat > balanceSat) throw new Error("Insufficient balance");
 
@@ -187,7 +188,7 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
           <div className="flex justify-between mt-1">
             <span className="text-mempool-text-dim">Available</span>
             <span className="font-mono text-mempool-green">
-              {(balanceSat / 1e9).toFixed(4)} OMNI
+              {(balanceSat / SAT_PER_OMNI).toFixed(4)} OMNI
             </span>
           </div>
           {(stakedSat > 0 || inOrdersSat > 0) && (
@@ -195,13 +196,13 @@ export function QuickSendDialog({ onClose }: { onClose: () => void }) {
               {stakedSat > 0 && (
                 <div className="flex justify-between">
                   <span>· staked (locked)</span>
-                  <span className="font-mono">{(stakedSat / 1e9).toFixed(4)}</span>
+                  <span className="font-mono">{(stakedSat / SAT_PER_OMNI).toFixed(4)}</span>
                 </div>
               )}
               {inOrdersSat > 0 && (
                 <div className="flex justify-between">
                   <span>· in open orders</span>
-                  <span className="font-mono">{(inOrdersSat / 1e9).toFixed(4)}</span>
+                  <span className="font-mono">{(inOrdersSat / SAT_PER_OMNI).toFixed(4)}</span>
                 </div>
               )}
             </div>

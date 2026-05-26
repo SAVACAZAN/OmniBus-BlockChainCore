@@ -3,7 +3,7 @@ import { NetworkStatus } from "./NetworkStatus";
 import { MinerTable } from "./MinerTable";
 import { AddressLookup } from "../search/AddressLookup";
 import { useBlockchain } from "../../stores/useBlockchainStore";
-import { fmtAge } from "../../utils/fmt";
+import { fmtAge, SAT_PER_OMNI } from "../../utils/fmt";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
@@ -236,7 +236,7 @@ function NetworkRpcPanels() {
               ["Chain", miningInfo.chain],
               ["Difficulty", String(miningInfo.difficulty)],
               ["Hashrate", `${miningInfo.hashrate.toLocaleString()} H/s`],
-              ["Reward", `${(miningInfo.currentblockreward / 1e9).toFixed(4)} OMNI`],
+              ["Reward", `${(miningInfo.currentblockreward / SAT_PER_OMNI).toFixed(4)} OMNI`],
               ["Pooled TX", String(miningInfo.pooledtx)],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between text-xs">

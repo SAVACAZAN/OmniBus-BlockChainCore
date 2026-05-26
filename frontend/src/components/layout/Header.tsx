@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { TxSearch } from "../search/TxSearch";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 import { getActiveChain, setActiveChain, type ChainName } from "../../api/rpc-client";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
@@ -422,8 +423,8 @@ function ActiveSlotSelector() {
   // Find OMNI on the active slot for the inline chip; fall back to the
   // unlocked wallet's primary balance when the snapshot hasn't loaded yet.
   const activeRow = all.slots.find((s) => s.index === activeSlot);
-  const activeOmni = activeRow ? activeRow.wallet_sat / 1e9 : 0;
-  const totalOmni = all.total_wallet_sat / 1e9;
+  const activeOmni = activeRow ? activeRow.wallet_sat / SAT_PER_OMNI : 0;
+  const totalOmni = all.total_wallet_sat / SAT_PER_OMNI;
 
   return (
     <div className="hidden md:flex items-center gap-2 px-2 py-1 rounded-lg bg-mempool-bg-elev border border-mempool-border">
@@ -436,7 +437,7 @@ function ActiveSlotSelector() {
       >
         {Array.from({ length: slotsCount }, (_, i) => {
           const row = all.slots.find((s) => s.index === i);
-          const bal = row ? (row.wallet_sat / 1e9).toFixed(2) : "—";
+          const bal = row ? (row.wallet_sat / SAT_PER_OMNI).toFixed(2) : "—";
           return (
             <option key={i} value={i}>
               #{i} · {bal}

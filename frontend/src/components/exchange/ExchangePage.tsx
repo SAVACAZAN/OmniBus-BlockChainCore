@@ -192,11 +192,11 @@ export function ExchangePage() {
         <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-mempool-bg-elev border border-mempool-border">
           <span className="text-[10px] text-mempool-text-dim self-center mr-1 uppercase tracking-wider">Exchange:</span>
           {exchBalances.map((b) => {
-            const avail = b.token === "OMNI" ? (b.available / 1e9).toFixed(4)
+            const avail = b.token === "OMNI" ? (b.available / SAT_PER_OMNI).toFixed(4)
               : b.token === "ETH"  ? (b.available / 1e18).toFixed(6)
               : b.token === "USDC" || b.token === "LCX" ? (b.available / 1e6).toFixed(2)
               : b.available.toString();
-            const locked = b.token === "OMNI" ? (b.locked / 1e9).toFixed(4)
+            const locked = b.token === "OMNI" ? (b.locked / SAT_PER_OMNI).toFixed(4)
               : b.token === "ETH"  ? (b.locked / 1e18).toFixed(6)
               : b.token === "USDC" || b.token === "LCX" ? (b.locked / 1e6).toFixed(2)
               : b.locked.toString();

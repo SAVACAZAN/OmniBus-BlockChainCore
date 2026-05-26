@@ -334,7 +334,7 @@ export function PlaceOrderForm({ pairId, pairLabel, base, quote, exchBalances, o
             >
               {(u.allAddresses ?? []).map((a) => {
                 const row = allSlots.slots.find((s) => s.index === a.index);
-                const bal = row ? (row.wallet_sat / 1e9).toFixed(2) : "—";
+                const bal = row ? (row.wallet_sat / SAT_PER_OMNI).toFixed(2) : "—";
                 return (
                   <option key={a.index} value={a.index}>
                     #{a.index} · {bal} OMNI

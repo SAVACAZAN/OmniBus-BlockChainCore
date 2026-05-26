@@ -4,7 +4,7 @@ import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTxEvent } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
-import { satToOmni, midTrunc, fmtDuration } from "../../utils/fmt";
+import { satToOmni, midTrunc, fmtDuration, SAT_PER_OMNI } from "../../utils/fmt";
 import {
   ResponsiveContainer,
   BarChart,
@@ -366,7 +366,7 @@ export function MempoolPage() {
                     `"${t.txid}"`,
                     `"${t.from}"`,
                     `"${t.to}"`,
-                    (t.amount / 1e9).toFixed(8),
+                    (t.amount / SAT_PER_OMNI).toFixed(8),
                     t.fee,
                     t.kind ?? "transfer",
                     t.scheme ?? "",

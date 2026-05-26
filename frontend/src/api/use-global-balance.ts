@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import OmniBusRpcClient from "./rpc-client";
 import { useWallet } from "./use-wallet";
 import { useActiveSlot } from "./use-active-slot";
+import { SAT_PER_OMNI } from "../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 const POLL_MS = 8_000;
@@ -242,5 +243,5 @@ export function refreshGlobalBalance(): void {
 
 /** Format SAT → "1.2345" OMNI string (4 decimals). */
 export function formatOmni(sat: number): string {
-  return (sat / 1e9).toFixed(4);
+  return (sat / SAT_PER_OMNI).toFixed(4);
 }

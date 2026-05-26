@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import OmniBusRpcClient from "../../api/rpc-client";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -26,7 +27,7 @@ export function WalletPanel() {
     setSending(true);
     setSendResult(null);
     try {
-      const amountSat = Math.floor(parseFloat(sendAmount) * 1e9);
+      const amountSat = Math.floor(parseFloat(sendAmount) * SAT_PER_OMNI);
       const result: any = await rpc.sendTransaction(sendTo, amountSat);
       const txid = typeof result === "object" ? result?.txid : result;
       setSendResult(`TX sent: ${(txid || "ok").toString().slice(0, 16)}...`);

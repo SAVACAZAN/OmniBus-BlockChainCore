@@ -26,7 +26,7 @@ import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes, signMessage } from "../../api/exchange-sign";
 import { PQ_OMNI_SCHEMES } from "../../api/wallet-keystore";
 import type { PqOmniSlot } from "../../api/wallet-keystore";
-import { midTrunc } from "../../utils/fmt";
+import { midTrunc, SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -79,7 +79,7 @@ interface PqAttestResp {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function fmtOmni(sat: number): string {
-  return (sat / 1e9).toFixed(4);
+  return (sat / SAT_PER_OMNI).toFixed(4);
 }
 
 
@@ -241,7 +241,7 @@ export function PQWalletPanel() {
     setSending(true);
     setSendResult(null);
     try {
-      const amountSat = Math.floor(parseFloat(sendAmount) * 1e9);
+      const amountSat = Math.floor(parseFloat(sendAmount) * SAT_PER_OMNI);
       if (amountSat <= 0) throw new Error("Amount must be > 0");
 
       const pqOmniList: PqOmniSlot[] = wallet.pqOmni ?? [];
@@ -494,7 +494,7 @@ export function PQWalletPanel() {
             />
             {sendAmount && (
               <p className="text-xs text-mempool-text-dim">
-                = {Math.floor(parseFloat(sendAmount || "0") * 1e9).toLocaleString()} sat
+                = {Math.floor(parseFloat(sendAmount || "0") * SAT_PER_OMNI).toLocaleString()} sat
               </p>
             )}
           </div>

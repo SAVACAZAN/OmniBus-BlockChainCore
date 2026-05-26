@@ -18,6 +18,7 @@ import { TxHashLink } from "../common/TxHashLink";
 import { NameManagePanel } from "../names/NameManagePanel";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { FeeEstimate, WsNewBlockEvent, WsNewTxEvent } from "../../types";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -185,7 +186,7 @@ export function WalletPage() {
         // 0 balance regardless of Header slot selector.
         const balRes: any = await rpc.request_raw("getaddressbalance", [activeAddress]);
         const sat = typeof balRes === "number" ? balRes : (balRes?.balance ?? 0);
-        const omni = (sat / 1e9).toFixed(4);
+        const omni = (sat / SAT_PER_OMNI).toFixed(4);
         setBalance({ sat, omni });
       } catch {}
 
@@ -269,7 +270,7 @@ export function WalletPage() {
     setSending(true);
     setSendResult(null);
     try {
-      const amountSat = Math.floor(parseFloat(sendAmount) * 1e9);
+      const amountSat = Math.floor(parseFloat(sendAmount) * SAT_PER_OMNI);
       if (amountSat <= 0) throw new Error("Amount must be > 0");
 
       // Phase 2 — resolve <name>.<tld> via the chain's send-routing helper.
@@ -897,8 +898,8 @@ export function WalletPage() {
                         csvEsc(tx.txid || ""),
                         csvEsc(cls.label),
                         cls.isCredit ? "in" : "out",
-                        ((tx.amount ?? 0) / 1e9).toFixed(8),
-                        ((tx.fee ?? 0) / 1e9).toFixed(8),
+                        ((tx.amount ?? 0) / SAT_PER_OMNI).toFixed(8),
+                        ((tx.fee ?? 0) / SAT_PER_OMNI).toFixed(8),
                         csvEsc(tx.from || ""),
                         csvEsc(tx.to || ""),
                         tx.confirmations ?? "",
@@ -999,7 +1000,7 @@ export function WalletPage() {
                   <p className={`text-xs font-mono ${
                     cls.isCredit ? "text-mempool-green" : "text-mempool-orange"
                   }`}>
-                    {cls.isCredit ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(8)}
+                    {cls.isCredit ? "+" : "-"}{((tx.amount || 0) / SAT_PER_OMNI).toFixed(8)}
                   </p>
                   {tx.fee != null && tx.fee > 0 && (
                     <p className="text-[9px] text-mempool-text-dim font-mono">
@@ -1817,7 +1818,7 @@ function SoulboundCard({
           </span>
           {balanceSat !== null && balanceSat > 0 && (
             <span className="text-[9px] font-mono text-mempool-green font-semibold">
-              {(balanceSat / 1e9).toFixed(4)} OMNI
+              {(balanceSat / SAT_PER_OMNI).toFixed(4)} OMNI
             </span>
           )}
           <span className="text-[9px] text-mempool-text-dim">{bits}-bit</span>
@@ -1858,7 +1859,7 @@ function SoulboundCard({
               <div className="flex items-center justify-between px-2 py-1 bg-mempool-bg-elev rounded text-[10px]">
                 <span className="text-mempool-text-dim uppercase tracking-wider">Rewards acumulate</span>
                 <span className="font-mono text-mempool-green font-semibold">
-                  {balanceSat !== null ? `${(balanceSat / 1e9).toFixed(8)} OMNI` : "…"}
+                  {balanceSat !== null ? `${(balanceSat / SAT_PER_OMNI).toFixed(8)} OMNI` : "…"}
                 </span>
               </div>
             </div>
@@ -2060,7 +2061,7 @@ function PrimaryAddressCard({
                       )}
                       <span className="text-mempool-text-dim/70"> #{u.vout ?? 0}</span>
                     </div>
-                    <span className="text-mempool-text">{((u.amount ?? u.value ?? 0) / 1e9).toFixed(4)} OMNI</span>
+                    <span className="text-mempool-text">{((u.amount ?? u.value ?? 0) / SAT_PER_OMNI).toFixed(4)} OMNI</span>
                   </div>
                 ))}
                 {utxos.length > 50 && (
@@ -2615,7 +2616,7 @@ function PqSendForm({ slot, balanceSat }: { slot: PqOmniSlot; balanceSat: number
     try {
       const toAddr = to.trim();
       if (!toAddr) throw new Error("Destination address required");
-      const amountSat = Math.round(parseFloat(amountOmni) * 1e9);
+      const amountSat = Math.round(parseFloat(amountOmni) * SAT_PER_OMNI);
       if (!amountSat || amountSat <= 0) throw new Error("Amount must be > 0");
       if (amountSat > balanceSat) throw new Error("Insufficient balance");
 
@@ -2761,7 +2762,7 @@ function PqOmniSlotCard({ slot }: { slot: PqOmniSlot }) {
     return () => { cancelled = true; clearInterval(id); unsub(); };
   }, [slot.address]);
 
-  const balanceOmni = balanceSat !== null ? (balanceSat / 1e9).toFixed(4) : "—";
+  const balanceOmni = balanceSat !== null ? (balanceSat / SAT_PER_OMNI).toFixed(4) : "—";
 
   return (
     <div className="bg-mempool-bg rounded-lg border border-mempool-border/40 overflow-hidden">

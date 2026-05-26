@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { TransactionDetail } from "../../types";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -108,7 +109,7 @@ export function TxSearch({ onClose, initialQuery }: TxSearchProps) {
                 <div>
                   <p className="text-[10px] text-mempool-text-dim uppercase">Amount</p>
                   <p className="text-xs font-mono text-mempool-green">
-                    {((result.amount || 0) / 1e9).toFixed(8)} OMNI
+                    {((result.amount || 0) / SAT_PER_OMNI).toFixed(8)} OMNI
                   </p>
                 </div>
                 <div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -107,7 +108,7 @@ export function AddressLookup() {
                   <p className={`text-xs font-mono ${
                     tx.direction === "received" ? "text-mempool-green" : "text-mempool-orange"
                   }`}>
-                    {tx.direction === "received" ? "+" : "-"}{((tx.amount || 0) / 1e9).toFixed(8)}
+                    {tx.direction === "received" ? "+" : "-"}{((tx.amount || 0) / SAT_PER_OMNI).toFixed(8)}
                   </p>
                   {tx.fee > 0 && (
                     <p className="text-[9px] text-mempool-text-dim font-mono">
