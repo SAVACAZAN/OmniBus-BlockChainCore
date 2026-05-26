@@ -111,6 +111,9 @@ export function NetworkPage() {
       {/* Sync status + peer info + online miners */}
       <NetworkRpcPanels />
 
+      {/* Miner TX (minersendtx) */}
+      <MinerSendTxPanel />
+
       {/* Address Lookup */}
       <AddressLookup />
 
@@ -149,11 +152,13 @@ function NetworkRpcPanels() {
   const [miningInfo, setMiningInfo] = useState<MiningInfo | null>(null);
   const [perfInfo, setPerfInfo] = useState<PerformanceInfo | null>(null);
   const [mempoolInfo, setMempoolInfo] = useState<MempoolInfo | null>(null);
+  const [connCount, setConnCount] = useState<number | null>(null);
+  const [difficulty, setDifficulty] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
-      const [s, p, m, ns, mi, perf, mpi] = await Promise.allSettled([
+      const [s, p, m, ns, mi, perf, mpi, cc, diff] = await Promise.allSettled([
         rpc.request_raw("getsyncstatus", []) as Promise<SyncStatus>,
         rpc.request_raw("getpeerinfo", []) as Promise<{ result: PeerInfo[] } | PeerInfo[]>,
         rpc.request_raw("omnibus_getminers", []) as Promise<MinerEntry[]>,
@@ -161,6 +166,8 @@ function NetworkRpcPanels() {
         rpc.request_raw("getmininginfo", []) as Promise<MiningInfo>,
         rpc.request_raw("getperformance", []) as Promise<PerformanceInfo>,
         rpc.request_raw("getmempoolinfo", []) as Promise<MempoolInfo>,
+        rpc.request_raw("getconnectioncount", []) as Promise<number>,
+        rpc.request_raw("getdifficulty", []) as Promise<number>,
       ]);
       if (cancelled) return;
       if (s.status === "fulfilled") setSync(s.value);
@@ -173,6 +180,8 @@ function NetworkRpcPanels() {
       if (mi.status === "fulfilled") setMiningInfo(mi.value);
       if (perf.status === "fulfilled") setPerfInfo(perf.value);
       if (mpi.status === "fulfilled") setMempoolInfo(mpi.value);
+      if (cc.status === "fulfilled") setConnCount(typeof cc.value === "number" ? cc.value : null);
+      if (diff.status === "fulfilled") setDifficulty(typeof diff.value === "number" ? diff.value : null);
     };
     refresh();
     const id = setInterval(refresh, 8_000);
@@ -236,10 +245,12 @@ function NetworkRpcPanels() {
         )}
         {mempoolInfo && (
           <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-3 space-y-1.5">
-            <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim font-semibold">Mempool Info</div>
+            <div className="text-[9px] uppercase tracking-wider text-mempool-text-dim font-semibold">Mempool &amp; Connections</div>
             {[
               ["TX count", String(mempoolInfo.size)],
               ["Bytes", mempoolInfo.bytes > 0 ? `${mempoolInfo.bytes.toLocaleString()} B` : "—"],
+              ...(connCount !== null ? [["Connections", String(connCount)]] : []),
+              ...(difficulty !== null ? [["Difficulty", String(difficulty)]] : []),
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between text-xs">
                 <span className="text-mempool-text-dim">{k}</span>
@@ -344,6 +355,74 @@ function NetworkRpcPanels() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── MinerSendTx panel (minersendtx) ───────────────────────────────────────────
+
+function MinerSendTxPanel() {
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [amount, setAmount] = useState("");
+  const [fee, setFee] = useState("1000");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const send = async () => {
+    if (!from || !to || !amount) return;
+    setLoading(true); setResult(null);
+    try {
+      const r = await rpc.request_raw("minersendtx", [
+        from.trim(), to.trim(), parseInt(amount), parseInt(fee) || 1000,
+      ]) as { txid?: string; tx_hash?: string; error?: string };
+      if (r && (r.txid || r.tx_hash)) {
+        setResult({ ok: true, msg: `TX: ${(r.txid ?? r.tx_hash ?? "").slice(0, 32)}…` });
+      } else {
+        setResult({ ok: false, msg: r?.error ?? JSON.stringify(r) });
+      }
+    } catch (e) { setResult({ ok: false, msg: String(e) }); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+      <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+        Miner Send TX (minersendtx)
+      </h3>
+      <p className="text-[11px] text-mempool-text-dim">
+        Send a transaction from a registered miner's wallet. The node must be running with that miner's key. Used for automated miner payouts or fee distribution.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {([
+          ["From (miner address)", from, setFrom, "ob1q…"],
+          ["To (recipient)", to, setTo, "ob1q…"],
+          ["Amount (SAT)", amount, setAmount, "100000000"],
+          ["Fee (SAT)", fee, setFee, "1000"],
+        ] as [string, string, (v: string) => void, string][]).map(([label, val, setter, ph]) => (
+          <div key={label} className="space-y-0.5">
+            <label className="text-[9px] uppercase text-mempool-text-dim">{label}</label>
+            <input
+              value={val}
+              onChange={(e) => setter(e.target.value)}
+              placeholder={ph}
+              className="w-full bg-mempool-bg border border-mempool-border rounded px-2 py-1.5 text-xs font-mono text-mempool-text"
+            />
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={send}
+        disabled={loading || !from || !to || !amount}
+        className="w-full py-2 text-xs font-medium bg-orange-500/20 hover:bg-orange-500/40 text-orange-300 border border-orange-500/30 rounded disabled:opacity-50"
+      >
+        {loading ? "Sending…" : "Send Miner TX"}
+      </button>
+      {result && (
+        <div className={`rounded px-3 py-2 text-xs border ${result.ok ? "bg-green-500/10 border-green-500/30 text-green-300" : "bg-red-500/10 border-red-500/30 text-red-300"}`}>
+          {result.msg}
         </div>
       )}
     </div>

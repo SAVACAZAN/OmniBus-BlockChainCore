@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import type { BlockData } from "../../types";
@@ -217,6 +217,7 @@ export function BlocksPage() {
       </div>
 
       <SpvPanel />
+      <BlockHashPanel />
     </div>
   );
 }
@@ -486,6 +487,85 @@ function SpvPanel() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Block Hash Lookup (getblockhash + getbestblockhash) ───────────────────────
+
+function BlockHashPanel() {
+  const [bestHash, setBestHash] = useState<string | null>(null);
+  const [lookupHeight, setLookupHeight] = useState("");
+  const [lookupHash, setLookupHash] = useState<string | null>(null);
+  const [lookupErr, setLookupErr] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    rpc.request_raw("getbestblockhash", [])
+      .then((r) => {
+        if (typeof r === "string") setBestHash(r);
+        else if (r && typeof r === "object" && "result" in r) setBestHash(String((r as { result: unknown }).result));
+      })
+      .catch(() => {});
+  }, []);
+
+  const lookupByHeight = useCallback(async () => {
+    const h = parseInt(lookupHeight);
+    if (isNaN(h) || h < 0) { setLookupErr("Enter a valid block height"); return; }
+    setLoading(true); setLookupErr(""); setLookupHash(null);
+    try {
+      const r = await rpc.request_raw("getblockhash", [h]);
+      if (typeof r === "string") setLookupHash(r);
+      else if (r && typeof r === "object" && "result" in r) setLookupHash(String((r as { result: unknown }).result));
+      else setLookupErr("Block not found");
+    } catch (e) { setLookupErr(String(e)); }
+    finally { setLoading(false); }
+  }, [lookupHeight]);
+
+  return (
+    <div className="mt-4 rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-4">
+      <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+        Block Hash Utilities
+      </h3>
+
+      {/* Best block hash */}
+      <div className="space-y-1">
+        <div className="text-[10px] uppercase text-mempool-text-dim">Best Block Hash (getbestblockhash)</div>
+        {bestHash ? (
+          <div className="font-mono text-xs text-mempool-blue break-all bg-mempool-bg rounded p-2">
+            {bestHash}
+          </div>
+        ) : (
+          <div className="text-xs text-mempool-text-dim italic">Loading…</div>
+        )}
+      </div>
+
+      {/* Block hash by height */}
+      <div className="space-y-2">
+        <div className="text-[10px] uppercase text-mempool-text-dim">Block Hash by Height (getblockhash)</div>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            value={lookupHeight}
+            onChange={(e) => setLookupHeight(e.target.value)}
+            placeholder="Block height"
+            className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text"
+          />
+          <button
+            onClick={lookupByHeight}
+            disabled={loading || !lookupHeight}
+            className="px-4 py-1.5 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+          >
+            {loading ? "…" : "Get Hash"}
+          </button>
+        </div>
+        {lookupErr && <p className="text-xs text-red-400">{lookupErr}</p>}
+        {lookupHash && (
+          <div className="font-mono text-xs text-mempool-green break-all bg-mempool-bg rounded p-2">
+            {lookupHash}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

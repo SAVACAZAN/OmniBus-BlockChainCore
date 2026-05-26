@@ -423,6 +423,57 @@ function ValidatorListTab() {
       </div>
 
       <StakingInfoLookup />
+      <ValidatorsSimplePanel />
+    </div>
+  );
+}
+
+// ── Simple validator list (getvalidators — no sort params) ────────────────────
+
+interface SimpleValidator { address: string; weight: number; since_height: number; }
+interface SimpleValidatorsResp { count: number; validators: SimpleValidator[]; }
+
+function ValidatorsSimplePanel() {
+  const [data, setData] = useState<SimpleValidatorsResp | null>(null);
+
+  useEffect(() => {
+    rpc.request_raw("getvalidators", [])
+      .then((r) => {
+        const v = r as SimpleValidatorsResp;
+        if (v && Array.isArray(v.validators)) setData(v);
+      })
+      .catch(() => {});
+  }, []);
+
+  if (!data || data.validators.length === 0) return null;
+
+  return (
+    <div className="mt-4 rounded-xl border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-mempool-border">
+        <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+          Validator Registry (getvalidators) — {data.count} entries
+        </h3>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-mempool-bg text-mempool-text-dim text-[9px] uppercase">
+            <tr>
+              <th className="px-3 py-2 text-left">Address</th>
+              <th className="px-3 py-2 text-right">Weight</th>
+              <th className="px-3 py-2 text-right">Since block</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-mempool-border/30">
+            {data.validators.slice(0, 20).map((v) => (
+              <tr key={v.address} className="hover:bg-mempool-bg-light/20">
+                <td className="px-3 py-1.5 font-mono text-mempool-blue text-[10px]">{v.address.slice(0, 20)}…</td>
+                <td className="px-3 py-1.5 text-right font-mono text-mempool-text">{v.weight}</td>
+                <td className="px-3 py-1.5 text-right font-mono text-mempool-text-dim">{v.since_height}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -647,6 +647,9 @@ export function AgentsPage() {
         {/* agent_edit + agent_unregister — management operations */}
         {!methodMissing && <AgentManagePanel />}
 
+        {/* getagent — single agent lookup */}
+        {!methodMissing && <AgentLookupPanel />}
+
         <div className="mt-6 text-xs text-mempool-text-dim">
           <p>
             <span className="font-semibold text-mempool-text">Refresh:</span> auto every 5s (system) / 8s (registry).
@@ -869,6 +872,56 @@ function AgentReportPanel() {
       </button>
       {result && <div className="mt-2 text-green-400 text-xs font-mono">{result}</div>}
       {err && <div className="mt-2 text-red-400 text-xs">{err}</div>}
+    </div>
+  );
+}
+
+// ─── AgentLookupPanel (getagent — single agent by ID) ────────────────────────
+
+function AgentLookupPanel() {
+  const [agentId, setAgentId] = useState("");
+  const [result, setResult] = useState<unknown>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  const lookup = async () => {
+    const id = parseInt(agentId);
+    if (isNaN(id)) { setErr("Enter a numeric agent ID"); return; }
+    setLoading(true); setErr(""); setResult(null);
+    try {
+      const r = await rpc.request_raw("getagent", [{ agent_id: id }]);
+      setResult(r);
+    } catch (e) { setErr(String(e)); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-mempool-border bg-mempool-bg-elev p-4 space-y-3">
+      <h3 className="text-xs font-semibold text-mempool-text-dim uppercase tracking-wider">
+        Single Agent Lookup (getagent)
+      </h3>
+      <div className="flex gap-2">
+        <input
+          type="number"
+          value={agentId}
+          onChange={(e) => setAgentId(e.target.value)}
+          placeholder="Agent ID (number)"
+          className="flex-1 bg-mempool-bg border border-mempool-border rounded px-3 py-1.5 text-xs font-mono text-mempool-text"
+        />
+        <button
+          onClick={lookup}
+          disabled={loading || !agentId}
+          className="px-4 py-1.5 text-xs font-medium bg-mempool-blue/20 hover:bg-mempool-blue/40 text-mempool-blue border border-mempool-blue/30 rounded disabled:opacity-50"
+        >
+          {loading ? "…" : "Lookup"}
+        </button>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {result !== null && (
+        <pre className="text-[10px] font-mono text-mempool-text-dim bg-mempool-bg rounded p-2 overflow-x-auto whitespace-pre-wrap">
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      )}
     </div>
   );
 }
