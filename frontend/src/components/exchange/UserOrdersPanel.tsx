@@ -5,9 +5,9 @@ import { getUnlocked, nextNonce, subscribeWallet } from "../../api/wallet-keysto
 import { useTraderMode } from "./TraderModeToggle";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsOrderbookUpdateEvent } from "../../types";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 const MICRO_PER_USD = 1_000_000;
 
 interface Props {

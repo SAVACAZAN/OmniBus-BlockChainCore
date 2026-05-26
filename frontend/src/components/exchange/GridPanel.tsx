@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import OmniBusRpcClient, { GridConfig, GridStatus } from "../../api/rpc-client";
 import { subscribe as wsSubscribe } from "../../api/ws-bus";
 import type { WsNewTradeEvent } from "../../types";
+import { SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
 const MICRO = 1_000_000;
-const SAT   = 1_000_000_000;
+const SAT = SAT_PER_OMNI;
 
 type Pair = { id: number; base: string; quote: string; label: string };
 

@@ -15,15 +15,17 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 import * as secp from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha2";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { useWallet } from "../../api/use-wallet";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
+import { satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
-const SAT_PER_OMNI = 1_000_000_000;
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -52,7 +54,7 @@ type SubTab = "mine" | "create" | "incoming";
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function fmtOmni(sat: number): string {
-  return (sat / SAT_PER_OMNI).toFixed(4);
+  return satToOmni(sat, 4);
 }
 
 function shortAddr(addr: string): string {
@@ -157,7 +159,11 @@ export function SubscriptionPage() {
   }, [wallet?.address]);
 
   useEffect(() => {
-    if (tab === "mine") loadMySubs();
+    if (tab === "mine") void loadMySubs();
+    // Subscriptions fire per-block — refresh "mine" tab on every new block.
+    if (tab !== "mine") return;
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void loadMySubs(); });
+    return unsub;
   }, [tab, loadMySubs]);
 
   // ── Auto-fill incoming address from wallet ────────────────────────────

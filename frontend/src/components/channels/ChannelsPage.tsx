@@ -34,15 +34,15 @@ import { sha256 } from "@noble/hashes/sha2";
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { CopyButton } from "../common/CopyButton";
+import { satToOmni, SAT_PER_OMNI } from "../../utils/fmt";
 import { bytesToHex, hexToBytes } from "../../api/exchange-sign";
 
 const rpc = new OmniBusRpcClient();
 
 // ── SAT / OMNI helpers ──────────────────────────────────────────────────────
 
-const SAT = 1_000_000_000;
-const toOMNI = (sat: number) => (sat / SAT).toFixed(8);
-const toSAT = (omni: number) => Math.round(omni * SAT);
+const toOMNI = (sat: number) => satToOmni(sat, 8);
+const toSAT = (omni: number) => Math.round(omni * SAT_PER_OMNI);
 
 const intFmt = new Intl.NumberFormat("en-US");
 
