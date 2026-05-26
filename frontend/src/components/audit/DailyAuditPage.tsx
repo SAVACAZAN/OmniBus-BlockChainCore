@@ -15,7 +15,7 @@
  *     correlate with the daily TX log below it.
  *   - Sortable columns + CSV export. CSV is built client-side from the same
  *     in-memory rows the table renders so they're always identical.
- *   - All amounts are SAT on the wire; `fmtOmni` divides by 1e9 for display.
+ *   - All amounts are SAT on the wire; `fmtOmni` divides by SAT_PER_OMNI for display.
  *   - No `any` for known shapes. Only `unknown` when narrowing RPC responses
  *     because `request_raw` returns `unknown` by design.
  */

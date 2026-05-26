@@ -3,7 +3,7 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
-import { fmtSat, midTrunc } from "../../utils/fmt";
+import { fmtSat, midTrunc, fmtAge } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -114,14 +114,17 @@ export function TxPage({ hash, onNavigate }: Props) {
             </div>
           )}
 
-          {tx.timestamp !== undefined && tx.timestamp > 0 && (
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Timestamp</div>
-              <div className="text-mempool-text font-mono text-xs">
-                {new Date(tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp).toLocaleString()}
+          {tx.timestamp !== undefined && tx.timestamp > 0 && (() => {
+            const ms = tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp;
+            return (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim mb-0.5">Timestamp</div>
+                <div className="text-mempool-text font-mono text-xs" title={new Date(ms).toLocaleString()}>
+                  {fmtAge(ms)} · {new Date(ms).toLocaleTimeString()}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {tx.kind && (
             <div>

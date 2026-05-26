@@ -3,13 +3,14 @@ import { OmniBusRpcClient } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
 import { CopyButton } from "../common/CopyButton";
 import { KindBadge, SchemeTag } from "../common/TxBadges";
-import { fmtSat, midTrunc, SAT_PER_OMNI, MICRO_PER_USD } from "../../utils/fmt";
+import { fmtSat, midTrunc, SAT_PER_OMNI, MICRO_PER_USD, fmtAge } from "../../utils/fmt";
 
 const MICRO = MICRO_PER_USD;
 const rpc = new OmniBusRpcClient();
 
 function fmtTs(ts: number) {
-  return new Date(ts < 1e10 ? ts * 1000 : ts).toLocaleString();
+  const ms = ts < 1e10 ? ts * 1000 : ts;
+  return `${fmtAge(ms)} · ${new Date(ms).toLocaleString()}`;
 }
 function fmtPrice(microUsd: number): string {
   if (!microUsd) return "—";

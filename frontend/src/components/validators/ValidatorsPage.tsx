@@ -20,7 +20,7 @@ import {
 import { OmniBusRpcClient } from "../../api/rpc-client";
 import { useWallet } from "../../api/use-wallet";
 import { AddressLabel } from "../common/AddressLabel";
-import { midTrunc } from "../../utils/fmt";
+import { midTrunc, fmtAge } from "../../utils/fmt";
 
 const rpc = new OmniBusRpcClient();
 
@@ -1164,7 +1164,7 @@ function SlashingLogTab() {
             {filtered.map((e, i) => (
               <tr key={i} className="border-t border-gray-800/60">
                 <td className="px-3 py-2 text-gray-400">
-                  {new Date(e.timestamp * 1000).toLocaleString()}
+                  <span title={new Date(e.timestamp * 1000).toLocaleString()}>{fmtAge(e.timestamp * 1000)}</span>
                 </td>
                 <td className="px-3 py-2 font-mono text-xs text-red-300/90 line-through">
                   <AddressLabel address={e.address} showEmoji truncate={{ left: 8, right: 6 }} />
