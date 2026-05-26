@@ -306,17 +306,21 @@ export function AgentsPage() {
   }, [sortBy]);
 
   // ── Aggregate metrics for system-level agents ────────────────────────────
-  const totalCapital = agents.reduce(
-    (acc, a) => acc + a.balance_sat + a.staked_sat + a.lp_locked_sat,
-    0,
-  );
-  const tierCounts = agents.reduce<Record<string, number>>((acc, a) => {
-    acc[a.tier] = (acc[a.tier] || 0) + 1;
-    return acc;
-  }, {});
-  const totalQueued = agents.reduce((acc, a) => acc + a.stats.decisions_queued, 0);
-  const totalExecSuccess = agents.reduce((acc, a) => acc + a.stats.exec_success, 0);
-  const totalExecFailed = agents.reduce((acc, a) => acc + a.stats.exec_failed, 0);
+  const { totalCapital, tierCounts, totalQueued, totalExecSuccess, totalExecFailed } = useMemo(() => {
+    let totalCapital = 0;
+    const tierCounts: Record<string, number> = {};
+    let totalQueued = 0;
+    let totalExecSuccess = 0;
+    let totalExecFailed = 0;
+    for (const a of agents) {
+      totalCapital += a.balance_sat + a.staked_sat + a.lp_locked_sat;
+      tierCounts[a.tier] = (tierCounts[a.tier] || 0) + 1;
+      totalQueued += a.stats.decisions_queued;
+      totalExecSuccess += a.stats.exec_success;
+      totalExecFailed += a.stats.exec_failed;
+    }
+    return { totalCapital, tierCounts, totalQueued, totalExecSuccess, totalExecFailed };
+  }, [agents]);
 
   // ── Filtered registry list (for browse tab) ──────────────────────────────
   const visibleRegistry = useMemo(() => {

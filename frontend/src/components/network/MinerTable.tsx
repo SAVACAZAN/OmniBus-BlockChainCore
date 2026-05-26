@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { rpc } from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
@@ -52,6 +52,14 @@ export function MinerTable() {
           currentBalanceSAT: m.currentBalanceSAT,
         }));
 
+  const totalBlocks = useMemo(() => miners.reduce((s, m) => s + m.blocksMined, 0), [miners]);
+
+  const filteredMiners = useMemo(() => {
+    const q = addrSearch.trim().toLowerCase();
+    const sorted = [...miners].sort((a, b) => b.blocksMined - a.blocksMined);
+    return q ? sorted.filter((m) => m.address.toLowerCase().includes(q)) : sorted;
+  }, [miners, addrSearch]);
+
   if (miners.length === 0) {
     return (
       <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border p-6 text-center text-sm text-mempool-text-dim backdrop-blur-sm">
@@ -59,8 +67,6 @@ export function MinerTable() {
       </div>
     );
   }
-
-  const totalBlocks = miners.reduce((s, m) => s + m.blocksMined, 0);
 
   return (
     <div className="bg-mempool-bg-elev rounded-lg border border-mempool-border overflow-hidden backdrop-blur-sm">
@@ -123,10 +129,7 @@ export function MinerTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-mempool-border/30">
-            {[...miners]
-              .sort((a, b) => b.blocksMined - a.blocksMined)
-              .filter((m) => !addrSearch.trim() || m.address.toLowerCase().includes(addrSearch.trim().toLowerCase()))
-              .map((miner, idx) => {
+            {filteredMiners.map((miner, idx) => {
                 const pct = totalBlocks > 0
                   ? (miner.blocksMined / totalBlocks) * 100
                   : 0;
@@ -169,7 +172,7 @@ export function MinerTable() {
                   </tr>
                 );
               })}
-            {addrSearch.trim() && miners.filter((m) => m.address.toLowerCase().includes(addrSearch.trim().toLowerCase())).length === 0 && (
+            {addrSearch.trim() && filteredMiners.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-4 text-center text-xs text-mempool-text-dim">
                   No miners match "{addrSearch}"

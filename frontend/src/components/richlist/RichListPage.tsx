@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { rpc } from "../../api/rpc-client";
 import { SAT_PER_OMNI, satToOmni } from "../../utils/fmt";
 import { AddressLabel } from "../common/AddressLabel";
@@ -158,6 +158,10 @@ export function RichListPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
 
+  const filteredEntries = useMemo(() =>
+    filter ? (list?.entries ?? []).filter((e) => e.address.includes(filter)) : (list?.entries ?? []),
+  [list?.entries, filter]);
+
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
@@ -290,7 +294,7 @@ export function RichListPage() {
         {list && (
           <span className="ml-auto text-xs text-mempool-text-dim">
             {filter
-              ? `${list.entries.filter((e) => e.address.includes(filter)).length} matched`
+              ? `${filteredEntries.length} matched`
               : `showing ${list.shown} of ${list.total}`}
           </span>
         )}
@@ -334,7 +338,7 @@ export function RichListPage() {
               </tr>
             </thead>
             <tbody>
-              {(filter ? list.entries.filter((e) => e.address.includes(filter)) : list.entries).map((e) => {
+              {filteredEntries.map((e) => {
                 const sharePct = list.totalSupply > 0
                   ? ((e.balance / list.totalSupply) * 100).toFixed(2)
                   : "0.00";
