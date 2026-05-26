@@ -530,15 +530,15 @@ function WikiTab({ search }: { search: string }) {
 
 // ── Main DocsPage ─────────────────────────────────────────────────────────────
 
+const DOCS_TOP_TABS: { id: TopTab; label: string; count: number }[] = [
+  { id: "cli", label: "CLI Reference", count: CLI_COMMANDS.length },
+  { id: "rpc", label: "RPC API", count: RPC_METHODS.length },
+  { id: "wiki", label: "Wiki", count: WIKI_ARTICLES.length },
+];
+
 export function DocsPage() {
   const [topTab, setTopTab] = useState<TopTab>("cli");
   const [search, setSearch] = useState("");
-
-  const TOP_TABS: { id: TopTab; label: string; count: number }[] = [
-    { id: "cli", label: "CLI Reference", count: CLI_COMMANDS.length },
-    { id: "rpc", label: "RPC API", count: RPC_METHODS.length },
-    { id: "wiki", label: "Wiki", count: WIKI_ARTICLES.length },
-  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-4">
@@ -583,7 +583,7 @@ export function DocsPage() {
 
       {/* Top tab switcher */}
       <div className="flex gap-1 border-b border-mempool-border">
-        {TOP_TABS.map((tab) => (
+        {DOCS_TOP_TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => { setTopTab(tab.id); setSearch(""); }}

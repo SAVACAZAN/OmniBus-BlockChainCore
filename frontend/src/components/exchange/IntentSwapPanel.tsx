@@ -133,6 +133,14 @@ type IntentStatus =
   | "cancelled"
   | string;
 
+const INTENT_STATUS_LEGEND: { status: IntentStatus; desc: string }[] = [
+  { status: "open",      desc: "Pending taker" },
+  { status: "filled",    desc: "Bond locked" },
+  { status: "settled",   desc: "Complete" },
+  { status: "expired",   desc: "Past expiry" },
+  { status: "cancelled", desc: "Cancelled" },
+];
+
 function StatusBadge({ status }: { status: IntentStatus }) {
   const map: Record<string, string> = {
     open: "bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/40",
@@ -1029,15 +1037,7 @@ export function IntentSwapPanel() {
 
       {/* Footer legend */}
       <div className="mt-6 pt-3 border-t border-mempool-border flex flex-wrap gap-3 text-[10px] text-mempool-text-dim">
-        {(
-          [
-            { status: "open",     desc: "Pending taker" },
-            { status: "filled",   desc: "Bond locked" },
-            { status: "settled",  desc: "Complete" },
-            { status: "expired",  desc: "Past expiry" },
-            { status: "cancelled",desc: "Cancelled" },
-          ] as { status: IntentStatus; desc: string }[]
-        ).map(({ status, desc }) => (
+        {INTENT_STATUS_LEGEND.map(({ status, desc }) => (
           <span key={status} className="flex items-center gap-1">
             <StatusBadge status={status} />
             <span>{desc}</span>
