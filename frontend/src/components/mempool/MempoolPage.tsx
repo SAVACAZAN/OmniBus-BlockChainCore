@@ -176,11 +176,15 @@ export function MempoolPage() {
   }, []);
 
   // Fee distribution chart data
-  const feeChart = FEE_BUCKETS.map((b, i) => ({
+  const feeChart = useMemo(() => FEE_BUCKETS.map((b, i) => ({
     label: b.label,
     count: txs.filter((t) => t.fee >= b.min && t.fee < b.max).length,
     color: BUCKET_COLORS[i],
-  }));
+  })), [txs]);
+
+  const avgFee = useMemo(() =>
+    txs.length === 0 ? 0 : Math.round(txs.reduce((s, t) => s + t.fee, 0) / txs.length),
+  [txs]);
 
   // Filter + sort + paginate (memoized to avoid re-runs on unrelated state changes)
   const filtered = useMemo(() => filter
@@ -262,7 +266,7 @@ export function MempoolPage() {
           value={
             loading || txs.length === 0
               ? "—"
-              : `${Math.round(txs.reduce((s, t) => s + t.fee, 0) / txs.length).toLocaleString()} SAT`
+              : `${avgFee.toLocaleString()} SAT`
           }
           color="orange"
         />

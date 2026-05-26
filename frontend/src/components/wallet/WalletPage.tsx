@@ -2403,10 +2403,10 @@ function MultichainPanel({ addresses }: { addresses: { chain: string; address: s
   const [balances, setBalances] = useState<Record<string, { native: string; symbol: string } | null>>({});
   const [refreshing, setRefreshing] = useState<string | null>(null);
 
-  const groups = addresses.reduce((acc, a) => {
+  const groups = useMemo(() => addresses.reduce((acc, a) => {
     (acc[a.group] ??= []).push(a);
     return acc;
-  }, {} as Record<string, typeof addresses>);
+  }, {} as Record<string, typeof addresses>), [addresses]);
 
   function copy(addr: string) {
     navigator.clipboard.writeText(addr);

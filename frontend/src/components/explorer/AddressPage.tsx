@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { rpc } from "../../api/rpc-client";
 import type { AddressHistoryEntry } from "../../types";
 import { AddressLabel } from "../common/AddressLabel";
@@ -119,17 +119,27 @@ export function AddressPage({ addr, onNavigate }: Props) {
       .finally(() => setLoading(false));
   }, [addr]);
 
-  const received = history.filter((t) => t.direction === "received");
-  const sent = history.filter((t) => t.direction === "sent");
-  const totalReceived = received.reduce((s, t) => s + t.amount, 0);
-  const totalSent = sent.reduce((s, t) => s + t.amount, 0);
-  const totalFees = sent.reduce((s, t) => s + (t.fee || 0), 0);
+  const { received, sent, totalReceived, totalSent, totalFees } = useMemo(() => {
+    const received = history.filter((t) => t.direction === "received");
+    const sent = history.filter((t) => t.direction === "sent");
+    return {
+      received,
+      sent,
+      totalReceived: received.reduce((s, t) => s + t.amount, 0),
+      totalSent: sent.reduce((s, t) => s + t.amount, 0),
+      totalFees: sent.reduce((s, t) => s + (t.fee || 0), 0),
+    };
+  }, [history]);
   // Prefer chain-reported balance; fall back to computed
   const balance = chainBalance !== null ? chainBalance : Math.max(0, totalReceived - totalSent);
 
-  const filtered = filter === "all" ? history : filter === "received" ? received : sent;
+  const filtered = useMemo(() =>
+    filter === "all" ? history : filter === "received" ? received : sent,
+  [filter, history, received, sent]);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const pageTxs = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const pageTxs = useMemo(() =>
+    filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE),
+  [filtered, page]);
 
   if (loading) {
     return (
