@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewTxEvent, WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -83,10 +85,17 @@ export function AddressDetail({
       }
     };
     refresh();
-    const id = setInterval(refresh, 8000);
+    // Refresh immediately on any new block or TX involving this address.
+    const unsubBlock = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const unsubTx = wsSubscribe<WsNewTxEvent>("new_tx", (ev) => {
+      if (ev.from === address) void refresh();
+    });
+    const id = setInterval(refresh, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsubBlock();
+      unsubTx();
     };
   }, [address]);
 

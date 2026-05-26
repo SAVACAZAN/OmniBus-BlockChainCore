@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import OmniBusRpcClient from "../../api/rpc-client";
 import { AddressLabel } from "../common/AddressLabel";
+import { subscribe as wsSubscribe } from "../../api/ws-bus";
+import type { WsNewBlockEvent } from "../../types";
 
 const rpc = new OmniBusRpcClient();
 const SAT_PER_OMNI = 1_000_000_000;
@@ -176,10 +178,12 @@ export function RichListPage() {
       }
     };
     refresh();
-    const id = setInterval(refresh, 8000);
+    const unsub = wsSubscribe<WsNewBlockEvent>("new_block", () => { void refresh(); });
+    const id = setInterval(refresh, 60_000);
     return () => {
       cancelled = true;
       clearInterval(id);
+      unsub();
     };
   }, [limit]);
 
