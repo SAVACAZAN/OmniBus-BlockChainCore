@@ -230,6 +230,189 @@ function classifyArb(spreadPct: number): ArbOpportunity["urgency"] {
   return "low";
 }
 
+// ── Block Prices Panel ────────────────────────────────────────────────────────
+
+interface BlockPriceEntry {
+  exchange: string;
+  pair: string;
+  bidMicroUsd: number;
+  askMicroUsd: number;
+  timestampMs: number;
+  success: boolean;
+}
+
+interface BlockPrices {
+  height: number;
+  prices: BlockPriceEntry[];
+  pricesRoot: string;
+  pricesValidated: boolean;
+}
+
+function BlockPricesPanel() {
+  const [blocks, setBlocks]   = useState<BlockPrices[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [count, setCount]     = useState("20");
+  const [fromHeight, setFromHeight] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const c = Math.min(parseInt(count) || 20, 100);
+      const from = fromHeight !== "" ? parseInt(fromHeight) : null;
+      if (from !== null && !isNaN(from)) {
+        const r = await rpc.request_raw("omnibus_getpricerange", [from, c]);
+        if (r && typeof r === "object" && Array.isArray((r as {blocks?: BlockPrices[]}).blocks)) {
+          setBlocks((r as {blocks: BlockPrices[]}).blocks.filter((b) => b.prices.length > 0));
+        }
+      } else {
+        // Get current tip height first
+        const tip = await rpc.request_raw("getBlockCount", []);
+        const tipH = typeof tip === "number" ? tip : (tip as {result?: number})?.result ?? 0;
+        const startH = Math.max(0, tipH - c);
+        const r = await rpc.request_raw("omnibus_getpricerange", [startH, c]);
+        if (r && typeof r === "object" && Array.isArray((r as {blocks?: BlockPrices[]}).blocks)) {
+          setBlocks((r as {blocks: BlockPrices[]}).blocks.filter((b) => b.prices.length > 0).reverse());
+        }
+      }
+    } catch { /* no blocks */ } finally {
+      setLoading(false);
+    }
+  }, [count, fromHeight]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Collect unique pairs from all blocks for a summary row
+  const pairSummary: Record<string, { lastBid: number; lastAsk: number; exchange: string; height: number }> = {};
+  for (const b of blocks) {
+    for (const e of b.prices) {
+      if (!e.success || e.bidMicroUsd === 0) continue;
+      const key = `${e.exchange}:${e.pair}`;
+      if (!pairSummary[key] || b.height > pairSummary[key].height) {
+        pairSummary[key] = { lastBid: e.bidMicroUsd, lastAsk: e.askMicroUsd, exchange: e.exchange, height: b.height };
+      }
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Controls */}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-mempool-border bg-mempool-bg-elev px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] text-mempool-text-dim">From height</label>
+          <input
+            type="number"
+            value={fromHeight}
+            onChange={(e) => setFromHeight(e.target.value)}
+            placeholder="latest"
+            className="w-24 bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs font-mono text-mempool-text focus:outline-none focus:border-mempool-blue"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] text-mempool-text-dim">Count</label>
+          <select
+            value={count}
+            onChange={(e) => setCount(e.target.value)}
+            className="bg-mempool-bg border border-mempool-border rounded px-2 py-1 text-xs text-mempool-text focus:outline-none focus:border-mempool-blue"
+          >
+            {["10", "20", "50", "100"].map((v) => <option key={v} value={v}>{v} blocks</option>)}
+          </select>
+        </div>
+        <button
+          onClick={load}
+          disabled={loading}
+          className="px-3 py-1 rounded text-xs bg-mempool-blue/20 text-mempool-blue hover:bg-mempool-blue/30 disabled:opacity-40"
+        >
+          {loading ? "Loading…" : "↻ Refresh"}
+        </button>
+        <span className="text-[9px] text-mempool-text-dim ml-auto">
+          Oracle prices committed to blocks · max 100
+        </span>
+      </div>
+
+      {/* Latest prices summary */}
+      {Object.keys(pairSummary).length > 0 && (
+        <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev overflow-hidden">
+          <div className="px-3 py-2 border-b border-mempool-border">
+            <span className="text-[10px] uppercase tracking-wider text-mempool-text-dim font-semibold">
+              Latest On-Chain Oracle Prices (committed to blocks)
+            </span>
+          </div>
+          <table className="w-full text-[10px] font-mono">
+            <thead>
+              <tr className="text-[8px] uppercase tracking-wider text-mempool-text-dim border-b border-mempool-border/40">
+                <th className="text-left px-3 py-1.5">Exchange</th>
+                <th className="text-left px-3 py-1.5">Pair</th>
+                <th className="text-right px-3 py-1.5 text-green-400/70">Bid</th>
+                <th className="text-right px-3 py-1.5 text-orange-400/70">Ask</th>
+                <th className="text-right px-3 py-1.5">At block</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(pairSummary).map(([key, v]) => {
+                const bid = v.lastBid / 1_000_000;
+                const ask = v.lastAsk / 1_000_000;
+                return (
+                  <tr key={key} className="border-b border-mempool-border/20 hover:bg-mempool-bg/40">
+                    <td className="px-3 py-1.5 text-mempool-text">{v.exchange}</td>
+                    <td className="px-3 py-1.5 text-mempool-text-dim">{key.split(":")[1]}</td>
+                    <td className="px-3 py-1.5 text-right text-green-400">
+                      ${bid >= 1000 ? bid.toLocaleString("en-US", {maximumFractionDigits: 0}) : bid.toFixed(4)}
+                    </td>
+                    <td className="px-3 py-1.5 text-right text-orange-400">
+                      ${ask >= 1000 ? ask.toLocaleString("en-US", {maximumFractionDigits: 0}) : ask.toFixed(4)}
+                    </td>
+                    <td className="px-3 py-1.5 text-right text-mempool-text-dim">#{v.height}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Block-by-block history */}
+      {blocks.length === 0 && !loading && (
+        <div className="text-[11px] text-mempool-text-dim text-center py-6">
+          No oracle price data found in these blocks. The oracle process must be running to commit prices.
+        </div>
+      )}
+      {blocks.length > 0 && (
+        <div className="space-y-1.5 max-h-96 overflow-y-auto pr-1">
+          {blocks.map((b) => (
+            <div key={b.height} className="rounded border border-mempool-border/40 bg-mempool-bg-elev">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-mempool-border/20">
+                <span className="text-[10px] text-mempool-text font-mono">Block #{b.height}</span>
+                <div className="flex items-center gap-2">
+                  {b.pricesValidated && (
+                    <span className="text-[8px] text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">✓ validated</span>
+                  )}
+                  <span className="text-[8px] font-mono text-mempool-text-dim truncate max-w-[80px]">
+                    {b.pricesRoot.slice(0, 8)}…
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 px-3 py-1.5">
+                {b.prices.filter(e => e.success).map((e, i) => {
+                  const bid = e.bidMicroUsd / 1_000_000;
+                  return (
+                    <div key={i} className="flex items-center gap-1 text-[9px] font-mono">
+                      <span className="text-mempool-text-dim">{e.exchange}·{e.pair}</span>
+                      <span className="text-green-400">{bid >= 1000 ? bid.toLocaleString("en-US", {maximumFractionDigits: 0}) : bid.toFixed(4)}</span>
+                    </div>
+                  );
+                })}
+                {b.prices.every(e => !e.success) && (
+                  <span className="text-[9px] text-mempool-text-dim italic">no successful feeds this block</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Oracle Policy Panel ───────────────────────────────────────────────────────
 
 interface OraclePolicy {
@@ -396,7 +579,7 @@ function OraclePolicyPanel() {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OraclePricePanel() {
-  const [tab, setTab] = useState<"prices" | "policy">("prices");
+  const [tab, setTab] = useState<"prices" | "policy" | "blocks">("prices");
   const [cexPrices, setCexPrices]     = useState<Record<string, number>>({});
   const [priceRows, setPriceRows]     = useState<PriceRow[]>([]);
   const [omniDex, setOmniDex]         = useState<OmniDexPrice[]>([]);
@@ -483,24 +666,29 @@ export function OraclePricePanel() {
 
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-mempool-border pb-1">
-        {(["prices", "policy"] as const).map((t) => (
+        {([
+          { id: "prices", label: "📡 Prices & Arbitrage" },
+          { id: "blocks", label: "📦 Block Prices" },
+          { id: "policy", label: "⚙️ Policy" },
+        ] as const).map((t) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-3 py-1.5 rounded-t text-xs font-semibold capitalize transition-colors ${
-              tab === t
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-3 py-1.5 rounded-t text-xs font-semibold transition-colors ${
+              tab === t.id
                 ? "bg-mempool-blue/20 text-mempool-blue border border-mempool-blue/30"
                 : "text-mempool-text-dim hover:text-mempool-text"
             }`}
           >
-            {t === "prices" ? "📡 Prices & Arbitrage" : "⚙️ Oracle Policy"}
+            {t.label}
           </button>
         ))}
       </div>
 
       {tab === "policy" && <OraclePolicyPanel />}
+      {tab === "blocks" && <BlockPricesPanel />}
 
-      {tab === "prices" && <>
+      {tab === "prices" && (<>
 
       {/* Header */}
       <div className="flex items-center justify-between rounded-lg border border-mempool-border bg-mempool-bg-elev px-4 py-2.5">
@@ -733,7 +921,7 @@ export function OraclePricePanel() {
         </div>
       )}
 
-      </>}
+      </>)}
 
     </div>
   );
