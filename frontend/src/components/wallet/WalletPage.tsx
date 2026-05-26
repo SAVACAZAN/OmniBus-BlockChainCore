@@ -1273,12 +1273,10 @@ function SendNamePreview({ rawInput, onResolve }: {
 // hook so the same panel can be reused outside Wallet (e.g. NamesPage).
 function OwnedNameManageWrapper({ ownerAddress }: { ownerAddress: string }) {
   const names = useNamesOwnedBy(ownerAddress);
-  const owned = names.map((n) => ({
-    fullLabel: n.fullLabel,
-    name: n.name,
-    tld: n.tld,
-    registeredAtBlock: n.registeredAtBlock,
-  }));
+  const owned = useMemo(
+    () => names.map((n) => ({ fullLabel: n.fullLabel, name: n.name, tld: n.tld, registeredAtBlock: n.registeredAtBlock })),
+    [names],
+  );
   return <NameManagePanel ownerAddress={ownerAddress} ownedNames={owned} />;
 }
 

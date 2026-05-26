@@ -91,7 +91,7 @@ type ResolveResp = {
 type MultiResolveResp = ResolveResp & { _tld: Tld };
 
 function SearchAllResultsList({ results, search }: { results: MultiResolveResp[]; search: string }) {
-  const found = results.filter((r) => r.found);
+  const found = useMemo(() => results.filter((r) => r.found), [results]);
   if (found.length === 0) {
     return (
       <div className="mt-3 p-3 rounded border border-amber-500/40 bg-amber-500/10">
@@ -1604,9 +1604,10 @@ function NsHealthDashboard() {
   if (loading && !stats) return null;
   if (!stats) return null;
 
-  const tldEntries = Object.entries(stats.by_tld)
-    .filter(([, v]) => v > 0)
-    .sort(([, a], [, b]) => b - a);
+  const tldEntries = useMemo(
+    () => Object.entries(stats.by_tld).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a),
+    [stats],
+  );
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg-elev p-4 mb-6 space-y-3">

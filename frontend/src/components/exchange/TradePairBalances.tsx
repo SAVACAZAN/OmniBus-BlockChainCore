@@ -159,7 +159,7 @@ export function TradePairBalances({ base, quote, exchBalances }: Props) {
   // TypeScript doesn't complain about the prop being dropped.
   void exchBalances;
 
-  const assets = Array.from(new Set([base, quote]));
+  const assets = useMemo(() => Array.from(new Set([base, quote])), [base, quote]);
 
   return (
     <div className="rounded-lg border border-mempool-border bg-mempool-bg p-3 mb-3">

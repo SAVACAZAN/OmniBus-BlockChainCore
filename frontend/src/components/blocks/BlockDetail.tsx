@@ -106,6 +106,15 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
     return { totalFees, feeBurned: Math.floor(totalFees * 0.5), feeToMiner: totalFees - Math.floor(totalFees * 0.5) };
   }, [txs]);
   const pricePairs = useMemo(() => Array.from(new Set(prices.map((p) => p.pair))), [prices]);
+  const pricesByPair = useMemo(() => {
+    const m = new Map<string, PriceEntry[]>();
+    for (const p of prices) {
+      const arr = m.get(p.pair) ?? [];
+      arr.push(p);
+      m.set(p.pair, arr);
+    }
+    return m;
+  }, [prices]);
 
   const isOnChain = tipHeight > 0 && full.height < tipHeight - 100;
   const priceSourceLabel = isOnChain ? "on-chain" : "live";
@@ -220,7 +229,7 @@ export function BlockDetail({ block, onClose }: BlockDetailProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {pricePairs.map((pair) => {
-                    const rows = prices.filter((p) => p.pair === pair);
+                    const rows = pricesByPair.get(pair) ?? [];
                     if (rows.length === 0) return null;
                     return (
                       <div key={pair}>

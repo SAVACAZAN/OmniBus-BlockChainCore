@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useBlockchain } from "../../stores/useBlockchainStore";
 import { rpc } from "../../api/rpc-client";
 
@@ -74,9 +74,11 @@ export function BlockTimeBand() {
 
   if (times.length < 3) return null;
 
-  const avg = times.reduce((s, v) => s + v, 0) / times.length;
-  const mn  = Math.min(...times);
-  const mx  = Math.max(...times);
+  const { avg, mn, mx } = useMemo(() => ({
+    avg: times.reduce((s, v) => s + v, 0) / times.length,
+    mn: Math.min(...times),
+    mx: Math.max(...times),
+  }), [times]);
 
   const healthColor =
     avg <= 2 ? "text-green-400" :
