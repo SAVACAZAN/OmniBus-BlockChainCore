@@ -363,8 +363,8 @@ export function CovenantPanel() {
                         </button>
                       )}
                     </div>
-                    {(liveMap[c.address]?.whitelist ?? c.whitelist).map((addr, i) => (
-                      <div key={i} className="font-mono text-xs text-mempool-text bg-mempool-bg-elev rounded px-2 py-1 break-all">
+                    {(liveMap[c.address]?.whitelist ?? c.whitelist).map((addr) => (
+                      <div key={addr} className="font-mono text-xs text-mempool-text bg-mempool-bg-elev rounded px-2 py-1 break-all">
                         {addr}
                       </div>
                     ))}

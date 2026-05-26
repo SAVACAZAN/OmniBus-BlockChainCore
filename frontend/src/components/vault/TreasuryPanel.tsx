@@ -82,8 +82,8 @@ function DistributeModal({ entry, onClose, onConfirm }: DistributeModalProps) {
 
         <div className="space-y-2">
           <div className="text-[10px] uppercase tracking-wider text-mempool-text-dim">Split</div>
-          {perDest.map((d, i) => (
-            <div key={i} className="flex items-center justify-between text-xs font-mono bg-mempool-bg rounded px-3 py-2">
+          {perDest.map((d) => (
+            <div key={d.address} className="flex items-center justify-between text-xs font-mono bg-mempool-bg rounded px-3 py-2">
               <div>
                 <span className="text-mempool-text-dim">{d.label || midTrunc(d.address)}</span>
                 <span className="text-mempool-text-dim ml-2">{d.percent}%</span>
@@ -469,8 +469,8 @@ export function TreasuryPanel() {
 
                 {/* Destinations mini-list */}
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {t.destinations.map((d, i) => (
-                    <span key={i} className="text-[9px] font-mono bg-mempool-bg-elev border border-mempool-border rounded px-2 py-0.5 text-mempool-text-dim">
+                  {t.destinations.map((d) => (
+                    <span key={d.address} className="text-[9px] font-mono bg-mempool-bg-elev border border-mempool-border rounded px-2 py-0.5 text-mempool-text-dim">
                       {d.label || midTrunc(d.address)} {d.percent}%
                     </span>
                   ))}
