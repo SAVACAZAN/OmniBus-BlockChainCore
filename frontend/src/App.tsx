@@ -37,6 +37,7 @@ import { ChannelsPage } from "./components/channels/ChannelsPage";
 import { SubscriptionPage } from "./components/subscription/SubscriptionPage";
 import { PQWalletPanel } from "./components/wallet/PQWalletPanel";
 import { IdentityDIDPage } from "./components/identity/IdentityDIDPage";
+import { TxToast } from "./components/common/TxToast";
 
 export type TabId = "dashboard" | "blocks" | "mempool" | "stats" | "wallet" | "network" | "faucet" | "richlist" | "agents" | "reputation" | "stake" | "audit" | "validators" | "names" | "exchange" | "bridge" | "swap" | "zeroday" | "api" | "profile" | "roadmap" | "docs" | "vault" | "governance" | "poap" | "notarize" | "channels" | "subscriptions" | "pqwallet" | "identity";
 
@@ -382,6 +383,7 @@ export default function App() {
             setActiveTab("profile");
           }}
         />
+        <TxToast />
       </div>
     </PlasmaSlotProvider></WebSocketProvider>
   );
