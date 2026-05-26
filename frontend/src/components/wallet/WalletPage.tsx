@@ -43,6 +43,14 @@ const PQ_DOMAINS = [
   { prefix: "ob_s3_", algo: "SLH-DSA-256s",  bits: 256, color: "text-mempool-text",   emoji: "🏖️", tier: "VACATION" },
 ];
 
+// Maps frontend PQ slot scheme names → canonical wire scheme names used by the backend.
+const PQ_SCHEME_MAP: Record<string, string> = {
+  ml_dsa_87:    "pq_omni_ml_dsa",
+  falcon_512:   "pq_omni_falcon",
+  dilithium_5:  "pq_omni_dilithium",
+  slh_dsa_256s: "pq_omni_slh_dsa",
+};
+
 // Wallet state used to live here as a local useState. Now everything comes
 // from the global wallet-keystore singleton via useWallet() — connecting from
 // the Header button instantly lights up this page (and every other tab).
@@ -377,13 +385,7 @@ export function WalletPage() {
 
         // Backend uses canonical scheme names "pq_omni_ml_dsa" / "pq_omni_falcon" / etc.
         // Frontend slot.scheme is short ("ml_dsa_87"). Map before sending.
-        const SCHEME_MAP: Record<string, string> = {
-          ml_dsa_87:    "pq_omni_ml_dsa",
-          falcon_512:   "pq_omni_falcon",
-          dilithium_5:  "pq_omni_dilithium",
-          slh_dsa_256s: "pq_omni_slh_dsa",
-        };
-        const wireScheme = SCHEME_MAP[slot.scheme] ?? slot.scheme;
+        const wireScheme = PQ_SCHEME_MAP[slot.scheme] ?? slot.scheme;
 
         const result: any = await rpc.pqSend({
           from: slot.address, to: resolvedTo, amount: amountSat, fee,
